@@ -5,6 +5,8 @@ python:
     - 3.5
     - 3.6
 install:
+    - pip list
     - pip install -r requirements-dev.txt
+    - pip list
     - pip install -e .
 script: pytest
