@@ -18,7 +18,3 @@ def test_crossentropy():
     for i in range(len(predictions)):
         ce = crossentropy(logits=predictions, label=i)
         assert ce == approx(-np.log(probabilities[i]))
-
-
-def test_failing():
-    assert False
