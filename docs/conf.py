@@ -17,9 +17,12 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+from typing import Dict
+from unittest.mock import Mock
+sys.path.insert(0, os.path.abspath('..'))
+import foolbox
 
 
 # -- General configuration ------------------------------------------------
@@ -31,9 +34,18 @@
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
-    'sphinx.ext.coverage']
+    'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.linkcode',
+    'numpydoc',
+]
+
+# see http://stackoverflow.com/q/12206334/562769
+numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -80,12 +92,47 @@ pygments_style = 'sphinx'
 todo_include_todos = False
 
 
+# Resolve function for the linkcode extension.
+def linkcode_resolve(domain, info):
+    def find_source():
+        # try to find the file and line number, based on code from numpy:
+        # https://github.com/numpy/numpy/blob/master/doc/source/conf.py#L286
+        obj = sys.modules[info['module']]
+        for part in info['fullname'].split('.'):
+            obj = getattr(obj, part)
+        import inspect
+        import os
+        fn = inspect.getsourcefile(obj)
+        fn = os.path.relpath(fn, start=os.path.dirname(foolbox.__file__))
+        source, lineno = inspect.getsourcelines(obj)
+        return fn, lineno, lineno + len(source) - 1
+
+    if domain != 'py' or not info['module']:
+        return None
+    try:
+        filename = 'foolbox/%s#L%d-L%d' % find_source()
+    except Exception:
+        filename = info['module'].replace('.', '/') + '.py'
+    tag = 'master'
+    url = "https://github.com/jonasrauber/foolbox/blob/%s/%s"
+    return url % (tag, filename)
+
+
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+# html_theme = 'alabaster'
+
+if os.environ.get('READTHEDOCS') != 'True':
+    try:
+        import sphinx_rtd_theme
+    except ImportError:
+        pass  # assume we have sphinx >= 1.3
+    else:
+        html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+    html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -107,7 +154,7 @@ htmlhelp_basename = 'Foolboxdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
-latex_elements = {
+latex_elements: Dict[str, str] = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
@@ -155,5 +202,9 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
-
-
+# mock imports, see https://stackoverflow.com/q/15889621
+# autodoc_mock_imports = ['tensorflow'] does not seem to work
+sys.modules['tensorflow'] = Mock()
+sys.modules['theano'] = Mock()
+sys.modules['theano.tensor'] = Mock()
+sys.modules['torch'] = Mock()

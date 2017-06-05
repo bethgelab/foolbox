@@ -1,16 +1,22 @@
-.. Foolbox documentation master file, created by
-   sphinx-quickstart on Mon Jun  5 06:37:00 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Welcome to Foolbox
+==================
 
-Welcome to Foolbox's documentation!
-===================================
+Foolbox is a Python toolbox to create adversarial examples that fool neural networks.
+
+Foolbox is work in progress and any input is welcome. The source code can be found on `GitHub`_.
+
+User Guide
+----------
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+API Reference
+-------------
 
+.. toctree::
+   :maxdepth: 2
 
 Indices and tables
 ==================
@@ -18,3 +24,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _GitHub: https://github.com/jonasrauber/foolbox
