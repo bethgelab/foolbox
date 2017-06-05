@@ -1,7 +1,10 @@
+sudo: false
 language: python
 python:
-  - "3.4"
-  - "3.5"
-  - "3.6"
-install: pip install -r requirements-dev.txt
+    - 3.4
+    - 3.5
+    - 3.6
+install:
+    - pip install -r requirements-dev.txt
+    - pip install -e .
 script: pytest

@@ -3,3 +3,7 @@ sphinx
 sphinx-autobuild
 sphinx_rtd_theme
 twine
+pytest
+pytest-cov
+flake8
+mypy
