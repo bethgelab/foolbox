@@ -1,9 +1,9 @@
-numpydoc
-sphinx
-sphinx-autobuild
-sphinx_rtd_theme
-twine
-pytest
-pytest-cov
-flake8
-mypy
+numpydoc >= 0.6.0
+sphinx >= 1.6.2
+sphinx-autobuild >= 0.6.0
+sphinx_rtd_theme >= 0.2.4
+twine >= 1.9.1
+pytest >= 3.1.0
+pytest-cov >= 2.5.1
+flake8 >= 3.3.0
+mypy >= 0.511
