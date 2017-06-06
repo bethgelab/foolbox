@@ -12,6 +12,7 @@ def test_tensorflow(image):
         images = tf.placeholder(tf.float32, shape=(None, 224, 224, 3))
         net = tf.contrib.layers.flatten(images)
         net = tf.layers.dense(net, 1000)
+        net = net / 100
         logits = net
         init_op = tf.global_variables_initializer()
 

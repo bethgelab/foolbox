@@ -5,9 +5,14 @@ python:
     - 3.4
     - 3.5
     - 3.6
+before_install:
+    - pip install -U pip
 install:
     - pip install -r requirements-dev.txt
     - pip install -e .
 script: pytest
 after_success:
     - coveralls
+cache:
+    - pip
+    - apt
