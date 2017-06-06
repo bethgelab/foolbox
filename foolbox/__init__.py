@@ -1,4 +1,5 @@
 __version__ = '0.1a2'
 
 from . import models  # type: ignore # noqa: F401
+from . import criteria  # type: ignore # noqa: F401
 from . import utils  # type: ignore # noqa: F401
