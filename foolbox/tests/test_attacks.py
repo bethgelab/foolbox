@@ -96,3 +96,53 @@ def test_iterative_gradient_sign_attack_without_gradient(
     attack(adversarial)
     assert adversarial.get() is None
     assert adversarial.best_distance().value() == np.inf
+
+
+def test_lbfgs_attack_with_gradient(
+        model, criterion, image, label):
+
+    adversarial = Adversarial(model, criterion, image, label)
+
+    attack = attacks.LBFGSAttack()
+    attack(adversarial)
+    assert adversarial.get() is not None
+    assert adversarial.best_distance().value() < np.inf
+
+
+def test_lbfgs_attack_without_gradient(
+        model, criterion, image, label):
+
+    del model.gradient
+    adversarial = Adversarial(model, criterion, image, label)
+
+    attack = attacks.LBFGSAttack()
+    attack(adversarial)
+    assert adversarial.get() is None
+    assert adversarial.best_distance().value() == np.inf
+
+
+def test_approx_lbfgs_attack_with_gradient(
+        model, criterion, image, label):
+
+    adversarial = Adversarial(model, criterion, image, label)
+
+    attack = attacks.ApproximateLBFGSAttack()
+    assert attack is not None
+    assert adversarial is not None
+    # attack(adversarial)
+    # assert adversarial.get() is not None
+    # assert adversarial.best_distance().value() < np.inf
+
+
+def test_approx_lbfgs_attack_without_gradient(
+        model, criterion, image, label):
+
+    del model.gradient
+    adversarial = Adversarial(model, criterion, image, label)
+
+    attack = attacks.ApproximateLBFGSAttack()
+    assert attack is not None
+    assert adversarial is not None
+    # attack(adversarial)
+    # assert adversarial.get() is not None
+    # assert adversarial.best_distance().value() < np.inf
