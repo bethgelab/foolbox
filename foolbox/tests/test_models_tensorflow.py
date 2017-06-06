@@ -20,7 +20,7 @@ def test_tensorflow_model():
             model = TensorFlowModel(images, logits, bounds=(0, 255))
 
             _images = np.random.rand(2, 224, 224, 3).astype(np.float32)
-            _label = 22
+            _label = 7
 
             assert model.batch_predictions(_images).shape == (2, nc)
 
