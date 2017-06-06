@@ -10,10 +10,20 @@ Foolbox is work in progress and any input is welcome. The source code can be fou
    :caption: User Guide
 
    user/installation
+   user/tutorial
+   user/adversarial
+   user/development
 
 .. toctree::
    :maxdepth: 2
    :caption: API Reference
+
+   modules/models
+   modules/criteria
+   modules/distances
+   modules/attacks
+   modules/adversarial
+   modules/utils
 
 Indices and tables
 ==================

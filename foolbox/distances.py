@@ -47,6 +47,12 @@ import numpy as np
 
 @functools.total_ordering
 class Distance(ABC):
+    """Base class for distances.
+
+    This class should be subclassed when implementing
+    new distances. Subclasses must implement _calculate.
+
+    """
 
     def __init__(
             self,
@@ -95,6 +101,9 @@ class Distance(ABC):
 
 
 class MeanSquaredDistance(Distance):
+    """Calculates the mean squared error between two images.
+
+    """
 
     def _calculate(self):
         diff = self.other - self.reference
@@ -115,6 +124,9 @@ MSE = MeanSquaredDistance
 
 
 class MeanAbsoluteDistance(Distance):
+    """Calculates the mean absolute error between two images.
+
+    """
 
     def _calculate(self):
         diff = self.other - self.reference
