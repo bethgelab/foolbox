@@ -29,3 +29,9 @@ Development
 -----------
 
 Foolbox is a work in progress and any input is welcome.
+
+Authors
+-------
+
+* Jonas Rauber
+* Wieland Brendel
