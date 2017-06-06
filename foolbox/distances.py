@@ -48,11 +48,24 @@ import numpy as np
 @functools.total_ordering
 class Distance(ABC):
 
-    def __init__(self, reference, other):
+    def __init__(
+            self,
+            reference=None,
+            other=None,
+            *,
+            value=None,
+            gradient=None):
+
         self.reference = reference
         self.other = other
-        # gradient of value w.r.t. other
-        self._value, self._gradient = self._calculate()
+
+        if value is not None or gradient is not None:
+            assert reference is None
+            assert other is None
+            self._value = value
+            self._gradient = gradient
+        else:
+            self._value, self._gradient = self._calculate()
 
     def value(self):
         return self._value
@@ -73,7 +86,7 @@ class Distance(ABC):
     def __eq__(self, other):
         if other.__class__ != self.__class__:
             raise NotImplementedError('Comparisons are only possible between the same distance types.')  # noqa: E501
-        return self._value.__eq__(other)
+        return self.value().__eq__(other.value())
 
     def __lt__(self, other):
         if other.__class__ != self.__class__:

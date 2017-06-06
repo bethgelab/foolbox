@@ -15,9 +15,6 @@ def test_base_distance():
         def _calculate(self):
             return 22, 2
 
-        def __lt__(self, other):
-            return super().__lt__(other)
-
     distance = TestDistance(None, None)
     assert distance.name() == 'TestDistance'
     assert distance.value() == 22
@@ -40,8 +37,12 @@ def test_mean_squared_distance():
     assert d.value() == 2.
     assert (d.gradient() == np.array([2, 0])).all()
 
+    assert str(d)[:5] == 'MSE ='
+
 
 def test_mean_absolute_distance():
     d = distances.MeanAbsoluteDistance(np.array([0, 2]), np.array([2, 2]))
     assert d.value() == 1.
     assert (d.gradient() == np.array([1, 0])).all()
+
+    assert str(d)[:5] == 'MAE ='
