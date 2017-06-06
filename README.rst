@@ -23,4 +23,9 @@ Installation
 Documentation
 -------------
 
-Documentation is available on readthedocs: http://foolbox.readthedocs.io/en/latest/
+Documentation is available on readthedocs: http://foolbox.readthedocs.io/
+
+Development
+-----------
+
+Foolbox is a work in progress and any input is welcome.
