@@ -100,7 +100,9 @@ class LBFGSAttack(Attack):
                 return distance.value()
 
             def crossentropy(x):
-                logits, _ = a.predictions(x.reshape(shape), target_class)
+                # lbfgs with approx grad does not seem to respect the bounds
+                # setting strict to False
+                logits, _ = a.predictions(x.reshape(shape), strict=False)
                 ce = utils.crossentropy(logits=logits, label=target_class)
                 return ce
 
@@ -141,17 +143,12 @@ class LBFGSAttack(Attack):
                 maxiter=maxiter,
                 epsilon=approx_grad_eps)
 
-            if self._approximate_gradient:
-                assert f == loss(x, c)
-            else:
-                assert f == loss(x, c)[0]
-
             _, is_adversarial = a.predictions(x.reshape(shape))
             return is_adversarial
 
         # finding initial c
         c = epsilon
-        while True:
+        for i in range(30):
             c = 2 * c
             is_adversarial = lbfgsb(c)
             if verbose:
@@ -160,6 +157,10 @@ class LBFGSAttack(Attack):
                     ('adversarial' if is_adversarial else 'not adversarial')))
             if is_adversarial:
                 break
+        else:  # pragma: no cover
+            if verbose:
+                print('Could not find an adversarial; maybe the model returns wrong gradients')  # noqa: E501
+            return
 
         # binary search
         c_low = 0
