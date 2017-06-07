@@ -1,5 +1,5 @@
 .. image:: https://readthedocs.org/projects/foolbox/badge/?version=latest
-    :target: http://foolbox.readthedocs.io/en/latest/
+    :target: https://foolbox.readthedocs.io/en/latest/
 
 .. image:: https://travis-ci.org/jonasrauber/foolbox.svg?branch=master
     :target: https://travis-ci.org/jonasrauber/foolbox
