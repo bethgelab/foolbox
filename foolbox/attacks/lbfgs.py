@@ -187,4 +187,4 @@ class ApproximateLBFGSAttack(LBFGSAttack):
 
     def __init__(self, *args, **kwargs):
         assert 'approximate_gradient' not in kwargs
-        super().__init__(*args, **kwargs, approximate_gradient=True)
+        super().__init__(*args, approximate_gradient=True, **kwargs)
