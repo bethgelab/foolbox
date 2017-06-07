@@ -5,3 +5,4 @@ from .base import *
 # Gradient-based attacks
 from .gradientsign import *
 from .lbfgs import *
+from .deepfool import *

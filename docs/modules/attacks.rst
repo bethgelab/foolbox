@@ -19,6 +19,7 @@
    IterativeGradientSignAttack
    FGSM
    LBFGSAttack
+   DeepFool
 
 
 .. rubric:: :doc:`attacks/approxgradient`

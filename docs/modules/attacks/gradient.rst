@@ -14,3 +14,6 @@ Gradient-based attacks
 
 .. autoclass:: LBFGSAttack
    :members:
+
+.. autoclass:: DeepFool
+   :members:

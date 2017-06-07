@@ -10,6 +10,7 @@ import tensorflow as tf
 
 from foolbox.criteria import Misclassification
 from foolbox.criteria import TargetClass
+from foolbox.criteria import OriginalClassProbability
 from foolbox.models import TensorFlowModel
 from foolbox.models.wrappers import GradientLess
 from foolbox import Adversarial
@@ -115,6 +116,12 @@ def bn_targeted_criterion():
 
 
 @pytest.fixture
+def bn_impossible_criterion():
+    """Does not consider any image as adversarial."""
+    return OriginalClassProbability(0.)
+
+
+@pytest.fixture
 def bn_adversarial():
     criterion = bn_criterion()
     image = bn_image()
@@ -143,5 +150,16 @@ def gl_bn_adversarial():
     label = bn_label()
 
     cm_model = contextmanager(gl_bn_model)
+    with cm_model() as model:
+        yield Adversarial(model, criterion, image, label)
+
+
+@pytest.fixture
+def bn_impossible():
+    criterion = bn_impossible_criterion()
+    image = bn_image()
+    label = bn_label()
+
+    cm_model = contextmanager(bn_model)
     with cm_model() as model:
         yield Adversarial(model, criterion, image, label)

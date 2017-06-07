@@ -106,7 +106,7 @@ class DifferentiableModel(Model):
     A model should be considered differentiable based on whether it
     provides a :meth:`predictions_and_gradient` method and a
     :meth:`gradient` method, not based on whether it subclasses
-    :class:`DifferentiableModel.
+    :class:`DifferentiableModel`.
 
     A differentiable model does not necessarily provide reasonable
     values for the gradients, the gradient can be wrong. It only
