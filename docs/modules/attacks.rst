@@ -32,6 +32,8 @@
    SaliencyMapAttack
    GaussianBlurAttack
    ContrastReductionAttack
+   SinglePixelAttack
+   LocalSearchAttack
 
 
 .. rubric:: :doc:`attacks/approxgradient`

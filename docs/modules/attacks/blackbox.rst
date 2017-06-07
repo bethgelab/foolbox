@@ -11,3 +11,9 @@ Black-box attacks
 
 .. autoclass:: ContrastReductionAttack
    :members:
+
+.. autoclass:: SinglePixelAttack
+   :members:
+
+.. autoclass:: LocalSearchAttack
+   :members:
