@@ -7,7 +7,9 @@ from ..utils import crossentropy
 
 
 class DeepFool(Attack):
-    """Implements DeepFool attack from [1]_
+    """Simple and accurate adversarial attack
+
+    Implementes DeepFool introduced in [1]_.
 
     References
     ----------
@@ -44,7 +46,7 @@ class DeepFool(Attack):
             if is_adv:
                 return
 
-            # correspondance to algorithm 2 in [1]:
+            # correspondance to algorithm 2 in [1]_:
             #
             # loss corresponds to f
             # grad corresponds to -df/dx

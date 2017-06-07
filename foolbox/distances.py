@@ -32,6 +32,7 @@ implement the :meth:`_calculate` method.
 Examples
 --------
 
+>>> import numpy as np
 >>> from foolbox.distances import MeanSquaredDistance
 >>> d = MeanSquaredDistance(np.array([1, 2]), np.array([2, 2]))
 >>> print(d)

@@ -8,6 +8,7 @@
 
    attacks/gradient
    attacks/approxgradient
+   attacks/other
 
 
 .. rubric:: :doc:`attacks/gradient`
@@ -28,3 +29,11 @@
    :nosignatures:
 
    ApproximateLBFGSAttack
+
+
+.. rubric:: :doc:`attacks/other`
+
+.. autosummary::
+   :nosignatures:
+
+   PrecomputedImagesAttack

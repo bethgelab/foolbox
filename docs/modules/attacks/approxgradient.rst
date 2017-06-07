@@ -1,5 +1,5 @@
-Gradient-based attacks
-----------------------
+Approximate gradient attacks
+----------------------------
 
 .. currentmodule:: foolbox.attacks
 

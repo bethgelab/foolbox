@@ -6,3 +6,6 @@ from .base import *
 from .gradientsign import *
 from .lbfgs import *
 from .deepfool import *
+
+# Other attacks
+from .precomputed import *
