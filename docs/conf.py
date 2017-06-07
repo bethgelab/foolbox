@@ -21,6 +21,17 @@ import os
 import sys
 from unittest.mock import Mock
 sys.path.insert(0, os.path.abspath('..'))
+
+# mock imports, see https://stackoverflow.com/q/15889621
+# autodoc_mock_imports = ['tensorflow'] does not seem to work
+sys.modules['numpy'] = Mock()
+sys.modules['scipy'] = Mock()
+sys.modules['scipy.optimize'] = Mock()
+sys.modules['tensorflow'] = Mock()
+sys.modules['theano'] = Mock()
+sys.modules['theano.tensor'] = Mock()
+sys.modules['torch'] = Mock()
+
 import foolbox
 
 
@@ -200,13 +211,3 @@ texinfo_documents = [
      author, 'Foolbox', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-# mock imports, see https://stackoverflow.com/q/15889621
-# autodoc_mock_imports = ['tensorflow'] does not seem to work
-sys.modules['numpy'] = Mock()
-sys.modules['scipy'] = Mock()
-sys.modules['scipy.optimize'] = Mock()
-sys.modules['tensorflow'] = Mock()
-sys.modules['theano'] = Mock()
-sys.modules['theano.tensor'] = Mock()
-sys.modules['torch'] = Mock()
