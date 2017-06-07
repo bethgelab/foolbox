@@ -7,6 +7,7 @@
    :hidden:
 
    attacks/gradient
+   attacks/blackbox
    attacks/approxgradient
    attacks/other
 
@@ -21,6 +22,14 @@
    FGSM
    LBFGSAttack
    DeepFool
+
+
+.. rubric:: :doc:`attacks/blackbox`
+
+.. autosummary::
+   :nosignatures:
+
+   SaliencyMapAttack
 
 
 .. rubric:: :doc:`attacks/approxgradient`
