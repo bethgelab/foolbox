@@ -9,7 +9,7 @@ before_install:
     - pip install -U pip
 install:
     - pip install -r requirements-dev.txt
-    - pip install tensorflow >= 1.1.0
+    - pip install --upgrade tensorflow
     - pip install -e .
 script: pytest
 after_success:
