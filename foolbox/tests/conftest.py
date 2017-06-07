@@ -122,6 +122,12 @@ def bn_impossible_criterion():
 
 
 @pytest.fixture
+def bn_trivial_criterion():
+    """Does consider every image as adversarial."""
+    return OriginalClassProbability(1.)
+
+
+@pytest.fixture
 def bn_adversarial():
     criterion = bn_criterion()
     image = bn_image()
@@ -157,6 +163,17 @@ def gl_bn_adversarial():
 @pytest.fixture
 def bn_impossible():
     criterion = bn_impossible_criterion()
+    image = bn_image()
+    label = bn_label()
+
+    cm_model = contextmanager(bn_model)
+    with cm_model() as model:
+        yield Adversarial(model, criterion, image, label)
+
+
+@pytest.fixture
+def bn_trivial():
+    criterion = bn_trivial_criterion()
     image = bn_image()
     label = bn_label()
 

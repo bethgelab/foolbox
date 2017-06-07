@@ -5,3 +5,9 @@ Black-box attacks
 
 .. autoclass:: SaliencyMapAttack
    :members:
+
+.. autoclass:: GaussianBlurAttack
+   :members:
+
+.. autoclass:: ContrastReductionAttack
+   :members:

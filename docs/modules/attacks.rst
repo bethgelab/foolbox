@@ -30,6 +30,8 @@
    :nosignatures:
 
    SaliencyMapAttack
+   GaussianBlurAttack
+   ContrastReductionAttack
 
 
 .. rubric:: :doc:`attacks/approxgradient`
