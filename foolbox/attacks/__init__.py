@@ -1,20 +1,14 @@
 # flake8: noqa
 
-from .base import *
-
-# Gradient-based attacks
-from .gradientsign import *
-from .lbfgs import *
-from .deepfool import *
-
-# Black-box attacks
-from .saliency import *
-from .blur import *
-from .contrast import *
-from .localsearch import *
-from .slsqp import *
-from .additive_noise import *
-from .saltandpepper import *
-
-# Other attacks
-from .precomputed import *
+from .base import Attack
+from .gradientsign import FGSM, GradientSignAttack, IterativeGradientSignAttack
+from .lbfgs import LBFGSAttack, ApproximateLBFGSAttack
+from .deepfool import DeepFool
+from .saliency import SaliencyMapAttack
+from .blur import GaussianBlurAttack
+from .contrast import ContrastReductionAttack
+from .localsearch import SinglePixelAttack, LocalSearchAttack
+from .slsqp import SLSQPAttack
+from .additive_noise import AdditiveNoiseAttack, AdditiveUniformNoiseAttack, AdditiveGaussianNoiseAttack
+from .saltandpepper import SaltAndPepperNoiseAttack
+from .precomputed import PrecomputedImagesAttack
