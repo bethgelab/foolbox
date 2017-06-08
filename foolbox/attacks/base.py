@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from ..adversarial import Adversarial
+from ..criteria import Misclassification
 
 
 class Attack(ABC):
@@ -26,9 +27,7 @@ class Attack(ABC):
 
     """
 
-    def __init__(self, model=None, criterion=None):
-        if (model is None) != (criterion is None):
-            raise ValueError('model and criterion must both be passed or both be None')  # noqa: E501
+    def __init__(self, model=None, criterion=Misclassification()):
         self.__default_model = model
         self.__default_criterion = criterion
 
