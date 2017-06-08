@@ -17,3 +17,6 @@ Black-box attacks
 
 .. autoclass:: LocalSearchAttack
    :members:
+
+.. autoclass:: SLSQPAttack
+   :members:

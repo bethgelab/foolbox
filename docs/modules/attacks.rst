@@ -34,6 +34,7 @@
    ContrastReductionAttack
    SinglePixelAttack
    LocalSearchAttack
+   SLSQPAttack
 
 
 .. rubric:: :doc:`attacks/approxgradient`

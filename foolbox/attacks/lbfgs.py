@@ -4,11 +4,12 @@ import numpy as np
 import scipy.optimize as so
 
 from .base import Attack
+
 from foolbox import utils
 
 
 class LBFGSAttack(Attack):
-    """Uses L-BFGS-B to minimize the MSE between the image and the adversarial
+    """Uses L-BFGS-B to minimize the distance between the image and the adversarial
     as well as the cross-entropy between the predictions for the adversarial
     and the the one-hot encoded target class.
 

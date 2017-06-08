@@ -12,6 +12,7 @@ from .saliency import *
 from .blur import *
 from .contrast import *
 from .localsearch import *
+from .slsqp import *
 
 # Other attacks
 from .precomputed import *
