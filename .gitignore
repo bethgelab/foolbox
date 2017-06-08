@@ -1,5 +1,6 @@
 .mypy_cache
 /Makefile
+/wip/
 
 # Created by https://www.gitignore.io/api/osx,vim,linux,python
 
