@@ -21,7 +21,7 @@ To turn a model represented as a standard TensorFlow graph into a model that can
 
 .. code-block:: python3
 
-   from adversarial.models import TensorFlowModel
+   from foolbox.models import TensorFlowModel
 
    model = TensorFlowModel(images, logits, bounds=(0, 255))
 
@@ -33,7 +33,7 @@ To run an adversarial attack, we need to specify the type of adversarial we are 
 
 .. code-block:: python3
 
-   from adversarial.criteria import TopKMisclassification
+   from foolbox.criteria import TopKMisclassification
 
    target_class = 22
    criterion = TargetClassProbability(target_class, p=0.99)
@@ -46,7 +46,7 @@ Finally, we can create and apply the attack:
 
 .. code-block:: python3
 
-   from adversarial.attacks import LBFGSBAttack
+   from foolbox.attacks import LBFGSBAttack
 
    attack = LBFGSBAttack(model, criterion)
 
