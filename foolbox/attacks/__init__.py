@@ -14,6 +14,7 @@ from .contrast import *
 from .localsearch import *
 from .slsqp import *
 from .additive_noise import *
+from .saltandpepper import *
 
 # Other attacks
 from .precomputed import *

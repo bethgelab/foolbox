@@ -26,3 +26,6 @@ Black-box attacks
 
 .. autoclass:: AdditiveGaussianNoiseAttack
    :members:
+
+.. autoclass:: SaltAndPepperNoiseAttack
+   :members:

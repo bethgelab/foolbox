@@ -37,6 +37,7 @@
    SLSQPAttack
    AdditiveUniformNoiseAttack
    AdditiveGaussianNoiseAttack
+   SaltAndPepperNoiseAttack
 
 
 .. rubric:: :doc:`attacks/approxgradient`
