@@ -1,5 +1,5 @@
 :mod:`foolbox.models`
-===============================
+=====================
 
 .. automodule:: foolbox.models
 
@@ -12,6 +12,7 @@ Models
    Model
    DifferentiableModel
    TensorFlowModel
+   PyTorchModel
 
 Wrappers
 --------
@@ -32,6 +33,9 @@ Detailed description
    :members:
 
 .. autoclass:: TensorFlowModel
+   :members:
+
+.. autoclass:: PyTorchModel
    :members:
 
 .. autoclass:: ModelWrapper

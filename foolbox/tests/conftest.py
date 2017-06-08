@@ -12,6 +12,7 @@ from foolbox.criteria import Misclassification
 from foolbox.criteria import TargetClass
 from foolbox.criteria import OriginalClassProbability
 from foolbox.models import TensorFlowModel
+from foolbox.models import PyTorchModel
 from foolbox.models.wrappers import GradientLess
 from foolbox import Adversarial
 
@@ -77,6 +78,35 @@ def bn_model():
 
 
 @pytest.fixture
+def bn_model_pytorch():
+    """Same as bn_model but with PyTorch."""
+
+    import torch
+    import torch.nn as nn
+
+    bounds = (0, 1)
+    num_classes = 10
+
+    class Net(nn.Module):
+
+        def forward(self, x):
+            x = torch.mean(x, 3)
+            x = torch.squeeze(x, dim=3)
+            x = torch.mean(x, 2)
+            x = torch.squeeze(x, dim=2)
+            logits = x
+            return logits
+
+    model = Net()
+    model = PyTorchModel(
+        model,
+        bounds=bounds,
+        num_classes=num_classes,
+        cuda=False)
+    return model
+
+
+@pytest.fixture
 def gl_bn_model():
     """Same as bn_model but without gradient.
 
@@ -91,6 +121,13 @@ def gl_bn_model():
 def bn_image():
     np.random.seed(22)
     image = np.random.uniform(size=(5, 5, 10)).astype(np.float32)
+    return image
+
+
+@pytest.fixture
+def bn_image_pytorch():
+    np.random.seed(22)
+    image = np.random.uniform(size=(10, 5, 5)).astype(np.float32)
     return image
 
 
@@ -180,3 +217,12 @@ def bn_trivial():
     cm_model = contextmanager(bn_model)
     with cm_model() as model:
         yield Adversarial(model, criterion, image, label)
+
+
+@pytest.fixture
+def bn_adversarial_pytorch():
+    model = bn_model_pytorch()
+    criterion = bn_criterion()
+    image = bn_image_pytorch()
+    label = bn_label()
+    return Adversarial(model, criterion, image, label)
