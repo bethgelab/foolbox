@@ -20,3 +20,9 @@ Black-box attacks
 
 .. autoclass:: SLSQPAttack
    :members:
+
+.. autoclass:: AdditiveUniformNoiseAttack
+   :members:
+
+.. autoclass:: AdditiveGaussianNoiseAttack
+   :members:

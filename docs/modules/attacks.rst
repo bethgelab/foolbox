@@ -35,6 +35,8 @@
    SinglePixelAttack
    LocalSearchAttack
    SLSQPAttack
+   AdditiveUniformNoiseAttack
+   AdditiveGaussianNoiseAttack
 
 
 .. rubric:: :doc:`attacks/approxgradient`

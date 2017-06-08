@@ -13,6 +13,7 @@ from .blur import *
 from .contrast import *
 from .localsearch import *
 from .slsqp import *
+from .additive_noise import *
 
 # Other attacks
 from .precomputed import *
