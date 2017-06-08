@@ -31,7 +31,12 @@ class TensorFlowModel(DifferentiableModel):
         import tensorflow as tf
 
         session = tf.get_default_session()
-        assert session is not None, 'Please create a TensorFlow session'
+        if session is None:
+            session = tf.Session(graph=images.graph)
+            self._created_session = True
+        else:
+            self._created_session = False
+
         with session.graph.as_default():
             self._session = session
             self._images = images
@@ -46,6 +51,11 @@ class TensorFlowModel(DifferentiableModel):
             gradients = tf.gradients(loss, images)
             assert len(gradients) == 1
             self._gradient = tf.squeeze(gradients[0], axis=0)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self._created_session:
+            self._session.close()
+        return None
 
     def num_classes(self):
         _, n = self._batch_logits.get_shape().as_list()

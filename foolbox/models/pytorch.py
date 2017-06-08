@@ -37,7 +37,7 @@ class PyTorchModel(DifferentiableModel):
 
         n = len(images)
         images = torch.from_numpy(images)
-        if self.cuda:
+        if self.cuda:  # pragma: no cover
             images = images.cuda()
         images = Variable(images, volatile=True)
         predictions = self._model(images)
@@ -63,7 +63,7 @@ class PyTorchModel(DifferentiableModel):
         assert image.ndim == 3
         images = image[np.newaxis]
         images = torch.from_numpy(images)
-        if self.cuda:
+        if self.cuda:  # pragma: no cover
             images = images.cuda()
         images = Variable(images, requires_grad=True)
         predictions = self._model(images)
