@@ -12,10 +12,8 @@ def test_abstract_attack():
 
 
 def test_base_init():
-    with pytest.raises(ValueError):
-        attacks.FGSM(Mock(), None)
-    with pytest.raises(ValueError):
-        attacks.FGSM(None, Mock())
+    assert attacks.FGSM() is not None
+    assert attacks.FGSM(Mock()) is not None
     assert attacks.FGSM(None, None) is not None
     assert attacks.FGSM(Mock(), Mock()) is not None
 
