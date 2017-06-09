@@ -4,14 +4,16 @@ Welcome to Foolbox
 Foolbox is a Python toolbox to create adversarial examples that fool neural networks.
 
 It comes with support for many frameworks to build models including
+
 * TensorFlow
 * PyTorch
 * Theano
 * Keras
 * Lasagne
+
 and it is easy to extend to other frameworks.
 
-In addition, it comes with a large collection of adversarial attacks, both gradient-based attacks as well as black-box attacks. See :doc:`modules/attacks` for a list of attacks.
+In addition, it comes with a **large collection of adversarial attacks**, both gradient-based attacks as well as black-box attacks. See :doc:`modules/attacks` for details.
 
 Foolbox is work in progress and any input is welcome. The source code can be found on `GitHub`_.
 
