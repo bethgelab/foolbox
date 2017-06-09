@@ -9,7 +9,7 @@ class PyTorchModel(DifferentiableModel):
     Parameters
     ----------
     model : `torch.nn.Module`
-        The PyTorch model as an nn.Module.
+        The PyTorch model that should be attacked.
     cuda : bool
         A boolean specifying whether the model uses CUDA.
 

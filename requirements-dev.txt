@@ -9,3 +9,4 @@ flake8 >= 3.3.0
 mypy >= 0.511
 python-coveralls >= 2.9.1
 pillow >= 4.1.1
+keras >= 2.0.4
