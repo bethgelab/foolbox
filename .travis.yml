@@ -8,14 +8,14 @@ python:
 before_install:
     - pip install -U pip
 install:
-    - pip install --upgrade numpy
-    - pip install --upgrade scipy
-    - pip install -r requirements-dev.txt
-    - pip install --upgrade tensorflow
-    - pip install --upgrade theano
-    - pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
-    - pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp35-cp35m-linux_x86_64.whl
-    - pip install --upgrade keras
+    - travis_wait travis_retry pip install --upgrade numpy
+    - travis_wait travis_retry pip install --upgrade scipy
+    - travis_wait travis_retry pip install -r requirements-dev.txt
+    - travis_wait travis_retry pip install --upgrade tensorflow
+    - travis_wait travis_retry pip install --upgrade theano
+    - travis_wait travis_retry pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
+    - travis_wait travis_retry pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp35-cp35m-linux_x86_64.whl
+    - travis_wait travis_retry pip install --upgrade keras
     - pip install -e .
 script: pytest
 after_success:
