@@ -33,9 +33,11 @@ class TheanoModel(DifferentiableModel):
         import theano as th
         import theano.tensor as T
 
+        probs = T.nnet.nnet.softmax(logits)
+
         labels = T.ivector('labels')
         loss = T.nnet.nnet.categorical_crossentropy(
-            logits, labels)
+            probs, labels)
         gradient = th.gradient.grad(loss[0], images)
 
         self._batch_prediction_fn = th.function([images], logits)

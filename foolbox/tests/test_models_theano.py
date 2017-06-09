@@ -6,7 +6,7 @@ from foolbox.models import TheanoModel
 
 
 @pytest.mark.parametrize('num_classes', [10, 1000])
-def test_tensorflow_model(num_classes):
+def test_theano_model(num_classes):
     bounds = (0, 255)
     channels = num_classes
 
