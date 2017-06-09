@@ -15,6 +15,7 @@ Models
    PyTorchModel
    KerasModel
    TheanoModel
+   LasagneModel
 
 Wrappers
 --------
@@ -44,6 +45,9 @@ Detailed description
    :members:
 
 .. autoclass:: TheanoModel
+   :members:
+
+.. autoclass:: LasagneModel
    :members:
 
 .. autoclass:: ModelWrapper

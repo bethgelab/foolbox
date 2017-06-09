@@ -8,3 +8,4 @@ from .tensorflow import TensorFlowModel  # noqa: F401
 from .pytorch import PyTorchModel  # noqa: F401
 from .keras import KerasModel  # noqa: F401
 from .theano import TheanoModel  # noqa: F401
+from .lasagne import LasagneModel  # noqa: F401
