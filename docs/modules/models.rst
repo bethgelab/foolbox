@@ -13,6 +13,7 @@ Models
    DifferentiableModel
    TensorFlowModel
    PyTorchModel
+   KerasModel
 
 Wrappers
 --------
@@ -36,6 +37,9 @@ Detailed description
    :members:
 
 .. autoclass:: PyTorchModel
+   :members:
+
+.. autoclass:: KerasModel
    :members:
 
 .. autoclass:: ModelWrapper
