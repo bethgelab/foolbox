@@ -8,12 +8,14 @@ python:
 before_install:
     - pip install -U pip
 install:
-    - pip install -r requirements-dev.txt
     - pip install --upgrade numpy
     - pip install --upgrade scipy
+    - pip install -r requirements-dev.txt
     - pip install --upgrade tensorflow
-    - pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp35-cp35m-linux_x86_64.whl
+    - pip install --upgrade theano
     - pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
+    - pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp35-cp35m-linux_x86_64.whl
+    - pip install --upgrade keras
     - pip install -e .
 script: pytest
 after_success:
