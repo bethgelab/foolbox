@@ -4,7 +4,7 @@ from .base import DifferentiableModel
 
 
 class PyTorchModel(DifferentiableModel):
-    """Creates a model instance from a PyTorch nn.Module.
+    """Creates a :class:`Model` instance from a `PyTorch` module.
 
     Parameters
     ----------

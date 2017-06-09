@@ -1,3 +1,9 @@
+"""
+Provides classes to wrap existing models in different framworks so
+that they provide a unified API to the attacks.
+
+"""
+
 from .base import Model  # noqa: F401
 from .base import DifferentiableModel  # noqa: F401
 

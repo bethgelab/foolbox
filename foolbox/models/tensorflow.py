@@ -4,7 +4,7 @@ from .base import DifferentiableModel
 
 
 class TensorFlowModel(DifferentiableModel):
-    """Creates a model instance from existing TensorFlow tensors.
+    """Creates a :class:`Model` instance from existing `TensorFlow` tensors.
 
     Parameters
     ----------

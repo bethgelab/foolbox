@@ -4,7 +4,7 @@ from .base import Attack
 
 
 class SaliencyMapAttack(Attack):
-    """Implements the Saliency Map Attack
+    """Implements the Saliency Map Attack.
 
     The attack was introduced in [1]_.
 

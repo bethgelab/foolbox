@@ -7,7 +7,7 @@ from ..utils import crossentropy
 
 
 class DeepFool(Attack):
-    """Simple and accurate adversarial attack
+    """Simple and accurate adversarial attack.
 
     Implementes DeepFool introduced in [1]_.
 

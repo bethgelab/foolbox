@@ -1,4 +1,4 @@
-__version__ = '0.1a3'
+__version__ = '0.1b1'
 
 from . import models  # type: ignore # noqa: F401
 from . import criteria  # type: ignore # noqa: F401

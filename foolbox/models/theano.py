@@ -5,7 +5,7 @@ from .base import DifferentiableModel
 
 
 class TheanoModel(DifferentiableModel):
-    """Creates a model instance from existing Theano tensors.
+    """Creates a :class:`Model` instance from existing `Theano` tensors.
 
     Parameters
     ----------

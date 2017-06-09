@@ -2,7 +2,11 @@
 Development
 ============
 
+To install Foolbox in editable mode, see the installation instructions under :ref:`dev-install`.
+
 New Adversarial Attacks
 =======================
 
-Simply subclass the :class:`Attack` class and implement the :meth:`_apply` method. Use the :class:`Adversarial` instance passed as the first argument to calculate predictions, to check if an image is adversarial, and to get gradients if necessary. The :class:`Adversarial` class keeps track of the best adversarial automatically, there is no need to determine it manually in the implementation of the attack.
+Foolbox makes it easy to develop new adversarial attacks that can be applied to arbitrary models.
+
+To implement an attack, simply subclass the :class:`Attack` class and implement the :meth:`_apply` method. The :meth:`_apply` method will be called with an instance of the :class:`Adversarial` class. You can use this instance to ask for model predictions and gradients, get the original image and its label and more. In addition, the :class:`Adversarial` instance automatically keeps track of the best adversarial amongst all the images tested by the attack. That way, the implementation of the attack can focus on the attack logic.
