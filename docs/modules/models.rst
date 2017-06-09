@@ -14,6 +14,7 @@ Models
    TensorFlowModel
    PyTorchModel
    KerasModel
+   TheanoModel
 
 Wrappers
 --------
@@ -40,6 +41,9 @@ Detailed description
    :members:
 
 .. autoclass:: KerasModel
+   :members:
+
+.. autoclass:: TheanoModel
    :members:
 
 .. autoclass:: ModelWrapper
