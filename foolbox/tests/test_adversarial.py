@@ -6,11 +6,34 @@ from foolbox import Adversarial
 from foolbox.distances import MSE
 
 
+# def test_adversarial(bn_model, bn_criterion, bn_image, bn_label):
 def test_adversarial(model, criterion, image, label):
+    # model = bn_model
+    # criterion = bn_criterion
+    # image = bn_image
+    # label = bn_label
+
     adversarial = Adversarial(model, criterion, image, label)
 
+    assert not adversarial.predictions(image)[1]
+
+    print(label)
+    print(np.argmax(model.predictions(image)))
+
+    print(adversarial.best_distance())
     assert adversarial.get() is None
     assert adversarial.best_distance() == MSE(value=np.inf)
+    assert adversarial.original_image() is image
+    assert adversarial.original_class() == label
+    assert adversarial.target_class() is None
+    assert adversarial.normalized_distance(image) == MSE(value=0)
+    assert adversarial.normalized_distance(image).value() == 0
+
+    label = 22  # wrong label
+    adversarial = Adversarial(model, criterion, image, label)
+
+    assert adversarial.get() is not None
+    assert adversarial.best_distance() == MSE(value=0)
     assert adversarial.original_image() is image
     assert adversarial.original_class() == label
     assert adversarial.target_class() is None

@@ -55,6 +55,9 @@ class Adversarial(object):
         self._best_prediction_calls = 0
         self._best_gradient_calls = 0
 
+        # check if the original image is already adversarial
+        self.predictions(original_image)
+
     def get(self):
         return self.__best_adversarial
 

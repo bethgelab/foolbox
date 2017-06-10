@@ -32,19 +32,23 @@ def test_base_attack(model, criterion, image, label):
     with pytest.raises(TypeError):
         attack(label=label)
 
+    wrong_label = label + 1
+
     adv = attack(image=image, label=label)
+    assert adv is None
+    adv = attack(image=image, label=wrong_label)
     assert adv.shape == image.shape
-    adv = attack(image=image, label=label, unpack=False)
+    adv = attack(image=image, label=wrong_label, unpack=False)
     assert adv.get().shape == image.shape
 
-    adv = Adversarial(model, criterion, image, label)
+    adv = Adversarial(model, criterion, image, wrong_label)
     adv = attack(adv)
     assert adv.shape == image.shape
 
-    adv = Adversarial(model, criterion, image, label)
+    adv = Adversarial(model, criterion, image, wrong_label)
     with pytest.raises(ValueError):
-        attack(adv, label=label)
+        attack(adv, label=wrong_label)
 
     attack = attacks.FGSM()
     with pytest.raises(ValueError):
-        attack(image=image, label=label)
+        attack(image=image, label=wrong_label)

@@ -15,6 +15,7 @@ from foolbox.models import TensorFlowModel
 from foolbox.models import PyTorchModel
 from foolbox.models.wrappers import GradientLess
 from foolbox import Adversarial
+from foolbox.distances import MSE
 
 
 @pytest.fixture
@@ -27,7 +28,7 @@ def image():
 
 @pytest.fixture
 def label():
-    return 914
+    return 333
 
 
 @pytest.fixture
@@ -216,7 +217,12 @@ def bn_trivial():
 
     cm_model = contextmanager(bn_model)
     with cm_model() as model:
-        yield Adversarial(model, criterion, image, label)
+        adv = Adversarial(model, criterion, image, label)
+        # the original should not yet be considered adversarial
+        # so that the attack implementation is actually called
+        adv._Adversarial__best_adversarial = None
+        adv._Adversarial__best_distance = MSE(value=np.inf)
+        yield adv
 
 
 @pytest.fixture
