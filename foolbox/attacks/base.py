@@ -33,10 +33,9 @@ class Attack(ABC):
 
     def __call__(
             self,
-            image=None,
+            image,
             label=None,
             *,
-            find=None,
             unpack=True,
             **kwargs):
 
@@ -44,15 +43,14 @@ class Attack(ABC):
 
         Parameters
         ----------
-        find : :class:`Adversarial`
-            The definition of the adversarial that should be found.
-            If find is passed, image and label must be None.
-        image : `numpy.ndarray`
-            The original, correctly classified image. If image is passed,
-            label must be passed as well and find must be None.
+        image : `numpy.ndarray` or :class:`Adversarial`
+            The original, correctly classified image. If image is a
+            numpy array, label must be passed as well. If image is
+            an :class:`Adversarial` instance, label must not be passed.
         label : int
-            The reference label of the original image. If label is passed,
-            image must be passed as well and find must be None.
+            The reference label of the original image. Must be passed
+            if image is a numpy array, must not be passed if image is
+            an :class:`Adversarial` instance.
         kwargs : dict
             Addtional keyword arguments passed to the attack.
 
@@ -63,19 +61,28 @@ class Attack(ABC):
 
         """
 
-        if find is None:
-            if image is None or label is None:
-                raise ValueError('Either find or both image and label must be passed.')  # noqa: E501
+        assert image is not None
+
+        if isinstance(image, Adversarial):
+            print('a')
+            if label is not None:
+                print('a.b')
+                raise ValueError('Label must not be passed when image is an Adversarial instance')  # noqa: E501k
             else:
+                print('a.c')
+                find = image
+        else:
+            print('d')
+            if label is None:
+                print('d.e')
+                raise ValueError('Label must be passed when image is not an Adversarial instance')  # noqa: E501k
+            else:
+                print('d.f')
                 model = self.__default_model
                 criterion = self.__default_criterion
                 if model is None or criterion is None:
-                    raise ValueError('Passing image and label is only supported if the attack was initialized with a default model and a default criterion.')  # noqa: E501
-
+                    raise ValueError('The attack needs to be initialized with a model and a criterion or it needs to be called with an Adversarial instance.')  # noqa: E501
                 find = Adversarial(model, criterion, image, label)
-        else:
-            if image is not None or label is not None:
-                raise ValueError('If find is passed, image and label must be None')  # noqa: E501
 
         assert find is not None
 

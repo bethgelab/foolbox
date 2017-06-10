@@ -29,7 +29,7 @@ def test_base_attack(model, criterion, image, label):
     with pytest.raises(ValueError):
         attack(image=image)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         attack(label=label)
 
     adv = attack(image=image, label=label)
@@ -41,6 +41,7 @@ def test_base_attack(model, criterion, image, label):
     adv = attack(adv)
     assert adv.shape == image.shape
 
+    adv = Adversarial(model, criterion, image, label)
     with pytest.raises(ValueError):
         attack(adv, label=label)
 
