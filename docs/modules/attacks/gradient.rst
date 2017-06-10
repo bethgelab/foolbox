@@ -9,6 +9,12 @@ Gradient-based attacks
 .. autoclass:: IterativeGradientSignAttack
    :members:
 
+.. autoclass:: GradientAttack
+   :members:
+
+.. autoclass:: IterativeGradientAttack
+   :members:
+
 .. autoclass:: FGSM
    :members:
 

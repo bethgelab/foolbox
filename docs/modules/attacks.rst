@@ -19,6 +19,8 @@
 
    GradientSignAttack
    IterativeGradientSignAttack
+   GradientAttack
+   IterativeGradientAttack
    FGSM
    LBFGSAttack
    DeepFool
