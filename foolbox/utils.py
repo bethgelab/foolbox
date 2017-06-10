@@ -52,3 +52,24 @@ def crossentropy(*, label, logits):
     s = np.sum(e)
     ce = np.log(s) - logits[label]
     return ce
+
+def imagenet_example(shape=(224, 224)):
+    """ Returns an example image and its imagenet class label.
+    
+    Parameters
+    ----------
+    shape : list of integers
+        The shape of the returned image.
+
+    Returns
+    -------
+    image : array_like
+        The example image.
+
+    label : int
+        The imagenet label associated with the image.
+    
+    """
+    import scipy
+    image = scipy.misc.imread('../foolbox/foolbox/example.png')[:,:,:3]
+    return scipy.misc.imresize(image, shape).astype(np.float32), 282

@@ -26,6 +26,7 @@ class KerasModel(DifferentiableModel):
             *args,
             predicts='probabilities',
             channel_axis=3,
+            preprocess_fn=None,
             **kwargs):
 
         super().__init__(*args, channel_axis=channel_axis, **kwargs)
@@ -69,6 +70,11 @@ class KerasModel(DifferentiableModel):
 
         self._predictions_are_logits = predictions_are_logits
 
+        if preprocess_fn is not None:
+            self.preprocessing_fn = lambda x: preprocess_fn(x.copy())
+        else:
+            self.preprocessing_fn = lambda x: x
+
     def _as_logits(self, predictions):
         assert predictions.ndim in [1, 2]
         if self._predictions_are_logits:
@@ -82,7 +88,7 @@ class KerasModel(DifferentiableModel):
         return self._num_classes
 
     def batch_predictions(self, images):
-        predictions = self._batch_pred_fn([images])
+        predictions = self._batch_pred_fn([self.preprocessing_fn(images)])
         assert len(predictions) == 1
         predictions = predictions[0]
         assert predictions.shape == (images.shape[0], self.num_classes())
@@ -91,7 +97,7 @@ class KerasModel(DifferentiableModel):
 
     def predictions_and_gradient(self, image, label):
         predictions, gradient = self._pred_grad_fn([
-            image[np.newaxis],
+            self.preprocessing_fn(image[np.newaxis]),
             np.array([label])])
         predictions = np.squeeze(predictions, axis=0)
         predictions = self._as_logits(predictions)
