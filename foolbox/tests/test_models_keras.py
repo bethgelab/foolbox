@@ -91,3 +91,54 @@ def test_keras_model_probs(num_classes):
         p2 - p2.max(),
         p3 - p3.max(),
         decimal=5)
+
+
+def test_keras_model_preprocess():
+    num_classes = 1000
+    bounds = (0, 255)
+    channels = num_classes
+
+    inputs = Input(shape=(5, 5, channels))
+    logits = GlobalAveragePooling2D(
+        data_format='channels_last')(inputs)
+
+    def preprocess_fn(x):
+        # modify x in-place
+        x /= 2
+        return x
+
+    model1 = KerasModel(
+        Model(inputs=inputs, outputs=logits),
+        bounds=bounds,
+        predicts='logits')
+
+    model2 = KerasModel(
+        Model(inputs=inputs, outputs=logits),
+        bounds=bounds,
+        predicts='logits',
+        preprocess_fn=preprocess_fn)
+
+    model3 = KerasModel(
+        Model(inputs=inputs, outputs=logits),
+        bounds=bounds,
+        predicts='logits')
+
+    np.random.seed(22)
+    test_images = np.random.rand(2, 5, 5, channels).astype(np.float32)
+    test_images_copy = test_images.copy()
+
+    p1 = model1.batch_predictions(test_images)
+    p2 = model2.batch_predictions(test_images)
+
+    # make sure the images have not been changed by
+    # the in-place preprocessing
+    assert np.all(test_images == test_images_copy)
+
+    p3 = model3.batch_predictions(test_images)
+
+    assert p1.shape == p2.shape == p3.shape == (2, num_classes)
+
+    np.testing.assert_array_almost_equal(
+        p1 - p1.max(),
+        p3 - p3.max(),
+        decimal=5)

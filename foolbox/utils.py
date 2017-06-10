@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 
@@ -53,9 +55,10 @@ def crossentropy(*, label, logits):
     ce = np.log(s) - logits[label]
     return ce
 
+
 def imagenet_example(shape=(224, 224)):
     """ Returns an example image and its imagenet class label.
-    
+
     Parameters
     ----------
     shape : list of integers
@@ -68,8 +71,9 @@ def imagenet_example(shape=(224, 224)):
 
     label : int
         The imagenet label associated with the image.
-    
+
     """
     import scipy
-    image = scipy.misc.imread('../foolbox/foolbox/example.png')[:,:,:3]
+    path = os.path.join(os.path.dirname(__file__), 'example.png')
+    image = scipy.misc.imread(path)[:, :, :3]
     return scipy.misc.imresize(image, shape).astype(np.float32), 282

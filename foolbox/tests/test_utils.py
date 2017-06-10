@@ -3,6 +3,7 @@ import numpy as np
 
 from foolbox.utils import softmax
 from foolbox.utils import crossentropy
+from foolbox.utils import imagenet_example
 
 
 def test_softmax():
@@ -18,3 +19,11 @@ def test_crossentropy():
     for i in range(len(predictions)):
         ce = crossentropy(logits=predictions, label=i)
         assert ce == approx(-np.log(probabilities[i]))
+
+
+def test_imagenet_example():
+    image, label = imagenet_example()
+    assert 0 <= label < 1000
+    assert isinstance(label, int)
+    assert image.shape == (224, 224, 3)
+    assert image.dtype == np.float32
