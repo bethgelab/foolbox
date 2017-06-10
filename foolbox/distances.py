@@ -90,6 +90,9 @@ class Distance(ABC):
     def __str__(self):
         return '{} = {:.6e}'.format(self.name(), self._value)
 
+    def __repr__(self):
+        return self.__str__()
+
     def __eq__(self, other):
         if other.__class__ != self.__class__:
             raise NotImplementedError('Comparisons are only possible between the same distance types.')  # noqa: E501
@@ -117,8 +120,12 @@ class MeanSquaredDistance(Distance):
         return value, gradient
 
     def __str__(self):
-        return 'MSE = {:.6e} (rel. MSE = {:.1f} %)'.format(
-            self._value, self._rel)
+        try:
+            return 'MSE = {:.6e} (rel. MSE = {:.1f} %)'.format(
+                self._value, self._rel)
+        except AttributeError:
+            return 'MSE = {:.6e}'.format(
+                self._value)
 
 
 MSE = MeanSquaredDistance
@@ -140,5 +147,9 @@ class MeanAbsoluteDistance(Distance):
         return value, gradient
 
     def __str__(self):
-        return 'MAE = {:.6e} (rel. MAE = {:.1f} %)'.format(
-            self._value, self._rel)
+        try:
+            return 'MAE = {:.6e} (rel. MAE = {:.1f} %)'.format(
+                self._value, self._rel)
+        except AttributeError:
+            return 'MAE = {:.6e}'.format(
+                self._value)

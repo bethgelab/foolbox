@@ -46,3 +46,19 @@ def test_mean_absolute_distance():
     assert (d.gradient() == np.array([1, 0])).all()
 
     assert str(d)[:5] == 'MAE ='
+
+
+@pytest.mark.parametrize('Distance', [
+    distances.MeanSquaredDistance,
+    distances.MeanAbsoluteDistance,
+])
+def test_str_repr(Distance):
+    """Tests that str and repr contain the value
+    and that str does not fail when initialized
+    with a value rather than calculated."""
+    d = Distance(value=33)
+    assert isinstance(str(d), str)
+    assert '3' in str(d)
+    assert '3' in repr(d)
+    d = Distance(value=np.inf)
+    assert isinstance(str(d), str)
