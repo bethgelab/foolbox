@@ -33,10 +33,10 @@ class Attack(ABC):
 
     def __call__(
             self,
-            find=None,
-            *,
             image=None,
             label=None,
+            *,
+            find=None,
             unpack=True,
             **kwargs):
 
