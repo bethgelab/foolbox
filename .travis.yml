@@ -17,7 +17,9 @@ install:
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp36-cp36m-linux_x86_64.whl; fi
     - travis_wait travis_retry pip install --upgrade keras
     - pip install -e .
-script: pytest
+script:
+    - pytest
+    - flake8 --ignore E402 .
 after_success:
     - coveralls
 cache:
