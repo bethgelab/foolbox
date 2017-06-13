@@ -1,9 +1,11 @@
 import random
+import logging
 
 import numpy as np
 import scipy.optimize as so
 
 from .base import Attack
+from .gradient import GradientAttack
 
 from foolbox import utils
 
@@ -40,7 +42,7 @@ class LBFGSAttack(Attack):
             self,
             a,
             epsilon=1e-5,
-            num_random_targets=1,
+            num_random_targets=0,
             maxiter=150,
             verbose=False):
 
@@ -51,24 +53,43 @@ class LBFGSAttack(Attack):
 
         target_class = a.target_class()
         if target_class is None:
-            # draw num_random_targets random classes all of which are
-            # different and not the original class
+            if num_random_targets == 0:
+                gradient_attack = GradientAttack()
+                gradient_attack(a)
+                adv_img = a.get()
+                if adv_img is None:
+                    # using GradientAttack did not work,
+                    # falling back to random target
+                    num_random_targets = 1
+                    logging.info('Using GradientAttack to determine a target class failed, falling back to a random target class')  # noqa: E501
+                else:
+                    logits, _ = a.predictions(adv_img)
+                    target_class = np.argmax(logits)
+                    target_classes = [target_class]
+                    logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))  # noqa: E501
+            else:
+                num_random_targets = 1
 
-            num_classes = a.num_classes()
-            assert num_random_targets <= num_classes - 1
+            if num_random_targets > 0:
 
-            # sample one more than necessary
-            # remove original class from samples
-            # should be more efficient than other approaches, see
-            # https://github.com/numpy/numpy/issues/2764
-            target_classes = random.sample(
-                range(num_classes), num_random_targets + 1)
-            target_classes = [t for t in target_classes if t != original_class]
-            target_classes = target_classes[:num_random_targets]
+                # draw num_random_targets random classes all of which are
+                # different and not the original class
 
-            if verbose:
-                str_target_classes = [str(t) for t in target_classes]
-                print('Random target classes: {}'.format(', '.join(str_target_classes)))  # noqa: E501
+                num_classes = a.num_classes()
+                assert num_random_targets <= num_classes - 1
+
+                # sample one more than necessary
+                # remove original class from samples
+                # should be more efficient than other approaches, see
+                # https://github.com/numpy/numpy/issues/2764
+                target_classes = random.sample(
+                    range(num_classes), num_random_targets + 1)
+                target_classes = [t for t in target_classes if t != original_class]  # noqa: E501
+                target_classes = target_classes[:num_random_targets]
+
+                if verbose:
+                    str_target_classes = [str(t) for t in target_classes]
+                    logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))  # noqa: E501
         else:
             target_classes = [target_class]
 
@@ -78,7 +99,7 @@ class LBFGSAttack(Attack):
                 epsilon=epsilon, maxiter=maxiter, verbose=verbose)
 
             if verbose and len(target_classes) > 1:
-                print('Best adversarial distance after {} target classes: {}'.format(i + 1, a.best_distance()))  # noqa: E501
+                logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.best_distance()))  # noqa: E501
 
     def _optimize(self, a, target_class, epsilon, maxiter, verbose):
         image = a.original_image()
@@ -130,7 +151,9 @@ class LBFGSAttack(Attack):
                 v2, g2 = crossentropy(x)
                 v = v1 + c * v2
                 g = g1 + c * g2
-                return v, g
+
+                a = 1e10
+                return a * v, a * g
 
         def lbfgsb(c):
             approx_grad_eps = (max_ - min_) / 100
@@ -144,6 +167,8 @@ class LBFGSAttack(Attack):
                 maxiter=maxiter,
                 epsilon=approx_grad_eps)
 
+            logging.info(d)
+
             _, is_adversarial = a.predictions(x.reshape(shape))
             return is_adversarial
 
@@ -153,14 +178,14 @@ class LBFGSAttack(Attack):
             c = 2 * c
             is_adversarial = lbfgsb(c)
             if verbose:
-                print('Tested c = {:.4e}: {}'.format(
+                logging.info('Tested c = {:.4e}: {}'.format(
                     c,
                     ('adversarial' if is_adversarial else 'not adversarial')))
             if is_adversarial:
                 break
         else:  # pragma: no cover
             if verbose:
-                print('Could not find an adversarial; maybe the model returns wrong gradients')  # noqa: E501
+                logging.info('Could not find an adversarial; maybe the model returns wrong gradients')  # noqa: E501
             return
 
         # binary search
@@ -170,7 +195,7 @@ class LBFGSAttack(Attack):
             c_half = (c_low + c_high) / 2
             is_adversarial = lbfgsb(c_half)
             if verbose:
-                print('Tested c = {:.4e}: {} ({:.4e}, {:.4e})'.format(
+                logging.info('Tested c = {:.4e}: {} ({:.4e}, {:.4e})'.format(
                     c_half,
                     ('adversarial' if is_adversarial else 'not adversarial'),
                     c_low,
