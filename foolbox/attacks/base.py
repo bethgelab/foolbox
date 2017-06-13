@@ -65,20 +65,14 @@ class Attack(ABC):
         assert image is not None
 
         if isinstance(image, Adversarial):
-            print('a')
             if label is not None:
-                print('a.b')
                 raise ValueError('Label must not be passed when image is an Adversarial instance')  # noqa: E501k
             else:
-                print('a.c')
                 find = image
         else:
-            print('d')
             if label is None:
-                print('d.e')
                 raise ValueError('Label must be passed when image is not an Adversarial instance')  # noqa: E501k
             else:
-                print('d.f')
                 model = self.__default_model
                 criterion = self.__default_criterion
                 if model is None or criterion is None:
