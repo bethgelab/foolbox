@@ -72,7 +72,7 @@ class DeepFool(Attack):
             diffs = [(l - loss, g - grad) for l, g in zip(losses, grads)]
 
             # calculate distances
-            distances = [abs(dl) / np.linalg.norm(dg) for dl, dg in diffs]
+            distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8) for dl, dg in diffs]
 
             # choose optimal one
             optimal = np.argmin(distances)
@@ -80,7 +80,7 @@ class DeepFool(Attack):
 
             # apply perturbation
             # df instead of abs(df) to correct sign of dg, see earlier comment
-            perturbation = df / np.linalg.norm(dg)**2 * dg
+            perturbation = df / (np.linalg.norm(dg) + 1e-8)**2 * dg
             perturbed = perturbed + 1.05 * perturbation
             perturbed = np.clip(perturbed, min_, max_)
 
