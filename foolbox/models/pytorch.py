@@ -10,6 +10,13 @@ class PyTorchModel(DifferentiableModel):
     ----------
     model : `torch.nn.Module`
         The PyTorch model that should be attacked.
+    bounds : tuple
+        Tuple of lower and upper bound for the pixel values, usually
+        (0, 1) or (0, 255).
+    num_classes : int
+        Number of classes for which the model will output predictions.
+    channel_axis : int
+        The index of the axis that represents color channels.
     cuda : bool
         A boolean specifying whether the model uses CUDA.
 
@@ -18,13 +25,13 @@ class PyTorchModel(DifferentiableModel):
     def __init__(
             self,
             model,
-            *args,
+            *,
+            bounds,
             num_classes,
-            cuda=True,
             channel_axis=1,
-            **kwargs):
+            cuda=True):
 
-        super().__init__(*args, channel_axis=channel_axis, **kwargs)
+        super().__init__(bounds=bounds, channel_axis=channel_axis)
 
         self._num_classes = num_classes
         self._model = model

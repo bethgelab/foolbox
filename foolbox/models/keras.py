@@ -12,24 +12,29 @@ class KerasModel(DifferentiableModel):
     ----------
     model : `keras.models.Model`
         The `Keras` model that should be attacked.
-    predicts : str
-        Specifies whether the `Keras` model predicts logits or probabilities.
-        Logits are preferred!
+    bounds : tuple
+        Tuple of lower and upper bound for the pixel values, usually
+        (0, 1) or (0, 255).
     channel_axis : int
         The index of the axis that represents color channels.
+    predicts : str
+        Specifies whether the `Keras` model predicts logits or probabilities.
+        Logits are preferred, but probabilities are the default.
+    preprocess_fn : function
+        Will be called with the images before model predictions are calculated.
 
     """
 
     def __init__(
             self,
             model,
-            *args,
-            predicts='probabilities',
+            *,
+            bounds,
             channel_axis=3,
-            preprocess_fn=None,
-            **kwargs):
+            predicts='probabilities',
+            preprocess_fn=None):
 
-        super().__init__(*args, channel_axis=channel_axis, **kwargs)
+        super().__init__(bounds=bounds, channel_axis=channel_axis)
 
         from keras import backend as K
 

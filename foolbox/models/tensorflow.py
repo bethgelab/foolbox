@@ -12,6 +12,9 @@ class TensorFlowModel(DifferentiableModel):
         The input to the model, usually a `tensorflow.placeholder`.
     logits : `tensorflow.Tensor`
         The predictions of the model, before the softmax.
+    bounds : tuple
+        Tuple of lower and upper bound for the pixel values, usually
+        (0, 1) or (0, 255).
     channel_axis : int
         The index of the axis that represents color channels.
 
@@ -21,11 +24,11 @@ class TensorFlowModel(DifferentiableModel):
             self,
             images,
             logits,
-            *args,
-            channel_axis=3,
-            **kwargs):
+            *,
+            bounds,
+            channel_axis=3):
 
-        super().__init__(*args, channel_axis=channel_axis, **kwargs)
+        super().__init__(bounds=bounds, channel_axis=channel_axis)
 
         # delay import until class is instantiated
         import tensorflow as tf

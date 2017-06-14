@@ -13,6 +13,11 @@ class LasagneModel(DifferentiableModel):
         The input to the model.
     logits_layer : `lasagne.layers.Layer`
         The output of the model, before the softmax.
+    bounds : tuple
+        Tuple of lower and upper bound for the pixel values, usually
+        (0, 1) or (0, 255).
+    channel_axis : int
+        The index of the axis that represents color channels.
 
     """
 
@@ -20,11 +25,11 @@ class LasagneModel(DifferentiableModel):
             self,
             input_layer,
             logits_layer,
-            *args,
-            channel_axis=1,
-            **kwargs):
+            *,
+            bounds,
+            channel_axis=1):
 
-        super().__init__(*args, channel_axis=channel_axis, **kwargs)
+        super().__init__(bounds=bounds, channel_axis=channel_axis)
 
         # delay import until class is instantiated
         import theano as th

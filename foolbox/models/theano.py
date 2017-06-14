@@ -13,6 +13,13 @@ class TheanoModel(DifferentiableModel):
         The input to the model.
     logits : `theano.tensor`
         The predictions of the model, before the softmax.
+    bounds : tuple
+        Tuple of lower and upper bound for the pixel values, usually
+        (0, 1) or (0, 255).
+    num_classes : int
+        Number of classes for which the model will output predictions.
+    channel_axis : int
+        The index of the axis that represents color channels.
 
     """
 
@@ -20,12 +27,12 @@ class TheanoModel(DifferentiableModel):
             self,
             images,
             logits,
-            *args,
+            *,
+            bounds,
             num_classes,
-            channel_axis=1,
-            **kwargs):
+            channel_axis=1):
 
-        super().__init__(*args, channel_axis=channel_axis, **kwargs)
+        super().__init__(bounds=bounds, channel_axis=channel_axis)
 
         self._num_classes = num_classes
 

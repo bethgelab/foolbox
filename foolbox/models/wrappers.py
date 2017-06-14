@@ -15,12 +15,10 @@ class ModelWrapper(Model):
 
     """
 
-    def __init__(self, model, *args, **kwargs):
+    def __init__(self, model):
         super().__init__(
-            *args,
             bounds=model.bounds(),
-            channel_axis=model.channel_axis(),
-            **kwargs)
+            channel_axis=model.channel_axis())
 
         self.wrapped_model = model
 
