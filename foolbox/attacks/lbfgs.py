@@ -87,9 +87,8 @@ class LBFGSAttack(Attack):
                 target_classes = [t for t in target_classes if t != original_class]  # noqa: E501
                 target_classes = target_classes[:num_random_targets]
 
-                if verbose:
-                    str_target_classes = [str(t) for t in target_classes]
-                    logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))  # noqa: E501
+                str_target_classes = [str(t) for t in target_classes]
+                logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))  # noqa: E501
         else:
             target_classes = [target_class]
 

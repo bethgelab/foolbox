@@ -1,6 +1,10 @@
+import logging
+import random
+
 import numpy as np
 
 from .base import Attack
+from .gradient import GradientAttack
 
 
 class SaliencyMapAttack(Attack):
@@ -21,6 +25,7 @@ class SaliencyMapAttack(Attack):
             self,
             a,
             max_iter=2000,
+            num_random_targets=0,
             fast=True,
             theta=0.1,
             max_perturbations_per_pixel=7):
@@ -36,53 +41,94 @@ class SaliencyMapAttack(Attack):
 
         # TODO: the original algorithm works on pixels across channels!
 
-        target = a.target_class()
-        if target is None:
-            # TODO: choose one or more random targets
-            # see lbfgs implementation
-            return
+        original_class = a.original_class()
 
-        image = a.original_image()
+        target_class = a.target_class()
+        if target_class is None:
+            if num_random_targets == 0:
+                gradient_attack = GradientAttack()
+                gradient_attack(a)
+                adv_img = a.get()
+                if adv_img is None:
+                    # using GradientAttack did not work,
+                    # falling back to random target
+                    num_random_targets = 1
+                    logging.info('Using GradientAttack to determine a target class failed, falling back to a random target class')  # noqa: E501
+                else:
+                    logits, _ = a.predictions(adv_img)
+                    target_class = np.argmax(logits)
+                    target_classes = [target_class]
+                    logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))  # noqa: E501
+            else:
+                num_random_targets = 1
 
-        # the mask defines the search domain
-        # each modified pixel with border value is set to zero in mask
-        mask = np.ones_like(image)
+            if num_random_targets > 0:
 
-        # count tracks how often each pixel was changed
-        counts = np.zeros_like(image)
+                # draw num_random_targets random classes all of which are
+                # different and not the original class
 
-        # TODO: shouldn't this be without target
-        labels = range(a.num_classes())
+                num_classes = a.num_classes()
+                assert num_random_targets <= num_classes - 1
 
-        perturbed = image
+                # sample one more than necessary
+                # remove original class from samples
+                # should be more efficient than other approaches, see
+                # https://github.com/numpy/numpy/issues/2764
+                target_classes = random.sample(
+                    range(num_classes), num_random_targets + 1)
+                target_classes = [t for t in target_classes if t != original_class]  # noqa: E501
+                target_classes = target_classes[:num_random_targets]
 
-        max_, min_ = a.bounds()
+                str_target_classes = [str(t) for t in target_classes]
+                logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))  # noqa: E501
+        else:
+            target_classes = [target_class]
 
-        # TODO: stop if mask is all zero
-        for step in range(max_iter):
-            _, is_adversarial = a.predictions(perturbed)
-            if is_adversarial:
-                return
+        for target in target_classes:
 
-            # get pixel location with highest influence on class
-            idx, p_sign = self._saliency_map(
-                a, perturbed, target, labels, mask, fast=fast)
+            image = a.original_image()
 
-            # apply perturbation
-            perturbed[idx] += -p_sign * theta * (max_ - min_)
+            # the mask defines the search domain
+            # each modified pixel with border value is set to zero in mask
+            mask = np.ones_like(image)
 
-            # tracks number of updates for each pixel
-            counts[idx] += 1
+            # count tracks how often each pixel was changed
+            counts = np.zeros_like(image)
 
-            # remove pixel from search domain if it hits the bound
-            if perturbed[idx] <= min_ or perturbed[idx] >= max_:
-                mask[idx] = 0
+            # TODO: shouldn't this be without target
+            labels = range(a.num_classes())
 
-            # remove pixel if it was changed too often
-            if counts[idx] >= max_perturbations_per_pixel:
-                mask[idx] = 0
+            perturbed = image.copy()
 
-            perturbed = np.clip(perturbed, min_, max_)
+            min_, max_ = a.bounds()
+
+            # TODO: stop if mask is all zero
+            for step in range(max_iter):
+                print(step, a.normalized_distance(perturbed))
+                _, is_adversarial = a.predictions(perturbed)
+                if is_adversarial:
+                    return
+
+                # get pixel location with highest influence on class
+                idx, p_sign = self._saliency_map(
+                    a, perturbed, target, labels, mask, fast=fast)
+
+                # apply perturbation
+                perturbed[idx] += -p_sign * theta * (max_ - min_)
+                print(step, a.normalized_distance(perturbed))
+
+                # tracks number of updates for each pixel
+                counts[idx] += 1
+
+                # remove pixel from search domain if it hits the bound
+                if perturbed[idx] <= min_ or perturbed[idx] >= max_:
+                    mask[idx] = 0
+
+                # remove pixel if it was changed too often
+                if counts[idx] >= max_perturbations_per_pixel:
+                    mask[idx] = 0
+
+                perturbed = np.clip(perturbed, min_, max_)
 
     def _saliency_map(self, a, image, target, labels, mask, fast=False):
         """Implements Algorithm 3 in manuscript
