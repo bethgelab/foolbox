@@ -46,7 +46,7 @@ Example
    attack  = foolbox.attacks.FGSM(fmodel)
    adv_img = attack(image=image, label=label)
 
-Interfaces for a range of other deeplearning packages such as Tensorflow, 
+Interfaces for a range of other deeplearning packages such as TensorFlow, 
 PyTorch and Lasagne are available.
 
 .. code-block:: python
