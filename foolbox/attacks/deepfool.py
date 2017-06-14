@@ -72,7 +72,7 @@ class DeepFool(Attack):
             diffs = [(l - loss, g - grad) for l, g in zip(losses, grads)]
 
             # calculate distances
-            distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8) for dl, dg in diffs]
+            distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8) for dl, dg in diffs]  # noqa: E501
 
             # choose optimal one
             optimal = np.argmin(distances)
