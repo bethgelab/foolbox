@@ -140,7 +140,7 @@ class LBFGSAttack(Attack):
 
             def crossentropy(x):
                 logits, gradient, _ = a.predictions_and_gradient(
-                    x.reshape(shape), target_class)
+                    x.reshape(shape), target_class, strict=False)
                 gradient = gradient.reshape(-1)
                 ce = utils.crossentropy(logits=logits, label=target_class)
                 return ce, gradient
