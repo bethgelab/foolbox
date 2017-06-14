@@ -49,7 +49,7 @@ class SaliencyMapAttack(Attack):
                 gradient_attack = GradientAttack()
                 gradient_attack(a)
                 adv_img = a.get()
-                if adv_img is None:
+                if adv_img is None:  # pragma: no coverage
                     # using GradientAttack did not work,
                     # falling back to random target
                     num_random_targets = 1
@@ -59,7 +59,7 @@ class SaliencyMapAttack(Attack):
                     target_class = np.argmax(logits)
                     target_classes = [target_class]
                     logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))  # noqa: E501
-            else:
+            else:  # pragma: no coverage
                 num_random_targets = 1
 
             if num_random_targets > 0:

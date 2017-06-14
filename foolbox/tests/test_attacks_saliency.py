@@ -7,8 +7,15 @@ def test_attack(bn_adversarial):
     adv = bn_adversarial
     attack = Attack()
     attack(adv)
-    assert adv.get() is None
-    assert adv.best_distance().value() == np.inf
+    assert adv.get() is not None
+    assert adv.best_distance().value() < np.inf
+
+def test_attack_random_targets(bn_adversarial):
+    adv = bn_adversarial
+    attack = Attack()
+    attack(adv, num_random_targets=2)
+    assert adv.get() is not None
+    assert adv.best_distance().value() < np.inf
 
 
 def test_targeted_attack(bn_targeted_adversarial):
