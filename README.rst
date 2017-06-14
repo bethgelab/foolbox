@@ -1,11 +1,13 @@
 .. image:: https://readthedocs.org/projects/foolbox/badge/?version=latest
     :target: https://foolbox.readthedocs.io/en/latest/
 
-.. image:: https://travis-ci.org/jonasrauber/foolbox.svg?branch=master
-    :target: https://travis-ci.org/jonasrauber/foolbox
+.. image:: https://travis-ci.org/bethgelab/foolbox.svg?branch=master
+    :target: https://travis-ci.org/bethgelab/foolbox
 
-.. image:: https://coveralls.io/repos/github/jonasrauber/foolbox/badge.svg?branch=master
-    :target: https://coveralls.io/github/jonasrauber/foolbox
+.. image:: https://coveralls.io/repos/github/bethgelab/foolbox/badge.svg
+    :target: https://coveralls.io/github/bethgelab/foolbox
+
+
 
 =======
 Foolbox

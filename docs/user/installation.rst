@@ -22,7 +22,7 @@ Alternatively, you can install the latest development version of Foolbox from Gi
 
 .. code-block:: bash
 
-   pip install https://github.com/jonasrauber/foolbox/archive/master.zip
+   pip install https://github.com/bethgelab/foolbox/archive/master.zip
 
 
 .. _dev-install:
@@ -34,7 +34,7 @@ If you would like to contribute the development of Foolbox, install it in editab
 
 .. code-block:: bash
 
-   git clone https://github.com/jonasrauber/foolbox.git
+   git clone https://github.com/bethgelab/foolbox.git
    cd foolbox
    pip install --editable .
 

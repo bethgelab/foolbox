@@ -127,7 +127,7 @@ def linkcode_resolve(domain, info):
     except Exception:
         filename = info['module'].replace('.', '/') + '.py'
     tag = 'master'
-    url = "https://github.com/jonasrauber/foolbox/blob/%s/%s"
+    url = "https://github.com/bethgelab/foolbox/blob/%s/%s"
     return url % (tag, filename)
 
 

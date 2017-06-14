@@ -44,4 +44,4 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. _GitHub: https://github.com/jonasrauber/foolbox
+.. _GitHub: https://github.com/bethgelab/foolbox
