@@ -47,14 +47,14 @@ Example
    adv_img = attack(image=image, label=label)
 
 Interfaces for a range of other deeplearning packages such as TensorFlow, 
-PyTorch and Lasagne are available.
+PyTorch and Lasagne are available, e.g.
 
 .. code-block:: python
 
    model = foolbox.models.PyTorchModel(torchmodel)
 
-Different adversarial criteria such as Top-k or specific target classes can be passed
-to the attack, e.g.
+Different adversarial criteria such as Top-k, specific target classes or target probability 
+levels can be passed to the attack, e.g.
 
 .. code-block:: python
 
