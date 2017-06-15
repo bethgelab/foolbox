@@ -76,6 +76,6 @@ the citation here.
 Authors
 -------
 
-* `Jonas Rauber <https://github.com/jonasrauber>`
-* `Wieland Brendel <https://github.com/wielandbrendel>`
+* `Jonas Rauber <https://github.com/jonasrauber>`_
+* `Wieland Brendel <https://github.com/wielandbrendel>`_
 
