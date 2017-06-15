@@ -37,6 +37,6 @@ class PrecomputedImagesAttack(Attack):
         return self._output_images[index]
 
     def _apply(self, a):
-        image = a.original_image()
+        image = a.original_image
         adversarial = self._get_output(a, image)
         a.predictions(adversarial)

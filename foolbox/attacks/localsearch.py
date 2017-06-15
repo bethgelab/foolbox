@@ -11,7 +11,7 @@ class SinglePixelAttack(Attack):
 
     def _apply(self, a, max_pixels=1000):
         channel_axis = a.channel_axis(batch=False)
-        image = a.original_image()
+        image = a.original_image
         axes = [i for i in range(image.ndim) if i != channel_axis]
         assert len(axes) == 2
         h = image.shape[axes[0]]
@@ -76,10 +76,10 @@ class LocalSearchAttack(Attack):
             im = im + (min_ + max_) / 2
             return im
 
-        I = a.original_image()
+        I = a.original_image
         I, LB, UB = normalize(I)
 
-        cI = a.original_class()
+        cI = a.original_class
 
         channel_axis = a.channel_axis(batch=False)
         axes = [i for i in range(I.ndim) if i != channel_axis]

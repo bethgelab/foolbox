@@ -41,14 +41,14 @@ class SaliencyMapAttack(Attack):
 
         # TODO: the original algorithm works on pixels across channels!
 
-        original_class = a.original_class()
+        original_class = a.original_class
 
         target_class = a.target_class()
         if target_class is None:
             if num_random_targets == 0:
                 gradient_attack = GradientAttack()
                 gradient_attack(a)
-                adv_img = a.get()
+                adv_img = a.image
                 if adv_img is None:  # pragma: no coverage
                     # using GradientAttack did not work,
                     # falling back to random target
@@ -86,7 +86,7 @@ class SaliencyMapAttack(Attack):
 
         for target in target_classes:
 
-            image = a.original_image()
+            image = a.original_image
 
             # the mask defines the search domain
             # each modified pixel with border value is set to zero in mask
@@ -104,7 +104,6 @@ class SaliencyMapAttack(Attack):
 
             # TODO: stop if mask is all zero
             for step in range(max_iter):
-                print(step, a.normalized_distance(perturbed))
                 _, is_adversarial = a.predictions(perturbed)
                 if is_adversarial:
                     return
@@ -115,7 +114,6 @@ class SaliencyMapAttack(Attack):
 
                 # apply perturbation
                 perturbed[idx] += -p_sign * theta * (max_ - min_)
-                print(step, a.normalized_distance(perturbed))
 
                 # tracks number of updates for each pixel
                 counts[idx] += 1

@@ -10,7 +10,7 @@ class ContrastReductionAttack(Attack):
     """
 
     def _apply(self, a, epsilons=1000):
-        image = a.original_image()
+        image = a.original_image
         min_, max_ = a.bounds()
         target = (max_ - min_) / 2
 

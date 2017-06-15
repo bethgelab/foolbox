@@ -16,7 +16,7 @@ class GradientSignAttack(Attack):
         if not a.has_gradient():
             return
 
-        image = a.original_image()
+        image = a.original_image
         min_, max_ = a.bounds()
         gradient = a.gradient()
         gradient_sign = np.sign(gradient) * (max_ - min_)
@@ -46,7 +46,7 @@ class IterativeGradientSignAttack(Attack):
         if not a.has_gradient():
             return
 
-        image = a.original_image()
+        image = a.original_image
         min_, max_ = a.bounds()
 
         if not isinstance(epsilons, Iterable):

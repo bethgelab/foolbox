@@ -10,7 +10,7 @@ class SaltAndPepperNoiseAttack(Attack):
     """
 
     def _apply(self, a, *, epsilons=100, repetitions=10):
-        image = a.original_image()
+        image = a.original_image
         min_, max_ = a.bounds()
         axis = a.channel_axis(batch=False)
         channels = image.shape[axis]
@@ -35,7 +35,7 @@ class SaltAndPepperNoiseAttack(Attack):
                 perturbed = image + salt + pepper
                 perturbed = np.clip(perturbed, min_, max_)
 
-                if a.normalized_distance(perturbed) >= a.best_distance():
+                if a.normalized_distance(perturbed) >= a.distance:
                     continue
 
                 _, is_adversarial = a.predictions(perturbed)

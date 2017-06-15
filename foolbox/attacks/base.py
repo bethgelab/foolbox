@@ -83,17 +83,17 @@ class Attack(ABC):
 
         adversarial = find
 
-        if adversarial.best_distance().value() == 0.:
+        if adversarial.distance.value() == 0.:
             logging.info('Not running the attack because the original image is already misclassified and the adversarial thus has a distance of 0.')  # noqa: E501
         else:
             _ = self._apply(adversarial, **kwargs)
             assert _ is None, '_apply must return None'
 
-        if adversarial.get() is None:
-            logging.warn('{} did not find an adversarial'.format(self.name()))
+        if adversarial.image is None:
+            logging.warn('{} did not find an adversarial, maybe the model or the criterion is not supported by this attack.'.format(self.name()))  # noqa: E501
 
         if unpack:
-            return adversarial.get()
+            return adversarial.image
         else:
             return adversarial
 

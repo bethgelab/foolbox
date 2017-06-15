@@ -12,7 +12,7 @@ class GaussianBlurAttack(Attack):
     """
 
     def _apply(self, a, epsilons=1000):
-        image = a.original_image()
+        image = a.original_image
         min_, max_ = a.bounds()
         axis = a.channel_axis(batch=False)
         hw = [image.shape[i] for i in range(image.ndim) if i != axis]

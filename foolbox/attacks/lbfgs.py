@@ -49,14 +49,14 @@ class LBFGSAttack(Attack):
         if not self._approximate_gradient and not a.has_gradient():
             return
 
-        original_class = a.original_class()
+        original_class = a.original_class
 
         target_class = a.target_class()
         if target_class is None:
             if num_random_targets == 0:
                 gradient_attack = GradientAttack()
                 gradient_attack(a)
-                adv_img = a.get()
+                adv_img = a.image
                 if adv_img is None:  # pragma: no coverage
                     # using GradientAttack did not work,
                     # falling back to random target
@@ -98,10 +98,10 @@ class LBFGSAttack(Attack):
                 epsilon=epsilon, maxiter=maxiter, verbose=verbose)
 
             if verbose and len(target_classes) > 1:  # pragma: no coverage
-                logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.best_distance()))  # noqa: E501
+                logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.distance))  # noqa: E501
 
     def _optimize(self, a, target_class, epsilon, maxiter, verbose):
-        image = a.original_image()
+        image = a.original_image
         min_, max_ = a.bounds()
 
         # store the shape for later and operate on the flattened image

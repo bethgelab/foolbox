@@ -23,11 +23,11 @@ passing `unpack=False` we tell the attack to return the
 
    adversarial = attack(image=image, label=label, unpack=False)
 
-We can then get the actual image using the :meth:`get` method.
+We can then get the actual image using the :attr:`image` attribute:
 
 .. code-block:: python3
 
-   adversarial_image = adversarial.get()
+   adversarial_image = adversarial.image
 
 
 Explicit
@@ -47,11 +47,11 @@ and then pass it to the attack.
    adversarial = Adversarial(model, criterion, image, label)
    attack(adversarial)
 
-Again, we can get the image using the :meth:`get` method.
+Again, we can get the image using the :attr:`image` attribute:
 
 .. code-block:: python3
 
-   adversarial_image = adversarial.get()
+   adversarial_image = adversarial.image
 
 This approach gives us more flexibility and allows us to specify
 a different distance measure:

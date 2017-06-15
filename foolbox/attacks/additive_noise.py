@@ -12,7 +12,7 @@ class AdditiveNoiseAttack(Attack):
     """
 
     def _apply(self, a, epsilons=1000):
-        image = a.original_image()
+        image = a.original_image
         bounds = a.bounds()
         min_, max_ = bounds
 

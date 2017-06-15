@@ -58,15 +58,19 @@ class Adversarial(object):
         # check if the original image is already adversarial
         self.predictions(original_image)
 
-    def get(self):
+    @property
+    def image(self):
         return self.__best_adversarial
 
-    def best_distance(self):
+    @property
+    def distance(self):
         return self.__best_distance
 
+    @property
     def original_image(self):
         return self.__original_image
 
+    @property
     def original_class(self):
         return self.__original_class
 

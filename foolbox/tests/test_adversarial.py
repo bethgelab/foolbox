@@ -17,14 +17,10 @@ def test_adversarial(model, criterion, image, label):
 
     assert not adversarial.predictions(image)[1]
 
-    print(label)
-    print(np.argmax(model.predictions(image)))
-
-    print(adversarial.best_distance())
-    assert adversarial.get() is None
-    assert adversarial.best_distance() == MSE(value=np.inf)
-    assert adversarial.original_image() is image
-    assert adversarial.original_class() == label
+    assert adversarial.image is None
+    assert adversarial.distance == MSE(value=np.inf)
+    assert adversarial.original_image is image
+    assert adversarial.original_class == label
     assert adversarial.target_class() is None
     assert adversarial.normalized_distance(image) == MSE(value=0)
     assert adversarial.normalized_distance(image).value() == 0
@@ -32,10 +28,10 @@ def test_adversarial(model, criterion, image, label):
     label = 22  # wrong label
     adversarial = Adversarial(model, criterion, image, label)
 
-    assert adversarial.get() is not None
-    assert adversarial.best_distance() == MSE(value=0)
-    assert adversarial.original_image() is image
-    assert adversarial.original_class() == label
+    assert adversarial.image is not None
+    assert adversarial.distance == MSE(value=0)
+    assert adversarial.original_image is image
+    assert adversarial.original_class == label
     assert adversarial.target_class() is None
     assert adversarial.normalized_distance(image) == MSE(value=0)
     assert adversarial.normalized_distance(image).value() == 0
