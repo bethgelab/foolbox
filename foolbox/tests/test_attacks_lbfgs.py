@@ -8,7 +8,7 @@ def test_attack(bn_adversarial):
     attack = Attack()
     attack(adv, verbose=True, num_random_targets=2)
     assert adv.image is not None
-    assert adv.best_distance().value() < np.inf
+    assert adv.distance.value() < np.inf
 
 
 def test_targeted_attack(bn_targeted_adversarial):
@@ -16,7 +16,7 @@ def test_targeted_attack(bn_targeted_adversarial):
     attack = Attack()
     attack(adv)
     assert adv.image is not None
-    assert adv.best_distance().value() < np.inf
+    assert adv.distance.value() < np.inf
 
 
 def test_attack_gl(gl_bn_adversarial):
@@ -24,7 +24,7 @@ def test_attack_gl(gl_bn_adversarial):
     attack = Attack()
     attack(adv)
     assert adv.image is None
-    assert adv.best_distance().value() == np.inf
+    assert adv.distance.value() == np.inf
 
 
 def test_attack_pytorch(bn_adversarial_pytorch):
@@ -32,4 +32,4 @@ def test_attack_pytorch(bn_adversarial_pytorch):
     attack = Attack()
     attack(adv, verbose=True, num_random_targets=2)
     assert adv.image is not None
-    assert adv.best_distance().value() < np.inf
+    assert adv.distance.value() < np.inf

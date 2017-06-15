@@ -35,7 +35,7 @@ class SaltAndPepperNoiseAttack(Attack):
                 perturbed = image + salt + pepper
                 perturbed = np.clip(perturbed, min_, max_)
 
-                if a.normalized_distance(perturbed) >= a.best_distance():
+                if a.normalized_distance(perturbed) >= a.distance:
                     continue
 
                 _, is_adversarial = a.predictions(perturbed)

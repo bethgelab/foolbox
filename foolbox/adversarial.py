@@ -62,7 +62,8 @@ class Adversarial(object):
     def image(self):
         return self.__best_adversarial
 
-    def best_distance(self):
+    @property
+    def distance(self):
         return self.__best_distance
 
     def original_image(self):

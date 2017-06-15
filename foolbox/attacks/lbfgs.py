@@ -98,7 +98,7 @@ class LBFGSAttack(Attack):
                 epsilon=epsilon, maxiter=maxiter, verbose=verbose)
 
             if verbose and len(target_classes) > 1:  # pragma: no coverage
-                logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.best_distance()))  # noqa: E501
+                logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.distance))  # noqa: E501
 
     def _optimize(self, a, target_class, epsilon, maxiter, verbose):
         image = a.original_image()
