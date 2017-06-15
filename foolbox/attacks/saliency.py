@@ -104,7 +104,6 @@ class SaliencyMapAttack(Attack):
 
             # TODO: stop if mask is all zero
             for step in range(max_iter):
-                print(step, a.normalized_distance(perturbed))
                 _, is_adversarial = a.predictions(perturbed)
                 if is_adversarial:
                     return
@@ -115,7 +114,6 @@ class SaliencyMapAttack(Attack):
 
                 # apply perturbation
                 perturbed[idx] += -p_sign * theta * (max_ - min_)
-                print(step, a.normalized_distance(perturbed))
 
                 # tracks number of updates for each pixel
                 counts[idx] += 1

@@ -17,10 +17,6 @@ def test_adversarial(model, criterion, image, label):
 
     assert not adversarial.predictions(image)[1]
 
-    print(label)
-    print(np.argmax(model.predictions(image)))
-
-    print(adversarial.distance)
     assert adversarial.image is None
     assert adversarial.distance == MSE(value=np.inf)
     assert adversarial.original_image is image

@@ -90,7 +90,7 @@ class Attack(ABC):
             assert _ is None, '_apply must return None'
 
         if adversarial.image is None:
-            logging.warn('{} did not find an adversarial'.format(self.name()))
+            logging.warn('{} did not find an adversarial, maybe the model or the criterion is not supported by this attack.'.format(self.name()))  # noqa: E501
 
         if unpack:
             return adversarial.image

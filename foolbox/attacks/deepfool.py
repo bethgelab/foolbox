@@ -1,3 +1,4 @@
+import logging
 import random
 
 import numpy as np
@@ -23,11 +24,11 @@ class DeepFool(Attack):
             return
 
         if a.target_class() is not None:
-            print('Targeted adversarials not yet supported by DeepFool.')
+            logging.warn('Targeted adversarials not supported by DeepFool.')
             return
 
         if subsample:
-            print('Warning: performs subsampling, results will be suboptimal!')
+            logging.warn('Performs subsampling, results will be suboptimal.')
 
         label = a.original_class
 
