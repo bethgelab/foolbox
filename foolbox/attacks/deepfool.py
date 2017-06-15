@@ -48,11 +48,8 @@ class DeepFool(Attack):
 
             # correspondance to algorithm 2 in [1]_:
             #
-            # loss corresponds to f
-            # grad corresponds to -df/dx
-            # the negative sign doesn't matter, because the only place in the
-            # following code that cares about the sign does correct it by using
-            # df instead of abs(df)
+            # loss corresponds to f (in the paper: negative cross-entropy)
+            # grad corresponds to -df/dx (gradient of cross-entropy)
 
             loss = -crossentropy(logits=logits, label=label)
 
@@ -79,8 +76,8 @@ class DeepFool(Attack):
             df, dg = diffs[optimal]
 
             # apply perturbation
-            # df instead of abs(df) to correct sign of dg, see earlier comment
-            perturbation = df / (np.linalg.norm(dg) + 1e-8)**2 * dg
+            # the (-dg) corrects the sign, gradient here is -gradient of paper
+            perturbation = abs(df) / (np.linalg.norm(dg) + 1e-8)**2 * (-dg)
             perturbed = perturbed + 1.05 * perturbation
             perturbed = np.clip(perturbed, min_, max_)
 
