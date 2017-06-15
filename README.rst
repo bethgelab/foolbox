@@ -66,8 +66,16 @@ Development
 
 Foolbox is a work in progress and any input is welcome.
 
+Citation
+--------
+
+If you find Foolbox useful for your scientific work, please consider citing it
+in resulting publications. We will soon publish a technical paper and will provide
+the citation here.
+
 Authors
 -------
 
-* Jonas Rauber
-* Wieland Brendel
+* `Jonas Rauber <https://github.com/jonasrauber>`
+* `Wieland Brendel <https://github.com/wielandbrendel>`
+
