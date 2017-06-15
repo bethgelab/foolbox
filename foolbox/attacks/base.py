@@ -89,11 +89,11 @@ class Attack(ABC):
             _ = self._apply(adversarial, **kwargs)
             assert _ is None, '_apply must return None'
 
-        if adversarial.get() is None:
+        if adversarial.image is None:
             logging.warn('{} did not find an adversarial'.format(self.name()))
 
         if unpack:
-            return adversarial.get()
+            return adversarial.image
         else:
             return adversarial
 

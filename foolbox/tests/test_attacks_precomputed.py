@@ -15,7 +15,7 @@ def test_attack(bn_adversarial):
 
     attack(adv)
 
-    assert adv.get() is not None
+    assert adv.image is not None
     assert adv.best_distance().value() < np.inf
 
 
@@ -31,5 +31,5 @@ def test_unknown_image(bn_adversarial):
     with pytest.raises(ValueError):
         attack(adv)
 
-    assert adv.get() is None
+    assert adv.image is None
     assert adv.best_distance().value() == np.inf

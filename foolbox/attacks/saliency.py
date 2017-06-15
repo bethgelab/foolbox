@@ -48,7 +48,7 @@ class SaliencyMapAttack(Attack):
             if num_random_targets == 0:
                 gradient_attack = GradientAttack()
                 gradient_attack(a)
-                adv_img = a.get()
+                adv_img = a.image
                 if adv_img is None:  # pragma: no coverage
                     # using GradientAttack did not work,
                     # falling back to random target
