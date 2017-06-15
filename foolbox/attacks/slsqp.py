@@ -16,7 +16,7 @@ class SLSQPAttack(Attack):
         self.last_result = None
 
     def _apply(self, a):
-        image = a.original_image()
+        image = a.original_image
         min_, max_ = a.bounds()
 
         # flatten the image (and remember the shape)

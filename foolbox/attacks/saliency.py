@@ -41,7 +41,7 @@ class SaliencyMapAttack(Attack):
 
         # TODO: the original algorithm works on pixels across channels!
 
-        original_class = a.original_class()
+        original_class = a.original_class
 
         target_class = a.target_class()
         if target_class is None:
@@ -86,7 +86,7 @@ class SaliencyMapAttack(Attack):
 
         for target in target_classes:
 
-            image = a.original_image()
+            image = a.original_image
 
             # the mask defines the search domain
             # each modified pixel with border value is set to zero in mask

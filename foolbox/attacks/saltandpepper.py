@@ -10,7 +10,7 @@ class SaltAndPepperNoiseAttack(Attack):
     """
 
     def _apply(self, a, *, epsilons=100, repetitions=10):
-        image = a.original_image()
+        image = a.original_image
         min_, max_ = a.bounds()
         axis = a.channel_axis(batch=False)
         channels = image.shape[axis]

@@ -29,7 +29,7 @@ class DeepFool(Attack):
         if subsample:
             print('Warning: performs subsampling, results will be suboptimal!')
 
-        label = a.original_class()
+        label = a.original_class
 
         def get_residual_labels(logits):
             """Get all labels with p < p[target]"""
@@ -38,7 +38,7 @@ class DeepFool(Attack):
                 k for k in range(n)
                 if logits[k] < logits[label]]
 
-        perturbed = a.original_image()
+        perturbed = a.original_image
         min_, max_ = a.bounds()
 
         for step in range(steps):

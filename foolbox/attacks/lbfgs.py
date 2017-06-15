@@ -49,7 +49,7 @@ class LBFGSAttack(Attack):
         if not self._approximate_gradient and not a.has_gradient():
             return
 
-        original_class = a.original_class()
+        original_class = a.original_class
 
         target_class = a.target_class()
         if target_class is None:
@@ -101,7 +101,7 @@ class LBFGSAttack(Attack):
                 logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.distance))  # noqa: E501
 
     def _optimize(self, a, target_class, epsilon, maxiter, verbose):
-        image = a.original_image()
+        image = a.original_image
         min_, max_ = a.bounds()
 
         # store the shape for later and operate on the flattened image
