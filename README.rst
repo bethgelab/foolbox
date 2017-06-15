@@ -13,7 +13,7 @@
 Foolbox
 =======
 
-Foolbox is a Python toolbox to create adversarial examples that fool neural networks.
+Foolbox is a Python toolbox to create adversarial examples that fool neural networks. It requires `Python 3`, `NumPy` and `SciPy`.
 
 Installation
 ------------
