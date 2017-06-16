@@ -15,10 +15,10 @@ def test_base_distance():
         def _calculate(self):
             return 22, 2
 
-    distance = TestDistance(None, None)
+    distance = TestDistance(None, None, bounds=(0, 1))
     assert distance.name() == 'TestDistance'
-    assert distance.value() == 22
-    assert distance.gradient() == 2
+    assert distance.value == 22
+    assert distance.gradient == 2
     assert '2.2' in str(distance)
     assert 'TestDistance' in str(distance)
     assert distance == distance
@@ -56,9 +56,9 @@ def test_str_repr(Distance):
     """Tests that str and repr contain the value
     and that str does not fail when initialized
     with a value rather than calculated."""
-    d = Distance(value=33)
+    reference = np.zeros((5, 5))
+    other = np.ones((5, 5))
+    d = Distance(reference, other, bounds=(0, 1))
     assert isinstance(str(d), str)
-    assert '3' in str(d)
-    assert '3' in repr(d)
-    d = Distance(value=np.inf)
-    assert isinstance(str(d), str)
+    assert '1' in str(d)
+    assert '1' in repr(d)
