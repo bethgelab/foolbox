@@ -23,6 +23,7 @@
    IterativeGradientAttack
    FGSM
    LBFGSAttack
+   DeepFoolAttack
    DeepFool
 
 
