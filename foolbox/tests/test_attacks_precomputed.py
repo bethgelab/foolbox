@@ -16,7 +16,7 @@ def test_attack(bn_adversarial):
     attack(adv)
 
     assert adv.image is not None
-    assert adv.distance.value() < np.inf
+    assert adv.distance.value < np.inf
 
 
 def test_unknown_image(bn_adversarial):
@@ -32,4 +32,4 @@ def test_unknown_image(bn_adversarial):
         attack(adv)
 
     assert adv.image is None
-    assert adv.distance.value() == np.inf
+    assert adv.distance.value == np.inf

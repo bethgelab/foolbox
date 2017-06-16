@@ -34,18 +34,14 @@ def test_mse():
 
 def test_mean_squared_distance():
     d = distances.MeanSquaredDistance(np.array([0, 2]), np.array([2, 2]))
-    assert d.value() == 2.
-    assert (d.gradient() == np.array([2, 0])).all()
-
-    assert str(d)[:5] == 'MSE ='
+    assert d.value == 2.
+    assert (d.gradient == np.array([2, 0])).all()
 
 
 def test_mean_absolute_distance():
     d = distances.MeanAbsoluteDistance(np.array([0, 2]), np.array([2, 2]))
-    assert d.value() == 1.
-    assert (d.gradient() == np.array([1, 0])).all()
-
-    assert str(d)[:5] == 'MAE ='
+    assert d.value == 1.
+    assert (d.gradient == np.array([1, 0])).all()
 
 
 @pytest.mark.parametrize('Distance', [
