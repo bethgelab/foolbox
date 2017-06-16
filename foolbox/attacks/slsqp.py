@@ -32,7 +32,7 @@ class SLSQPAttack(Attack):
         def fun(x, *args):
             """Objective function with derivative"""
             distance = a.normalized_distance(x.reshape(shape))
-            return distance.value(), distance.gradient().reshape(-1)
+            return distance.value, distance.gradient.reshape(-1)
 
         def eq_constraint(x, *args):
             """Equality constraint"""

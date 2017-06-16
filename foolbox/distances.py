@@ -29,21 +29,12 @@ implement the :meth:`_calculate` method.
 
    Distance
 
-Examples
---------
-
->>> import numpy as np
->>> from foolbox.distances import MeanSquaredDistance
->>> d = MeanSquaredDistance(np.array([1, 2]), np.array([2, 2]))
->>> print(d)
-MSE = 5.000000e-01 (rel. MSE = 20.0 %)
->>> assert d.value() == 0.5
-
 """
 
 from abc import ABC, abstractmethod
 import functools
 import numpy as np
+from numbers import Number
 
 
 @functools.total_ordering
@@ -60,28 +51,38 @@ class Distance(ABC):
             reference=None,
             other=None,
             *,
-            value=None,
-            gradient=None):
+            bounds=None,
+            value=None):
 
-        self.reference = reference
-        self.other = other
-
-        if value is not None or gradient is not None:
-            assert reference is None
-            assert other is None
-            self._value = value
-            self._gradient = gradient
+        if value is not None and isinstance(value, Number) and \
+                reference is None and other is None and bounds is None:
+            # alternative constructor
+            self.reference = None
+            self.other = None
+            self._bounds = None
+            self._value = reference
+            self._gradient = None
         else:
+            # standard constructor
+            assert reference is not None
+            assert other is not None
+            assert bounds is not None
+            self.reference = reference
+            self.other = other
+            self._bounds = bounds
             self._value, self._gradient = self._calculate()
 
+    @property
     def value(self):
         return self._value
 
+    @property
     def gradient(self):
         return self._gradient
 
     @abstractmethod
     def _calculate(self):
+        """Returns distance and gradient of distance w.r.t. to self.other"""
         raise NotImplementedError
 
     def name(self):
@@ -95,13 +96,13 @@ class Distance(ABC):
 
     def __eq__(self, other):
         if other.__class__ != self.__class__:
-            raise NotImplementedError('Comparisons are only possible between the same distance types.')  # noqa: E501
-        return self.value().__eq__(other.value())
+            raise TypeError('Comparisons are only possible between the same distance types.')  # noqa: E501
+        return self.value.__eq__(other.value)
 
     def __lt__(self, other):
         if other.__class__ != self.__class__:
-            raise NotImplementedError('Comparisons are only possible between the same distance types.')  # noqa: E501
-        return self.value().__lt__(other.value())
+            raise TypeError('Comparisons are only possible between the same distance types.')  # noqa: E501
+        return self.value.__lt__(other.value)
 
 
 class MeanSquaredDistance(Distance):
@@ -110,22 +111,15 @@ class MeanSquaredDistance(Distance):
     """
 
     def _calculate(self):
-        diff = self.other - self.reference
+        min_, max_ = self._bounds
+        diff = (self.other - self.reference) / (max_ - min_)
         value = np.mean(np.square(diff))
         n = np.prod(self.reference.shape)
-        gradient = 1 / n * 2 * diff
-
-        rel = value / np.mean(np.square(self.reference)) * 100
-        self._rel = rel
+        gradient = 1 / n * 2 * diff / (max_ - min_)
         return value, gradient
 
     def __str__(self):
-        try:
-            return 'MSE = {:.6e} (rel. MSE = {:.1f} %)'.format(
-                self._value, self._rel)
-        except AttributeError:
-            return 'MSE = {:.6e}'.format(
-                self._value)
+        return 'rel. MSE = {:.5f}  %'.format(self._value * 100)
 
 
 MSE = MeanSquaredDistance
@@ -137,19 +131,12 @@ class MeanAbsoluteDistance(Distance):
     """
 
     def _calculate(self):
-        diff = self.other - self.reference
+        min_, max_ = self._bounds
+        diff = (self.other - self.reference) / (max_ - min_)
         value = np.mean(np.abs(diff))
         n = np.prod(self.reference.shape)
-        gradient = 1 / n * np.sign(diff) * np.abs(diff)
-
-        rel = value / np.mean(np.abs(self.reference)) * 100
-        self._rel = rel
+        gradient = 1 / n * np.sign(diff) * np.abs(diff) / (max_ - min_)
         return value, gradient
 
     def __str__(self):
-        try:
-            return 'MAE = {:.6e} (rel. MAE = {:.1f} %)'.format(
-                self._value, self._rel)
-        except AttributeError:
-            return 'MAE = {:.6e}'.format(
-                self._value)
+        return 'rel. MAE = {:.5f}  %'.format(self._value * 100)

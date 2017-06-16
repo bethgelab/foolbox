@@ -89,9 +89,10 @@ class Adversarial(object):
             The distance between the given image and the original image.
 
         """
-        min_, max_ = self.bounds()
-        r = max_ - min_
-        return self.__distance(self.__original_image / r, image / r)
+        return self.__distance(
+            self.__original_image,
+            image,
+            bounds=self.bounds())
 
     def __new_adversarial(self, image):
         distance = self.normalized_distance(image)
