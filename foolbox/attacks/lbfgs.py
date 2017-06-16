@@ -136,7 +136,7 @@ class LBFGSAttack(Attack):
 
             def distance(x):
                 d = a.normalized_distance(x.reshape(shape))
-                return d.value, distance.gradient.reshape(-1)
+                return d.value, d.gradient.reshape(-1)
 
             def crossentropy(x):
                 logits, gradient, _ = a.predictions_and_gradient(

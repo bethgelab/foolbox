@@ -54,23 +54,25 @@ class Distance(ABC):
             bounds=None,
             value=None):
 
-        if value is not None and isinstance(value, Number) and \
-                reference is None and other is None and bounds is None:
+        if value is not None:
             # alternative constructor
+            assert isinstance(value, Number)
+            assert reference is None
+            assert other is None
+            assert bounds is None
             self.reference = None
             self.other = None
             self._bounds = None
-            self._value = reference
+            self._value = value
             self._gradient = None
         else:
             # standard constructor
-            assert reference is not None
-            assert other is not None
-            assert bounds is not None
             self.reference = reference
             self.other = other
             self._bounds = bounds
             self._value, self._gradient = self._calculate()
+
+        assert self._value is not None
 
     @property
     def value(self):
@@ -135,7 +137,7 @@ class MeanAbsoluteDistance(Distance):
         diff = (self.other - self.reference) / (max_ - min_)
         value = np.mean(np.abs(diff))
         n = np.prod(self.reference.shape)
-        gradient = 1 / n * np.sign(diff) * np.abs(diff) / (max_ - min_)
+        gradient = 1 / n * np.sign(diff) / (max_ - min_)
         return value, gradient
 
     def __str__(self):

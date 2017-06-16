@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 from foolbox import distances
+from pytest import approx
 
 
 def test_abstract_distance():
@@ -27,21 +28,34 @@ def test_base_distance():
     assert distance <= distance
     assert distance >= distance
 
+    with pytest.raises(TypeError):
+        distance < 3
+
+    with pytest.raises(TypeError):
+        distance == 3
+
 
 def test_mse():
     assert distances.MSE == distances.MeanSquaredDistance
 
 
 def test_mean_squared_distance():
-    d = distances.MeanSquaredDistance(np.array([0, 2]), np.array([2, 2]))
-    assert d.value == 2.
-    assert (d.gradient == np.array([2, 0])).all()
+    d = distances.MeanSquaredDistance(
+        np.array([0, .5]),
+        np.array([.5, .5]),
+        bounds=(0, 1))
+    assert d.value == 1. / 8.
+    assert (d.gradient == np.array([.5, 0])).all()
 
 
 def test_mean_absolute_distance():
-    d = distances.MeanAbsoluteDistance(np.array([0, 2]), np.array([2, 2]))
-    assert d.value == 1.
-    assert (d.gradient == np.array([1, 0])).all()
+    d = distances.MeanAbsoluteDistance(
+        np.array([0, .5]),
+        np.array([.7, .5]),
+        bounds=(0, 1))
+    assert d.value == approx(0.35)
+    print(d.gradient)
+    assert (d.gradient == np.array([0.5, 0])).all()
 
 
 @pytest.mark.parametrize('Distance', [
