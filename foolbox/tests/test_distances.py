@@ -54,7 +54,6 @@ def test_mean_absolute_distance():
         np.array([.7, .5]),
         bounds=(0, 1))
     assert d.value == approx(0.35)
-    print(d.gradient)
     assert (d.gradient == np.array([0.5, 0])).all()
 
 

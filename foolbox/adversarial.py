@@ -96,8 +96,6 @@ class Adversarial(object):
 
     def __new_adversarial(self, image):
         distance = self.normalized_distance(image)
-        print(type(distance))
-        print(type(self.__best_distance))
         if self.__best_distance > distance:
             # new best adversarial
 
