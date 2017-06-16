@@ -117,8 +117,8 @@ class LBFGSAttack(Attack):
         if self._approximate_gradient:
 
             def distance(x):
-                distance = a.normalized_distance(x.reshape(shape))
-                return distance.value()
+                d = a.normalized_distance(x.reshape(shape))
+                return d.value
 
             def crossentropy(x):
                 # lbfgs with approx grad does not seem to respect the bounds
@@ -135,8 +135,8 @@ class LBFGSAttack(Attack):
         else:
 
             def distance(x):
-                distance = a.normalized_distance(x.reshape(shape))
-                return distance.value(), distance.gradient().reshape(-1)
+                d = a.normalized_distance(x.reshape(shape))
+                return d.value, d.gradient.reshape(-1)
 
             def crossentropy(x):
                 logits, gradient, _ = a.predictions_and_gradient(

@@ -83,7 +83,7 @@ class Attack(ABC):
 
         adversarial = find
 
-        if adversarial.distance.value() == 0.:
+        if adversarial.distance.value == 0.:
             logging.info('Not running the attack because the original image is already misclassified and the adversarial thus has a distance of 0.')  # noqa: E501
         else:
             _ = self._apply(adversarial, **kwargs)

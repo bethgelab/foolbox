@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 from foolbox import distances
+from pytest import approx
 
 
 def test_abstract_distance():
@@ -15,10 +16,10 @@ def test_base_distance():
         def _calculate(self):
             return 22, 2
 
-    distance = TestDistance(None, None)
+    distance = TestDistance(None, None, bounds=(0, 1))
     assert distance.name() == 'TestDistance'
-    assert distance.value() == 22
-    assert distance.gradient() == 2
+    assert distance.value == 22
+    assert distance.gradient == 2
     assert '2.2' in str(distance)
     assert 'TestDistance' in str(distance)
     assert distance == distance
@@ -27,25 +28,33 @@ def test_base_distance():
     assert distance <= distance
     assert distance >= distance
 
+    with pytest.raises(TypeError):
+        distance < 3
+
+    with pytest.raises(TypeError):
+        distance == 3
+
 
 def test_mse():
     assert distances.MSE == distances.MeanSquaredDistance
 
 
 def test_mean_squared_distance():
-    d = distances.MeanSquaredDistance(np.array([0, 2]), np.array([2, 2]))
-    assert d.value() == 2.
-    assert (d.gradient() == np.array([2, 0])).all()
-
-    assert str(d)[:5] == 'MSE ='
+    d = distances.MeanSquaredDistance(
+        np.array([0, .5]),
+        np.array([.5, .5]),
+        bounds=(0, 1))
+    assert d.value == 1. / 8.
+    assert (d.gradient == np.array([.5, 0])).all()
 
 
 def test_mean_absolute_distance():
-    d = distances.MeanAbsoluteDistance(np.array([0, 2]), np.array([2, 2]))
-    assert d.value() == 1.
-    assert (d.gradient() == np.array([1, 0])).all()
-
-    assert str(d)[:5] == 'MAE ='
+    d = distances.MeanAbsoluteDistance(
+        np.array([0, .5]),
+        np.array([.7, .5]),
+        bounds=(0, 1))
+    assert d.value == approx(0.35)
+    assert (d.gradient == np.array([0.5, 0])).all()
 
 
 @pytest.mark.parametrize('Distance', [
@@ -56,9 +65,9 @@ def test_str_repr(Distance):
     """Tests that str and repr contain the value
     and that str does not fail when initialized
     with a value rather than calculated."""
-    d = Distance(value=33)
+    reference = np.zeros((5, 5))
+    other = np.ones((5, 5))
+    d = Distance(reference, other, bounds=(0, 1))
     assert isinstance(str(d), str)
-    assert '3' in str(d)
-    assert '3' in repr(d)
-    d = Distance(value=np.inf)
-    assert isinstance(str(d), str)
+    assert '1' in str(d)
+    assert '1' in repr(d)

@@ -18,7 +18,7 @@ def test_attack(Attack, bn_adversarial):
     attack = Attack()
     attack(adv)
     assert adv.image is not None
-    assert adv.distance.value() < np.inf
+    assert adv.distance.value < np.inf
 
 
 @pytest.mark.parametrize('Attack', Attacks)
@@ -27,7 +27,7 @@ def test_attack_gl(Attack, gl_bn_adversarial):
     attack = Attack()
     attack(adv)
     assert adv.image is not None
-    assert adv.distance.value() < np.inf
+    assert adv.distance.value < np.inf
 
 
 @pytest.mark.parametrize('Attack', Attacks)
@@ -36,4 +36,4 @@ def test_attack_impossible(Attack, bn_impossible):
     attack = Attack()
     attack(adv)
     assert adv.image is None
-    assert adv.distance.value() == np.inf
+    assert adv.distance.value == np.inf

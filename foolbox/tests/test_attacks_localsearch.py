@@ -8,7 +8,7 @@ def test_attack(bn_adversarial):
     attack = Attack()
     attack(adv, d=1)
     assert adv.image is not None
-    assert adv.distance.value() < np.inf
+    assert adv.distance.value < np.inf
 
 
 def test_attack_gl(gl_bn_adversarial):
@@ -16,7 +16,7 @@ def test_attack_gl(gl_bn_adversarial):
     attack = Attack()
     attack(adv, d=1)
     assert adv.image is not None
-    assert adv.distance.value() < np.inf
+    assert adv.distance.value < np.inf
 
 
 def test_targeted_attack(bn_targeted_adversarial):
@@ -24,4 +24,4 @@ def test_targeted_attack(bn_targeted_adversarial):
     attack = Attack()
     attack(adv, d=1)
     assert adv.image is None
-    assert adv.distance.value() == np.inf
+    assert adv.distance.value == np.inf
