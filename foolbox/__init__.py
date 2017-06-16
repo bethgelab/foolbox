@@ -1,4 +1,5 @@
-__version__ = '0.3.5'
+import pkg_resources
+__version__ = pkg_resources.get_distribution('foolbox')
 
 from . import models  # type: ignore # noqa: F401
 from . import criteria  # type: ignore # noqa: F401
