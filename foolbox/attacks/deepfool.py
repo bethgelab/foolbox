@@ -7,7 +7,7 @@ from .base import Attack
 from ..utils import crossentropy
 
 
-class DeepFool(Attack):
+class DeepFoolAttack(Attack):
     """Simple and accurate adversarial attack.
 
     Implementes DeepFool introduced in [1]_.
@@ -83,3 +83,6 @@ class DeepFool(Attack):
             perturbed = np.clip(perturbed, min_, max_)
 
         a.predictions(perturbed)  # to find an adversarial in the last step
+
+
+DeepFool = DeepFoolAttack
