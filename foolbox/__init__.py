@@ -1,5 +1,7 @@
-import pkg_resources
-__version__ = pkg_resources.get_distribution('foolbox')
+from os.path import join, dirname
+
+with open(join(dirname(__file__), 'VERSION')) as f:
+    __version__ = f.read().strip()
 
 from . import models  # type: ignore # noqa: F401
 from . import criteria  # type: ignore # noqa: F401
