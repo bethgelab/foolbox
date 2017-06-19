@@ -27,7 +27,7 @@ def softmax(logits):
     return e / np.sum(e)
 
 
-def crossentropy(*, label, logits):
+def crossentropy(label, logits):
     """Calculates the cross-entropy.
 
     Parameters

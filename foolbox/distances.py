@@ -30,8 +30,16 @@ implement the :meth:`_calculate` method.
    Distance
 
 """
+from __future__ import division
+import sys
+import abc
+abstractmethod = abc.abstractmethod
 
-from abc import ABC, abstractmethod
+if sys.version_info >= (3, 4):
+    ABC = abc.ABC
+else:
+    ABC = abc.ABCMeta('ABC', (), {})
+
 import functools
 import numpy as np
 from numbers import Number
@@ -50,7 +58,6 @@ class Distance(ABC):
             self,
             reference=None,
             other=None,
-            *,
             bounds=None,
             value=None):
 
@@ -99,12 +106,12 @@ class Distance(ABC):
     def __eq__(self, other):
         if other.__class__ != self.__class__:
             raise TypeError('Comparisons are only possible between the same distance types.')  # noqa: E501
-        return self.value.__eq__(other.value)
+        return self.value == other.value
 
     def __lt__(self, other):
         if other.__class__ != self.__class__:
             raise TypeError('Comparisons are only possible between the same distance types.')  # noqa: E501
-        return self.value.__lt__(other.value)
+        return self.value < other.value
 
 
 class MeanSquaredDistance(Distance):

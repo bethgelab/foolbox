@@ -1,6 +1,5 @@
+from __future__ import absolute_import
 import numpy as np
-
-
 from .base import DifferentiableModel
 
 
@@ -27,12 +26,12 @@ class TheanoModel(DifferentiableModel):
             self,
             images,
             logits,
-            *,
             bounds,
             num_classes,
             channel_axis=1):
 
-        super().__init__(bounds=bounds, channel_axis=channel_axis)
+        super(TheanoModel, self).__init__(bounds=bounds,
+                                          channel_axis=channel_axis)
 
         self._num_classes = num_classes
 

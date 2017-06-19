@@ -15,7 +15,7 @@ class PrecomputedImagesAttack(Attack):
     """
 
     def __init__(self, input_images, output_images, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(PrecomputedImagesAttack, self).__init__(*args, **kwargs)
 
         assert input_images.shape == output_images.shape
 

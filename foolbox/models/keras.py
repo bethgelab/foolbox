@@ -1,5 +1,5 @@
+from __future__ import absolute_import
 import warnings
-
 import numpy as np
 
 from .base import DifferentiableModel
@@ -28,13 +28,13 @@ class KerasModel(DifferentiableModel):
     def __init__(
             self,
             model,
-            *,
             bounds,
             channel_axis=3,
             predicts='probabilities',
             preprocess_fn=None):
 
-        super().__init__(bounds=bounds, channel_axis=channel_axis)
+        super(KerasModel, self).__init__(bounds=bounds,
+                                         channel_axis=channel_axis)
 
         from keras import backend as K
 
