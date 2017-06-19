@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import numpy as np
 
 from .base import DifferentiableModel
@@ -36,7 +38,8 @@ class MXNetModel(DifferentiableModel):
             bounds,
             channel_axis=1):
 
-        super().__init__(bounds=bounds, channel_axis=channel_axis)
+        super(MXNetModel, self).__init__(
+            bounds=bounds, channel_axis=channel_axis)
 
         import mxnet as mx
 
