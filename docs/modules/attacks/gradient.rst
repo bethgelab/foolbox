@@ -23,3 +23,9 @@ Gradient-based attacks
 
 .. autoclass:: DeepFool
    :members:
+
+.. autoclass:: SLSQPAttack
+   :members:
+
+.. autoclass:: SaliencyMapAttack
+   :members:

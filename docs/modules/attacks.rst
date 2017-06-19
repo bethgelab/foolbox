@@ -8,7 +8,6 @@
 
    attacks/gradient
    attacks/blackbox
-   attacks/approxgradient
    attacks/other
 
 
@@ -24,7 +23,8 @@
    FGSM
    LBFGSAttack
    DeepFoolAttack
-   DeepFool
+   SLSQPAttack
+   SaliencyMapAttack
 
 
 .. rubric:: :doc:`attacks/blackbox`
@@ -32,22 +32,13 @@
 .. autosummary::
    :nosignatures:
 
-   SaliencyMapAttack
    GaussianBlurAttack
    ContrastReductionAttack
    SinglePixelAttack
    LocalSearchAttack
-   SLSQPAttack
    AdditiveUniformNoiseAttack
    AdditiveGaussianNoiseAttack
    SaltAndPepperNoiseAttack
-
-
-.. rubric:: :doc:`attacks/approxgradient`
-
-.. autosummary::
-   :nosignatures:
-
    ApproximateLBFGSAttack
 
 
