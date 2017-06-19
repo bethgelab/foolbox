@@ -46,7 +46,7 @@ Criteria can be combined to create a new criterion:
 from abc import ABCMeta, abstractmethod
 
 # compatible with Python 2 *and* 3:
-ABC = ABCMeta('ABC', (object,), {'__slots__': ()}) 
+ABC = ABCMeta('ABC', (object,), {'__slots__': ()})
 
 import numpy as np
 

@@ -30,7 +30,8 @@ class TheanoModel(DifferentiableModel):
             num_classes,
             channel_axis=1):
 
-        super(TheanoModel, self).__init__(bounds=bounds, channel_axis=channel_axis)
+        super(TheanoModel, self).__init__(bounds=bounds,
+                                          channel_axis=channel_axis)
 
         self._num_classes = num_classes
 

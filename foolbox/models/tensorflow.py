@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import numpy as np
 from .base import DifferentiableModel
 
+
 class TensorFlowModel(DifferentiableModel):
     """Creates a :class:`Model` instance from existing `TensorFlow` tensors.
 
@@ -26,7 +27,8 @@ class TensorFlowModel(DifferentiableModel):
             bounds,
             channel_axis=3):
 
-        super(TensorFlowModel, self).__init__(bounds=bounds, channel_axis=channel_axis)
+        super(TensorFlowModel, self).__init__(bounds=bounds,
+                                              channel_axis=channel_axis)
 
         # delay import until class is instantiated
         import tensorflow as tf

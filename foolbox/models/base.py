@@ -2,7 +2,8 @@ import numpy as np
 from abc import ABCMeta, abstractmethod
 
 # compatible with Python 2 *and* 3:
-ABC = ABCMeta('ABC', (object,), {'__slots__': ()}) 
+ABC = ABCMeta('ABC', (object,), {'__slots__': ()})
+
 
 class Model(ABC):
     """Base class to provide attacks with a unified interface to models.

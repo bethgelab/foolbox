@@ -30,7 +30,8 @@ class PyTorchModel(DifferentiableModel):
             channel_axis=1,
             cuda=True):
 
-        super(PyTorchModel, self).__init__(bounds=bounds, channel_axis=channel_axis)
+        super(PyTorchModel, self).__init__(bounds=bounds,
+                                           channel_axis=channel_axis)
 
         self._num_classes = num_classes
         self._model = model

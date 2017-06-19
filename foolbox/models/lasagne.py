@@ -29,7 +29,8 @@ class LasagneModel(DifferentiableModel):
             bounds,
             channel_axis=1):
 
-        super(LasagneModel, self).__init__(bounds=bounds, channel_axis=channel_axis)
+        super(LasagneModel, self).__init__(bounds=bounds,
+                                           channel_axis=channel_axis)
 
         # delay import until class is instantiated
         import theano as th
