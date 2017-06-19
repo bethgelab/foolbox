@@ -16,6 +16,7 @@ Models
    KerasModel
    TheanoModel
    LasagneModel
+   MXNetModel
 
 Wrappers
 --------
