@@ -10,7 +10,7 @@ before_install:
 install:
     - travis_wait travis_retry pip install --upgrade numpy
     - travis_wait travis_retry pip install --upgrade scipy
-    - travis_wait travis_retry pip install -r requirements-dev.txt
+    - travis_wait travis_retry if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -r requirements-dev-py2.txt; else pip install -r requirements-dev.txt; fi
     - travis_wait travis_retry pip install --upgrade tensorflow
     - travis_wait travis_retry pip install --upgrade theano
     - travis_wait travis_retry pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
