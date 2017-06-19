@@ -117,7 +117,7 @@ class LocalSearchAttack(Attack):
         Ii = I
         PxPy = random_locations()
 
-        for r in range(R):
+        for _ in range(R):
             # Computing the function g using the neighborhood
             L = [pert(Ii, p, x, y) for x, y in PxPy]
 
