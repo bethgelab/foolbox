@@ -2,6 +2,7 @@ sudo: false
 dist: trusty
 language: python
 python:
+    - 2.7
     - 3.5
     - 3.6
 before_install:
@@ -13,6 +14,7 @@ install:
     - travis_wait travis_retry pip install --upgrade tensorflow
     - travis_wait travis_retry pip install --upgrade theano
     - travis_wait travis_retry pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp27-none-linux_x86_64.whl; fi
     - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp35-cp35m-linux_x86_64.whl; fi
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp36-cp36m-linux_x86_64.whl; fi
     - travis_wait travis_retry pip install --upgrade keras
