@@ -3,9 +3,6 @@ Black-box attacks
 
 .. currentmodule:: foolbox.attacks
 
-.. autoclass:: SaliencyMapAttack
-   :members:
-
 .. autoclass:: GaussianBlurAttack
    :members:
 
@@ -18,9 +15,6 @@ Black-box attacks
 .. autoclass:: LocalSearchAttack
    :members:
 
-.. autoclass:: SLSQPAttack
-   :members:
-
 .. autoclass:: AdditiveUniformNoiseAttack
    :members:
 
@@ -28,4 +22,7 @@ Black-box attacks
    :members:
 
 .. autoclass:: SaltAndPepperNoiseAttack
+   :members:
+
+.. autoclass:: ApproximateLBFGSAttack
    :members:

@@ -10,6 +10,7 @@ It comes with support for many frameworks to build models including
 * Theano
 * Keras
 * Lasagne
+* MXNet
 
 and it is easy to extend to other frameworks.
 
