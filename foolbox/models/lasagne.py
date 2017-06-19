@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import numpy as np
 
 
@@ -25,11 +26,10 @@ class LasagneModel(DifferentiableModel):
             self,
             input_layer,
             logits_layer,
-            *,
             bounds,
             channel_axis=1):
 
-        super().__init__(bounds=bounds, channel_axis=channel_axis)
+        super(LasagneModel, self).__init__(bounds=bounds, channel_axis=channel_axis)
 
         # delay import until class is instantiated
         import theano as th

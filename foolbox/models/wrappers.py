@@ -16,7 +16,7 @@ class ModelWrapper(Model):
     """
 
     def __init__(self, model):
-        super().__init__(
+        super(ModelWrapper, self).__init__(
             bounds=model.bounds(),
             channel_axis=model.channel_axis())
 

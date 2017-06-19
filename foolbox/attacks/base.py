@@ -1,5 +1,8 @@
 import logging
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
+
+# compatible with Python 2 *and* 3:
+ABC = ABCMeta('ABC', (object,), {'__slots__': ()}) 
 
 from ..adversarial import Adversarial
 from ..criteria import Misclassification
@@ -36,7 +39,6 @@ class Attack(ABC):
             self,
             image,
             label=None,
-            *,
             unpack=True,
             **kwargs):
 

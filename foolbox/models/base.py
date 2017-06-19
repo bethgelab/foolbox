@@ -1,6 +1,8 @@
 import numpy as np
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
+# compatible with Python 2 *and* 3:
+ABC = ABCMeta('ABC', (object,), {'__slots__': ()}) 
 
 class Model(ABC):
     """Base class to provide attacks with a unified interface to models.
@@ -22,7 +24,7 @@ class Model(ABC):
 
     """
 
-    def __init__(self, *, bounds, channel_axis):
+    def __init__(self, bounds, channel_axis):
         assert len(bounds) == 2
         self._bounds = bounds
         assert channel_axis in [0, 1, 2, 3]

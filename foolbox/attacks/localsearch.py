@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 
 from .base import Attack
@@ -116,8 +117,7 @@ class LocalSearchAttack(Attack):
         Ii = I
         PxPy = random_locations()
 
-        for _ in range(R):
-
+        for r in range(R):
             # Computing the function g using the neighborhood
             L = [pert(Ii, p, x, y) for x, y in PxPy]
 
@@ -149,8 +149,8 @@ class LocalSearchAttack(Attack):
             # Update a neighborhood of pixel locations for the next round
             PxPy = [
                 (x, y)
-                for a, b in PxPy_star
-                for x in range(a - d, a + d + 1)
-                for y in range(b - d, b + d + 1)]
+                for _a, _b in PxPy_star
+                for x in range(_a - d, _a + d + 1)
+                for y in range(_b - d, _b + d + 1)]
             PxPy = [(x, y) for x, y in PxPy if 0 <= x < w and 0 <= y < h]
             PxPy = np.array(PxPy)

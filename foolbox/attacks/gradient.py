@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 from collections import Iterable
 
@@ -57,7 +58,6 @@ class IterativeGradientAttack(Attack):
                 gradient = a.gradient(perturbed)
                 gradient_norm = np.sqrt(np.mean(np.square(gradient)))
                 gradient = gradient / (gradient_norm + 1e-8) * (max_ - min_)
-
                 perturbed = image + gradient * epsilon
                 perturbed = np.clip(perturbed, min_, max_)
 

@@ -43,8 +43,10 @@ Criteria can be combined to create a new criterion:
 >>> criterion5 = criterion2 & criterion3
 
 """
+from abc import ABCMeta, abstractmethod
 
-from abc import ABC, abstractmethod
+# compatible with Python 2 *and* 3:
+ABC = ABCMeta('ABC', (object,), {'__slots__': ()}) 
 
 import numpy as np
 
@@ -127,7 +129,7 @@ class CombinedCriteria(Criterion):
     """
 
     def __init__(self, *criteria):
-        super().__init__()
+        super(CombinedCriteria, self).__init__()
         self._criteria = criteria
 
     def name(self):
@@ -203,8 +205,8 @@ class TopKMisclassification(Criterion):
 
     """
 
-    def __init__(self, *, k):
-        super().__init__()
+    def __init__(self, k):
+        super(TopKMisclassification, self).__init__()
         self.k = k
 
     def name(self):
@@ -232,7 +234,7 @@ class TargetClass(Criterion):
     """
 
     def __init__(self, target_class):
-        super().__init__()
+        super(TargetClass, self).__init__()
         self._target_class = target_class
 
     def target_class(self):
@@ -265,7 +267,7 @@ class OriginalClassProbability(Criterion):
     """
 
     def __init__(self, p):
-        super().__init__()
+        super(OriginalClassProbability, self).__init__()
         assert 0 <= p <= 1
         self.p = p
 
@@ -299,8 +301,8 @@ class TargetClassProbability(Criterion):
 
     """
 
-    def __init__(self, target_class, *, p):
-        super().__init__()
+    def __init__(self, target_class, p):
+        super(TargetClassProbability, self).__init__()
         self._target_class = target_class
         assert 0 <= p <= 1
         self.p = p

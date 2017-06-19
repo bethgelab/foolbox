@@ -45,6 +45,7 @@ def test_mean_squared_distance():
         np.array([.5, .5]),
         bounds=(0, 1))
     assert d.value == 1. / 8.
+    print('0.5, 0', d.gradient)
     assert (d.gradient == np.array([.5, 0])).all()
 
 

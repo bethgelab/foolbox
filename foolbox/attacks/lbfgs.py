@@ -1,3 +1,4 @@
+from __future__ import division
 import random
 import logging
 
@@ -30,9 +31,14 @@ class LBFGSAttack(Attack):
 
     """
 
-    def __init__(self, *args, approximate_gradient=False, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._approximate_gradient = approximate_gradient
+    def __init__(self, *args, **kwargs):
+        if 'approximate_gradient' in kwargs:
+            self._approximate_gradient = kwargs['approximate_gradient']
+            del kwargs['approximate_gradient']
+            super(LBFGSAttack, self).__init__(*args, **kwargs)
+        else:
+            self._approximate_gradient = False
+            super(LBFGSAttack, self).__init__(*args, **kwargs)
 
     def name(self):
         prefix = 'Approximate' if self._approximate_gradient else ''
@@ -212,4 +218,5 @@ class ApproximateLBFGSAttack(LBFGSAttack):
 
     def __init__(self, *args, **kwargs):
         assert 'approximate_gradient' not in kwargs
-        super().__init__(*args, approximate_gradient=True, **kwargs)
+        kwargs['approximate_gradient'] = True
+        super(ApproximateLBFGSAttack, self).__init__(*args, **kwargs)
