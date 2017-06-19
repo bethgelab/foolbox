@@ -1,5 +1,12 @@
 import numpy as np
-from abc import ABC, abstractmethod
+import sys
+import abc
+abstractmethod = abc.abstractmethod
+
+if sys.version_info >= (3, 4):
+    ABC = abc.ABC
+else:
+    ABC = abc.ABCMeta('ABC', (), {})
 
 
 class Model(ABC):
@@ -22,7 +29,7 @@ class Model(ABC):
 
     """
 
-    def __init__(self, *, bounds, channel_axis):
+    def __init__(self, bounds, channel_axis):
         assert len(bounds) == 2
         self._bounds = bounds
         assert channel_axis in [0, 1, 2, 3]

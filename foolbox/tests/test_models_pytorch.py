@@ -15,7 +15,7 @@ def test_pytorch_model(num_classes):
     class Net(nn.Module):
 
         def __init__(self):
-            super().__init__()
+            super(Net, self).__init__()
 
         def forward(self, x):
             x = torch.mean(x, 3)

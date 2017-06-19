@@ -1,4 +1,9 @@
-from unittest.mock import Mock
+import sys
+if sys.version_info > (3, 2):
+    from unittest.mock import Mock
+else:
+    # for Python2.7 compatibility
+    from mock import Mock
 
 import pytest
 

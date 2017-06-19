@@ -37,7 +37,6 @@ class Adversarial(object):
             criterion,
             original_image,
             original_class,
-            *,
             distance=MSE):
 
         self.__model = model
@@ -154,7 +153,7 @@ class Adversarial(object):
         min_, max_ = self.bounds()
         return min_ <= input_.min() and input_.max() <= max_
 
-    def channel_axis(self, *, batch):
+    def channel_axis(self, batch):
         """Interface to model.channel_axis for attacks.
 
         Parameters
@@ -202,7 +201,7 @@ class Adversarial(object):
         assert predictions.ndim == 1
         return predictions, is_adversarial
 
-    def batch_predictions(self, images, *, increasing=False, strict=True):
+    def batch_predictions(self, images, increasing=False, strict=True):
         """Interface to model.batch_predictions for attacks.
 
         Parameters
