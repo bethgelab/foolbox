@@ -43,10 +43,14 @@ Criteria can be combined to create a new criterion:
 >>> criterion5 = criterion2 & criterion3
 
 """
-from abc import ABCMeta, abstractmethod
+import sys
+import abc
+abstractmethod = abc.abstractmethod
 
-# compatible with Python 2 *and* 3:
-ABC = ABCMeta('ABC', (object,), {'__slots__': ()})
+if sys.version_info >= (3, 4):
+    ABC = abc.ABC
+else:
+    ABC = abc.ABCMeta('ABC', (), {})
 
 import numpy as np
 

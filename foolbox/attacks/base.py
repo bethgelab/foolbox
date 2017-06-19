@@ -1,8 +1,12 @@
 import logging
-from abc import ABCMeta, abstractmethod
+import sys
+import abc
+abstractmethod = abc.abstractmethod
 
-# compatible with Python 2 *and* 3:
-ABC = ABCMeta('ABC', (object,), {'__slots__': ()})
+if sys.version_info >= (3, 4):
+    ABC = abc.ABC
+else:
+    ABC = abc.ABCMeta('ABC', (), {})
 
 from ..adversarial import Adversarial
 from ..criteria import Misclassification
