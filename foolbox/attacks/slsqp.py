@@ -12,7 +12,7 @@ class SLSQPAttack(Attack):
     # is differentiable) and use this to provide constraint gradients
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(SLSQPAttack, self).__init__(*args, **kwargs)
         self.last_result = None
 
     def _apply(self, a):

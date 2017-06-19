@@ -1,5 +1,12 @@
 import logging
-from abc import ABC, abstractmethod
+import sys
+import abc
+abstractmethod = abc.abstractmethod
+
+if sys.version_info >= (3, 4):
+    ABC = abc.ABC
+else:
+    ABC = abc.ABCMeta('ABC', (), {})
 
 from ..adversarial import Adversarial
 from ..criteria import Misclassification
@@ -36,7 +43,6 @@ class Attack(ABC):
             self,
             image,
             label=None,
-            *,
             unpack=True,
             **kwargs):
 
