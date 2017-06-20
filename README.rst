@@ -48,10 +48,10 @@ Example
 
    # apply attack on source image
    attack  = foolbox.attacks.FGSM(fmodel)
-   adv_img = attack(image=image, label=label)
+   adversarial = attack(image, label)
 
 Interfaces for a range of other deeplearning packages such as TensorFlow, 
-PyTorch and Lasagne are available, e.g.
+PyTorch, Theano, Lasagne and MXNet are available, e.g.
 
 .. code-block:: python
 
@@ -60,7 +60,7 @@ PyTorch and Lasagne are available, e.g.
    # etc.
 
 Different adversarial criteria such as Top-k, specific target classes or target probability 
-levels can be passed to the attack, e.g.
+values for the original class or the target class can be passed to the attack, e.g.
 
 .. code-block:: python
 
