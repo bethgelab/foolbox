@@ -49,7 +49,7 @@ abstractmethod = abc.abstractmethod
 
 if sys.version_info >= (3, 4):
     ABC = abc.ABC
-else:
+else:  # pragma: no cover
     ABC = abc.ABCMeta('ABC', (), {})
 
 import numpy as np
