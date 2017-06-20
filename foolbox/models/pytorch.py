@@ -65,6 +65,8 @@ class PyTorchModel(DifferentiableModel):
 
         target = np.array([label])
         target = torch.from_numpy(target)
+        if self.cuda:  # pragma: no cover
+            target = target.cuda()
         target = Variable(target)
 
         assert image.ndim == 3
