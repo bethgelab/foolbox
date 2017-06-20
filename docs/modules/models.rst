@@ -26,6 +26,7 @@ Wrappers
 
    ModelWrapper
    GradientLess
+   CompositeModel
 
 Detailed description
 --------------------
