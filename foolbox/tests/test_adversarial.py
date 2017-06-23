@@ -18,7 +18,7 @@ def test_adversarial(model, criterion, image, label):
     # image = bn_image
     # label = bn_label
 
-    adversarial = Adversarial(model, criterion, image, label)
+    adversarial = Adversarial(model, criterion, image, label, verbose=False)
 
     assert not adversarial.predictions(image)[1]
 
@@ -31,7 +31,7 @@ def test_adversarial(model, criterion, image, label):
     assert adversarial.normalized_distance(image).value == 0
 
     label = 22  # wrong label
-    adversarial = Adversarial(model, criterion, image, label)
+    adversarial = Adversarial(model, criterion, image, label, verbose=True)
 
     assert adversarial.image is not None
     assert adversarial.distance == MSE(value=0)
