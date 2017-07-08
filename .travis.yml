@@ -6,6 +6,7 @@ python:
     - 3.5
     - 3.6
 install:
+    - pip install setuptools==20.7.0
     - pip list | grep setuptools
     - travis_wait travis_retry pip install --upgrade numpy
     - travis_wait travis_retry pip install --upgrade scipy
