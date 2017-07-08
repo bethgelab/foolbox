@@ -6,8 +6,6 @@ python:
     - 3.5
     - 3.6
 install:
-    - pip install setuptools==20.7.0
-    - pip list | grep setuptools
     - travis_wait travis_retry pip install --upgrade numpy
     - travis_wait travis_retry pip install --upgrade scipy
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then travis_wait travis_retry pip install -r requirements-dev-py2.txt; else travis_wait travis_retry pip install -r requirements-dev.txt; fi
@@ -19,6 +17,8 @@ install:
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp36-cp36m-linux_x86_64.whl; fi
     - travis_wait travis_retry pip install --upgrade keras
     - travis_wait travis_retry pip install --upgrade mxnet
+    - pip list | grep setuptools
+    - pip install setuptools==20.7.0
     - pip list | grep setuptools
     - pip install -e .
 script:
