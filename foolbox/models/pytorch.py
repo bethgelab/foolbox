@@ -49,6 +49,8 @@ class PyTorchModel(DifferentiableModel):
         images = Variable(images, volatile=True)
         predictions = self._model(images)
         predictions = predictions.data
+        if self.cuda:
+            predictions = predictions.cpu()
         predictions = predictions.numpy()
         assert predictions.ndim == 2
         assert predictions.shape == (n, self.num_classes())
@@ -82,6 +84,9 @@ class PyTorchModel(DifferentiableModel):
         grad = images.grad
 
         predictions = predictions.data
+        if self.cuda:
+            predictions = predictions.cpu()
+        
         predictions = predictions.numpy()
         predictions = np.squeeze(predictions, axis=0)
         assert predictions.ndim == 1
