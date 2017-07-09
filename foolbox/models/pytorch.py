@@ -93,6 +93,8 @@ class PyTorchModel(DifferentiableModel):
         assert predictions.shape == (self.num_classes(),)
 
         grad = grad.data
+        if self.cuda:  # pragma: no cover
+            grad = grad.cpu()
         grad = grad.numpy()
         grad = np.squeeze(grad, axis=0)
         assert grad.shape == image.shape
