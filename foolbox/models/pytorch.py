@@ -57,6 +57,8 @@ class PyTorchModel(DifferentiableModel):
         images = Variable(images, volatile=True)
         predictions = self._model(images)
         predictions = predictions.data
+        if self.cuda:  # pragma: no cover
+            predictions = predictions.cpu()
         predictions = predictions.numpy()
         assert predictions.ndim == 2
         assert predictions.shape == (n, self.num_classes())
@@ -73,6 +75,8 @@ class PyTorchModel(DifferentiableModel):
 
         target = np.array([label])
         target = torch.from_numpy(target)
+        if self.cuda:  # pragma: no cover
+            target = target.cuda()
         target = Variable(target)
 
         assert image.ndim == 3
@@ -88,12 +92,17 @@ class PyTorchModel(DifferentiableModel):
         grad = images.grad
 
         predictions = predictions.data
+        if self.cuda:  # pragma: no cover
+            predictions = predictions.cpu()
+
         predictions = predictions.numpy()
         predictions = np.squeeze(predictions, axis=0)
         assert predictions.ndim == 1
         assert predictions.shape == (self.num_classes(),)
 
         grad = grad.data
+        if self.cuda:  # pragma: no cover
+            grad = grad.cpu()
         grad = grad.numpy()
         grad = np.squeeze(grad, axis=0)
         assert grad.shape == image.shape

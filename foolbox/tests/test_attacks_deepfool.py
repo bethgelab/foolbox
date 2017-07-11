@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import DeepFool as Attack
+from foolbox.attacks import DeepFoolAttack as Attack
 
 
 def test_attack(bn_adversarial):

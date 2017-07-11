@@ -2,7 +2,7 @@
 Installation
 ============
 
-Foolbox is a Python 3 package and not compatible with Python 2. At the moment, we test it using Python 3.5 and Python 3.6, but other versions might work as well.
+Foolbox is a Python package to create adversarial examples. We test using Python 2.7, 3.5 and 3.6, but other versions of Python might work as well. **We recommend using Python 3!**.
 
 Stable release
 ==============

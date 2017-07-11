@@ -37,13 +37,15 @@ class Adversarial(object):
             criterion,
             original_image,
             original_class,
-            distance=MSE):
+            distance=MSE,
+            verbose=False):
 
         self.__model = model
         self.__criterion = criterion
         self.__original_image = original_image
         self.__original_class = original_class
         self.__distance = distance
+        self.verbose = verbose
 
         self.__best_adversarial = None
         self.__best_distance = distance(value=np.inf)
@@ -97,6 +99,8 @@ class Adversarial(object):
         distance = self.normalized_distance(image)
         if self.__best_distance > distance:
             # new best adversarial
+            if self.verbose:
+                print('new best adversarial: {}'.format(distance))
 
             self.__best_adversarial = image
             self.__best_distance = distance

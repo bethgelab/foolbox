@@ -1,4 +1,4 @@
-import logging
+import warnings
 import random
 
 import numpy as np
@@ -24,11 +24,11 @@ class DeepFoolAttack(Attack):
             return
 
         if a.target_class() is not None:
-            logging.warn('Targeted adversarials not supported by DeepFool.')
+            warnings.warn('Targeted adversarials not supported by DeepFool.')
             return
 
         if subsample:
-            logging.warn('Performs subsampling, results will be suboptimal.')
+            warnings.warn('Performs subsampling, results will be suboptimal.')
 
         label = a.original_class
 
@@ -83,6 +83,3 @@ class DeepFoolAttack(Attack):
             perturbed = np.clip(perturbed, min_, max_)
 
         a.predictions(perturbed)  # to find an adversarial in the last step
-
-
-DeepFool = DeepFoolAttack

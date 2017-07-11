@@ -90,7 +90,9 @@ class LocalSearchAttack(Attack):
         channels = I.shape[channel_axis]
 
         def random_locations():
-            locations = np.random.permutation(h * w)[:int(0.1 * h * w)]
+            n = int(0.1 * h * w)
+            n = min(n, 128)
+            locations = np.random.permutation(h * w)[:n]
             p_x = locations % w
             p_y = locations // w
             pxy = list(zip(p_x, p_y))
@@ -119,17 +121,20 @@ class LocalSearchAttack(Attack):
 
         for _ in range(R):
             # Computing the function g using the neighborhood
+            # IMPORTANT: random subset for efficiency
+            PxPy = PxPy[np.random.permutation(len(PxPy))[:128]]
             L = [pert(Ii, p, x, y) for x, y in PxPy]
 
-            # TODO: use batch predictions
-            def score(It):
-                logits, _ = a.predictions(unnormalize(It), strict=False)
-                probs = softmax(logits)
-                return probs[cI]
+            def score(Its):
+                Its = np.stack(Its)
+                Its = unnormalize(Its)
+                batch_logits, _ = a.batch_predictions(Its, strict=False)
+                scores = [softmax(logits)[cI] for logits in batch_logits]
+                return scores
 
-            scores = [score(It) for It in L]
+            scores = score(L)
 
-            indices = np.argsort(scores)[::-1][:t]
+            indices = np.argsort(scores)[:t]
 
             PxPy_star = PxPy[indices]
 
@@ -143,7 +148,7 @@ class LocalSearchAttack(Attack):
 
             # Check whether the perturbed image Ii is an adversarial image
             _, is_adv = a.predictions(unnormalize(Ii))
-            if is_adv:
+            if is_adv:  # pragma: no cover
                 return
 
             # Update a neighborhood of pixel locations for the next round

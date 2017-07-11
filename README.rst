@@ -13,7 +13,7 @@
 Foolbox
 =======
 
-Foolbox is a Python toolbox to create adversarial examples that fool neural networks. It requires `Python 3`, `NumPy` and `SciPy`.
+Foolbox is a Python toolbox to create adversarial examples that fool neural networks. It requires `Python`, `NumPy` and `SciPy`.
 
 Installation
 ------------
@@ -21,6 +21,8 @@ Installation
 .. code-block:: bash
 
    pip install foolbox
+
+We test using Python 2.7, 3.5 and 3.6. Other Python versions might work as well. **We recommend using Python 3!**
 
 Documentation
 -------------
@@ -46,10 +48,10 @@ Example
 
    # apply attack on source image
    attack  = foolbox.attacks.FGSM(fmodel)
-   adv_img = attack(image=image, label=label)
+   adversarial = attack(image, label)
 
 Interfaces for a range of other deeplearning packages such as TensorFlow, 
-PyTorch and Lasagne are available, e.g.
+PyTorch, Theano, Lasagne and MXNet are available, e.g.
 
 .. code-block:: python
 
@@ -58,7 +60,7 @@ PyTorch and Lasagne are available, e.g.
    # etc.
 
 Different adversarial criteria such as Top-k, specific target classes or target probability 
-levels can be passed to the attack, e.g.
+values for the original class or the target class can be passed to the attack, e.g.
 
 .. code-block:: python
 
@@ -75,10 +77,14 @@ Questions
 
 Depending on the nature of your question feel free to post it as an issue on `GitHub <https://github.com/bethgelab/foolbox/issues/new>`_, or post it as a question on `Stack Overflow <https://stackoverflow.com>`_ using the `foolbox` tag. We will try to monitor that tag but if you don't get an answer don't hesitate to contact us.
 
-Development
------------
+Contributions welcome
+----------------------
 
 Foolbox is a work in progress and any input is welcome.
+
+In particular, we encourage users of deep learning frameworks for which we do not yet have builtin support, e.g. Caffe, Caffe2 or CNTK, to contribute the necessary wrappers. Don't hestiate to contact us if we can be of any help.
+
+Moreoever, attack developers are encouraged to share their reference implementation using Foolbox so that it will be available to everyone.
 
 Citation
 --------
