@@ -99,7 +99,7 @@ def test_pytorch_model_preprocessing():
         cuda=False)
 
     np.random.seed(22)
-    test_images = np.random.rand(2, 5, 5, channels).astype(np.float32)
+    test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
     test_images_copy = test_images.copy()
 
     p1 = model1.batch_predictions(test_images)
