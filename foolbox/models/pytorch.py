@@ -19,6 +19,8 @@ class PyTorchModel(DifferentiableModel):
         The index of the axis that represents color channels.
     cuda : bool
         A boolean specifying whether the model uses CUDA.
+    preprocess_fn : function
+	        Will be called with the images before model predictions are calculated.
 
     """
 
@@ -28,7 +30,8 @@ class PyTorchModel(DifferentiableModel):
             bounds,
             num_classes,
             channel_axis=1,
-            cuda=True):
+            cuda=True,
+			preprocess_fn=None):
 
         super(PyTorchModel, self).__init__(bounds=bounds,
                                            channel_axis=channel_axis)
@@ -37,13 +40,18 @@ class PyTorchModel(DifferentiableModel):
         self._model = model
         self.cuda = cuda
 
+        if preprocess_fn is not None:
+            self.preprocessing_fn = lambda x: preprocess_fn(x.copy())
+        else:
+            self.preprocessing_fn = lambda x: x
+
     def batch_predictions(self, images):
         # lazy import
         import torch
         from torch.autograd import Variable
 
         n = len(images)
-        images = torch.from_numpy(images)
+        images = torch.from_numpy(self.preprocessing_fn(images))
         if self.cuda:  # pragma: no cover
             images = images.cuda()
         images = Variable(images, volatile=True)
@@ -69,7 +77,7 @@ class PyTorchModel(DifferentiableModel):
 
         assert image.ndim == 3
         images = image[np.newaxis]
-        images = torch.from_numpy(images)
+        images = torch.from_numpy(self.preprocessing_fn(images))
         if self.cuda:  # pragma: no cover
             images = images.cuda()
         images = Variable(images, requires_grad=True)
