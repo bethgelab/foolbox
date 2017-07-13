@@ -92,14 +92,14 @@ Citation
 If you find Foolbox useful for your scientific work, please consider citing it
 in resulting publications:
 
-```
-@article{rauber2017foolbox
-  title={Foolbox v0.8.0: A Python toolbox to benchmark the robustness of machine learning models},
-  author={Rauber, Jonas and Brendel, Wieland and Bethge, Matthias},
-  journal={arXiv preprint},
-  year={2017}
-}
-```
+.. code-block::
+
+  @article{rauber2017foolbox
+    title={Foolbox v0.8.0: A Python toolbox to benchmark the robustness of machine learning models},
+    author={Rauber, Jonas and Brendel, Wieland and Bethge, Matthias},
+    journal={arXiv preprint},
+    year={2017}
+  }
 
 Authors
 -------
