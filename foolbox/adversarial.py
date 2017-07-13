@@ -76,17 +76,17 @@ class Adversarial(object):
         return self.__original_class
 
     @property
-    def _model(self):
+    def _model(self):  # pragma: no cover
         """Should not be used."""
         return self.__model
 
     @property
-    def _criterion(self):
+    def _criterion(self):  # pragma: no cover
         """Should not be used."""
         return self.__criterion
 
     @property
-    def _distance(self):
+    def _distance(self):  # pragma: no cover
         """Should not be used."""
         return self.__distance
 
