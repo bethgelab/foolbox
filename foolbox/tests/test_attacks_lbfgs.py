@@ -33,3 +33,11 @@ def test_attack_pytorch(bn_adversarial_pytorch):
     attack(adv, verbose=True, num_random_targets=2)
     assert adv.image is not None
     assert adv.distance.value < np.inf
+
+
+def test_targeted_attack_pytorch(bn_targeted_adversarial_pytorch):
+    adv = bn_targeted_adversarial_pytorch
+    attack = Attack()
+    attack(adv, verbose=True, num_random_targets=2)
+    assert adv.image is not None
+    assert adv.distance.value < np.inf
