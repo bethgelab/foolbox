@@ -112,7 +112,7 @@ class LBFGSAttack(Attack):
 
         # store the shape for later and operate on the flattened image
         shape = image.shape
-        # dtype = image.dtype
+        dtype = image.dtype
         image = image.flatten().astype(np.float64)
 
         n = len(image)
@@ -134,9 +134,10 @@ class LBFGSAttack(Attack):
                 return ce
 
             def loss(x, c):
+                x = x.astype(dtype)
                 v1 = distance(x)
                 v2 = crossentropy(x)
-                return v1 + c * v2
+                return np.float64(v1 + c * v2)
 
         else:
 
@@ -152,13 +153,14 @@ class LBFGSAttack(Attack):
                 return ce, gradient
 
             def loss(x, c):
+                x = x.astype(dtype)
                 v1, g1 = distance(x)
                 v2, g2 = crossentropy(x)
                 v = v1 + c * v2
                 g = g1 + c * g2
 
                 a = 1e10
-                return a * v, a * g
+                return np.float64(a * v), np.float64(a * g)
 
         def lbfgsb(c):
             approx_grad_eps = (max_ - min_) / 100
@@ -174,7 +176,7 @@ class LBFGSAttack(Attack):
 
             logging.info(d)
 
-            _, is_adversarial = a.predictions(x.reshape(shape))
+            _, is_adversarial = a.predictions(x.reshape(shape).astype(dtype))
             return is_adversarial
 
         # finding initial c

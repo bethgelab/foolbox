@@ -97,6 +97,7 @@ def bn_model_pytorch():
     class Net(nn.Module):
 
         def forward(self, x):
+            assert isinstance(x.data, torch.FloatTensor)
             x = torch.mean(x, 3)
             x = torch.squeeze(x, dim=3)
             x = torch.mean(x, 2)
@@ -235,6 +236,15 @@ def bn_trivial():
 def bn_adversarial_pytorch():
     model = bn_model_pytorch()
     criterion = bn_criterion()
+    image = bn_image_pytorch()
+    label = bn_label()
+    return Adversarial(model, criterion, image, label)
+
+
+@pytest.fixture
+def bn_targeted_adversarial_pytorch():
+    model = bn_model_pytorch()
+    criterion = bn_targeted_criterion()
     image = bn_image_pytorch()
     label = bn_label()
     return Adversarial(model, criterion, image, label)
