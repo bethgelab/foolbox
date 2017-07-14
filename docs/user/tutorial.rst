@@ -72,4 +72,4 @@ To plot the adversarial example we can use `matplotlib`:
   plt.imshow(adversarial)
 
   plt.subplot(1, 3, 3)
-  plt.(adversarial - image)
+  plt.imshow(adversarial - image)
