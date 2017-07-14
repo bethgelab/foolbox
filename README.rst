@@ -29,6 +29,8 @@ Documentation
 
 Documentation is available on readthedocs: http://foolbox.readthedocs.io/
 
+Our paper describing Foolbox is on arXiv: https://arxiv.org/abs/1707.04131
+
 Example
 -------
 
@@ -100,6 +102,8 @@ in resulting publications:
     journal={arXiv preprint},
     year={2017}
   }
+
+You can find the paper on arXiv: https://arxiv.org/abs/1707.04131
 
 Authors
 -------
