@@ -75,6 +75,21 @@ class Adversarial(object):
     def original_class(self):
         return self.__original_class
 
+    @property
+    def _model(self):  # pragma: no cover
+        """Should not be used."""
+        return self.__model
+
+    @property
+    def _criterion(self):  # pragma: no cover
+        """Should not be used."""
+        return self.__criterion
+
+    @property
+    def _distance(self):  # pragma: no cover
+        """Should not be used."""
+        return self.__distance
+
     def normalized_distance(self, image):
         """Calculates the distance of a given image to the
         original image.

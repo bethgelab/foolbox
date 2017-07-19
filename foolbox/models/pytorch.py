@@ -20,8 +20,7 @@ class PyTorchModel(DifferentiableModel):
     cuda : bool
         A boolean specifying whether the model uses CUDA.
     preprocess_fn : function
-	        Will be called with the images before model predictions are calculated.
-
+        Will be called with the images before model predictions are calculated.
     """
 
     def __init__(

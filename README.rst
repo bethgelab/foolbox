@@ -29,6 +29,8 @@ Documentation
 
 Documentation is available on readthedocs: http://foolbox.readthedocs.io/
 
+Our paper describing Foolbox is on arXiv: https://arxiv.org/abs/1707.04131
+
 Example
 -------
 
@@ -70,12 +72,12 @@ values for the original class or the target class can be passed to the attack, e
 Feature requests and bug reports
 --------------------------------
 
-We welcome feature requests and bug reports. Just create a new issue on `GitHub <https://github.com/bethgelab/foolbox/issues/new>`_.
+We welcome feature requests and bug reports. Just create a new issue on `GitHub <https://github.com/bethgelab/foolbox/issues/new>`__.
 
 Questions
 ---------
 
-Depending on the nature of your question feel free to post it as an issue on `GitHub <https://github.com/bethgelab/foolbox/issues/new>`_, or post it as a question on `Stack Overflow <https://stackoverflow.com>`_ using the `foolbox` tag. We will try to monitor that tag but if you don't get an answer don't hesitate to contact us.
+Depending on the nature of your question feel free to post it as an issue on `GitHub <https://github.com/bethgelab/foolbox/issues/new>`__, or post it as a question on `Stack Overflow <https://stackoverflow.com>`_ using the `foolbox` tag. We will try to monitor that tag but if you don't get an answer don't hesitate to contact us.
 
 Contributions welcome
 ----------------------
@@ -90,8 +92,18 @@ Citation
 --------
 
 If you find Foolbox useful for your scientific work, please consider citing it
-in resulting publications. We will soon publish a technical paper and will provide
-the citation here.
+in resulting publications:
+
+.. code-block::
+
+  @article{rauber2017foolbox
+    title={Foolbox v0.8.0: A Python toolbox to benchmark the robustness of machine learning models},
+    author={Rauber, Jonas and Brendel, Wieland and Bethge, Matthias},
+    journal={arXiv preprint},
+    year={2017}
+  }
+
+You can find the paper on arXiv: https://arxiv.org/abs/1707.04131
 
 Authors
 -------
