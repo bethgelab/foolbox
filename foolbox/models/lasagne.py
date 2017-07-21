@@ -19,6 +19,10 @@ class LasagneModel(DifferentiableModel):
         (0, 1) or (0, 255).
     channel_axis : int
         The index of the axis that represents color channels.
+    preprocessing: 2-element tuple with floats or numpy arrays
+        Elementwises preprocessing of input; we first subtract the first
+        element of preprocessing from the input and then divide the input by
+        the second element.
 
     """
 
@@ -27,10 +31,12 @@ class LasagneModel(DifferentiableModel):
             input_layer,
             logits_layer,
             bounds,
-            channel_axis=1):
+            channel_axis=1,
+            preprocessing=(0, 1)):
 
         super(LasagneModel, self).__init__(bounds=bounds,
-                                           channel_axis=channel_axis)
+                                           channel_axis=channel_axis,
+                                           preprocessing=preprocessing)
 
         # delay import until class is instantiated
         import theano as th
@@ -56,6 +62,7 @@ class LasagneModel(DifferentiableModel):
         self._predictions_and_gradient_fn = th.function(
             [images, labels], [logits, gradient])
         self._gradient_fn = th.function([images, labels], gradient)
+        self._loss_fn = th.function([images, labels], loss)
 
     def batch_predictions(self, images):
         predictions = self._batch_prediction_fn(images)
