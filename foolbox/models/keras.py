@@ -33,8 +33,7 @@ class KerasModel(DifferentiableModel):
             bounds,
             channel_axis=3,
             preprocessing=(0, 1),
-            predicts='probabilities'
-           ):
+            predicts='probabilities'):
 
         super(KerasModel, self).__init__(bounds=bounds,
                                          channel_axis=channel_axis,
