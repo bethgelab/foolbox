@@ -17,11 +17,13 @@ class KerasModel(DifferentiableModel):
         (0, 1) or (0, 255).
     channel_axis : int
         The index of the axis that represents color channels.
+    preprocessing: 2-element tuple with floats or numpy arrays
+        Elementwises preprocessing of input; we first subtract the first
+        element of preprocessing from the input and then divide the input by
+        the second element.
     predicts : str
         Specifies whether the `Keras` model predicts logits or probabilities.
         Logits are preferred, but probabilities are the default.
-    preprocess_fn : function
-        Will be called with the images before model predictions are calculated.
 
     """
 
@@ -30,11 +32,12 @@ class KerasModel(DifferentiableModel):
             model,
             bounds,
             channel_axis=3,
-            predicts='probabilities',
-            preprocess_fn=None):
+            preprocessing=(0, 1),
+            predicts='probabilities'):
 
         super(KerasModel, self).__init__(bounds=bounds,
-                                         channel_axis=channel_axis)
+                                         channel_axis=channel_axis,
+                                         preprocessing=preprocessing)
 
         from keras import backend as K
 
@@ -67,6 +70,9 @@ class KerasModel(DifferentiableModel):
         grads = K.gradients(loss, images_input)
         grad = grads[0]
 
+        self._loss_fn = K.function(
+            [images_input, label_input],
+            [loss])
         self._batch_pred_fn = K.function(
             [images_input], [predictions])
         self._pred_grad_fn = K.function(
@@ -74,11 +80,6 @@ class KerasModel(DifferentiableModel):
             [predictions, grad])
 
         self._predictions_are_logits = predictions_are_logits
-
-        if preprocess_fn is not None:
-            self.preprocessing_fn = lambda x: preprocess_fn(x.copy())
-        else:
-            self.preprocessing_fn = lambda x: x
 
     def _as_logits(self, predictions):
         assert predictions.ndim in [1, 2]
@@ -93,7 +94,7 @@ class KerasModel(DifferentiableModel):
         return self._num_classes
 
     def batch_predictions(self, images):
-        predictions = self._batch_pred_fn([self.preprocessing_fn(images)])
+        predictions = self._batch_pred_fn([self._process_input(images)])
         assert len(predictions) == 1
         predictions = predictions[0]
         assert predictions.shape == (images.shape[0], self.num_classes())
@@ -102,11 +103,12 @@ class KerasModel(DifferentiableModel):
 
     def predictions_and_gradient(self, image, label):
         predictions, gradient = self._pred_grad_fn([
-            self.preprocessing_fn(image[np.newaxis]),
+            self._process_input(image[np.newaxis]),
             np.array([label])])
         predictions = np.squeeze(predictions, axis=0)
         predictions = self._as_logits(predictions)
         gradient = np.squeeze(gradient, axis=0)
+        gradient = self._process_gradient(gradient)
         assert predictions.shape == (self.num_classes(),)
         assert gradient.shape == image.shape
         return predictions, gradient

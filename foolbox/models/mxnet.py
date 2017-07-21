@@ -25,6 +25,10 @@ class MXNetModel(DifferentiableModel):
         (0, 1) or (0, 255).
     channel_axis : int
         The index of the axis that represents color channels.
+    preprocessing: 2-element tuple with floats or numpy arrays
+        Elementwises preprocessing of input; we first subtract the first
+        element of preprocessing from the input and then divide the input by
+        the second element.
 
     """
 
@@ -36,10 +40,13 @@ class MXNetModel(DifferentiableModel):
             device,
             num_classes,
             bounds,
-            channel_axis=1):
+            channel_axis=1,
+            preprocessing=(0, 1)):
 
         super(MXNetModel, self).__init__(
-            bounds=bounds, channel_axis=channel_axis)
+            bounds=bounds,
+            channel_axis=channel_axis,
+            preprocessing=preprocessing)
 
         import mxnet as mx
 
@@ -65,6 +72,7 @@ class MXNetModel(DifferentiableModel):
 
     def batch_predictions(self, images):
         import mxnet as mx
+        images = self._process_input(images)
         data_array = mx.nd.array(images, ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
         model = self._batch_logits_sym.bind(
@@ -77,6 +85,7 @@ class MXNetModel(DifferentiableModel):
     def predictions_and_gradient(self, image, label):
         import mxnet as mx
         label = np.asarray(label)
+        image = self._process_input(image)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         label_array = mx.nd.array(label[np.newaxis], ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
@@ -99,4 +108,19 @@ class MXNetModel(DifferentiableModel):
         ])
         logits = logits_array.asnumpy()
         gradient = grad_array.asnumpy()
+        gradient = self._process_gradient(gradient)
         return np.squeeze(logits, axis=0), np.squeeze(gradient, axis=0)
+
+    def _loss_fn(self, image, label):
+        import mxnet as mx
+        image = self._process_input(image)
+        data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
+        label_array = mx.nd.array(np.array([label]), ctx=self._device)
+        self._args_map[self._data_sym.name] = data_array
+        self._args_map[self._label_sym.name] = label_array
+        model = self._loss_sym.bind(
+            ctx=self._device, args=self._args_map, grad_req='null')
+        model.forward(is_train=False)
+        loss_array = model.outputs[0]
+        loss = loss_array.asnumpy()[0]
+        return loss
