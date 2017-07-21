@@ -74,10 +74,9 @@ class MXNetModel(DifferentiableModel):
         import mxnet as mx
         images = self._process_input(images)
         data_array = mx.nd.array(images, ctx=self._device)
-        args_map = self._args_map.copy()
-        args_map[self._data_sym.name] = data_array
+        self._args_map[self._data_sym.name] = data_array
         model = self._batch_logits_sym.bind(
-            ctx=self._device, args=args_map, grad_req='null')
+            ctx=self._device, args=self._args_map, grad_req='null')
         model.forward(is_train=False)
         logits_array = model.outputs[0]
         logits = logits_array.asnumpy()
@@ -89,9 +88,8 @@ class MXNetModel(DifferentiableModel):
         image = self._process_input(image)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         label_array = mx.nd.array(label[np.newaxis], ctx=self._device)
-        args_map = self._args_map.copy()
-        args_map[self._data_sym.name] = data_array
-        args_map[self._label_sym.name] = label_array
+        self._args_map[self._data_sym.name] = data_array
+        self._args_map[self._label_sym.name] = label_array
 
         grad_array = mx.nd.zeros(image[np.newaxis].shape, ctx=self._device)
         grad_map = {self._data_sym.name: grad_array}
@@ -99,7 +97,7 @@ class MXNetModel(DifferentiableModel):
         logits_loss = mx.sym.Group([self._batch_logits_sym, self._loss_sym])
         model = logits_loss.bind(
             ctx=self._device,
-            args=args_map,
+            args=self._args_map,
             args_grad=grad_map,
             grad_req='write')
         model.forward(is_train=True)
@@ -118,11 +116,10 @@ class MXNetModel(DifferentiableModel):
         image = self._process_input(image)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         label_array = mx.nd.array(np.array([label]), ctx=self._device)
-        args_map = self._args_map.copy()
-        args_map[self._data_sym.name] = data_array
-        args_map[self._label_sym.name] = label_array
+        self._args_map[self._data_sym.name] = data_array
+        self._args_map[self._label_sym.name] = label_array
         model = self._loss_sym.bind(
-            ctx=self._device, args=args_map, grad_req='null')
+            ctx=self._device, args=self._args_map, grad_req='null')
         model.forward(is_train=False)
         loss_array = model.outputs[0]
         loss = loss_array.asnumpy()[0]
