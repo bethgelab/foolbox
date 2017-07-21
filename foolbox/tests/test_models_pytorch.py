@@ -73,11 +73,8 @@ def test_pytorch_model_preprocessing():
             return logits
 
     model = Net()
-
-    def preprocess_fn(x):
-        # modify x in-place
-        x /= 2
-        return x
+    preprocessing = (np.arange(num_classes)[:, None, None],
+                     np.random.uniform(size=(channels, 5, 5)) + 1)
 
     model1 = PyTorchModel(
         model,
@@ -90,7 +87,7 @@ def test_pytorch_model_preprocessing():
         bounds=bounds,
         num_classes=num_classes,
         cuda=False,
-        preprocess_fn=preprocess_fn)
+        preprocessing=preprocessing)
 
     model3 = PyTorchModel(
         model,
@@ -117,3 +114,52 @@ def test_pytorch_model_preprocessing():
         p1 - p1.max(),
         p3 - p3.max(),
         decimal=5)
+
+
+def test_pytorch_model_gradient():
+    num_classes = 1000
+    bounds = (0, 255)
+    channels = num_classes
+
+    class Net(nn.Module):
+
+        def __init__(self):
+            super(Net, self).__init__()
+
+        def forward(self, x):
+            x = torch.mean(x, 3)
+            x = torch.squeeze(x, dim=3)
+            x = torch.mean(x, 2)
+            x = torch.squeeze(x, dim=2)
+            logits = x
+            return logits
+
+    model = Net()
+    preprocessing = (np.arange(num_classes)[:, None, None],
+                     np.random.uniform(size=(channels, 5, 5)) + 1)
+
+    model = PyTorchModel(
+        model,
+        bounds=bounds,
+        num_classes=num_classes,
+        cuda=False,
+        preprocessing=preprocessing)
+
+    epsilon = 1e-2
+
+    np.random.seed(23)
+    test_image = np.random.rand(channels, 5, 5).astype(np.float32)
+    test_label = 7
+
+    _, g1 = model.predictions_and_gradient(test_image, test_label)
+
+    l1 = model._loss_fn(test_image - epsilon / 2 * g1, test_label)
+    l2 = model._loss_fn(test_image + epsilon / 2 * g1, test_label)
+
+    assert 1e4 * (l2 - l1) > 1
+
+    # make sure that gradient is numerically correct
+    np.testing.assert_array_almost_equal(
+        1e4 * (l2 - l1),
+        1e4 * epsilon * np.linalg.norm(g1)**2,
+        decimal=1)

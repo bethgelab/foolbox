@@ -21,7 +21,7 @@ def test_model(num_classes):
         images,
         logits,
         {},
-        device=mx.cpu(),
+        ctx=mx.cpu(),
         num_classes=num_classes,
         bounds=bounds,
         channel_axis=1)
@@ -47,3 +47,46 @@ def test_model(num_classes):
         test_gradient)
 
     assert model.num_classes() == num_classes
+
+
+@pytest.mark.parametrize('num_classes', [10, 1000])
+def test_model_gradient(num_classes):
+    bounds = (0, 255)
+    channels = num_classes
+
+    def mean_brightness_net(images):
+        logits = mx.symbol.mean(images, axis=(2, 3))
+        return logits
+
+    images = mx.symbol.Variable('images')
+    logits = mean_brightness_net(images)
+
+    preprocessing = (np.arange(num_classes)[:, None, None],
+                     np.random.uniform(size=(channels, 5, 5)) + 1)
+
+    model = MXNetModel(
+        images,
+        logits,
+        {},
+        ctx=mx.cpu(),
+        num_classes=num_classes,
+        bounds=bounds,
+        preprocessing=preprocessing,
+        channel_axis=1)
+
+    test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
+    test_image = test_images[0]
+    test_label = 7
+
+    epsilon = 1e-2
+    _, g1 = model.predictions_and_gradient(test_image, test_label)
+    l1 = model._loss_fn(test_image - epsilon / 2 * g1, test_label)
+    l2 = model._loss_fn(test_image + epsilon / 2 * g1, test_label)
+
+    assert 1e4 * (l2 - l1) > 1
+
+    # make sure that gradient is numerically correct
+    np.testing.assert_array_almost_equal(
+        1e4 * (l2 - l1),
+        1e4 * epsilon * np.linalg.norm(g1)**2,
+        decimal=1)

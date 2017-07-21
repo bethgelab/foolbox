@@ -26,14 +26,19 @@ class Model(ABC):
         (0, 1) or (0, 255).
     channel_axis : int
         The index of the axis that represents color channels.
+    preprocessing: 2-element tuple with floats or numpy arrays
+        Elementwises preprocessing of input; we first subtract the first
+        element of preprocessing from the input and then divide the input by
+        the second element.
 
     """
 
-    def __init__(self, bounds, channel_axis):
+    def __init__(self, bounds, channel_axis, preprocessing=(0, 1)):
         assert len(bounds) == 2
         self._bounds = bounds
         assert channel_axis in [0, 1, 2, 3]
         self._channel_axis = channel_axis
+        self._preprocessing = preprocessing
 
     def __enter__(self):
         return self
@@ -46,6 +51,12 @@ class Model(ABC):
 
     def channel_axis(self):
         return self._channel_axis
+
+    def _process_input(self, input):
+        return (input - self._preprocessing[0]) / self._preprocessing[1]
+
+    def _process_gradient(self, gradient):
+        return gradient / self._preprocessing[1]
 
     @abstractmethod
     def batch_predictions(self, images):

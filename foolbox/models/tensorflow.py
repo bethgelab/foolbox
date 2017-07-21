@@ -19,6 +19,10 @@ class TensorFlowModel(DifferentiableModel):
         (0, 1) or (0, 255).
     channel_axis : int
         The index of the axis that represents color channels.
+    preprocessing: 2-element tuple with floats or numpy arrays
+        Elementwises preprocessing of input; we first subtract the first
+        element of preprocessing from the input and then divide the input by
+        the second element.
 
     """
 
@@ -27,10 +31,12 @@ class TensorFlowModel(DifferentiableModel):
             images,
             logits,
             bounds,
-            channel_axis=3):
+            channel_axis=3,
+            preprocessing=(0, 1)):
 
         super(TensorFlowModel, self).__init__(bounds=bounds,
-                                              channel_axis=channel_axis)
+                                              channel_axis=channel_axis,
+                                              preprocessing=preprocessing)
 
         # delay import until class is instantiated
         import tensorflow as tf
@@ -52,7 +58,7 @@ class TensorFlowModel(DifferentiableModel):
             loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
                 labels=self._label[tf.newaxis],
                 logits=self._logits[tf.newaxis])
-            loss = tf.squeeze(loss, axis=0)
+            self._loss = tf.squeeze(loss, axis=0)
             gradients = tf.gradients(loss, images)
             assert len(gradients) == 1
             self._gradient = tf.squeeze(gradients[0], axis=0)
@@ -67,23 +73,37 @@ class TensorFlowModel(DifferentiableModel):
         return n
 
     def batch_predictions(self, images):
+        images = self._process_input(images)
         predictions = self._session.run(
             self._batch_logits,
             feed_dict={self._images: images})
         return predictions
 
     def predictions_and_gradient(self, image, label):
+        image = self._process_input(image)
         predictions, gradient = self._session.run(
             [self._logits, self._gradient],
             feed_dict={
                 self._images: image[np.newaxis],
                 self._label: label})
+        gradient = self._process_gradient(gradient)
         return predictions, gradient
 
     def gradient(self, image, label):
+        image = self._process_input(image)
         g = self._session.run(
             self._gradient,
             feed_dict={
                 self._images: image[np.newaxis],
                 self._label: label})
+        g = self._process_gradient(g)
         return g
+
+    def _loss_fn(self, image, label):
+        image = self._process_input(image)
+        loss = self._session.run(
+            self._loss,
+            feed_dict={
+                self._images: image[np.newaxis],
+                self._label: label})
+        return loss

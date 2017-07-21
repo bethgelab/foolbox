@@ -1,4 +1,5 @@
 import pytest
+
 import numpy as np
 from keras.layers import GlobalAveragePooling2D
 from keras.layers import Activation
@@ -102,10 +103,8 @@ def test_keras_model_preprocess():
     logits = GlobalAveragePooling2D(
         data_format='channels_last')(inputs)
 
-    def preprocess_fn(x):
-        # modify x in-place
-        x /= 2
-        return x
+    preprocessing = (np.arange(num_classes)[None, None],
+                     np.random.uniform(size=(5, 5, channels)) + 1)
 
     model1 = KerasModel(
         Model(inputs=inputs, outputs=logits),
@@ -116,7 +115,7 @@ def test_keras_model_preprocess():
         Model(inputs=inputs, outputs=logits),
         bounds=bounds,
         predicts='logits',
-        preprocess_fn=preprocess_fn)
+        preprocessing=preprocessing)
 
     model3 = KerasModel(
         Model(inputs=inputs, outputs=logits),
@@ -142,3 +141,41 @@ def test_keras_model_preprocess():
         p1 - p1.max(),
         p3 - p3.max(),
         decimal=5)
+
+
+def test_keras_model_gradients():
+    num_classes = 1000
+    bounds = (0, 255)
+    channels = num_classes
+
+    inputs = Input(shape=(5, 5, channels))
+    logits = GlobalAveragePooling2D(
+        data_format='channels_last')(inputs)
+
+    preprocessing = (np.arange(num_classes)[None, None],
+                     np.random.uniform(size=(5, 5, channels)) + 1)
+
+    model = KerasModel(
+        Model(inputs=inputs, outputs=logits),
+        bounds=bounds,
+        predicts='logits',
+        preprocessing=preprocessing)
+
+    eps = 1e-3
+
+    np.random.seed(22)
+    test_image = np.random.rand(5, 5, channels).astype(np.float32)
+    test_label = 7
+
+    _, g1 = model.predictions_and_gradient(test_image, test_label)
+
+    l1 = model._loss_fn([test_image[None] - eps / 2 * g1, [test_label]])[0][0]
+    l2 = model._loss_fn([test_image[None] + eps / 2 * g1, [test_label]])[0][0]
+
+    assert 1e5 * (l2 - l1) > 1
+
+    # make sure that gradient is numerically correct
+    np.testing.assert_array_almost_equal(
+        1e5 * (l2 - l1),
+        1e5 * eps * np.linalg.norm(g1)**2,
+        decimal=1)
