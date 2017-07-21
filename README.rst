@@ -38,19 +38,20 @@ Example
 
    import foolbox
    import keras
-   from keras.applications.resnet50 import ResNet50, preprocess_input
+   from keras.applications.resnet50 import ResNet50
 
    # instantiate model
    keras.backend.set_learning_phase(0)
    kmodel = ResNet50(weights='imagenet')
-   fmodel = foolbox.models.KerasModel(kmodel, bounds=(0, 255), preprocess_fn=preprocess_input)
+   preprocessing = (np.array([104, 116, 123])[None, None], 1)
+   fmodel = foolbox.models.KerasModel(kmodel, bounds=(0, 255), preprocessing=preprocessing)
 
    # get source image and label
    image, label = foolbox.utils.imagenet_example()
 
    # apply attack on source image
    attack  = foolbox.attacks.FGSM(fmodel)
-   adversarial = attack(image, label)
+   adversarial = attack(image[:,:,::-1], label)
 
 Interfaces for a range of other deeplearning packages such as TensorFlow, 
 PyTorch, Theano, Lasagne and MXNet are available, e.g.
