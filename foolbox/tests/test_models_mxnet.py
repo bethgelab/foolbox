@@ -21,7 +21,7 @@ def test_model(num_classes):
         images,
         logits,
         {},
-        device=mx.cpu(),
+        ctx=mx.cpu(),
         num_classes=num_classes,
         bounds=bounds,
         channel_axis=1)
@@ -68,7 +68,7 @@ def test_model_gradient(num_classes):
         images,
         logits,
         {},
-        device=mx.cpu(),
+        ctx=mx.cpu(),
         num_classes=num_classes,
         bounds=bounds,
         preprocessing=preprocessing,
