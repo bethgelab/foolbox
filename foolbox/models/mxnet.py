@@ -72,7 +72,7 @@ class MXNetModel(DifferentiableModel):
         # move all parameters to correct device
         for k in self._args_map.keys():
             self._args_map[k] = \
-                    self._args_map[k].as_in_context(ctx)  # pragma: no cover
+                self._args_map[k].as_in_context(ctx)      # pragma: no cover
 
         if aux_states is not None:
             for k in self._aux_map.keys():                # pragma: no cover
