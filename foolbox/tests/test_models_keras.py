@@ -13,7 +13,6 @@ from foolbox.models import KerasModel
 
 @pytest.mark.parametrize('num_classes', [10, 1000])
 def test_keras_model(num_classes):
-
     bounds = (0, 255)
     channels = num_classes
 
