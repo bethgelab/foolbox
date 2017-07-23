@@ -24,6 +24,10 @@ class KerasModel(DifferentiableModel):
     predicts : str
         Specifies whether the `Keras` model predicts logits or probabilities.
         Logits are preferred, but probabilities are the default.
+    learning_phase : int
+        Learning phase (0 or 1) with which keras.backend.set_learning_phase
+        will be called. Specify None to prevent foolbox from setting the
+        keras learning phase.
 
     """
 
@@ -33,13 +37,17 @@ class KerasModel(DifferentiableModel):
             bounds,
             channel_axis=3,
             preprocessing=(0, 1),
-            predicts='probabilities'):
+            predicts='probabilities',
+            learning_phase=0):
 
         super(KerasModel, self).__init__(bounds=bounds,
                                          channel_axis=channel_axis,
                                          preprocessing=preprocessing)
 
         from keras import backend as K
+
+        if learning_phase is not None:  # pragma: no cover
+            K.backend.set_learning_phase(learning_phase)
 
         if K.backend() != 'tensorflow':  # pragma: no cover
             warnings.warn('Your keras backend might not be supported.')
