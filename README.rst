@@ -42,7 +42,6 @@ Example
    from keras.applications.resnet50 import ResNet50
 
    # instantiate model
-   keras.backend.set_learning_phase(0)
    kmodel = ResNet50(weights='imagenet')
    preprocessing = (numpy.array([104, 116, 123]), 1)
    fmodel = foolbox.models.KerasModel(kmodel, bounds=(0, 255), preprocessing=preprocessing)
