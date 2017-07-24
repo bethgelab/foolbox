@@ -1,2 +1,2 @@
 -r requirements-dev.txt
-mock >= 2.0.0
+mypy >= 0.511
