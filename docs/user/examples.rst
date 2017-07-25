@@ -11,6 +11,7 @@ Keras: ResNet50
 ---------------
 
 .. code-block:: python3
+
    import keras
    import numpy as np
    import foolbox
@@ -29,6 +30,7 @@ TensorFlow: VGG19
 First, create the model in TensorFlow.
 
 .. code-block:: python3
+
     import tensorflow as tf
     from tensorflow.contrib.slim.nets import vgg
     import numpy as np
@@ -50,6 +52,7 @@ This option is recommended if you want to keep the code as short as possible. It
 of the TensorFlow session created by Foolbox internally if no default session is set.
 
 .. code-block:: python3
+
     with foolbox.models.TensorFlowModel(images, logits, (0, 255)) as model:
         restorer.restore(model.session, '/path/to/vgg_19.ckpt')
         print(np.argmax(model.predictions(image)))
@@ -60,6 +63,7 @@ Option 2
 This option is recommended if you want to create the TensorFlow session yourself.
 
 .. code-block:: python3
+
     with tf.Session() as session:
         restorer.restore(model.session, '/path/to/vgg_19.ckpt')
         model = foolbox.models.TensorFlowModel(images, logits, (0, 255))
@@ -71,6 +75,7 @@ Option 3
 This option is recommended if you want to avoid nesting context managers, e.g. during interactive development.
 
 .. code-block:: python3
+
     session = tf.InteractiveSession()
     restorer.restore(model.session, '/path/to/vgg_19.ckpt')
     model = foolbox.models.TensorFlowModel(images, logits, (0, 255))
@@ -83,6 +88,7 @@ Option 4
 This is possible, but usually one of the other options should be preferred.
 
 .. code-block:: python3
+
     session = tf.Session()
     with session.as_default():
         restorer.restore(model.session, '/path/to/vgg_19.ckpt')
@@ -99,6 +105,7 @@ FGSM (GradientSignAttack)
 -------------------------
 
 .. code-block:: python3
+
    # create a model (see previous section)
    fmodel = ...
 
