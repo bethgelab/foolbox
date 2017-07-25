@@ -75,9 +75,11 @@ class KerasModel(DifferentiableModel):
             # theano always returns the gradient itself (and requires
             # that loss is a single scalar tensor)
             assert isinstance(grads, list)
+            assert len(grads) == 1
             grad = grads[0]
         elif K.backend() == 'cntk':
             assert isinstance(grads, list)
+            assert len(grads) == 1
             grad = grads[0]
             grad = K.reshape(grad, (1,) + grad.shape)
         else:
