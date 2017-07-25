@@ -6,9 +6,11 @@ python:
     - 3.5
     - 3.6
 env:
-    - KERAS_BACKEND=tensorflow
-    - KERAS_BACKEND=theano
-    - THEANO_FLAGS='floatX=float32'
+    global:
+        - THEANO_FLAGS='floatX=float32'
+    matrix:
+        - KERAS_BACKEND=tensorflow
+        - KERAS_BACKEND=theano
 before_install:
     - pip install -U pip
     - travis_wait travis_retry pip install --upgrade numpy
