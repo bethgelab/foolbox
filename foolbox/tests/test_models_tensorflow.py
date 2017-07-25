@@ -25,6 +25,8 @@ def test_tensorflow_model(num_classes):
             logits,
             bounds=bounds)
 
+        assert model.session is not None
+
         test_images = np.random.rand(2, 5, 5, channels).astype(np.float32)
         test_label = 7
 

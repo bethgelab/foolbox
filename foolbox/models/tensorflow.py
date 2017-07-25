@@ -68,6 +68,10 @@ class TensorFlowModel(DifferentiableModel):
             self._session.close()
         return None
 
+    @property
+    def session(self):
+        return self._session
+
     def num_classes(self):
         _, n = self._batch_logits.get_shape().as_list()
         return n

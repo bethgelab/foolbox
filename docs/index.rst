@@ -24,6 +24,7 @@ Foolbox is work in progress and any input is welcome. The source code can be fou
 
    user/installation
    user/tutorial
+   user/examples
    user/adversarial
    user/development
 
