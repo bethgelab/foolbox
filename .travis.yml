@@ -8,6 +8,7 @@ python:
 env:
     - KERAS_BACKEND=tensorflow
     - KERAS_BACKEND=theano
+    - THEANO_FLAGS='floatX=float32'
 before_install:
     - pip install -U pip
     - travis_wait travis_retry pip install --upgrade numpy
