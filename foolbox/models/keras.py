@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-import warnings
 import numpy as np
 
 from .base import DifferentiableModel
@@ -41,9 +40,6 @@ class KerasModel(DifferentiableModel):
 
         from keras import backend as K
 
-        if K.backend() != 'tensorflow':  # pragma: no cover
-            warnings.warn('Your keras backend might not be supported.')
-
         if predicts == 'probs':
             predicts = 'probabilities'
         assert predicts in ['probabilities', 'logits']
@@ -79,7 +75,13 @@ class KerasModel(DifferentiableModel):
             # theano always returns the gradient itself (and requires
             # that loss is a single scalar tensor)
             assert isinstance(grads, list)
+            assert len(grads) == 1
             grad = grads[0]
+        elif K.backend() == 'cntk':  # pragma: no cover
+            assert isinstance(grads, list)
+            assert len(grads) == 1
+            grad = grads[0]
+            grad = K.reshape(grad, (1,) + grad.shape)
         else:
             assert not isinstance(grads, list)
             grad = grads
