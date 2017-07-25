@@ -51,7 +51,7 @@ of the TensorFlow session created by Foolbox internally if no default session is
 
 .. code-block:: python3
     with foolbox.models.TensorFlowModel(images, logits, (0, 255)) as model:
-        restorer.restore(model.session, '/gpfs01/bethge/data/tf-model-checkpoints/vgg_19.ckpt')
+        restorer.restore(model.session, '/path/to/vgg_19.ckpt')
         print(np.argmax(model.predictions(image)))
 
 Option 2
@@ -61,7 +61,7 @@ This option is recommended if you want to create the TensorFlow session yourself
 
 .. code-block:: python3
     with tf.Session() as session:
-        restorer.restore(session, '/gpfs01/bethge/data/tf-model-checkpoints/vgg_19.ckpt')
+        restorer.restore(model.session, '/path/to/vgg_19.ckpt')
         model = foolbox.models.TensorFlowModel(images, logits, (0, 255))
         print(np.argmax(model.predictions(image)))
 
@@ -72,7 +72,7 @@ This option is recommended if you want to avoid nesting context managers, e.g. d
 
 .. code-block:: python3
     session = tf.InteractiveSession()
-    restorer.restore(session, '/gpfs01/bethge/data/tf-model-checkpoints/vgg_19.ckpt')
+    restorer.restore(model.session, '/path/to/vgg_19.ckpt')
     model = foolbox.models.TensorFlowModel(images, logits, (0, 255))
     print(np.argmax(model.predictions(image)))
     session.close()
@@ -85,7 +85,7 @@ This is possible, but usually one of the other options should be preferred.
 .. code-block:: python3
     session = tf.Session()
     with session.as_default():
-        restorer.restore(session, '/gpfs01/bethge/data/tf-model-checkpoints/vgg_19.ckpt')
+        restorer.restore(model.session, '/path/to/vgg_19.ckpt')
         model = foolbox.models.TensorFlowModel(images, logits, (0, 255))
         print(np.argmax(model.predictions(image)))
     session.close()
