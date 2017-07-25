@@ -77,7 +77,7 @@ class KerasModel(DifferentiableModel):
             assert isinstance(grads, list)
             assert len(grads) == 1
             grad = grads[0]
-        elif K.backend() == 'cntk':
+        elif K.backend() == 'cntk':  # pragma: no cover
             assert isinstance(grads, list)
             assert len(grads) == 1
             grad = grads[0]
