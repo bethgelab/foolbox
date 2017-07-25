@@ -21,7 +21,7 @@ Gradient-based attacks
 .. autoclass:: LBFGSAttack
    :members:
 
-.. autoclass:: DeepFool
+.. autoclass:: DeepFoolAttack
    :members:
 
 .. autoclass:: SLSQPAttack
