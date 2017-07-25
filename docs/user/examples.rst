@@ -65,7 +65,7 @@ This option is recommended if you want to create the TensorFlow session yourself
 .. code-block:: python3
 
     with tf.Session() as session:
-        restorer.restore(model.session, '/path/to/vgg_19.ckpt')
+        restorer.restore(session, '/path/to/vgg_19.ckpt')
         model = foolbox.models.TensorFlowModel(images, logits, (0, 255))
         print(np.argmax(model.predictions(image)))
 
@@ -77,7 +77,7 @@ This option is recommended if you want to avoid nesting context managers, e.g. d
 .. code-block:: python3
 
     session = tf.InteractiveSession()
-    restorer.restore(model.session, '/path/to/vgg_19.ckpt')
+    restorer.restore(session, '/path/to/vgg_19.ckpt')
     model = foolbox.models.TensorFlowModel(images, logits, (0, 255))
     print(np.argmax(model.predictions(image)))
     session.close()
@@ -91,7 +91,7 @@ This is possible, but usually one of the other options should be preferred.
 
     session = tf.Session()
     with session.as_default():
-        restorer.restore(model.session, '/path/to/vgg_19.ckpt')
+        restorer.restore(session, '/path/to/vgg_19.ckpt')
         model = foolbox.models.TensorFlowModel(images, logits, (0, 255))
         print(np.argmax(model.predictions(image)))
     session.close()
