@@ -16,7 +16,7 @@ def test_lasagne_model(num_classes):
         logits = GlobalPoolLayer(images)
         return logits
 
-    images_var = T.tensor4('images')
+    images_var = T.tensor4('images', dtype='float32')
     images = InputLayer((None, channels, 5, 5), images_var)
     logits = mean_brightness_net(images)
 
@@ -56,7 +56,7 @@ def test_lasagne_gradient(num_classes):
         logits = GlobalPoolLayer(images)
         return logits
 
-    images_var = T.tensor4('images')
+    images_var = T.tensor4('images', dtype='float32')
     images = InputLayer((None, channels, 5, 5), images_var)
     logits = mean_brightness_net(images)
 
