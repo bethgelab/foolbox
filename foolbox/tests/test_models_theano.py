@@ -46,7 +46,7 @@ def test_theano_model(num_classes):
 
 
 @pytest.mark.parametrize('num_classes', [10, 1000])
-def test_lasagne_gradient(num_classes):
+def test_theano_gradient(num_classes):
     bounds = (0, 255)
     channels = num_classes
 

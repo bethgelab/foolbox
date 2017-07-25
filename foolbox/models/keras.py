@@ -67,8 +67,22 @@ class KerasModel(DifferentiableModel):
         loss = K.sparse_categorical_crossentropy(
             predictions, label_input, from_logits=predictions_are_logits)
 
+        # sparse_categorical_crossentropy returns 1-dim tensor,
+        # gradients wants 0-dim tensor (for some backends)
+        loss = K.squeeze(loss, axis=0)
+
         grads = K.gradients(loss, images_input)
-        grad = grads[0]
+        if K.backend() == 'tensorflow':
+            # tensorflow backend returns a list with the gradient
+            # as the only element, even if loss is a single scalar
+            # tensor;
+            # theano always returns the gradient itself (and requires
+            # that loss is a single scalar tensor)
+            assert isinstance(grads, list)
+            grad = grads[0]
+        else:
+            assert not isinstance(grads, list)
+            grad = grads
 
         self._loss_fn = K.function(
             [images_input, label_input],

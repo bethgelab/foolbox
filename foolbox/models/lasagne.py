@@ -77,6 +77,7 @@ class LasagneModel(DifferentiableModel):
         gradient = np.squeeze(gradient, axis=0)
         assert predictions.shape == (self.num_classes(),)
         assert gradient.shape == image.shape
+        gradient = gradient.astype(image.dtype, copy=False)
         return predictions, gradient
 
     def gradient(self, image, label):
@@ -84,6 +85,7 @@ class LasagneModel(DifferentiableModel):
         gradient = self._gradient_fn(image[np.newaxis], label[np.newaxis])
         gradient = np.squeeze(gradient, axis=0)
         assert gradient.shape == image.shape
+        gradient = gradient.astype(image.dtype, copy=False)
         return gradient
 
     def num_classes(self):

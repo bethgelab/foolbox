@@ -74,6 +74,7 @@ class TheanoModel(DifferentiableModel):
         gradient = np.squeeze(gradient, axis=0)
         assert predictions.shape == (self.num_classes(),)
         assert gradient.shape == image.shape
+        assert gradient.dtype == image.dtype
         return predictions, gradient
 
     def gradient(self, image, label):
@@ -83,6 +84,7 @@ class TheanoModel(DifferentiableModel):
         gradient = self._process_gradient(gradient)
         gradient = np.squeeze(gradient, axis=0)
         assert gradient.shape == image.shape
+        assert gradient.dtype == image.dtype
         return gradient
 
     def num_classes(self):
