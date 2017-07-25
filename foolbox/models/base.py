@@ -38,6 +38,7 @@ class Model(ABC):
         self._bounds = bounds
         assert channel_axis in [0, 1, 2, 3]
         self._channel_axis = channel_axis
+        assert len(preprocessing) == 2
         self._preprocessing = preprocessing
 
     def __enter__(self):
@@ -52,11 +53,17 @@ class Model(ABC):
     def channel_axis(self):
         return self._channel_axis
 
-    def _process_input(self, input):
-        return (input - self._preprocessing[0]) / self._preprocessing[1]
+    def _process_input(self, input_):
+        result = (input_ - self._preprocessing[0]) / self._preprocessing[1]
+        result = result.astype(input_.dtype, copy=False)
+        assert result.dtype == input_.dtype
+        return result
 
     def _process_gradient(self, gradient):
-        return gradient / self._preprocessing[1]
+        result = gradient / self._preprocessing[1]
+        result = result.astype(gradient.dtype, copy=False)
+        assert result.dtype == gradient.dtype
+        return result
 
     @abstractmethod
     def batch_predictions(self, images):
