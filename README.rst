@@ -69,7 +69,7 @@ values for the original class or the target class can be passed to the attack, e
 .. code-block:: python
 
    criterion = foolbox.criteria.TargetClass(22)
-   attack    = foolbox.attacks.FGSM(fmodel, criterion)
+   attack    = foolbox.attacks.LBFGSAttack(fmodel, criterion)
 
 Feature requests and bug reports
 --------------------------------
