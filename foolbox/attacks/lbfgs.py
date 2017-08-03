@@ -177,6 +177,8 @@ class LBFGSAttack(Attack):
             logging.info(d)
 
             # LBFGS-B does not always exactly respect the boundaries
+            if np.amax(x) > max_ or np.amin(x) < min_:
+                print('Image out of bounds: ', np.amin(x), np.amax(x))
             x = np.clip(x, max_, min_)
             _, is_adversarial = a.predictions(x.reshape(shape).astype(dtype))
             return is_adversarial
