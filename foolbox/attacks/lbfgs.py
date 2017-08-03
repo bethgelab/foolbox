@@ -176,6 +176,8 @@ class LBFGSAttack(Attack):
 
             logging.info(d)
 
+            # LBFGS-B does not always exactly respect the boundaries
+            x = np.clip(x, max_, min_)
             _, is_adversarial = a.predictions(x.reshape(shape).astype(dtype))
             return is_adversarial
 
