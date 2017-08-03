@@ -19,7 +19,7 @@ class DeepFoolAttack(Attack):
            https://arxiv.org/abs/1511.04599
     """
 
-    def _apply(self, a, steps=100, subsample=False):
+    def _apply(self, a, steps=100, subsample=20):
         if not a.has_gradient():
             return
 
