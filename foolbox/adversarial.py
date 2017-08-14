@@ -63,9 +63,6 @@ class Adversarial(object):
         self.__best_adversarial = None
         self.__best_distance = self.__distance(value=np.inf)
 
-        self._total_prediction_calls = 0
-        self._total_gradient_calls = 0
-
         self._best_prediction_calls = 0
         self._best_gradient_calls = 0
 
