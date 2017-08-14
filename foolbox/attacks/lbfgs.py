@@ -98,6 +98,9 @@ class LBFGSAttack(Attack):
         else:
             target_classes = [target_class]
 
+        # avoid mixing GradientAttack and LBFGS Attack
+        a._reset()
+
         for i, target_class in enumerate(target_classes):
             self._optimize(
                 a, target_class,
