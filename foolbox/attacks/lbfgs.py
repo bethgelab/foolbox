@@ -180,7 +180,7 @@ class LBFGSAttack(Attack):
             if np.amax(x) > max_ or np.amin(x) < min_:   # pragma: no coverage
                 logging.info('Image out of bounds (min, max = {}, {}). Performing manual clip.'.format(np.amin(x), np.amax(x)))  # noqa: E501
                 x = np.clip(x, min_, max_)
-            
+ 
             _, is_adversarial = a.predictions(x.reshape(shape).astype(dtype))
             return is_adversarial
 
