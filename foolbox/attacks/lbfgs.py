@@ -178,7 +178,7 @@ class LBFGSAttack(Attack):
 
             # LBFGS-B does not always exactly respect the boundaries
             if np.amax(x) > max_ or np.amin(x) < min_:   # pragma: no coverage
-                logging.info('Image out of bounds (max, min = {}, {}). Performing manual clip.'.format(np.amin(x), np.amax(x)))
+                logging.info('Image out of bounds (max, min = {}, {}). Performing manual clip.'.format(np.amin(x), np.amax(x)))  # noqa: E501
                 x = np.clip(x, max_, min_)
             _, is_adversarial = a.predictions(x.reshape(shape).astype(dtype))
             return is_adversarial
