@@ -59,6 +59,15 @@ class Adversarial(object):
         # check if the original image is already adversarial
         self.predictions(original_image)
 
+    def _reset(self):
+        self.__best_adversarial = None
+        self.__best_distance = self.__distance(value=np.inf)
+
+        self._best_prediction_calls = 0
+        self._best_gradient_calls = 0
+
+        self.predictions(self.__original_image)
+
     @property
     def image(self):
         return self.__best_adversarial
