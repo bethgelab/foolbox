@@ -13,13 +13,13 @@ class GradientAttack(Attack):
 
     """
 
-    def _apply(self, a, epsilons=1000):
+    def _apply(self, a, epsilons=1000, loss=None):
         if not a.has_gradient():
             return
 
         image = a.original_image
         min_, max_ = a.bounds()
-        gradient = a.gradient()
+        gradient = a.gradient(loss=loss)
         gradient_norm = np.sqrt(np.mean(np.square(gradient)))
         gradient = gradient / (gradient_norm + 1e-8) * (max_ - min_)
 
