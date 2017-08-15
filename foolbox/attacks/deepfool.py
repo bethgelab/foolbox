@@ -19,7 +19,7 @@ class DeepFoolAttack(Attack):
            https://arxiv.org/abs/1511.04599
     """
 
-    def _apply(self, a, steps=100, subsample=False):
+    def _apply(self, a, steps=100, subsample=False, loss=None):
         if not a.has_gradient():
             return
 
@@ -39,11 +39,18 @@ class DeepFoolAttack(Attack):
                 k for k in range(n)
                 if logits[k] < logits[label]]
 
+        def get_loss(logits, label, loss):
+            if loss == 'crossentropy':
+                return -crossentropy(logits=logits, label=label)
+            else:
+                return logits[label] 
+
         perturbed = a.original_image
         min_, max_ = a.bounds()
+        loss_mode = loss
 
         for step in range(steps):
-            logits, grad, is_adv = a.predictions_and_gradient(perturbed)
+            logits, grad, is_adv = a.predictions_and_gradient(perturbed, loss=loss_mode)
             if is_adv:
                 return
 
@@ -51,8 +58,7 @@ class DeepFoolAttack(Attack):
             #
             # loss corresponds to f (in the paper: negative cross-entropy)
             # grad corresponds to -df/dx (gradient of cross-entropy)
-
-            loss = -crossentropy(logits=logits, label=label)
+            loss = get_loss(logits, label, loss_mode)
 
             residual_labels = get_residual_labels(logits)
             if subsample:
@@ -61,9 +67,9 @@ class DeepFoolAttack(Attack):
                 residual_labels = residual_labels[:subsample]
 
             losses = [
-                -crossentropy(logits=logits, label=k)
+                get_loss(logits, k, loss_mode)
                 for k in residual_labels]
-            grads = [a.gradient(perturbed, label=k) for k in residual_labels]
+            grads = [a.gradient(perturbed, label=k, loss=loss_mode) for k in residual_labels]
 
             # compute optimal direction (and loss difference)
             # pairwise between each label and the target
@@ -75,6 +81,8 @@ class DeepFoolAttack(Attack):
             # choose optimal one
             optimal = np.argmin(distances)
             df, dg = diffs[optimal]
+
+            print('debug deepfool: ', loss, df)
 
             # apply perturbation
             # the (-dg) corrects the sign, gradient here is -gradient of paper

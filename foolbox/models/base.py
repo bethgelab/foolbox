@@ -140,7 +140,7 @@ class DifferentiableModel(Model):
     """
 
     @abstractmethod
-    def predictions_and_gradient(self, image, label):
+    def predictions_and_gradient(self, image, label, loss=None):
         """Calculates predictions for an image and the gradient of
         the cross-entropy loss w.r.t. the image.
 
@@ -150,11 +150,15 @@ class DifferentiableModel(Model):
             Image with shape (height, width, channels).
         label : int
             Reference label used to calculate the gradient.
+        loss : string or callable
+            Loss function that is differentiated to compute gradient. If
+            None the gradients are computed with respect to the logit that
+            correspond to the given label.
 
         Returns
         -------
         predictions : `numpy.ndarray`
-            Vector of predictions (logits, i.e. beforre the softmax) with
+            Vector of predictions (logits, i.e. before the softmax) with
             shape (number of classes,).
         gradient : `numpy.ndarray`
             The gradient of the cross-entropy loss w.r.t. the image. Will
@@ -167,7 +171,7 @@ class DifferentiableModel(Model):
         """
         raise NotImplementedError
 
-    def gradient(self, image, label):
+    def gradient(self, image, label, loss=None):
         """Calculates the gradient of the cross-entropy loss w.r.t. the image.
 
         The default implementation calls predictions_and_gradient.
@@ -180,6 +184,10 @@ class DifferentiableModel(Model):
             Image with shape (height, width, channels).
         label : int
             Reference label used to calculate the gradient.
+        loss : string or callable
+            Loss function that is differentiated to compute gradient. If
+            None the gradients are computed with respect to the logit that
+            correspond to the given label.
 
         Returns
         -------
@@ -192,5 +200,5 @@ class DifferentiableModel(Model):
         :meth:`gradient`
 
         """
-        _, gradient = self.predictions_and_gradient(image, label)
+        _, gradient = self.predictions_and_gradient(image, label, loss=loss)
         return gradient

@@ -59,15 +59,6 @@ class Adversarial(object):
         # check if the original image is already adversarial
         self.predictions(original_image)
 
-    def _reset(self):
-        self.__best_adversarial = None
-        self.__best_distance = self.__distance(value=np.inf)
-
-        self._best_prediction_calls = 0
-        self._best_gradient_calls = 0
-
-        self.predictions(self.__original_image)
-
     @property
     def image(self):
         return self.__best_adversarial
@@ -268,7 +259,7 @@ class Adversarial(object):
 
         return predictions, is_adversarial
 
-    def gradient(self, image=None, label=None, strict=True):
+    def gradient(self, image=None, label=None, strict=True, loss=None):
         """Interface to model.gradient for attacks.
 
         Parameters
@@ -293,12 +284,12 @@ class Adversarial(object):
         assert not strict or self.in_bounds(image)
 
         self._total_gradient_calls += 1
-        gradient = self.__model.gradient(image, label)
+        gradient = self.__model.gradient(image, label, loss=loss)
 
         assert gradient.shape == image.shape
         return gradient
 
-    def predictions_and_gradient(self, image=None, label=None, strict=True):
+    def predictions_and_gradient(self, image=None, label=None, strict=True, loss=None):
         """Interface to model.predictions_and_gradient for attacks.
 
         Parameters
@@ -324,7 +315,7 @@ class Adversarial(object):
 
         self._total_prediction_calls += 1
         self._total_gradient_calls += 1
-        predictions, gradient = self.__model.predictions_and_gradient(image, label)  # noqa: E501
+        predictions, gradient = self.__model.predictions_and_gradient(image, label, loss=loss)  # noqa: E501
         is_adversarial = self.__is_adversarial(image, predictions)
 
         assert predictions.ndim == 1

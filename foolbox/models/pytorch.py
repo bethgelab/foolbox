@@ -66,7 +66,7 @@ class PyTorchModel(DifferentiableModel):
     def num_classes(self):
         return self._num_classes
 
-    def predictions_and_gradient(self, image, label):
+    def predictions_and_gradient(self, image, label, loss=None):
         # lazy import
         import torch
         import torch.nn as nn
@@ -86,8 +86,11 @@ class PyTorchModel(DifferentiableModel):
             images = images.cuda()
         images = Variable(images, requires_grad=True)
         predictions = self._model(images)
-        ce = nn.CrossEntropyLoss()
-        loss = ce(predictions, target)
+        if loss == 'crossentropy':
+            ce = nn.CrossEntropyLoss()
+            loss = ce(predictions, target)
+        elif loss is None:
+            loss = -predictions[0, label]
         loss.backward()
         grad = images.grad
 
