@@ -1,5 +1,4 @@
 import warnings
-import random
 
 import numpy as np
 
@@ -38,7 +37,7 @@ class DeepFoolAttack(Attack):
             assert isinstance(subsample, int)
             # choose the top-k classes
             labels = np.argsort(logits)[::-1][:subsample]
-        else: # pragma: no coverage
+        else:  # pragma: no coverage
             labels = np.arange(logits.shape[0])
 
         def get_residual_labels(logits):
