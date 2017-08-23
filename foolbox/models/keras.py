@@ -54,7 +54,7 @@ class KerasModel(DifferentiableModel):
         elif predicts == 'logits':
             self.predictions_are_logits = True
 
-        shape = K.int_shape(predictions)
+        shape = K.int_shape(self.predictions)
         _, num_classes = shape
         assert num_classes is not None
 
