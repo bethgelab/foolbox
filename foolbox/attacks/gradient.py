@@ -7,7 +7,7 @@ from .base import Attack
 
 class GradientAttack(Attack):
     """Perturbs the image with the gradient of the loss w.r.t. the image,
-    gradually increasing the magnnitude until the image is misclassified.
+    gradually increasing the magnitude until the image is misclassified.
 
     Does not do anything if the model does not have a gradient.
 
@@ -49,6 +49,7 @@ class IterativeGradientAttack(Attack):
         min_, max_ = a.bounds()
 
         if not isinstance(epsilons, Iterable):
+            assert isinstance(epsilons, int)
             epsilons = np.linspace(0, 1 / steps, num=epsilons + 1)[1:]
 
         for epsilon in epsilons:
@@ -59,7 +60,7 @@ class IterativeGradientAttack(Attack):
                 gradient_norm = np.sqrt(np.mean(np.square(gradient)))
                 gradient = gradient / (gradient_norm + 1e-8) * (max_ - min_)
 
-                perturbed = image + gradient * epsilon
+                perturbed = perturbed + gradient * epsilon
                 perturbed = np.clip(perturbed, min_, max_)
 
                 a.predictions(perturbed)
