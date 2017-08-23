@@ -85,6 +85,7 @@ class PyTorchModel(DifferentiableModel):
         from torch.autograd import Variable
 
         assert image.ndim == 3
+        image  = self._process_input(image)
         images = self._torch(image[np.newaxis], requires_grad=True)
         predictions = self._model(images)
         loss = self._loss(loss, predictions, label)
@@ -92,6 +93,7 @@ class PyTorchModel(DifferentiableModel):
         grad = images.grad
 
         predictions = self._numpy(predictions)
+        print('in model: ', predictions)
         predictions = np.squeeze(predictions, axis=0)
         assert predictions.ndim == 1
         assert predictions.shape == (self.num_classes(),)
@@ -107,6 +109,8 @@ class PyTorchModel(DifferentiableModel):
         image  = self._process_input(image)
         images = self._torch(image[None], volatile=True)
         predictions = self._model(images)
+
+        print('in loss_fn: ', self._numpy(predictions))
 
         loss = self._loss(loss, predictions, label)
         return self._numpy(loss)

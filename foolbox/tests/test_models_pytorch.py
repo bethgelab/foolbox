@@ -156,10 +156,8 @@ def test_pytorch_model_gradient(loss):
     l1 = model._loss_fn(test_image - epsilon / 2 * g1, test_label, loss=loss)
     l2 = model._loss_fn(test_image + epsilon / 2 * g1, test_label, loss=loss)
 
-    assert 1e4 * (l2 - l1) > 1
-
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
-        1e4 * (l2 - l1),
-        1e4 * epsilon * np.linalg.norm(g1)**2,
+        1.,
+        epsilon * np.linalg.norm(g1)**2 / (l2 - l1),
         decimal=1)
