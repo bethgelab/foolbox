@@ -61,7 +61,7 @@ class KerasModel(DifferentiableModel):
         self._num_classes = num_classes
 
         loss = K.sparse_categorical_crossentropy(
-            predictions, label_input, from_logits=predictions_are_logits)
+            label_input, predictions, from_logits=predictions_are_logits)
 
         # sparse_categorical_crossentropy returns 1-dim tensor,
         # gradients wants 0-dim tensor (for some backends)

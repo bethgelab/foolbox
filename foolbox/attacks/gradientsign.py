@@ -51,6 +51,7 @@ class IterativeGradientSignAttack(Attack):
         min_, max_ = a.bounds()
 
         if not isinstance(epsilons, Iterable):
+            assert isinstance(epsilons, int)
             epsilons = np.linspace(0, 1 / steps, num=epsilons + 1)[1:]
 
         for epsilon in epsilons:
@@ -60,7 +61,7 @@ class IterativeGradientSignAttack(Attack):
                 gradient = a.gradient(perturbed)
                 gradient_sign = np.sign(gradient) * (max_ - min_)
 
-                perturbed = image + gradient_sign * epsilon
+                perturbed = perturbed + gradient_sign * epsilon
                 perturbed = np.clip(perturbed, min_, max_)
 
                 a.predictions(perturbed)
