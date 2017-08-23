@@ -259,7 +259,7 @@ class Adversarial(object):
 
         return predictions, is_adversarial
 
-    def gradient(self, image=None, label=None, strict=True, loss=None):
+    def gradient(self, image=None, label=None, loss=None, strict=True):
         """Interface to model.gradient for attacks.
 
         Parameters
@@ -270,6 +270,10 @@ class Adversarial(object):
         label : int
             Label used to calculate the loss that is differentiated.
             Defaults to the original label.
+        loss : string, None or callable
+            Loss function that is differentiated to compute gradient. If
+            None the gradients are computed with respect to the logit that
+            correspond to the given label.
         strict : bool
             Controls if the bounds for the pixel values should be checked.
 
@@ -289,7 +293,8 @@ class Adversarial(object):
         assert gradient.shape == image.shape
         return gradient
 
-    def predictions_and_gradient(self, image=None, label=None, strict=True, loss=None):
+    def predictions_and_gradient(self, image=None, label=None, loss=None,
+                                       strict=True):
         """Interface to model.predictions_and_gradient for attacks.
 
         Parameters
@@ -300,6 +305,10 @@ class Adversarial(object):
         label : int
             Label used to calculate the loss that is differentiated.
             Defaults to the original label.
+        loss : string, None or callable
+            Loss function that is differentiated to compute gradient. If
+            None the gradients are computed with respect to the logit that
+            correspond to the given label.
         strict : bool
             Controls if the bounds for the pixel values should be checked.
 

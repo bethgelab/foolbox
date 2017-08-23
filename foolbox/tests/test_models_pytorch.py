@@ -115,8 +115,8 @@ def test_pytorch_model_preprocessing():
         p3 - p3.max(),
         decimal=5)
 
-
-def test_pytorch_model_gradient():
+@pytest.mark.parametrize('loss', [None, 'crossentropy', 'carlini'])
+def test_pytorch_model_gradient(loss):
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
@@ -151,10 +151,10 @@ def test_pytorch_model_gradient():
     test_image = np.random.rand(channels, 5, 5).astype(np.float32)
     test_label = 7
 
-    _, g1 = model.predictions_and_gradient(test_image, test_label)
+    _, g1 = model.predictions_and_gradient(test_image, test_label, loss=loss)
 
-    l1 = model._loss_fn(test_image - epsilon / 2 * g1, test_label)
-    l2 = model._loss_fn(test_image + epsilon / 2 * g1, test_label)
+    l1 = model._loss_fn(test_image - epsilon / 2 * g1, test_label, loss=loss)
+    l2 = model._loss_fn(test_image + epsilon / 2 * g1, test_label, loss=loss)
 
     assert 1e4 * (l2 - l1) > 1
 

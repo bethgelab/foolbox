@@ -44,15 +44,15 @@ class KerasModel(DifferentiableModel):
             predicts = 'probabilities'
         assert predicts in ['probabilities', 'logits']
 
-        images_input = model.input
-        label_input = K.placeholder(shape=(1,))
+        self.images_input = model.input
+        self.label_input = K.placeholder(shape=(1,))
 
-        predictions = model.output
+        self.predictions = model.output
 
         if predicts == 'probabilities':
-            predictions_are_logits = False
+            self.predictions_are_logits = False
         elif predicts == 'logits':
-            predictions_are_logits = True
+            self.predictions_are_logits = True
 
         shape = K.int_shape(predictions)
         _, num_classes = shape
@@ -60,12 +60,35 @@ class KerasModel(DifferentiableModel):
 
         self._num_classes = num_classes
 
-        loss = K.sparse_categorical_crossentropy(
-            predictions, label_input, from_logits=predictions_are_logits)
+        # create caches for loss
+        self._loss_cache = {}
+        self._loss_fn_cache = {}
+        self._batch_pred_fn_cache = {}
+        self._pred_grad_fn_cache = {}
 
-        # sparse_categorical_crossentropy returns 1-dim tensor,
-        # gradients wants 0-dim tensor (for some backends)
-        loss = K.squeeze(loss, axis=0)
+    def _loss(loss):
+        try:
+            return self._loss_cache[loss]
+        except KeyError:
+            if hasattr(loss, '__call__'):
+                return loss(self.predictions, self.label_input)
+            elif loss in [None, 'logits']:
+                return -self.predictions[0, self.label_input]
+            elif loss == 'crossentropy':
+                loss = K.sparse_categorical_crossentropy(
+                    self.predictions, self.label_input,
+                    from_logits=self.predictions_are_logits)
+
+                # sparse_categorical_crossentropy returns 1-dim tensor,
+                # gradients wants 0-dim tensor (for some backends)
+                self._loss_cache[loss] = K.squeeze(loss, axis=0)
+            elif loss == 'carlini':
+                loss = K.max(self.predictions[0, :]) \
+                       - self.predictions[0, self.label_input]
+                return K.relu(loss)
+            else:
+                raise NotImplementedError('The loss {} is currently not \
+                        implemented for this framework.'.format(loss))
 
         grads = K.gradients(loss, images_input)
         if K.backend() == 'tensorflow':
@@ -128,3 +151,16 @@ class KerasModel(DifferentiableModel):
         assert predictions.shape == (self.num_classes(),)
         assert gradient.shape == image.shape
         return predictions, gradient
+
+class KerasGradientCache(object):
+    """ Cache of previously computed gradients """
+
+    def __init__(self):
+        self.gradients = {}
+
+    def __call__(self, loss):
+        try:
+            return self.gradients[loss]
+        except KeyError:
+            # compute gradient
+            pass

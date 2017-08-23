@@ -49,92 +49,83 @@ class PyTorchModel(DifferentiableModel):
         from torch.autograd import Variable
 
         images = self._process_input(images)
-        n = len(images)
-        images = torch.from_numpy(images)
-        if self.cuda:  # pragma: no cover
-            images = images.cuda()
-        images = Variable(images, volatile=True)
+        images = self._torch(images, volatile=True)
         predictions = self._model(images)
-        predictions = predictions.data
-        if self.cuda:  # pragma: no cover
-            predictions = predictions.cpu()
-        predictions = predictions.numpy()
+        predictions = self._numpy(predictions)
         assert predictions.ndim == 2
-        assert predictions.shape == (n, self.num_classes())
+        assert predictions.shape == (len(images), self.num_classes())
         return predictions
 
     def num_classes(self):
         return self._num_classes
 
+    def _loss(self, loss, predictions, label):
+        # lazy import
+        import torch
+        from torch.autograd import Variable
+
+        if hasattr(loss, '__call__'):
+            return loss(predictions, label)
+        elif loss == 'crossentropy':
+            target = self._torch(np.array([label]))
+            ce = torch.nn.CrossEntropyLoss()
+            return ce(predictions, target)
+        elif loss is None or loss == 'logits':
+            return -predictions[0, label]
+        elif loss == 'carlini':
+            loss = torch.max(predictions[0, :]) - predictions[0, label]
+            return torch.nn.functional.relu(loss)
+        else:
+            raise NotImplementedError('The loss {} is currently not \
+                    implemented for this framework.'.format(loss))
+
     def predictions_and_gradient(self, image, label, loss=None):
         # lazy import
         import torch
-        import torch.nn as nn
         from torch.autograd import Variable
 
-        image = self._process_input(image)
-        target = np.array([label])
-        target = torch.from_numpy(target)
-        if self.cuda:  # pragma: no cover
-            target = target.cuda()
-        target = Variable(target)
-
         assert image.ndim == 3
-        images = image[np.newaxis]
-        images = torch.from_numpy(images)
-        if self.cuda:  # pragma: no cover
-            images = images.cuda()
-        images = Variable(images, requires_grad=True)
+        images = self._torch(image[np.newaxis], requires_grad=True)
         predictions = self._model(images)
-        if loss == 'crossentropy':
-            ce = nn.CrossEntropyLoss()
-            loss = ce(predictions, target)
-        elif loss is None:
-            loss = -predictions[0, label]
+        loss = self._loss(loss, predictions, label)
         loss.backward()
         grad = images.grad
 
-        predictions = predictions.data
-        if self.cuda:  # pragma: no cover
-            predictions = predictions.cpu()
-
-        predictions = predictions.numpy()
+        predictions = self._numpy(predictions)
         predictions = np.squeeze(predictions, axis=0)
         assert predictions.ndim == 1
         assert predictions.shape == (self.num_classes(),)
 
-        grad = grad.data
-        if self.cuda:  # pragma: no cover
-            grad = grad.cpu()
-        grad = grad.numpy()
+        grad = self._numpy(grad)
         grad = self._process_gradient(grad)
         grad = np.squeeze(grad, axis=0)
         assert grad.shape == image.shape
 
         return predictions, grad
 
-    def _loss_fn(self, image, label):
+    def _loss_fn(self, image, label, loss=None):
+        image  = self._process_input(image)
+        images = self._torch(image[None], volatile=True)
+        predictions = self._model(images)
+
+        loss = self._loss(loss, predictions, label)
+        return self._numpy(loss)
+
+    def _torch(self, npvar, volatile=False, requires_grad=False):
+        """ Turns numpy array into Torch variable """
         # lazy import
         import torch
-        import torch.nn as nn
         from torch.autograd import Variable
 
-        image = self._process_input(image)
-        target = np.array([label])
-        target = torch.from_numpy(target)
+        var = torch.from_numpy(npvar)
         if self.cuda:  # pragma: no cover
-            target = target.cuda()
-        target = Variable(target)
+            var = var.cuda()
 
-        images = torch.from_numpy(image[None])
+        return Variable(var, volatile=volatile, requires_grad=requires_grad)
+
+    def _numpy(self, var):
+        """ Returns numpy value of Torch tensor """
+        var = var.data
         if self.cuda:  # pragma: no cover
-            images = images.cuda()
-        images = Variable(images, volatile=True)
-        predictions = self._model(images)
-        ce = nn.CrossEntropyLoss()
-        loss = ce(predictions, target)
-        loss = loss.data
-        if self.cuda:  # pragma: no cover
-            loss = loss.cpu()
-        loss = loss.numpy()
-        return loss
+            var = var.cpu()
+        return var.numpy()

@@ -150,7 +150,7 @@ class DifferentiableModel(Model):
             Image with shape (height, width, channels).
         label : int
             Reference label used to calculate the gradient.
-        loss : string or callable
+        loss : string, None or callable
             Loss function that is differentiated to compute gradient. If
             None the gradients are computed with respect to the logit that
             correspond to the given label.
@@ -184,7 +184,7 @@ class DifferentiableModel(Model):
             Image with shape (height, width, channels).
         label : int
             Reference label used to calculate the gradient.
-        loss : string or callable
+        loss : string, None or callable
             Loss function that is differentiated to compute gradient. If
             None the gradients are computed with respect to the logit that
             correspond to the given label.
