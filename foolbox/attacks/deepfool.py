@@ -1,5 +1,4 @@
 import warnings
-import random
 
 import numpy as np
 
@@ -32,11 +31,19 @@ class DeepFoolAttack(Attack):
 
         label = a.original_class
 
+        # define labels
+        logits, _ = a.predictions(a.original_image)
+        if subsample:
+            assert isinstance(subsample, int)
+            # choose the top-k classes
+            labels = np.argsort(logits)[::-1][:subsample]
+        else:  # pragma: no coverage
+            labels = np.arange(logits.shape[0])
+
         def get_residual_labels(logits):
             """Get all labels with p < p[target]"""
-            n = logits.shape[0]
             return [
-                k for k in range(n)
+                k for k in labels[1:]
                 if logits[k] < logits[label]]
 
         def get_loss(logits, label, loss):
@@ -61,10 +68,6 @@ class DeepFoolAttack(Attack):
             loss = get_loss(logits, label, loss_mode)
 
             residual_labels = get_residual_labels(logits)
-            if subsample:
-                assert isinstance(subsample, int)
-                random.shuffle(residual_labels)
-                residual_labels = residual_labels[:subsample]
 
             losses = [
                 get_loss(logits, k, loss_mode)
