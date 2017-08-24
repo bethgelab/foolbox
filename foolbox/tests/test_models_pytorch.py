@@ -161,3 +161,62 @@ def test_pytorch_model_gradient(loss):
         1.,
         epsilon * np.linalg.norm(g1)**2 / (l2 - l1),
         decimal=1)
+
+def test_pytorch_model_losses():
+    num_classes = 3
+    bounds = (0, 255)
+    channels = num_classes
+
+    class Net(nn.Module):
+
+        def __init__(self):
+            super(Net, self).__init__()
+
+        def forward(self, x):
+            x = torch.mean(x, 3)
+            x = torch.squeeze(x, dim=3)
+            x = torch.mean(x, 2)
+            x = torch.squeeze(x, dim=2)
+            logits = x
+            return logits
+
+    model = Net()
+
+    model = PyTorchModel(
+        model,
+        bounds=bounds,
+        num_classes=num_classes,
+        cuda=False)
+
+    epsilon = 1e-2
+    test_image = np.zeros((channels, 1, 1)).astype(np.float32)
+    test_image[0, 0, 0] = 1
+    test_label = 0
+
+    logits = model.predictions(test_image)
+    assert np.allclose(logits, [1, 0, 0])
+
+    # test losses
+    l0 = model._loss_fn(test_image, 0, loss=None)
+    l1 = model._loss_fn(test_image, 1, loss=None)
+    assert l0 < l1
+    assert l0 == -1
+    assert l1 == 0
+
+    l0 = model._loss_fn(test_image, 0, loss='logits')
+    l1 = model._loss_fn(test_image, 1, loss='logits')
+    assert l0 < l1
+    assert l0 == -1
+    assert l1 == 0
+
+    l0 = model._loss_fn(1e3 * test_image, 0, loss='crossentropy')
+    l1 = model._loss_fn(1e3 * test_image, 1, loss='crossentropy')
+    assert l0 < l1
+    assert l0 == 0
+    assert l1 == 1e3
+
+    l0 = model._loss_fn(test_image, 0, loss='carlini')
+    l1 = model._loss_fn(test_image, 1, loss='carlini')
+    assert l0 < l1
+    assert l0 == 0
+    assert l1 == 1
