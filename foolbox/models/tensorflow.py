@@ -53,15 +53,10 @@ class TensorFlowModel(DifferentiableModel):
             self._images = images
             self._batch_logits = logits
             self._logits = tf.squeeze(logits, axis=0)
-            self._label = tf.placeholder(tf.int64, (), name='label')
+            self._label = tf.placeholder(tf.int32, (), name='label')
 
-            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                labels=self._label[tf.newaxis],
-                logits=self._logits[tf.newaxis])
-            self._loss = tf.squeeze(loss, axis=0)
-            gradients = tf.gradients(loss, images)
-            assert len(gradients) == 1
-            self._gradient = tf.squeeze(gradients[0], axis=0)
+        self._loss_cache = {}
+        self._grad_cache = {}
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self._created_session:
@@ -76,6 +71,45 @@ class TensorFlowModel(DifferentiableModel):
         _, n = self._batch_logits.get_shape().as_list()
         return n
 
+    def _loss(self, loss):
+        import tensorflow as tf
+        try:
+            return self._loss_cache[loss]
+        except KeyError:
+            if hasattr(loss, '__call__'):
+                return loss(self._logits, self._label)
+            elif loss in [None, 'logits']:
+                with self.session.graph.as_default():
+                    sym_loss = -self._logits[self._label]
+            elif loss == 'crossentropy':
+                with self.session.graph.as_default():
+                    sym_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
+                        labels=self._label[tf.newaxis],
+                        logits=self._logits[tf.newaxis])
+                    sym_loss = tf.squeeze(sym_loss, axis=0)
+            elif loss == 'carlini':
+                with self.session.graph.as_default():
+                    sym_loss = tf.reduce_max(self._logits, axis=0) \
+                           - self._logits[self._label]
+                    sym_loss = tf.nn.relu(sym_loss)
+            else:
+                raise NotImplementedError('The loss {} is currently not \
+                        implemented for this framework.'.format(loss))
+
+            self._loss_cache[loss] = sym_loss
+            return sym_loss
+
+    def _gradient(self, loss):
+        import tensorflow as tf
+        try:
+            return self._grad_cache[loss]
+        except KeyError:
+            with self.session.graph.as_default():
+                gradients = tf.gradients(self._loss(loss), self._images)
+                assert len(gradients) == 1
+                self._grad_cache[loss] = tf.squeeze(gradients[0], axis=0)
+                return self._grad_cache[loss]
+
     def batch_predictions(self, images):
         images = self._process_input(images)
         predictions = self._session.run(
@@ -83,30 +117,30 @@ class TensorFlowModel(DifferentiableModel):
             feed_dict={self._images: images})
         return predictions
 
-    def predictions_and_gradient(self, image, label):
+    def predictions_and_gradient(self, image, label, loss=None):
         image = self._process_input(image)
         predictions, gradient = self._session.run(
-            [self._logits, self._gradient],
+            [self._logits, self._gradient(loss)],
             feed_dict={
                 self._images: image[np.newaxis],
                 self._label: label})
         gradient = self._process_gradient(gradient)
         return predictions, gradient
 
-    def gradient(self, image, label):
+    def gradient(self, image, label, loss=None):
         image = self._process_input(image)
         g = self._session.run(
-            self._gradient,
+            self._gradient(loss),
             feed_dict={
                 self._images: image[np.newaxis],
                 self._label: label})
         g = self._process_gradient(g)
         return g
 
-    def _loss_fn(self, image, label):
+    def _loss_fn(self, image, label, loss=None):
         image = self._process_input(image)
         loss = self._session.run(
-            self._loss,
+            self._loss(loss),
             feed_dict={
                 self._images: image[np.newaxis],
                 self._label: label})

@@ -130,7 +130,8 @@ def test_tensorflow_preprocessing(num_classes):
 
 
 @pytest.mark.parametrize('num_classes', [10, 1000])
-def test_tensorflow_gradient(num_classes):
+@pytest.mark.parametrize('loss', [None, 'crossentropy', 'carlini'])
+def test_tensorflow_gradient(num_classes, loss):
     bounds = (0, 255)
     channels = num_classes
 
@@ -155,15 +156,13 @@ def test_tensorflow_gradient(num_classes):
         test_image = np.random.rand(5, 5, channels).astype(np.float32)
         test_label = 7
 
-        _, g1 = model.predictions_and_gradient(test_image, test_label)
+        _, g1 = model.predictions_and_gradient(test_image, test_label, loss)
 
-        l1 = model._loss_fn(test_image - epsilon / 2 * g1, test_label)
-        l2 = model._loss_fn(test_image + epsilon / 2 * g1, test_label)
-
-        assert 1e4 * (l2 - l1) > 1
+        l1 = model._loss_fn(test_image - epsilon / 2 * g1, test_label, loss)
+        l2 = model._loss_fn(test_image + epsilon / 2 * g1, test_label, loss)
 
         # make sure that gradient is numerically correct
         np.testing.assert_array_almost_equal(
-            1e4 * (l2 - l1),
-            1e4 * epsilon * np.linalg.norm(g1)**2,
+            1.,
+            epsilon * np.linalg.norm(g1)**2 / (l2 - l1),
             decimal=1)
