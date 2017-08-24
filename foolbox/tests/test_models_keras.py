@@ -180,10 +180,6 @@ def test_keras_model_gradients(loss):
     l1 = model._loss_fn(test_image - eps / 2 * g1, test_label, loss=loss)
     l2 = model._loss_fn(test_image + eps / 2 * g1, test_label, loss=loss)
 
-    print(p1, l1, l2)
-
-    assert 1e5 * (l2 - l1) > 1
-
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
         1.,
