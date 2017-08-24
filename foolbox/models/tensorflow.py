@@ -71,7 +71,7 @@ class TensorFlowModel(DifferentiableModel):
         _, n = self._batch_logits.get_shape().as_list()
         return n
 
-    def _loss(self, loss):
+    def _loss(self, loss, **kwargs):
         import tensorflow as tf
         try:
             return self._loss_cache[loss]
@@ -99,7 +99,7 @@ class TensorFlowModel(DifferentiableModel):
             self._loss_cache[loss] = sym_loss
             return sym_loss
 
-    def _gradient(self, loss):
+    def _gradient(self, loss, **kwargs):
         import tensorflow as tf
         try:
             return self._grad_cache[loss]
@@ -117,20 +117,20 @@ class TensorFlowModel(DifferentiableModel):
             feed_dict={self._images: images})
         return predictions
 
-    def predictions_and_gradient(self, image, label, loss=None):
+    def predictions_and_gradient(self, image, label, loss=None, **kwargs):
         image = self._process_input(image)
         predictions, gradient = self._session.run(
-            [self._logits, self._gradient(loss)],
+            [self._logits, self._gradient(loss, **kwargs)],
             feed_dict={
                 self._images: image[np.newaxis],
                 self._label: label})
         gradient = self._process_gradient(gradient)
         return predictions, gradient
 
-    def gradient(self, image, label, loss=None):
+    def gradient(self, image, label, loss=None, **kwargs):
         image = self._process_input(image)
         g = self._session.run(
-            self._gradient(loss),
+            self._gradient(loss, **kwargs),
             feed_dict={
                 self._images: image[np.newaxis],
                 self._label: label})
