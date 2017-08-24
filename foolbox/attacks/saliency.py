@@ -84,6 +84,9 @@ class SaliencyMapAttack(Attack):
         else:
             target_classes = [target_class]
 
+        # avoid mixing GradientAttack and SaliencyMapAttack
+        a._reset()
+
         for target in target_classes:
 
             image = a.original_image
