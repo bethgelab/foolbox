@@ -148,9 +148,9 @@ def test_keras_model_preprocess():
         p3 - p3.max(),
         decimal=5)
 
-
-def test_keras_model_gradients():
-    num_classes = 1000
+@pytest.mark.parametrize('loss', [None, 'crossentropy', 'carlini'])
+def test_keras_model_gradients(loss):
+    num_classes = 10
     bounds = (0, 255)
     channels = num_classes
 
@@ -175,16 +175,66 @@ def test_keras_model_gradients():
     test_image = np.random.rand(5, 5, channels).astype(np.float32)
     test_label = 7
 
-    _, g1 = model.predictions_and_gradient(test_image, test_label)
+    p1, g1 = model.predictions_and_gradient(test_image, test_label, loss=loss)
 
-    test_label_array = np.array([test_label])
-    l1 = model._loss_fn([test_image[None] - eps / 2 * g1, test_label_array])[0]
-    l2 = model._loss_fn([test_image[None] + eps / 2 * g1, test_label_array])[0]
+    l1 = model._loss_fn(test_image - eps / 2 * g1, test_label, loss=loss)
+    l2 = model._loss_fn(test_image + eps / 2 * g1, test_label, loss=loss)
+
+    print(p1, l1, l2)
 
     assert 1e5 * (l2 - l1) > 1
 
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
-        1e5 * (l2 - l1),
-        1e5 * eps * np.linalg.norm(g1)**2,
+        1.,
+        eps * np.linalg.norm(g1)**2 / (l2 - l1),
         decimal=1)
+
+def test_keras_model_losses():
+    num_classes = 3
+    bounds = (0, 255)
+    channels = num_classes
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        inputs = Input(shape=(1, 1, channels))
+        logits = GlobalAveragePooling2D(
+            data_format='channels_last')(inputs)
+
+        model = KerasModel(
+            Model(inputs=inputs, outputs=logits),
+            bounds=bounds,
+            predicts='logits')
+
+    epsilon = 1e-2
+    test_image = np.zeros((1, 1, channels)).astype(np.float32)
+    test_image[0, 0, 0] = 1
+    test_label = 0
+
+    logits = model.predictions(test_image)
+    assert np.allclose(logits, [1, 0, 0])
+
+    # test losses
+    l0 = model._loss_fn(test_image, 0, loss=None)
+    l1 = model._loss_fn(test_image, 1, loss=None)
+    assert l0 < l1
+    assert l0 == -1
+    assert l1 == 0
+
+    l0 = model._loss_fn(test_image, 0, loss='logits')
+    l1 = model._loss_fn(test_image, 1, loss='logits')
+    assert l0 < l1
+    assert l0 == -1
+    assert l1 == 0
+
+    l0 = model._loss_fn(1e3 * test_image, 0, loss='crossentropy')
+    l1 = model._loss_fn(1e3 * test_image, 1, loss='crossentropy')
+    assert l0 < l1
+    assert l0 == 0
+    assert l1 == 1e3
+
+    l0 = model._loss_fn(test_image, 0, loss='carlini')
+    l1 = model._loss_fn(test_image, 1, loss='carlini')
+    assert l0 < l1
+    assert l0 == 0
+    assert l1 == 1

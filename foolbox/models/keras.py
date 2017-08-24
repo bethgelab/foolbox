@@ -45,88 +45,124 @@ class KerasModel(DifferentiableModel):
         assert predicts in ['probabilities', 'logits']
 
         self.images_input = model.input
-        self.label_input = K.placeholder(shape=(1,))
+        self.label_input = K.placeholder(shape=(1,), dtype='int32')
 
-        self.predictions = model.output
-
+        # predictions should always be logits
+        self.output = model.output
         if predicts == 'probabilities':
             self.predictions_are_logits = False
+            self.logits = self._as_logits(self.output)
         elif predicts == 'logits':
             self.predictions_are_logits = True
+            self.logits = self.output
 
-        shape = K.int_shape(self.predictions)
+        shape = K.int_shape(self.logits)
         _, num_classes = shape
         assert num_classes is not None
 
         self._num_classes = num_classes
 
+        self._batch_pred_fn = K.function(
+            [self.images_input], [self.logits])
+
         # create caches for loss
         self._loss_cache = {}
+        self._grad_cache = {}
         self._loss_fn_cache = {}
-        self._batch_pred_fn_cache = {}
         self._pred_grad_fn_cache = {}
 
-    def _loss(loss):
+    def _loss(self, loss):
+        from keras import backend as K
         try:
             return self._loss_cache[loss]
         except KeyError:
             if hasattr(loss, '__call__'):
-                return loss(self.predictions, self.label_input)
+                return loss(self.logits, self.label_input)
             elif loss in [None, 'logits']:
-                return -self.predictions[0, self.label_input]
+                sym_loss = -K.sum(self.logits[:, self.label_input[0]])
             elif loss == 'crossentropy':
-                loss = K.sparse_categorical_crossentropy(
-                    self.predictions, self.label_input,
+                sym_loss = K.sparse_categorical_crossentropy(
+                    self.label_input, self.output,
                     from_logits=self.predictions_are_logits)
 
                 # sparse_categorical_crossentropy returns 1-dim tensor,
                 # gradients wants 0-dim tensor (for some backends)
-                self._loss_cache[loss] = K.squeeze(loss, axis=0)
+                sym_loss = K.squeeze(sym_loss, axis=0)
             elif loss == 'carlini':
-                loss = K.max(self.predictions[0, :]) \
-                       - self.predictions[0, self.label_input]
-                return K.relu(loss)
+                sym_loss = K.max(K.sum(self.logits, axis=0)) \
+                       - K.sum(self.logits[:, self.label_input[0]])
+                sym_loss = K.relu(sym_loss)
             else:
                 raise NotImplementedError('The loss {} is currently not \
                         implemented for this framework.'.format(loss))
 
-        grads = K.gradients(loss, images_input)
-        if K.backend() == 'tensorflow':
-            # tensorflow backend returns a list with the gradient
-            # as the only element, even if loss is a single scalar
-            # tensor;
-            # theano always returns the gradient itself (and requires
-            # that loss is a single scalar tensor)
-            assert isinstance(grads, list)
-            assert len(grads) == 1
-            grad = grads[0]
-        elif K.backend() == 'cntk':  # pragma: no cover
-            assert isinstance(grads, list)
-            assert len(grads) == 1
-            grad = grads[0]
-            grad = K.reshape(grad, (1,) + grad.shape)
-        else:
-            assert not isinstance(grads, list)
-            grad = grads
+            self._loss_cache[loss] = sym_loss
+            return sym_loss
 
-        self._loss_fn = K.function(
-            [images_input, label_input],
-            [loss])
-        self._batch_pred_fn = K.function(
-            [images_input], [predictions])
-        self._pred_grad_fn = K.function(
-            [images_input, label_input],
-            [predictions, grad])
+    def _gradient(self, loss):
+        from keras import backend as K
+        try:
+            return self._grad_cache[loss]
+        except KeyError:
+            sym_loss = self._loss(loss)
+            grads = K.gradients(sym_loss, self.images_input)
+            if K.backend() == 'tensorflow':
+                # tensorflow backend returns a list with the gradient
+                # as the only element, even if loss is a single scalar
+                # tensor;
+                # theano always returns the gradient itself (and requires
+                # that loss is a single scalar tensor)
+                assert isinstance(grads, list)
+                assert len(grads) == 1
+                grad = grads[0]
+            elif K.backend() == 'cntk':  # pragma: no cover
+                assert isinstance(grads, list)
+                assert len(grads) == 1
+                grad = grads[0]
+                grad = K.reshape(grad, (1,) + grad.shape)
+            else:
+                assert not isinstance(grads, list)
+                grad = grads
 
-        self._predictions_are_logits = predictions_are_logits
+            self._grad_cache[loss] = grad
+            return grad
+
+    def _pred_grad_fn(self, input, label, loss=None):
+        from keras import backend as K
+        input = self._process_input(input)
+        try:
+            return self._pred_grad_fn_cache[loss]([input, label])
+        except KeyError:
+            sym_grad = self._gradient(loss)
+
+            self._pred_grad_fn_cache[loss] =  K.function(
+                [self.images_input, self.label_input],
+                [self.logits, sym_grad])
+
+            return self._pred_grad_fn_cache[loss]([input, label])
+
+    def _loss_fn(self, input, label, loss=None):
+        from keras import backend as K
+        inputs = self._process_input(input)[None]
+        label = [label]
+        try:
+            return self._loss_fn_cache[loss]([inputs, label])[0]
+        except KeyError:
+            sym_loss = self._loss(loss)
+
+            self._loss_fn_cache[loss] =  K.function(
+                [self.images_input, self.label_input],
+                [sym_loss])
+
+            return self._loss_fn_cache[loss]([inputs, label])[0]
 
     def _as_logits(self, predictions):
-        assert predictions.ndim in [1, 2]
-        if self._predictions_are_logits:
+        from keras import backend as K
+        if self.predictions_are_logits:
             return predictions
         eps = 10e-8
-        predictions = np.clip(predictions, eps, 1 - eps)
-        predictions = np.log(predictions)
+        predictions = K.clip(predictions, eps, 1 - eps)
+        predictions = K.log(predictions)
         return predictions
 
     def num_classes(self):
@@ -137,30 +173,16 @@ class KerasModel(DifferentiableModel):
         assert len(predictions) == 1
         predictions = predictions[0]
         assert predictions.shape == (images.shape[0], self.num_classes())
-        predictions = self._as_logits(predictions)
         return predictions
 
-    def predictions_and_gradient(self, image, label):
-        predictions, gradient = self._pred_grad_fn([
+    def predictions_and_gradient(self, image, label, loss=None):
+        predictions, gradient = self._pred_grad_fn(
             self._process_input(image[np.newaxis]),
-            np.array([label])])
+            np.array([label]),
+            loss=loss)
         predictions = np.squeeze(predictions, axis=0)
-        predictions = self._as_logits(predictions)
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(gradient)
         assert predictions.shape == (self.num_classes(),)
         assert gradient.shape == image.shape
         return predictions, gradient
-
-class KerasGradientCache(object):
-    """ Cache of previously computed gradients """
-
-    def __init__(self):
-        self.gradients = {}
-
-    def __call__(self, loss):
-        try:
-            return self.gradients[loss]
-        except KeyError:
-            # compute gradient
-            pass
