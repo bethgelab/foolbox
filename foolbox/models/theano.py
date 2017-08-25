@@ -58,10 +58,6 @@ class TheanoModel(DifferentiableModel):
         self._grad_fn_cache = {}
         self._pred_grad_fn_cache = {}
 
-        print(logits, self.labels)
-        self.labels[0]
-        logits[0,0]
-
     def _loss(self, loss, **kwargs):
         import theano.tensor as T
         try:

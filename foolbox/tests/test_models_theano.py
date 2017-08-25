@@ -74,7 +74,7 @@ def test_theano_gradient(num_classes, loss):
     test_image = np.random.rand(channels, 5, 5).astype(np.float32)
     test_label = 7
 
-    p1, g1 = model.predictions_and_gradient(test_image, test_label, loss=loss)
+    _, g1 = model.predictions_and_gradient(test_image, test_label, loss=loss)
 
     test_image_p = model._process_input(test_image[None] - epsilon / 2 * g1)
     test_image_n = model._process_input(test_image[None] + epsilon / 2 * g1)
