@@ -45,18 +45,89 @@ class TheanoModel(DifferentiableModel):
         import theano as th
         import theano.tensor as T
 
-        probs = T.nnet.nnet.softmax(logits)
-
-        labels = T.ivector('labels')
-        loss = T.nnet.nnet.categorical_crossentropy(
-            probs, labels)
-        gradient = th.gradient.grad(loss[0], images)
+        self.images = images
+        self.logits = logits
+        self.probs = T.nnet.nnet.softmax(logits)
+        self.labels = T.ivector('labels')
 
         self._batch_prediction_fn = th.function([images], logits)
-        self._predictions_and_gradient_fn = th.function(
-            [images, labels], [logits, gradient])
-        self._gradient_fn = th.function([images, labels], gradient)
-        self._loss_fn = th.function([images, labels], loss)
+
+        self._loss_cache = {}
+        self._gradient_cache = {}
+        self._loss_fn_cache = {}
+        self._grad_fn_cache = {}
+        self._pred_grad_fn_cache = {}
+
+        print(logits, self.labels)
+        self.labels[0]
+        logits[0,0]
+
+    def _loss(self, loss, **kwargs):
+        import theano.tensor as T
+        try:
+            return self._loss_cache[loss]
+        except KeyError:
+            if hasattr(loss, '__call__'):
+                return loss(self.logits, self.labels)
+            elif loss in [None, 'logits']:
+                sym_loss = -self.logits[0, self.labels[0]]
+            elif loss == 'crossentropy':
+                sym_loss = T.nnet.nnet.categorical_crossentropy(
+                                self.probs, self.labels)[0]
+            elif loss == 'carlini':
+                sym_loss = T.max(self.logits, axis=0)[0] \
+                       - self.logits[0, self.labels[0]]
+                sym_loss = T.nnet.nnet.relu(sym_loss)
+            else:
+                raise NotImplementedError('The loss {} is currently not \
+                        implemented for this framework.'.format(loss))
+
+            self._loss_cache[loss] = sym_loss
+            return sym_loss
+
+    def _gradient(self, loss=None, **kwargs):
+        import theano as th
+        try:
+            return self._gradient_cache[loss]
+        except KeyError:
+            sym_loss = self._loss(loss, **kwargs)
+            sym_gradient = th.gradient.grad(sym_loss, self.images)
+
+            self._gradient_cache[loss] = sym_gradient
+            return sym_gradient
+
+    def _loss_fn(self, images, labels, loss=None, **kwargs):
+        import theano as th
+        import theano.tensor as T
+        try:
+            return self._loss_fn_cache[loss](images, labels)
+        except KeyError:
+            sym_loss = self._loss(loss, **kwargs)
+            self._loss_fn_cache[loss] = th.function([self.images, self.labels],
+                                                     sym_loss)
+            return self._loss_fn_cache[loss](images, labels)
+
+    def _gradient_fn(self, images, labels, loss=None, **kwargs):
+        import theano as th
+        import theano.tensor as T
+        try:
+            return self._grad_fn_cache[loss](images, labels)
+        except KeyError:
+            sym_gradient = self._gradient(loss, **kwargs)
+            self._grad_fn_cache[loss] = th.function([self.images, self.labels],
+                                                     sym_gradient)
+            return self._grad_fn_cache[loss](images, labels)
+
+    def _predictions_and_gradient_fn(self, images, labels, loss=None, **kwargs):
+        import theano as th
+        import theano.tensor as T
+        try:
+            return self._pred_grad_fn_cache[loss](images, labels)
+        except KeyError:
+            sym_gradient = self._gradient(loss, **kwargs)
+            self._pred_grad_fn_cache[loss] = th.function([self.images, self.labels],
+                                                     [self.logits, sym_gradient])
+            return self._pred_grad_fn_cache[loss](images, labels)
 
     def batch_predictions(self, images):
         images = self._process_input(images)
@@ -64,11 +135,11 @@ class TheanoModel(DifferentiableModel):
         assert predictions.shape == (images.shape[0], self.num_classes())
         return predictions
 
-    def predictions_and_gradient(self, image, label):
+    def predictions_and_gradient(self, image, label, loss=None, **kwargs):
         image = self._process_input(image)
         label = np.array(label, dtype=np.int32)
         predictions, gradient = self._predictions_and_gradient_fn(
-            image[np.newaxis], label[np.newaxis])
+            image[np.newaxis], label[np.newaxis], loss, **kwargs)
         predictions = np.squeeze(predictions, axis=0)
         gradient = self._process_gradient(gradient)
         gradient = np.squeeze(gradient, axis=0)
@@ -77,10 +148,11 @@ class TheanoModel(DifferentiableModel):
         assert gradient.dtype == image.dtype
         return predictions, gradient
 
-    def gradient(self, image, label):
+    def gradient(self, image, label, loss=None, **kwargs):
         image = self._process_input(image)
         label = np.array(label, dtype=np.int32)
-        gradient = self._gradient_fn(image[np.newaxis], label[np.newaxis])
+        gradient = self._gradient_fn(image[np.newaxis], label[np.newaxis],
+                                     loss, **kwargs)
         gradient = self._process_gradient(gradient)
         gradient = np.squeeze(gradient, axis=0)
         assert gradient.shape == image.shape
