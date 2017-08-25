@@ -58,13 +58,13 @@ class MXNetModel(DifferentiableModel):
         self._device = ctx
 
         self._data_sym = data
-        self._batch_logits_sym = logits
 
-        label = mx.symbol.Variable('label')
-        self._label_sym = label
+        self.label  = mx.symbol.Variable('label', shape=(1,))
+        print('label shape: ', self.label.infer_shape())
+        self.logits = logits
+        self.probs  = mx.symbol.softmax(logits)
 
-        loss = mx.symbol.softmax_cross_entropy(logits, label)
-        self._loss_sym = loss
+        self._loss_cache = {}
 
         self._args_map = args.copy()
         self._aux_map = aux_states.copy() if aux_states is not None else None
@@ -79,6 +79,38 @@ class MXNetModel(DifferentiableModel):
                 self._aux_map[k] = \
                     self._aux_map[k].as_in_context(ctx)   # pragma: no cover
 
+    def _loss(self, loss, label, **kwargs):
+        import mxnet as mx
+        try:
+            return self._loss_cache[loss]
+        except KeyError:
+            if hasattr(loss, '__call__'):
+                return loss(self.logits, label)
+            elif loss in [None, 'logits']:
+                print('get loss for index ', label)
+                sym_loss = mx.symbol.slice_axis(self.logits, axis=1,
+                                                   begin=label, end=label+1)
+                sym_loss = mx.symbol.slice_axis(sym_loss, axis=0, begin=0, end=1)
+                sym_loss = -mx.symbol.sum(sym_loss)
+            elif loss == 'crossentropy':
+                sym_loss = mx.symbol.softmax_cross_entropy(self.logits,
+                                                           self.label)
+            elif loss == 'carlini':
+                label_logit = mx.symbol.slice_axis(self.logits, axis=1,
+                                                   begin=label, end=label+1)
+                sym_loss = mx.symbol.sum(mx.symbol.max(self.logits, axis=1)) \
+                       - mx.symbol.sum(label_logit)
+                sym_loss = mx.symbol.relu(sym_loss)
+                sym_loss
+            else:
+                raise NotImplementedError('The loss {} is currently not \
+                        implemented for this framework.'.format(loss))
+
+            if loss not in [None, 'logits', 'carlini']:
+                self._loss_cache[loss] = sym_loss
+
+            return sym_loss
+
     def num_classes(self):
         return self._num_classes
 
@@ -87,7 +119,7 @@ class MXNetModel(DifferentiableModel):
         images = self._process_input(images)
         data_array = mx.nd.array(images, ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
-        model = self._batch_logits_sym.bind(
+        model = self.logits.bind(
             ctx=self._device, args=self._args_map, grad_req='null',
             aux_states=self._aux_map)
         model.forward(is_train=False)
@@ -95,19 +127,20 @@ class MXNetModel(DifferentiableModel):
         logits = logits_array.asnumpy()
         return logits
 
-    def predictions_and_gradient(self, image, label):
+    def predictions_and_gradient(self, image, label, loss='crossentropy', **kwargs):
         import mxnet as mx
         label = np.asarray(label)
         image = self._process_input(image)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         label_array = mx.nd.array(label[np.newaxis], ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
-        self._args_map[self._label_sym.name] = label_array
+        self._args_map[self.label.name] = label_array
 
         grad_array = mx.nd.zeros(image[np.newaxis].shape, ctx=self._device)
         grad_map = {self._data_sym.name: grad_array}
 
-        logits_loss = mx.sym.Group([self._batch_logits_sym, self._loss_sym])
+        sym_loss = self._loss(loss, label, **kwargs)
+        logits_loss = mx.sym.Group([self.logits, sym_loss])
         model = logits_loss.bind(
             ctx=self._device,
             args=self._args_map,
@@ -125,14 +158,14 @@ class MXNetModel(DifferentiableModel):
         gradient = self._process_gradient(gradient)
         return np.squeeze(logits, axis=0), np.squeeze(gradient, axis=0)
 
-    def _loss_fn(self, image, label):
+    def _loss_fn(self, image, label, loss=None, **kwargs):
         import mxnet as mx
-        image = self._process_input(image)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         label_array = mx.nd.array(np.array([label]), ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
-        self._args_map[self._label_sym.name] = label_array
-        model = self._loss_sym.bind(
+        self._args_map[self.label.name] = label_array
+        sym_loss = self._loss(loss, label, **kwargs)
+        model = sym_loss.bind(
             ctx=self._device, args=self._args_map, grad_req='null',
             aux_states=self._aux_map)
         model.forward(is_train=False)
