@@ -1,3 +1,11 @@
+.. image:: http://bethgelab.org/media/banners/benchmark_banner.png
+    :target: https://robust.vision/benchmark
+
+You might want to have a look at our recently announced `Robust Vision Benchmark <https://github.com/bethgelab/foolbox/issues/new>`__.
+
+------------
+
+
 .. image:: https://readthedocs.org/projects/foolbox/badge/?version=latest
     :target: https://foolbox.readthedocs.io/en/latest/
 
