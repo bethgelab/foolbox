@@ -49,19 +49,21 @@ class KerasModel(DifferentiableModel):
 
         predictions = model.output
 
-        if predicts == 'probabilities':
-            predictions_are_logits = False
-        elif predicts == 'logits':
-            predictions_are_logits = True
-
         shape = K.int_shape(predictions)
         _, num_classes = shape
         assert num_classes is not None
 
         self._num_classes = num_classes
 
-        loss = K.sparse_categorical_crossentropy(
-            label_input, predictions, from_logits=predictions_are_logits)
+        if predicts == 'probabilities':
+            loss = K.sparse_categorical_crossentropy(
+                label_input, predictions, from_logits=False)
+            # transform the probability predictions into logits, so that
+            # the rest of this code can assume predictions to be logits
+            predictions = self._to_logits(predictions)
+        elif predicts == 'logits':
+            loss = K.sparse_categorical_crossentropy(
+                label_input, predictions, from_logits=True)
 
         # sparse_categorical_crossentropy returns 1-dim tensor,
         # gradients wants 0-dim tensor (for some backends)
@@ -95,15 +97,11 @@ class KerasModel(DifferentiableModel):
             [images_input, label_input],
             [predictions, grad])
 
-        self._predictions_are_logits = predictions_are_logits
-
-    def _as_logits(self, predictions):
-        assert predictions.ndim in [1, 2]
-        if self._predictions_are_logits:
-            return predictions
+    def _to_logits(self, predictions):
+        from keras import backend as K
         eps = 10e-8
-        predictions = np.clip(predictions, eps, 1 - eps)
-        predictions = np.log(predictions)
+        predictions = K.clip(predictions, eps, 1 - eps)
+        predictions = K.log(predictions)
         return predictions
 
     def num_classes(self):
@@ -114,7 +112,6 @@ class KerasModel(DifferentiableModel):
         assert len(predictions) == 1
         predictions = predictions[0]
         assert predictions.shape == (images.shape[0], self.num_classes())
-        predictions = self._as_logits(predictions)
         return predictions
 
     def predictions_and_gradient(self, image, label):
@@ -122,7 +119,6 @@ class KerasModel(DifferentiableModel):
             self._process_input(image[np.newaxis]),
             np.array([label])])
         predictions = np.squeeze(predictions, axis=0)
-        predictions = self._as_logits(predictions)
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(gradient)
         assert predictions.shape == (self.num_classes(),)
