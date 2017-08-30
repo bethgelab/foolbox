@@ -49,6 +49,12 @@ class KerasModel(DifferentiableModel):
 
         predictions = model.output
 
+        shape = K.int_shape(predictions)
+        _, num_classes = shape
+        assert num_classes is not None
+
+        self._num_classes = num_classes
+
         if predicts == 'probabilities':
             loss = K.sparse_categorical_crossentropy(
                 label_input, predictions, from_logits=False)
@@ -58,12 +64,6 @@ class KerasModel(DifferentiableModel):
         elif predicts == 'logits':
             loss = K.sparse_categorical_crossentropy(
                 label_input, predictions, from_logits=True)
-
-        shape = K.int_shape(predictions)
-        _, num_classes = shape
-        assert num_classes is not None
-
-        self._num_classes = num_classes
 
         # sparse_categorical_crossentropy returns 1-dim tensor,
         # gradients wants 0-dim tensor (for some backends)
