@@ -19,6 +19,7 @@ except IOError:
 install_requires = [
     'numpy',
     'scipy',
+    'setuptools',
 ]
 
 tests_require = [
