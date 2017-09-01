@@ -39,6 +39,10 @@ class KerasModel(DifferentiableModel):
                                          preprocessing=preprocessing)
 
         from keras import backend as K
+        import keras
+        from pkg_resources import parse_version
+
+        assert parse_version(keras.__version__) >= parse_version('2.0.7'), 'Keras version needs to be 2.0.7 or newer'  # noqa: E501
 
         if predicts == 'probs':
             predicts = 'probabilities'
