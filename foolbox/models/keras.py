@@ -72,8 +72,17 @@ class KerasModel(DifferentiableModel):
         # sparse_categorical_crossentropy returns 1-dim tensor,
         # gradients wants 0-dim tensor (for some backends)
         loss = K.squeeze(loss, axis=0)
-
         grads = K.gradients(loss, images_input)
+
+        grad_loss_output = K.placeholder(shape=(num_classes, 1))
+        external_loss = K.dot(predictions, grad_loss_output)
+        # remove batch dimension of predictions
+        external_loss = K.squeeze(external_loss, axis=0)
+        # remove singleton dimension of grad_loss_output
+        external_loss = K.squeeze(external_loss, axis=0)
+
+        grads_loss_input = K.gradients(external_loss, images_input)
+
         if K.backend() == 'tensorflow':
             # tensorflow backend returns a list with the gradient
             # as the only element, even if loss is a single scalar
@@ -83,14 +92,25 @@ class KerasModel(DifferentiableModel):
             assert isinstance(grads, list)
             assert len(grads) == 1
             grad = grads[0]
+
+            assert isinstance(grads_loss_input, list)
+            assert len(grads_loss_input) == 1
+            grad_loss_input = grads_loss_input[0]
         elif K.backend() == 'cntk':  # pragma: no cover
             assert isinstance(grads, list)
             assert len(grads) == 1
             grad = grads[0]
             grad = K.reshape(grad, (1,) + grad.shape)
+
+            assert isinstance(grads_loss_input, list)
+            assert len(grads_loss_input) == 1
+            grad_loss_input = grads_loss_input[0]
+            grad_loss_input = K.reshape(grad_loss_input, (1,) + grad_loss_input.shape)  # noqa: E501
         else:
             assert not isinstance(grads, list)
             grad = grads
+
+            grad_loss_input = grads_loss_input
 
         self._loss_fn = K.function(
             [images_input, label_input],
@@ -100,6 +120,9 @@ class KerasModel(DifferentiableModel):
         self._pred_grad_fn = K.function(
             [images_input, label_input],
             [predictions, grad])
+        self._bw_grad_fn = K.function(
+            [grad_loss_output, images_input],
+            [grad_loss_input])
 
     def _to_logits(self, predictions):
         from keras import backend as K
@@ -128,3 +151,15 @@ class KerasModel(DifferentiableModel):
         assert predictions.shape == (self.num_classes(),)
         assert gradient.shape == image.shape
         return predictions, gradient
+
+    def backward(self, gradient, image):
+        assert gradient.ndim == 1
+        gradient = np.reshape(gradient, (-1, 1))
+        gradient = self._bw_grad_fn([
+            gradient,
+            self._process_input(image[np.newaxis]),
+        ])
+        gradient = np.squeeze(gradient, axis=0)
+        gradient = self._process_gradient(gradient)
+        assert gradient.shape == image.shape
+        return gradient

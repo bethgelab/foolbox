@@ -330,3 +330,18 @@ class Adversarial(object):
         assert predictions.ndim == 1
         assert gradient.shape == image.shape
         return predictions, gradient, is_adversarial
+
+    def backward(self, gradient, image=None, strict=True):
+        assert self.has_gradient()
+        assert gradient.ndim == 1
+
+        if image is None:
+            image = self.__original_image
+
+        assert not strict or self.in_bounds(image)
+
+        self._total_gradient_calls += 1
+        gradient = self.__model.backward(gradient, image)
+
+        assert gradient.shape == image.shape
+        return gradient
