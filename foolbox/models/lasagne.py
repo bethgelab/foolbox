@@ -45,6 +45,7 @@ class LasagneModel(DifferentiableModel):
 
         images = input_layer.input_var
         labels = T.ivector('labels')
+        bw_gradient_pre = T.fmatrix('bw_gradient_pre')
 
         shape = lasagne.layers.get_output_shape(logits_layer)
         _, num_classes = shape
@@ -58,11 +59,16 @@ class LasagneModel(DifferentiableModel):
             probs, labels)
         gradient = th.gradient.grad(loss[0], images)
 
+        bw_loss = (logits * bw_gradient_pre).sum()
+        bw_gradient = th.gradient.grad(bw_loss[0], images)
+
         self._batch_prediction_fn = th.function([images], logits)
         self._predictions_and_gradient_fn = th.function(
             [images, labels], [logits, gradient])
         self._gradient_fn = th.function([images, labels], gradient)
         self._loss_fn = th.function([images, labels], loss)
+        self._bw_gradient_fn = th.function(
+            [bw_gradient_pre, images], bw_gradient)
 
     def batch_predictions(self, images):
         predictions = self._batch_prediction_fn(images)
@@ -90,3 +96,13 @@ class LasagneModel(DifferentiableModel):
 
     def num_classes(self):
         return self._num_classes
+
+    def backward(self, gradient, image):
+        assert gradient.ndim == 1
+        gradient = self._bw_gradient_fn(
+            gradient[np.newaxis], image[np.newaxis])
+        gradient = np.squeeze(gradient, axis=0)
+        assert gradient.shape == image.shape
+        gradient = gradient.astype(image.dtype, copy=False)
+        assert gradient.shape == image.shape
+        return gradient

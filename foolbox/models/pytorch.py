@@ -135,3 +135,42 @@ class PyTorchModel(DifferentiableModel):
             loss = loss.cpu()
         loss = loss.numpy()
         return loss
+
+    def backward(self, gradient, image):
+        # lazy import
+        import torch
+        from torch.autograd import Variable
+
+        assert gradient.ndim == 1
+
+        gradient = torch.from_numpy(gradient)
+        if self.cuda:  # pragma: no cover
+            gradient = gradient.cuda()
+        gradient = Variable(gradient)
+
+        image = self._process_input(image)
+        assert image.ndim == 3
+        images = image[np.newaxis]
+        images = torch.from_numpy(images)
+        if self.cuda:  # pragma: no cover
+            images = images.cuda()
+        images = Variable(images, requires_grad=True)
+        predictions = self._model(images)
+
+        predictions = predictions[0]
+
+        loss = (predictions * gradient).sum()
+        loss.backward()
+        # should be the same as predictions.backward(gradient=gradient)
+
+        grad = images.grad
+
+        grad = grad.data
+        if self.cuda:  # pragma: no cover
+            grad = grad.cpu()
+        grad = grad.numpy()
+        grad = self._process_gradient(grad)
+        grad = np.squeeze(grad, axis=0)
+        assert grad.shape == image.shape
+
+        return grad

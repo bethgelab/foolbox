@@ -63,6 +63,12 @@ class TensorFlowModel(DifferentiableModel):
             assert len(gradients) == 1
             self._gradient = tf.squeeze(gradients[0], axis=0)
 
+            self._bw_gradient_pre = tf.placeholder(tf.float32, self._gradient.shape)  # noqa: E501
+            bw_loss = tf.reduce_sum(self._logits * self._bw_gradient_pre)
+            bw_gradients = tf.gradients(bw_loss, images)
+            assert len(bw_gradients) == 1
+            self._bw_gradient = tf.squeeze(bw_gradients[0], axis=0)
+
     def __exit__(self, exc_type, exc_value, traceback):
         if self._created_session:
             self._session.close()
@@ -111,3 +117,15 @@ class TensorFlowModel(DifferentiableModel):
                 self._images: image[np.newaxis],
                 self._label: label})
         return loss
+
+    def backward(self, gradient, image):
+        assert gradient.ndim == 1
+        image = self._process_input(image)
+        g = self._session.run(
+            self._bw_gradient,
+            feed_dict={
+                self._images: image[np.newaxis],
+                self._bw_gradient_pre: gradient})
+        g = self._process_gradient(g)
+        assert g.shape == image.shape
+        return g
