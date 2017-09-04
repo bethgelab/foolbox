@@ -64,6 +64,10 @@ def test_adversarial(model, criterion, image, label):
     assert gradient.shape == image.shape
     assert is_adversarial
 
+    gradient_pre = np.ones_like(predictions) * 0.3
+    gradient = adversarial.backward(gradient_pre, image)
+    assert gradient.shape == image.shape
+
     gradient = adversarial.gradient()
     assert gradient.shape == image.shape
     assert is_adversarial
