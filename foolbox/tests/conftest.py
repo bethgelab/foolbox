@@ -46,8 +46,8 @@ def model():
     model.batch_predictions = Mock(return_value=predictions[np.newaxis])
     gradient = image()
     model.predictions_and_gradient = Mock(return_value=(predictions, gradient))  # noqa: E501
-    model.gradient = Mock(return_value=gradient)  # noqa: E501
-    model.backward = Mock(return_value=gradient)  # noqa: E501
+    model.gradient = Mock(return_value=gradient)
+    model.backward = Mock(return_value=gradient)
     model.num_classes = Mock(return_value=1000)
     model.channel_axis = Mock(return_value=3)
     return model
