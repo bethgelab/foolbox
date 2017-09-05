@@ -54,7 +54,7 @@ class TheanoModel(DifferentiableModel):
 
         bw_gradient_pre = T.fmatrix('bw_gradient_pre')
         bw_loss = (logits * bw_gradient_pre).sum()
-        bw_gradient = th.gradient.grad(bw_loss[0], images)
+        bw_gradient = th.gradient.grad(bw_loss, images)
 
         self._batch_prediction_fn = th.function([images], logits)
         self._predictions_and_gradient_fn = th.function(

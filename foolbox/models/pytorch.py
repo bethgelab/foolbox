@@ -157,9 +157,14 @@ class PyTorchModel(DifferentiableModel):
         images = Variable(images, requires_grad=True)
         predictions = self._model(images)
 
+        print(predictions.size())
         predictions = predictions[0]
 
-        loss = (predictions * gradient).sum()
+        assert gradient.dim() == 1
+        assert predictions.dim() == 1
+        assert gradient.size() == predictions.size()
+
+        loss = torch.dot(predictions, gradient)
         loss.backward()
         # should be the same as predictions.backward(gradient=gradient)
 

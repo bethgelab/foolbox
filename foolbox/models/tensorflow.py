@@ -63,7 +63,7 @@ class TensorFlowModel(DifferentiableModel):
             assert len(gradients) == 1
             self._gradient = tf.squeeze(gradients[0], axis=0)
 
-            self._bw_gradient_pre = tf.placeholder(tf.float32, self._gradient.shape)  # noqa: E501
+            self._bw_gradient_pre = tf.placeholder(tf.float32, self._logits.shape)  # noqa: E501
             bw_loss = tf.reduce_sum(self._logits * self._bw_gradient_pre)
             bw_gradients = tf.gradients(bw_loss, images)
             assert len(bw_gradients) == 1
