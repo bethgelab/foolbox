@@ -198,8 +198,8 @@ def test_pytorch_backward(num_classes):
     assert test_grad.shape == test_image.shape
 
     manual_grad = np.repeat(np.repeat(
-        (test_grad_pre / 25.).reshape((1, 1, -1)),
-        5, axis=0), 5, axis=1)
+        (test_grad_pre / 25.).reshape((-1, 1, 1)),
+        5, axis=1), 5, axis=2)
 
     np.testing.assert_almost_equal(
         test_grad,

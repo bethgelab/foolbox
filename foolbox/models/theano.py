@@ -62,7 +62,7 @@ class TheanoModel(DifferentiableModel):
         self._gradient_fn = th.function([images, labels], gradient)
         self._loss_fn = th.function([images, labels], loss)
         self._bw_gradient_fn = th.function(
-            [bw_gradient_pre, images, labels], bw_gradient)
+            [bw_gradient_pre, images], bw_gradient)
 
     def batch_predictions(self, images):
         images = self._process_input(images)
