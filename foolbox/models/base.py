@@ -194,3 +194,28 @@ class DifferentiableModel(Model):
         """
         _, gradient = self.predictions_and_gradient(image, label)
         return gradient
+
+    # TODO: make this an abstract method once support is added to all models
+    def backward(self, gradient, image):
+        """Backpropages the gradient of some loss w.r.t. the logits
+        through the network and returns the gradient of that loss w.r.t
+        to the input image.
+
+        Parameters
+        ----------
+        gradient : `numpy.ndarray`
+            Gradient of some loss w.r.t. the logits.
+        image : `numpy.ndarray`
+            Image with shape (height, width, channels).
+
+        Returns
+        -------
+        gradient : `numpy.ndarray`
+            The gradient w.r.t the image.
+
+        See Also
+        --------
+        :meth:`gradient`
+
+        """
+        raise NotImplementedError

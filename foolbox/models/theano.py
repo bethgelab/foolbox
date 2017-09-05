@@ -52,11 +52,17 @@ class TheanoModel(DifferentiableModel):
             probs, labels)
         gradient = th.gradient.grad(loss[0], images)
 
+        bw_gradient_pre = T.fmatrix('bw_gradient_pre')
+        bw_loss = (logits * bw_gradient_pre).sum()
+        bw_gradient = th.gradient.grad(bw_loss, images)
+
         self._batch_prediction_fn = th.function([images], logits)
         self._predictions_and_gradient_fn = th.function(
             [images, labels], [logits, gradient])
         self._gradient_fn = th.function([images, labels], gradient)
         self._loss_fn = th.function([images, labels], loss)
+        self._bw_gradient_fn = th.function(
+            [bw_gradient_pre, images], bw_gradient)
 
     def batch_predictions(self, images):
         images = self._process_input(images)
@@ -89,3 +95,14 @@ class TheanoModel(DifferentiableModel):
 
     def num_classes(self):
         return self._num_classes
+
+    def backward(self, gradient, image):
+        assert gradient.ndim == 1
+        image = self._process_input(image)
+        gradient = self._bw_gradient_fn(
+            gradient[np.newaxis], image[np.newaxis])
+        gradient = self._process_gradient(gradient)
+        gradient = np.squeeze(gradient, axis=0)
+        assert gradient.shape == image.shape
+        assert gradient.dtype == image.dtype
+        return gradient

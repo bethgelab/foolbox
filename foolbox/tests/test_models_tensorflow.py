@@ -167,3 +167,40 @@ def test_tensorflow_gradient(num_classes):
             1e4 * (l2 - l1),
             1e4 * epsilon * np.linalg.norm(g1)**2,
             decimal=1)
+
+
+@pytest.mark.parametrize('num_classes', [10, 1000])
+def test_tensorflow_backward(num_classes):
+    bounds = (0, 255)
+    channels = num_classes
+
+    def mean_brightness_net(images):
+        logits = tf.reduce_mean(images, axis=(1, 2))
+        return logits
+
+    g = tf.Graph()
+    with g.as_default():
+        images = tf.placeholder(tf.float32, (None, 5, 5, channels))
+        logits = mean_brightness_net(images)
+
+    with tf.Session(graph=g):
+        model = TensorFlowModel(
+            images,
+            logits,
+            bounds=bounds)
+
+        assert model.session is not None
+
+        test_image = np.random.rand(5, 5, channels).astype(np.float32)
+        test_grad_pre = np.random.rand(num_classes).astype(np.float32)
+
+        test_grad = model.backward(test_grad_pre, test_image)
+        assert test_grad.shape == test_image.shape
+
+        manual_grad = np.repeat(np.repeat(
+            (test_grad_pre / 25.).reshape((1, 1, -1)),
+            5, axis=0), 5, axis=1)
+
+        np.testing.assert_almost_equal(
+            test_grad,
+            manual_grad)

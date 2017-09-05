@@ -188,3 +188,35 @@ def test_keras_model_gradients():
         1e5 * (l2 - l1),
         1e5 * eps * np.linalg.norm(g1)**2,
         decimal=1)
+
+
+@pytest.mark.parametrize('num_classes', [10, 1000])
+def test_keras_backward(num_classes):
+
+    bounds = (0, 255)
+    channels = num_classes
+
+    model = Sequential()
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        model.add(GlobalAveragePooling2D(
+            data_format='channels_last', input_shape=(5, 5, channels)))
+
+        model = KerasModel(
+            model,
+            bounds=bounds,
+            predicts='logits')
+
+    test_image = np.random.rand(5, 5, channels).astype(np.float32)
+    test_grad_pre = np.random.rand(num_classes).astype(np.float32)
+
+    test_grad = model.backward(test_grad_pre, test_image)
+    assert test_grad.shape == test_image.shape
+
+    manual_grad = np.repeat(np.repeat(
+        (test_grad_pre / 25.).reshape((1, 1, -1)),
+        5, axis=0), 5, axis=1)
+
+    np.testing.assert_almost_equal(
+        test_grad,
+        manual_grad)
