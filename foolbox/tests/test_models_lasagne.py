@@ -105,7 +105,7 @@ def test_lasagne_backward(num_classes):
         logits,
         bounds=bounds)
 
-    test_image = np.random.rand(5, 5, channels).astype(np.float32)
+    test_image = np.random.rand(channels, 5, 5).astype(np.float32)
     test_grad_pre = np.random.rand(num_classes).astype(np.float32)
 
     test_grad = model.backward(test_grad_pre, test_image)
