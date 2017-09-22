@@ -38,7 +38,7 @@ First, create the model in TensorFlow.
 
     images = tf.placeholder(tf.float32, shape=(None, 224, 224, 3))
     preprocessed = images - [123.68, 116.78, 103.94]
-    logits, _ = vgg.vgg_19(images, is_training=False)
+    logits, _ = vgg.vgg_19(preprocessed, is_training=False)
     restorer = tf.train.Saver(tf.trainable_variables())
 
     image, _ = foolbox.utils.imagenet_example()
