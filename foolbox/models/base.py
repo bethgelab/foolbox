@@ -54,14 +54,27 @@ class Model(ABC):
         return self._channel_axis
 
     def _process_input(self, input_):
-        result = (input_ - self._preprocessing[0]) / self._preprocessing[1]
-        result = result.astype(input_.dtype, copy=False)
+        psub, pdiv = self._preprocessing
+        psub = np.asarray(psub, dtype=input_.dtype)
+        pdiv = np.asarray(pdiv, dtype=input_.dtype)
+        result = input_
+        if np.any(psub != 0):
+            result = input_ - psub  # creates a copy
+        if np.any(pdiv != 1):
+            if np.any(psub != 0):  # already copied
+                result /= pdiv  # in-place
+            else:
+                result = result / pdiv  # creates a copy
         assert result.dtype == input_.dtype
         return result
 
     def _process_gradient(self, gradient):
-        result = gradient / self._preprocessing[1]
-        result = result.astype(gradient.dtype, copy=False)
+        _, pdiv = self._preprocessing
+        pdiv = np.asarray(pdiv, dtype=gradient.dtype)
+        if np.any(pdiv != 1):
+            result = gradient / pdiv
+        else:
+            result = gradient
         assert result.dtype == gradient.dtype
         return result
 
