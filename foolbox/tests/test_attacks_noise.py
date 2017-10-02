@@ -4,11 +4,13 @@ import numpy as np
 from foolbox.attacks import AdditiveUniformNoiseAttack
 from foolbox.attacks import AdditiveGaussianNoiseAttack
 from foolbox.attacks import SaltAndPepperNoiseAttack
+from foolbox.attacks import BlendedUniformNoiseAttack
 
 Attacks = [
     AdditiveUniformNoiseAttack,
     AdditiveGaussianNoiseAttack,
     SaltAndPepperNoiseAttack,
+    BlendedUniformNoiseAttack,
 ]
 
 

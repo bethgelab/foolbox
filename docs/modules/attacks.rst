@@ -38,6 +38,7 @@
    LocalSearchAttack
    AdditiveUniformNoiseAttack
    AdditiveGaussianNoiseAttack
+   BlendedUniformNoiseAttack
    SaltAndPepperNoiseAttack
    ApproximateLBFGSAttack
 

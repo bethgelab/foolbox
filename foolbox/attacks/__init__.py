@@ -11,5 +11,6 @@ from .contrast import ContrastReductionAttack
 from .localsearch import SinglePixelAttack, LocalSearchAttack
 from .slsqp import SLSQPAttack
 from .additive_noise import AdditiveNoiseAttack, AdditiveUniformNoiseAttack, AdditiveGaussianNoiseAttack
+from .blended_noise import BlendedUniformNoiseAttack
 from .saltandpepper import SaltAndPepperNoiseAttack
 from .precomputed import PrecomputedImagesAttack
