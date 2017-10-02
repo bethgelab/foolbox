@@ -128,6 +128,14 @@ def test_keras_model_preprocess():
             bounds=bounds,
             predicts='logits')
 
+        preprocessing = (0, np.random.uniform(size=(5, 5, channels)) + 1)
+
+        model4 = KerasModel(
+            Model(inputs=inputs, outputs=logits),
+            bounds=bounds,
+            predicts='logits',
+            preprocessing=preprocessing)
+
     np.random.seed(22)
     test_images = np.random.rand(2, 5, 5, channels).astype(np.float32)
     test_images_copy = test_images.copy()
@@ -147,6 +155,8 @@ def test_keras_model_preprocess():
         p1 - p1.max(),
         p3 - p3.max(),
         decimal=5)
+
+    model4.batch_predictions(test_images)
 
 
 def test_keras_model_gradients():
