@@ -49,7 +49,7 @@ def test_adversarial(model, criterion, image, label):
     assert (predictions == first_predictions[np.newaxis]).all()
     assert np.all(is_adversarial == np.array([True]))
 
-    predictions, is_adversarial, index = adversarial.batch_predictions(image[np.newaxis], increasing=True)  # noqa: E501
+    predictions, is_adversarial, index = adversarial.batch_predictions(image[np.newaxis], greedy=True)  # noqa: E501
     assert (predictions == first_predictions[np.newaxis]).all()
     assert is_adversarial
     assert index == 0
@@ -84,7 +84,7 @@ def test_adversarial(model, criterion, image, label):
     # without adversarials
     criterion.is_adversarial = Mock(return_value=False)
     adversarial = Adversarial(model, criterion, image, label)
-    predictions, is_adversarial, index = adversarial.batch_predictions(image[np.newaxis], increasing=True)  # noqa: E501
+    predictions, is_adversarial, index = adversarial.batch_predictions(image[np.newaxis], greedy=True)  # noqa: E501
     assert (predictions == first_predictions[np.newaxis]).all()
     assert not is_adversarial
     assert index is None
