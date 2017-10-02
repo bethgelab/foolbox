@@ -9,6 +9,7 @@ Attacks = [
     AdditiveUniformNoiseAttack,
     AdditiveGaussianNoiseAttack,
     SaltAndPepperNoiseAttack,
+    BlendedUniformNoiseAttack,
 ]
 
 
