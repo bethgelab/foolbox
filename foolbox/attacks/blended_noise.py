@@ -16,7 +16,7 @@ class BlendedUniformNoiseAttack(Attack):
         image = a.original_image
         min_, max_ = a.bounds()
 
-        if a.image is not None:
+        if a.image is not None:  # pramga: no cover
             warnings.warn('BlendedUniformNoiseAttack started with previously found adversarial.')  # noqa: E501
 
         random_image = np.random.uniform(
