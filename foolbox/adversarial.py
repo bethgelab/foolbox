@@ -272,7 +272,7 @@ class Adversarial(object):
                     return predictions, is_adversarial, i
             adversarials.append(is_adversarial)
 
-        if greedy:
+        if greedy:  # pragma: no cover
             # no adversarial found
             if return_details:
                 return predictions, False, None, False, None

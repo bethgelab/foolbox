@@ -68,6 +68,11 @@ def test_adversarial(model, criterion, image, label):
     assert gradient.shape == image.shape
     assert is_adversarial
 
+    predictions, gradient, is_adversarial, _, _ = adversarial.predictions_and_gradient(image, label, return_details=True)  # noqa: E501
+    assert (predictions == first_predictions).all()
+    assert gradient.shape == image.shape
+    assert is_adversarial
+
     predictions, gradient, is_adversarial = adversarial.predictions_and_gradient()  # noqa: E501
     assert (predictions == first_predictions).all()
     assert gradient.shape == image.shape
