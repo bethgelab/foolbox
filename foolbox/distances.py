@@ -121,14 +121,26 @@ class MeanSquaredDistance(Distance):
 
     def _calculate(self):
         min_, max_ = self._bounds
-        diff = (self.other - self.reference) / (max_ - min_)
-        value = np.mean(np.square(diff))
         n = np.prod(self.reference.shape)
-        gradient = 1 / n * 2 * diff / (max_ - min_)
+        f = n * (max_ - min_)**2
+
+        diff = self.other - self.reference
+        value = np.vdot(diff, diff) / f
+
+        # calculate the gradient only when needed
+        self._g_diff = diff
+        self._g_f = f
+        gradient = None
         return value, gradient
 
+    @property
+    def gradient(self):
+        if self._gradient is None:
+            self._gradient = self._g_diff / (self._g_f / 2)
+        return self._gradient
+
     def __str__(self):
-        return 'rel. MSE = {:.5f}  %'.format(self._value * 100)
+        return 'normalized MSE = {:.5f}  %'.format(self._value * 100)
 
 
 MSE = MeanSquaredDistance
@@ -148,4 +160,4 @@ class MeanAbsoluteDistance(Distance):
         return value, gradient
 
     def __str__(self):
-        return 'rel. MAE = {:.5f}  %'.format(self._value * 100)
+        return 'normalized MAE = {:.5f}  %'.format(self._value * 100)
