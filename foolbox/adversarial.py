@@ -132,8 +132,8 @@ class Adversarial(object):
             self._best_prediction_calls = self._total_prediction_calls
             self._best_gradient_calls = self._total_gradient_calls
 
-            return True
-        return False
+            return True, distance
+        return False, distance
 
     def __is_adversarial(self, image, predictions):
         """Interface to criterion.is_adverarial that calls
@@ -150,10 +150,13 @@ class Adversarial(object):
         is_adversarial = self.__criterion.is_adversarial(
             predictions, self.__original_class)
         if is_adversarial:
-            self.__new_adversarial(image)
+            is_best, distance = self.__new_adversarial(image)
+        else:
+            is_best = False
+            distance = None
         assert isinstance(is_adversarial, bool) or \
             isinstance(is_adversarial, np.bool_)
-        return is_adversarial
+        return is_adversarial, is_best, distance
 
     def target_class(self):
         """Interface to criterion.target_class for attacks.
@@ -209,7 +212,7 @@ class Adversarial(object):
         else:
             return True
 
-    def predictions(self, image, strict=True):
+    def predictions(self, image, strict=True, return_details=False):
         """Interface to model.predictions for attacks.
 
         Parameters
@@ -224,21 +227,25 @@ class Adversarial(object):
 
         self._total_prediction_calls += 1
         predictions = self.__model.predictions(image)
-        is_adversarial = self.__is_adversarial(image, predictions)
+        is_adversarial, is_best, distance = self.__is_adversarial(
+            image, predictions)
 
         assert predictions.ndim == 1
-        return predictions, is_adversarial
+        if return_details:
+            return predictions, is_adversarial, is_best, distance
+        else:
+            return predictions, is_adversarial
 
-    def batch_predictions(self, images, increasing=False, strict=True):
+    def batch_predictions(
+            self, images, greedy=False, strict=True, return_details=False):
         """Interface to model.batch_predictions for attacks.
 
         Parameters
         ----------
         images : `numpy.ndarray`
             Batch of images with shape (batch size, height, width, channels).
-        increasing : bool
-            Whether the images can be assumed to have increasing
-            distance from the original image.
+        greedy : bool
+            Whether the first adversarial should be returned.
         strict : bool
             Controls if the bounds for the pixel values should be checked.
 
@@ -251,16 +258,26 @@ class Adversarial(object):
         assert predictions.ndim == 2
         assert predictions.shape[0] == images.shape[0]
 
+        if return_details:
+            assert greedy
+
         adversarials = []
         for i in range(len(predictions)):
-            is_adversarial = self.__is_adversarial(images[i], predictions[i])
-            if is_adversarial and increasing:
-                return predictions, is_adversarial, i
+            is_adversarial, is_best, distance = self.__is_adversarial(
+                images[i], predictions[i])
+            if is_adversarial and greedy:
+                if return_details:
+                    return predictions, is_adversarial, i, is_best, distance
+                else:
+                    return predictions, is_adversarial, i
             adversarials.append(is_adversarial)
 
-        if increasing:
+        if greedy:  # pragma: no cover
             # no adversarial found
-            return predictions, False, None
+            if return_details:
+                return predictions, False, None, False, None
+            else:
+                return predictions, False, None
 
         is_adversarial = np.array(adversarials)
         assert is_adversarial.ndim == 1
@@ -298,7 +315,8 @@ class Adversarial(object):
         assert gradient.shape == image.shape
         return gradient
 
-    def predictions_and_gradient(self, image=None, label=None, strict=True):
+    def predictions_and_gradient(
+            self, image=None, label=None, strict=True, return_details=False):
         """Interface to model.predictions_and_gradient for attacks.
 
         Parameters
@@ -325,11 +343,15 @@ class Adversarial(object):
         self._total_prediction_calls += 1
         self._total_gradient_calls += 1
         predictions, gradient = self.__model.predictions_and_gradient(image, label)  # noqa: E501
-        is_adversarial = self.__is_adversarial(image, predictions)
+        is_adversarial, is_best, distance = self.__is_adversarial(
+            image, predictions)
 
         assert predictions.ndim == 1
         assert gradient.shape == image.shape
-        return predictions, gradient, is_adversarial
+        if return_details:
+            return predictions, gradient, is_adversarial, is_best, distance
+        else:
+            return predictions, gradient, is_adversarial
 
     def backward(self, gradient, image=None, strict=True):
         assert self.has_gradient()
