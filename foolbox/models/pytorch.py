@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 from .base import DifferentiableModel
 
@@ -42,6 +43,12 @@ class PyTorchModel(DifferentiableModel):
         self._num_classes = num_classes
         self._model = model
         self.cuda = cuda
+
+        if model.training:
+            warnings.warn(
+                'The PyTorch model is in training mode and therefore might'
+                ' not be deterministic. Call the eval() method to set it in'
+                ' evaluation mode if this is not intended.')
 
     def batch_predictions(self, images):
         # lazy import
