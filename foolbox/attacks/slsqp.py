@@ -17,6 +17,7 @@ class SLSQPAttack(Attack):
 
     def _apply(self, a):
         image = a.original_image
+        dtype = a.original_image.dtype
         min_, max_ = a.bounds()
 
         # flatten the image (and remember the shape)
@@ -36,7 +37,7 @@ class SLSQPAttack(Attack):
 
         def eq_constraint(x, *args):
             """Equality constraint"""
-            _, is_adv = a.predictions(x.reshape(shape))
+            _, is_adv = a.predictions(x.reshape(shape).astype(dtype))
             if is_adv:
                 return 0.
             else:
@@ -62,4 +63,4 @@ class SLSQPAttack(Attack):
         # TODO: store in the Adversarial instance
         self.last_result = result
 
-        a.predictions(result.x.reshape(shape))
+        a.predictions(result.x.reshape(shape).astype(dtype))
