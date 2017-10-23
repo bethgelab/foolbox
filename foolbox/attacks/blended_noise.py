@@ -19,7 +19,10 @@ class BlendedUniformNoiseAttack(Attack):
         if a.image is not None:  # pramga: no cover
             warnings.warn('BlendedUniformNoiseAttack started with previously found adversarial.')  # noqa: E501
 
-        for j in range(20):
+        for j in range(100):
+            # random noise images tend to be classified into the same class,
+            # so we might need to make very many draws if the original class
+            # is that one
             random_image = np.random.uniform(
                 min_, max_, size=image.shape).astype(image.dtype)
             _, is_adversarial = a.predictions(random_image)
