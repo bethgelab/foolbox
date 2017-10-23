@@ -19,8 +19,15 @@ class BlendedUniformNoiseAttack(Attack):
         if a.image is not None:  # pramga: no cover
             warnings.warn('BlendedUniformNoiseAttack started with previously found adversarial.')  # noqa: E501
 
-        random_image = np.random.uniform(
-            min_, max_, size=image.shape).astype(image.dtype)
+        for _ in range(20):
+            random_image = np.random.uniform(
+                min_, max_, size=image.shape).astype(image.dtype)
+            _, is_adversarial = a.predictions(random_image)
+            if is_adversarial:
+                break
+        else:
+            # never breaked
+            warnings.warn('BlendedUniformNoiseAttack failed to draw a random image that is adversarial.')  # noqa: E501
 
         if not isinstance(epsilons, Iterable):
             epsilons = np.linspace(0, 1, num=epsilons + 1)[1:]
