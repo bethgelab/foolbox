@@ -42,7 +42,7 @@ install:
     - pip install -e .
 script:
     - pytest
-    - flake8 --ignore E402 .
+    - flake8 --ignore E402,E741 .
 after_success:
     - coveralls
 cache:
