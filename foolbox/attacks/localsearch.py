@@ -27,7 +27,7 @@ class SinglePixelAttack(Attack):
             y = pixel // w
 
             location = [x, y]
-            location.insert(channel_axis, None)
+            location.insert(channel_axis, slice(None))
             location = tuple(location)
 
             for value in [min_, max_]:
@@ -102,7 +102,7 @@ class LocalSearchAttack(Attack):
         def pert(Ii, p, x, y):
             I = Ii.copy()
             location = [x, y]
-            location.insert(channel_axis, None)
+            location.insert(channel_axis, slice(None))
             location = tuple(location)
             I[location] = p * np.sign(I[location])
             return I
