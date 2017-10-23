@@ -39,13 +39,10 @@ class BlendedUniformNoiseAttack(Attack):
 
         for epsilon in epsilons:
             perturbed = (1 - epsilon) * image + epsilon * random_image
+            # due to limited floating point precision,
+            # clipping can be required
             if not a.in_bounds(perturbed):
-                # debugging
-                print('bounds', a.bounds())
-                print('perturbed', perturbed.min(), perturbed.max())
-                print('image', image.min(), image.max())
-                print('random image', random_image.min(), random_image.max())
-                print('epsilon', epsilon)
+                np.clip(perturbed, min_, max_, out=perturbed)
 
             _, is_adversarial = a.predictions(perturbed)
             if is_adversarial:
