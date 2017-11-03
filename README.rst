@@ -46,20 +46,20 @@ Example
 
    import foolbox
    import keras
-   import numpy
+   import numpy as np
    from keras.applications.resnet50 import ResNet50
 
    # instantiate model
    keras.backend.set_learning_phase(0)
    kmodel = ResNet50(weights='imagenet')
-   preprocessing = (numpy.array([104, 116, 123]), 1)
+   preprocessing = (np.array([104, 116, 123]), 1)
    fmodel = foolbox.models.KerasModel(kmodel, bounds=(0, 255), preprocessing=preprocessing)
 
    # get source image and label
    image, label = foolbox.utils.imagenet_example()
 
    # apply attack on source image
-   attack  = foolbox.attacks.FGSM(fmodel)
+   attack = foolbox.attacks.FGSM(fmodel)
    adversarial = attack(image[:,:,::-1], label)
 
 Interfaces for a range of other deeplearning packages such as TensorFlow, 
@@ -109,7 +109,8 @@ in resulting publications:
   @article{rauber2017foolbox
     title={Foolbox v0.8.0: A Python toolbox to benchmark the robustness of machine learning models},
     author={Rauber, Jonas and Brendel, Wieland and Bethge, Matthias},
-    journal={arXiv preprint},
+    journal={arXiv preprint arXiv:1707.04131},
+    archivePrefix = "arXiv",
     eprint={1707.04131},
     year={2017}
   }
