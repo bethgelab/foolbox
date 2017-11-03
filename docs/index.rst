@@ -16,7 +16,7 @@ and it is easy to extend to other frameworks.
 
 In addition, it comes with a **large collection of adversarial attacks**, both gradient-based attacks as well as black-box attacks. See :doc:`modules/attacks` for details.
 
-The source code and a **`minimal working example`_** can be found on `GitHub`_.
+The source code and a `minimal working example`_ can be found on `GitHub`_.
 
 Robust Vision Benchmark
 ==================
