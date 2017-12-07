@@ -1,3 +1,2 @@
-cython == 0.25
 -r requirements-dev.txt
 mock >= 2.0.0

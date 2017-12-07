@@ -15,6 +15,7 @@ before_install:
     - pip install -U pip
     - travis_wait travis_retry pip install --upgrade numpy
     - travis_wait travis_retry pip install --upgrade scipy
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install cython; fi  # install separately
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -r requirements-dev-py2.txt; fi
     - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then pip install -r requirements-dev-py3.txt; fi
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install -r requirements-dev-py3.txt; fi
