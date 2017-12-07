@@ -58,6 +58,9 @@ class Attack(ABC):
             The reference label of the original image. Must be passed
             if image is a numpy array, must not be passed if image is
             an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial image, otherwise returns
+            the Adversarial object.
         kwargs : dict
             Addtional keyword arguments passed to the attack.
 

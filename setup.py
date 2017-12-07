@@ -54,5 +54,6 @@ setup(
     install_requires=install_requires,
     extras_require={
         'testing': tests_require,
+        ':python_version == "2.7"': ['futures'],
     },
 )
