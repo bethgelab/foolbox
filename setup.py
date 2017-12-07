@@ -20,8 +20,6 @@ install_requires = [
     'numpy',
     'scipy',
     'setuptools',
-    'cython',
-    'randomstate',
 ]
 
 tests_require = [

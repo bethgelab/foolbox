@@ -15,8 +15,14 @@ from .blended_noise import BlendedUniformNoiseAttack
 from ..criteria import Misclassification
 
 import numpy as np
-import randomstate
 from numpy.linalg import norm
+
+try:
+    import randomstate
+except ImportError:
+    raise ImportError('To use the BoundaryAttack,'
+                      ' please install the randomstate'
+                      ' module (e.g. pip install randomstate)')
 
 
 class BoundaryAttack(Attack):
