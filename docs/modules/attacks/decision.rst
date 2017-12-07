@@ -1,18 +1,15 @@
-Black-box attacks
+Decision-based attacks
 -----------------
 
 .. currentmodule:: foolbox.attacks
+
+.. autoclass:: BoundaryAttack
+   :members:
 
 .. autoclass:: GaussianBlurAttack
    :members:
 
 .. autoclass:: ContrastReductionAttack
-   :members:
-
-.. autoclass:: SinglePixelAttack
-   :members:
-
-.. autoclass:: LocalSearchAttack
    :members:
 
 .. autoclass:: AdditiveUniformNoiseAttack
@@ -22,7 +19,4 @@ Black-box attacks
    :members:
 
 .. autoclass:: SaltAndPepperNoiseAttack
-   :members:
-
-.. autoclass:: ApproximateLBFGSAttack
    :members:

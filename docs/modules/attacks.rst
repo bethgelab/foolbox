@@ -27,20 +27,28 @@
    SaliencyMapAttack
 
 
-.. rubric:: :doc:`attacks/blackbox`
+.. rubric:: :doc:`attacks/score`
 
 .. autosummary::
    :nosignatures:
 
-   GaussianBlurAttack
-   ContrastReductionAttack
    SinglePixelAttack
    LocalSearchAttack
+   ApproximateLBFGSAttack
+
+
+.. rubric:: :doc:`attacks/decision`
+
+.. autosummary::
+   :nosignatures:
+
+   BoundaryAttack
+   GaussianBlurAttack
+   ContrastReductionAttack
    AdditiveUniformNoiseAttack
    AdditiveGaussianNoiseAttack
    BlendedUniformNoiseAttack
    SaltAndPepperNoiseAttack
-   ApproximateLBFGSAttack
 
 
 .. rubric:: :doc:`attacks/other`
