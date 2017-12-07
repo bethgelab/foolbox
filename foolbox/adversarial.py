@@ -43,6 +43,7 @@ class Adversarial(object):
         self.__model = model
         self.__criterion = criterion
         self.__original_image = original_image
+        self.__original_image_for_distance = original_image
         self.__original_class = original_class
         self.__distance = distance
         self.verbose = verbose
@@ -99,6 +100,14 @@ class Adversarial(object):
         """Should not be used."""
         return self.__distance
 
+    def set_distance_dtype(self, dtype):
+        assert dtype >= self.__original_image.dtype
+        self.__original_image_for_distance = self.__original_image.astype(
+            dtype, copy=False)
+
+    def reset_distance_dtype(self):
+        self.__original_image_for_distance = self.__original_image
+
     def normalized_distance(self, image):
         """Calculates the distance of a given image to the
         original image.
@@ -115,7 +124,7 @@ class Adversarial(object):
 
         """
         return self.__distance(
-            self.__original_image,
+            self.__original_image_for_distance,
             image,
             bounds=self.bounds())
 

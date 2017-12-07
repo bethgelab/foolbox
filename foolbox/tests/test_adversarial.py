@@ -30,6 +30,23 @@ def test_adversarial(model, criterion, image, label):
     assert adversarial.normalized_distance(image) == MSE(value=0)
     assert adversarial.normalized_distance(image).value == 0
 
+    np.random.seed(22)
+    perturbation = np.random.uniform(-1, 1, size=image.shape)
+    perturbed = np.clip(image + perturbation, 0, 255).astype(np.float32)
+    d1 = adversarial.normalized_distance(perturbed).value
+    assert d1 != 0
+
+    assert adversarial.original_image.dtype == np.float32
+
+    adversarial.set_distance_dtype(np.float32)
+    assert adversarial.normalized_distance(perturbed).value == d1
+
+    adversarial.set_distance_dtype(np.float64)
+    assert adversarial.normalized_distance(perturbed).value != d1
+
+    adversarial.reset_distance_dtype()
+    assert adversarial.normalized_distance(perturbed).value == d1
+
     label = 22  # wrong label
     adversarial = Adversarial(model, criterion, image, label, verbose=True)
 
