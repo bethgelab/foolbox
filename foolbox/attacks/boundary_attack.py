@@ -10,9 +10,9 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import Executor
 from concurrent.futures import Future
 
-from foolbox.attacks import Attack
-from foolbox.attacks import BlendedUniformNoiseAttack
-from foolbox.criteria import Misclassification
+from .base import Attack
+from .blended_noise import BlendedUniformNoiseAttack
+from ..criteria import Misclassification
 
 import numpy as np
 import randomstate
