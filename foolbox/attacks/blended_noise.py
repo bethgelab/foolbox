@@ -16,8 +16,9 @@ class BlendedUniformNoiseAttack(Attack):
         image = a.original_image
         min_, max_ = a.bounds()
 
-        if a.image is not None:  # pramga: no cover
-            warnings.warn('BlendedUniformNoiseAttack started with previously found adversarial.')  # noqa: E501
+        if a.image is not None:  # pragma: no cover
+            warnings.warn('BlendedUniformNoiseAttack started with'
+                          ' previously found adversarial.')
 
         for j in range(100):
             # random noise images tend to be classified into the same class,
@@ -32,7 +33,8 @@ class BlendedUniformNoiseAttack(Attack):
                 break
         else:
             # never breaked
-            warnings.warn('BlendedUniformNoiseAttack failed to draw a random image that is adversarial.')  # noqa: E501
+            warnings.warn('BlendedUniformNoiseAttack failed to draw a'
+                          ' random image that is adversarial.')
 
         if not isinstance(epsilons, Iterable):
             epsilons = np.linspace(0, 1, num=epsilons + 1)[1:]
@@ -41,7 +43,7 @@ class BlendedUniformNoiseAttack(Attack):
             perturbed = (1 - epsilon) * image + epsilon * random_image
             # due to limited floating point precision,
             # clipping can be required
-            if not a.in_bounds(perturbed):
+            if not a.in_bounds(perturbed):  # pragma: no cover
                 np.clip(perturbed, min_, max_, out=perturbed)
 
             _, is_adversarial = a.predictions(perturbed)

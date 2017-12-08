@@ -16,7 +16,7 @@ def test_attack(bn_adversarial):
 def test_attack_continue(bn_adversarial):
     adv = bn_adversarial
     attack1 = BlendedUniformNoiseAttack()
-    attack1(adv, iterations=200)
+    attack1(adv)
     d1 = adv.distance.value
     attack2 = BoundaryAttack()
     attack2(adv, iterations=200)
