@@ -15,10 +15,11 @@ before_install:
     - pip install -U pip
     - travis_wait travis_retry pip install --upgrade numpy
     - travis_wait travis_retry pip install --upgrade scipy
-    - travis_wait travis_retry pip install -r requirements-dev.txt
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install cython; fi  # install separately
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -r requirements-dev-py2.txt; fi
     - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then pip install -r requirements-dev-py3.txt; fi
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install -r requirements-dev-py3.txt; fi
+    - travis_wait travis_retry pip install -r requirements-dev.txt
     - travis_wait travis_retry pip install --upgrade tensorflow
     - travis_wait travis_retry pip install --upgrade theano
     - travis_wait travis_retry pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
