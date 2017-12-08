@@ -7,7 +7,8 @@
    :hidden:
 
    attacks/gradient
-   attacks/blackbox
+   attacks/score
+   attacks/decision
    attacks/other
 
 

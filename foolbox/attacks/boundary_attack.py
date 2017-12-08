@@ -37,6 +37,7 @@ class BoundaryAttack(Attack):
     Notes
     -----
     This implementation provides several advanced features:
+
     * ability to continue previous attacks by passing an instance of the
       Adversarial class
     * ability to pass an explicit starting point; especially to initialize
