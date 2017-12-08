@@ -22,7 +22,7 @@ from numpy.linalg import norm
 
 try:
     import randomstate
-except ImportError:
+except ImportError:  # pragma: no cover
     raise ImportError('To use the BoundaryAttack,'
                       ' please install the randomstate'
                       ' module (e.g. pip install randomstate)')
@@ -846,17 +846,6 @@ class BoundaryAttack(Attack):
 
         data = (perturbation, spherical_perturbation)
         return data
-
-    @staticmethod
-    def generate_from_queue(q, step):
-        while True:
-            result = q.get()
-            if result is None:
-                continue
-            cstep, candidate = result
-            if cstep != step:
-                continue
-            yield candidate
 
     def initialize_stats(self, a, pool, external_dtype, generation_args):
         print('Initializing generation and prediction'
