@@ -51,9 +51,9 @@ class BoundaryAttack(Attack):
 
     References
     ----------
-    .. [1] Decision-Based Adversarial Attacks: Reliable Attacks Against
-           Black-Box Machine Learning Models
-           Wieland Brendel (*), Jonas Rauber (*), Matthias Bethge
+    .. [1] Wieland Brendel *, Jonas Rauber *, Matthias Bethge, "Decision-Based
+           Adversarial Attacks: Reliable Attacks Against Black-Box Machine
+           Learning Models
 
     """
 

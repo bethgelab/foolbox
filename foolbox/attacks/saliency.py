@@ -14,10 +14,9 @@ class SaliencyMapAttack(Attack):
 
     References
     ----------
-    .. [1] The Limitations of Deep Learning in Adversarial Settings
-           Nicolas Papernot, Patrick McDaniel, Somesh Jha, Matt Fredrikson,
-           Z. Berkay Celik, Ananthram Swami
-           https://arxiv.org/abs/1511.07528
+    .. [1] Nicolas Papernot, Patrick McDaniel, Somesh Jha, Matt Fredrikson,
+           Z. Berkay Celik, Ananthram Swami, "The Limitations of Deep Learning
+           in Adversarial Settings", https://arxiv.org/abs/1511.07528
 
     """
 

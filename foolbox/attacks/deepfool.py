@@ -13,9 +13,10 @@ class DeepFoolAttack(Attack):
 
     References
     ----------
-    .. [1] DeepFool: a simple and accurate method to fool deep neural networks
-           Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard
-           https://arxiv.org/abs/1511.04599
+    .. [1] Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
+           "DeepFool: a simple and accurate method to fool deep neural
+           networks", https://arxiv.org/abs/1511.04599
+
     """
 
     def _apply(self, a, steps=100, subsample=10):

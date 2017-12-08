@@ -46,8 +46,8 @@ class LocalSearchAttack(Attack):
 
     References
     ----------
-    .. [1] Simple Black-Box Adversarial Perturbations for Deep Networks
-           Nina Narodytska, Shiva Prasad Kasiviswanathan
+    .. [1] Nina Narodytska, Shiva Prasad Kasiviswanathan, "Simple
+           Black-Box Adversarial Perturbations for Deep Networks",
            https://arxiv.org/pdf/1612.06299.pdf
 
     """
