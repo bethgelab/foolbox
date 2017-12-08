@@ -345,7 +345,8 @@ class BoundaryAttack(Attack):
                           ' for the first time. Resetting steps to be sure.')
                     self.spherical_step = 1e-2
                     self.source_step = 1e-2
-            elif convergence_steps < initial_convergence_steps:
+            elif (convergence_steps <
+                    initial_convergence_steps):  # pragma: no cover
                 self.log_step(step - 1, distance, always=True)
                 warnings.warn('Attack has not converged!')
                 convergence_steps = initial_convergence_steps
@@ -599,7 +600,7 @@ class BoundaryAttack(Attack):
             for rnd_normal_thread in rnd_normal_threads:
                 try:
                     rnd_normal_queue.get(block=False)
-                except queue.Empty:
+                except queue.Empty:  # pragma: no cover
                     pass
             for rnd_normal_thread in rnd_normal_threads:
                 rnd_normal_thread.join()
@@ -624,11 +625,11 @@ class BoundaryAttack(Attack):
             print(
                 'Attack is applied to a previously found adversarial.'
                 ' Continuing search for better adversarials.')
-            if starting_point is not None:
+            if starting_point is not None:  # pragma: no cover
                 warnings.warn(
                     'Ignoring starting_point parameter because the attack'
                     ' is applied to a previously found adversarial.')
-            if init_attack is not None:
+            if init_attack is not None:  # pragma: no cover
                 warnings.warn(
                     'Ignoring initial_attack parameter because the attack'
                     ' is applied to a previously found adversarial.')
@@ -823,7 +824,7 @@ class BoundaryAttack(Attack):
                 min_,
                 max_,
                 out=spherical_perturbation)
-        else:
+        else:  # pragma: no cover
             refinements += 1
 
         # ===========================================================
@@ -1091,7 +1092,7 @@ class BoundaryAttack(Attack):
 
         def log(message):
             _p_spherical = p_spherical
-            if _p_spherical is None:
+            if _p_spherical is None:  # pragma: no cover
                 _p_spherical = -1.
 
             _p_step = p_step
@@ -1149,14 +1150,14 @@ class DummyExecutor(Executor):
 
     def submit(self, fn, *args, **kwargs):
         with self._shutdownLock:
-            if self._shutdown:
+            if self._shutdown:  # pragma: no cover
                 raise RuntimeError(
                     'cannot schedule new futures after shutdown')
 
             f = Future()
             try:
                 result = fn(*args, **kwargs)
-            except BaseException as e:
+            except BaseException as e:  # pragma: no cover
                 f.set_exception(e)
             else:
                 f.set_result(result)
