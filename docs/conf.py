@@ -25,6 +25,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # mock imports, see https://stackoverflow.com/q/15889621
 # autodoc_mock_imports = ['tensorflow'] does not seem to work
 sys.modules['numpy'] = Mock()
+sys.modules['numpy.linalg'] = Mock()
 sys.modules['scipy'] = Mock()
 sys.modules['scipy.optimize'] = Mock()
 sys.modules['scipy.ndimage'] = Mock()
