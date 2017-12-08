@@ -34,6 +34,7 @@ sys.modules['tensorflow'] = Mock()
 sys.modules['theano'] = Mock()
 sys.modules['theano.tensor'] = Mock()
 sys.modules['torch'] = Mock()
+sys.modules['randomstate'] = Mock()
 
 import foolbox
 
