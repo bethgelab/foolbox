@@ -12,7 +12,7 @@ class BlendedUniformNoiseAttack(Attack):
 
     """
 
-    def _apply(self, a, epsilons=1000):
+    def _apply(self, a, epsilons=1000, verbose=False):
         image = a.original_image
         min_, max_ = a.bounds()
 
@@ -28,8 +28,9 @@ class BlendedUniformNoiseAttack(Attack):
                 min_, max_, size=image.shape).astype(image.dtype)
             _, is_adversarial = a.predictions(random_image)
             if is_adversarial:
-                print('Found adversarial image after {} attempts'.format(
-                    j + 1))
+                if verbose:
+                    print('Found adversarial image after {} attempts'.format(
+                        j + 1))
                 break
         else:
             # never breaked

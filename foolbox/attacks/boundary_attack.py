@@ -78,7 +78,8 @@ class BoundaryAttack(Attack):
             threaded_rnd=True,
             threaded_gen=True,
             alternative_generator=False,
-            internal_dtype=np.float64):
+            internal_dtype=np.float64,
+            verbose=False):
 
         """Applies the Boundary Attack.
 
@@ -128,6 +129,8 @@ class BoundaryAttack(Attack):
             should be used.
         internal_dtype : np.float32 or np.float64
             Higher precision might be slower but is numerically more stable.
+        verbose : bool
+            Controls verbosity of the attack.
 
         """
 
@@ -145,6 +148,7 @@ class BoundaryAttack(Attack):
         self.spherical_step = spherical_step
         self.source_step = source_step
         self.internal_dtype = internal_dtype
+        self.verbose = verbose
 
         if alternative_generator:
             self.generate_candidate = self.generate_candidate_alternative
@@ -241,8 +245,9 @@ class BoundaryAttack(Attack):
         self.init_batch_size_tuning(tune_batch_size)
 
         # make sure step size is valid
-        print('Initial spherical_step = {:.2f}, source_step = {:.2f}'.format(
-            self.spherical_step, self.source_step))
+        self.printv(
+            'Initial spherical_step = {:.2f}, source_step = {:.2f}'.format(
+                self.spherical_step, self.source_step))
 
         # ===========================================================
         # intialize stats
@@ -295,7 +300,7 @@ class BoundaryAttack(Attack):
                         size=shape, dtype=dtype, method='zig')
                     rnd_normal_queue.put(rnd_normal)
 
-            print('Using {} threads to create random numbers'.format(
+            self.printv('Using {} threads to create random numbers'.format(
                 threaded_rnd))
 
             # start threads that sample from std normal distribution
@@ -334,16 +339,18 @@ class BoundaryAttack(Attack):
             if self.has_converged(check_strict):
                 self.log_step(step - 1, distance, always=True)
                 if resetted:
-                    print('Looks like attack has converged after {} steps,'
-                          ' {} remaining'.format(step, convergence_steps))
+                    self.printv(
+                        'Looks like attack has converged after {} steps,'
+                        ' {} remaining'.format(step, convergence_steps))
                     convergence_steps -= 1
                     if convergence_steps == 0:
                         break
                 else:
                     resetted = True
-                    print('Looks like attack has converged after' +
-                          ' {} steps'.format(step) +
-                          ' for the first time. Resetting steps to be sure.')
+                    self.printv(
+                        'Looks like attack has converged after' +
+                        ' {} steps'.format(step) +
+                        ' for the first time. Resetting steps to be sure.')
                     self.spherical_step = 1e-2
                     self.source_step = 1e-2
             elif (convergence_steps <
@@ -368,8 +375,9 @@ class BoundaryAttack(Attack):
                     # if a.distance.value != distance.value:
                     #     assert a.distance.value < distance.value
                     if a.distance.value < distance.value:
-                        print('During initialization, a better adversarial'
-                              ' has been found. Continuing from there.')
+                        self.printv(
+                            'During initialization, a better adversarial'
+                            ' has been found. Continuing from there.')
                         perturbed = a.image.astype(self.internal_dtype)
                         distance = a.distance
                         # becaue we are resetting perturbed, it's important
@@ -645,7 +653,7 @@ class BoundaryAttack(Attack):
 
         if init_attack is None:
             init_attack = BlendedUniformNoiseAttack
-            print(
+            self.printv(
                 'Neither starting_point nor initial_attack given. Falling back'
                 ' to {} for initialization.'.format(init_attack.__name__))
 
@@ -850,9 +858,9 @@ class BoundaryAttack(Attack):
         return data
 
     def initialize_stats(self, a, pool, external_dtype, generation_args):
-        print('Initializing generation and prediction'
-              ' time measurements. This can take a few'
-              ' seconds.')
+        self.printv('Initializing generation and prediction'
+                    ' time measurements. This can take a few'
+                    ' seconds.')
 
         _next = self.generate_candidate(*generation_args)
         candidate, spherical_candidate = _next
@@ -910,7 +918,7 @@ class BoundaryAttack(Attack):
                     += t
                 self.stats_spherical_prediction_calls[batch_size - 1] += 1
 
-    def log_time(self, print=print):
+    def log_time(self):
         t_total = time.time() - self.t_initial
 
         rel_generate = self.stats_generator_duration.sum() / t_total
@@ -921,17 +929,17 @@ class BoundaryAttack(Attack):
         rel_remaining = 1 - rel_generate - rel_prediction \
             - rel_spherical - rel_hyper
 
-        print('Time since beginning: {:.5f}'.format(t_total))
-        print('   {:2.1f}% for generation ({:.5f})'.format(
+        self.printv('Time since beginning: {:.5f}'.format(t_total))
+        self.printv('   {:2.1f}% for generation ({:.5f})'.format(
             rel_generate * 100, self.stats_generator_duration.sum()))
-        print('   {:2.1f}% for spherical prediction ({:.5f})'.format(
+        self.printv('   {:2.1f}% for spherical prediction ({:.5f})'.format(
             rel_spherical * 100,
             self.stats_spherical_prediction_duration.sum()))
-        print('   {:2.1f}% for prediction ({:.5f})'.format(
+        self.printv('   {:2.1f}% for prediction ({:.5f})'.format(
             rel_prediction * 100, self.stats_prediction_duration.sum()))
-        print('   {:2.1f}% for hyperparameter update ({:.5f})'.format(
+        self.printv('   {:2.1f}% for hyperparameter update ({:.5f})'.format(
             rel_hyper * 100, self.stats_hyperparameter_update_duration))
-        print('   {:2.1f}% for the rest ({:.5f})'.format(
+        self.printv('   {:2.1f}% for the rest ({:.5f})'.format(
             rel_remaining * 100, rel_remaining * t_total))
 
     def init_batch_size_tuning(self, tune_batch_size):
@@ -956,7 +964,7 @@ class BoundaryAttack(Attack):
                           ' is not very reliable.')
 
     def tune_batch_size(self, a):
-        print('Estimating optimal batch size')
+        self.printv('Estimating optimal batch size')
 
         max_directions = self.max_directions
 
@@ -976,13 +984,13 @@ class BoundaryAttack(Attack):
         T_prediction = self.stats_prediction_duration \
             / self.stats_prediction_calls
 
-        print('current estimate of the time to generate a candidate'
-              ' depending on the batch size:')
-        print(T_generate / np.arange(1, max_directions + 1))
+        self.printv('current estimate of the time to generate a candidate'
+                    ' depending on the batch size:')
+        self.printv(T_generate / np.arange(1, max_directions + 1))
 
-        print('current estimate of the time to get predictions for a'
-              ' candidate depending on the batch size:')
-        print(T_prediction / np.arange(1, max_directions + 1))
+        self.printv('current estimate of the time to get predictions for a'
+                    ' candidate depending on the batch size:')
+        self.printv(T_prediction / np.arange(1, max_directions + 1))
 
         # how often did we need to use the corresponding
         # number of candidates
@@ -991,8 +999,8 @@ class BoundaryAttack(Attack):
 
         s = sum(frequencies)
 
-        print('Relative frequencies for failing and success after k')
-        print(np.asarray(frequencies) / s)
+        self.printv('Relative frequencies for failing and success after k')
+        self.printv(np.asarray(frequencies) / s)
 
         for batch_size in range(1, max_directions + 1):
             t_generate = 0
@@ -1019,7 +1027,7 @@ class BoundaryAttack(Attack):
             t_total = t_generate + t_prediction
             step_duration[batch_size - 1] = t_total
 
-            print(
+            self.printv(
                 'Using batch size {:3d}, an average step would have taken'
                 ' {:.5f} = {:.5f} + {:.5f} seconds'.format(
                     batch_size, t_total / s, t_generate / s, t_prediction / s))
@@ -1031,12 +1039,12 @@ class BoundaryAttack(Attack):
         best_batch_size = np.argmin(step_duration) + 1
         worst_batch_size = np.argmax(step_duration) + 1
 
-        print('batch size was {}, optimal batch size would have'
-              ' been {}'.format(self.batch_size, best_batch_size))
+        self.printv('batch size was {}, optimal batch size would have'
+                    ' been {}'.format(self.batch_size, best_batch_size))
 
         best_step_duration = step_duration[best_batch_size - 1]
-        print('setting batch size to {}: expected step duration:'
-              ' {:.5f}'.format(best_batch_size, best_step_duration / s))
+        self.printv('setting batch size to {}: expected step duration:'
+                    ' {:.5f}'.format(best_batch_size, best_step_duration / s))
 
         for name, value in (
                 ('old', self.batch_size),
@@ -1046,8 +1054,8 @@ class BoundaryAttack(Attack):
 
             improvement = step_duration[value - 1] / best_step_duration
 
-            print('improvement compared to {} batch size'
-                  ' ({}): {:.1f}x'.format(name, value, improvement))
+            self.printv('improvement compared to {} batch size'
+                        ' ({}): {:.1f}x'.format(name, value, improvement))
 
         change = best_batch_size - self.batch_size
 
@@ -1060,7 +1068,7 @@ class BoundaryAttack(Attack):
                 self.steps_to_next_tuning //= 2
 
         self.next_tuning_step += self.steps_to_next_tuning
-        print('next batch size tuning in {} steps, after step {}'.format(
+        self.printv('next batch size tuning in {} steps, after step {}'.format(
             self.steps_to_next_tuning, self.next_tuning_step - 1))
 
         # finally, set the new batch size
@@ -1100,7 +1108,7 @@ class BoundaryAttack(Attack):
             if _p_step is None:
                 _p_step = -1.
 
-            print('  {} {:.2f} ({:3d}), {:.2f} ({:2d})'.format(
+            self.printv('  {} {:.2f} ({:3d}), {:.2f} ({:2d})'.format(
                 message,
                 _p_spherical,
                 n_spherical,
@@ -1141,6 +1149,10 @@ class BoundaryAttack(Attack):
         if strict:
             return self.source_step < 1e-7
         return self.source_step < 2e-7
+
+    def printv(self, *args, **kwargs):
+        if self.verbose:
+            print(*args, **kwargs)
 
 
 class DummyExecutor(Executor):
