@@ -13,8 +13,8 @@ def test_attack(bn_adversarial, attack):
     assert adv.distance.value < np.inf
 
 @pytest.mark.parametrize("attack", [GradientSignAttack(), GradientAttack()])
-def test_attack_gl(gl_bn_adversarial):
+def test_attack_gl(gl_bn_adversarial, attack):
     adv = gl_bn_adversarial
     attack(adv)
-    assert adv.image is None
+    assert adv.image is None§
     assert adv.distance.value == np.inf
