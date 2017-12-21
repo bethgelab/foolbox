@@ -139,13 +139,14 @@ in resulting publications:
 
 .. code-block::
 
-  @article{rauber2017foolbox
+  @article{rauber2017foolbox,
     title={Foolbox v0.8.0: A Python toolbox to benchmark the robustness of machine learning models},
     author={Rauber, Jonas and Brendel, Wieland and Bethge, Matthias},
     journal={arXiv preprint arXiv:1707.04131},
-    archivePrefix = "arXiv",
+    year={2017},
+    url={http://arxiv.org/abs/1707.04131},
+    archivePrefix={arXiv},
     eprint={1707.04131},
-    year={2017}
   }
 
 You can find the paper on arXiv: https://arxiv.org/abs/1707.04131
