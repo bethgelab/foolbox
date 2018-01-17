@@ -12,7 +12,7 @@ class BlendedUniformNoiseAttack(Attack):
 
     """
 
-    def _apply(self, a, epsilons=1000, verbose=False):
+    def _apply(self, a, epsilons=1000, max_directions=1000, verbose=False):
         image = a.original_image
         min_, max_ = a.bounds()
 
@@ -20,7 +20,7 @@ class BlendedUniformNoiseAttack(Attack):
             warnings.warn('BlendedUniformNoiseAttack started with'
                           ' previously found adversarial.')
 
-        for j in range(100):
+        for j in range(max_directions):
             # random noise images tend to be classified into the same class,
             # so we might need to make very many draws if the original class
             # is that one
