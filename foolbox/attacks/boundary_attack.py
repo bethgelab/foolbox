@@ -644,8 +644,8 @@ class BoundaryAttack(Attack):
                     ' is applied to a previously found adversarial.')
             if init_attack is not None:  # pragma: no cover
                 warnings.warn(
-                    'Ignoring initial_attack parameter because the attack'
-                    ' is applied to a previously found adversarial.')
+                    'Ignoring initialization_attack parameter because the'
+                    ' attack is applied to a previously found adversarial.')
             return
 
         if starting_point is not None:
@@ -658,8 +658,9 @@ class BoundaryAttack(Attack):
         if init_attack is None:
             init_attack = BlendedUniformNoiseAttack
             self.printv(
-                'Neither starting_point nor initial_attack given. Falling back'
-                ' to {} for initialization.'.format(init_attack.__name__))
+                'Neither starting_point nor initialization_attack given.'
+                ' Falling back to {} for initialization.'.format(
+                    init_attack.__name__))
 
         if issubclass(init_attack, Attack):
             # instantiate if necessary
