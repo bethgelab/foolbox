@@ -20,3 +20,6 @@ Decision-based attacks
 
 .. autoclass:: SaltAndPepperNoiseAttack
    :members:
+
+.. autoclass:: ResetAttack
+   :members:
