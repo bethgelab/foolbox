@@ -50,6 +50,7 @@
    AdditiveGaussianNoiseAttack
    BlendedUniformNoiseAttack
    SaltAndPepperNoiseAttack
+   ResetAttack
 
 
 .. rubric:: :doc:`attacks/other`
