@@ -1,5 +1,6 @@
 import warnings
 import random
+import logging
 
 from .base import Attack
 from .blended_noise import BlendedUniformNoiseAttack
@@ -31,8 +32,8 @@ class ResetAttack(Attack):
                 ' point or targeted initialization attack.')
             return
 
-        shape = a.original.shape
-        N = a.original.size
+        shape = a.original_image.shape
+        N = a.original_image.size
 
         original = a.original_image.reshape(-1)
         x = a.image.reshape(-1)
@@ -57,6 +58,7 @@ class ResetAttack(Attack):
 
                 # if adversarial, restart from there
                 if is_adversarial:
+                    logging.info('Reduced distance: {}'.format(a.distance))
                     break
 
                 # if not, undo change
