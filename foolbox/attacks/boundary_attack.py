@@ -151,6 +151,9 @@ class BoundaryAttack(Attack):
         self.internal_dtype = internal_dtype
         self.verbose = verbose
 
+        if not verbose:
+            print('run with verbose=True to see details')
+
         if alternative_generator:
             self.generate_candidate = self.generate_candidate_alternative
         else:
