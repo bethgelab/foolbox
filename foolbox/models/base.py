@@ -90,7 +90,7 @@ class Model(ABC):
         Returns
         -------
         `numpy.ndarray`
-            Predictions (logits, i.e. beforre the softmax) with shape
+            Predictions (logits, i.e. before the softmax) with shape
             (batch size, number of classes).
 
         See Also
@@ -111,7 +111,7 @@ class Model(ABC):
         Returns
         -------
         `numpy.ndarray`
-            Vector of predictions (logits, i.e. beforre the softmax) with
+            Vector of predictions (logits, i.e. before the softmax) with
             shape (number of classes,).
 
         See Also
@@ -167,7 +167,7 @@ class DifferentiableModel(Model):
         Returns
         -------
         predictions : `numpy.ndarray`
-            Vector of predictions (logits, i.e. beforre the softmax) with
+            Vector of predictions (logits, i.e. before the softmax) with
             shape (number of classes,).
         gradient : `numpy.ndarray`
             The gradient of the cross-entropy loss w.r.t. the image. Will
