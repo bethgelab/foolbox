@@ -89,7 +89,7 @@ class ResetAttack(Attack):
 
         if init_attack is None:
             init_attack = BlendedUniformNoiseAttack
-            self.printv(
+            print(
                 'Neither starting_point nor initialization_attack given.'
                 ' Falling back to {} for initialization.'.format(
                     init_attack.__name__))
