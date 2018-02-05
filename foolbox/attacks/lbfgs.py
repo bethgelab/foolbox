@@ -222,7 +222,7 @@ class LBFGSAttack(Attack):
 
 
 class ApproximateLBFGSAttack(LBFGSAttack):
-    """Same as :class:`LBFGSBAttack` with approximate_gradient set to True.
+    """Same as :class:`LBFGSAttack` with approximate_gradient set to True.
 
     """
 
