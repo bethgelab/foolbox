@@ -12,7 +12,7 @@ Implicit
 
   model = TensorFlowModel(images, logits, bounds=(0, 255))
   criterion = TargetClassProbability('ostrich', p=0.99)
-  attack = LBFGSBAttack(model, criterion)
+  attack = LBFGSAttack(model, criterion)
 
 Running the attack by passing image and label will
 implicitly create an :class:`Adversarial` instance. By
@@ -37,7 +37,7 @@ Explicit
 
    model = TensorFlowModel(images, logits, bounds=(0, 255))
    criterion = TargetClassProbability('ostrich', p=0.99)
-   attack = LBFGSBAttack()
+   attack = LBFGSAttack()
 
 We can also create the :class:`Adversarial` instance ourselves
 and then pass it to the attack.

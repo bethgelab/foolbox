@@ -33,7 +33,7 @@ To run an adversarial attack, we need to specify the type of adversarial we are 
 
 .. code-block:: python3
 
-   from foolbox.criteria import TopKMisclassification
+   from foolbox.criteria import TargetClassProbability
 
    target_class = 22
    criterion = TargetClassProbability(target_class, p=0.99)
@@ -46,9 +46,9 @@ Finally, we can create and apply the attack:
 
 .. code-block:: python3
 
-   from foolbox.attacks import LBFGSBAttack
+   from foolbox.attacks import LBFGSAttack
 
-   attack = LBFGSBAttack(model, criterion)
+   attack = LBFGSAttack(model, criterion)
 
    image = np.asarray(Image.open('example.jpg'))
    label = np.argmax(model.predictions(image))
