@@ -73,9 +73,9 @@ def imagenet_example(shape=(224, 224)):
         The imagenet label associated with the image.
 
     """
-    import PIL
+    from PIL import Image
     path = os.path.join(os.path.dirname(__file__), 'example.png')
-    image = PIL.Image.open(path)
+    image = Image.open(path)
     image = image.resize(shape)
     image = np.asarray(image, dtype=np.float32)
     image = image[:, :, :3]
