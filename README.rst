@@ -1,4 +1,4 @@
-.. image:: http://bethgelab.org/media/banners/benchmark_banner.png
+.. image:: http://bethgelab.org/media/banners/benchmark_banner_small.png
     :target: https://robust.vision/benchmark
 
 You might want to have a look at our recently announced `Robust Vision Benchmark <https://robust.vision/benchmark>`__.
@@ -92,7 +92,7 @@ The result can be plotted like this:
 
    plt.show()
 
-.. image:: example.png
+.. image:: https://github.com/bethgelab/foolbox/raw/master/example.png
 
 
 Interfaces for a range of other deeplearning packages such as TensorFlow,
