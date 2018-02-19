@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 from collections import Iterable
+import logging
 
 from .base import Attack
 
@@ -13,7 +14,7 @@ class GradientSignAttack(Attack):
 
     """
 
-    def _apply(self, a, epsilons=1000):
+    def _apply(self, a, epsilons=1000, max_epsilon=1):
         if not a.has_gradient():
             return
 
@@ -23,16 +24,25 @@ class GradientSignAttack(Attack):
         gradient_sign = np.sign(gradient) * (max_ - min_)
 
         if not isinstance(epsilons, Iterable):
-            epsilons = np.linspace(0, 1, num=epsilons + 1)[1:]
+            epsilons = np.linspace(0, max_epsilon, num=epsilons + 1)[1:]
+            decrease_if_first = True
+        else:
+            decrease_if_first = False
 
-        for epsilon in epsilons:
-            perturbed = image + gradient_sign * epsilon
-            perturbed = np.clip(perturbed, min_, max_)
+        for _ in range(2):  # to repeat with decreased epsilons if necessary
+            for i, epsilon in enumerate(epsilons):
+                perturbed = image + gradient_sign * epsilon
+                perturbed = np.clip(perturbed, min_, max_)
 
-            _, is_adversarial = a.predictions(perturbed)
-            if is_adversarial:
-                # TODO: if first epsilon, repeat with smaller epsilons
-                return
+                _, is_adversarial = a.predictions(perturbed)
+                if is_adversarial:
+                    if decrease_if_first and i < 20:
+                        logging.info('repeating attack with smaller epsilons')
+                        break
+                    return
+
+            max_epsilon = epsilons[i]
+            epsilons = np.linspace(0, max_epsilon, num=20 + 1)[1:]
 
 
 FGSM = GradientSignAttack
