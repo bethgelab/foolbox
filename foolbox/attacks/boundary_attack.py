@@ -20,13 +20,6 @@ from ..criteria import Misclassification
 import numpy as np
 from numpy.linalg import norm
 
-try:
-    import randomstate
-except ImportError:  # pragma: no cover
-    raise ImportError('To use the BoundaryAttack,'
-                      ' please install the randomstate'
-                      ' module (e.g. pip install randomstate)')
-
 
 class BoundaryAttack(Attack):
     """A powerful adversarial attack that requires neither gradients
@@ -293,6 +286,13 @@ class BoundaryAttack(Attack):
             # create a queue to cache samples
             queue_size = 2 * self.max_directions + threaded_rnd + threaded_gen
             rnd_normal_queue = queue.Queue(queue_size)
+
+            try:
+                import randomstate
+            except ImportError:  # pragma: no cover
+                raise ImportError('To use the BoundaryAttack,'
+                                  ' please install the randomstate'
+                                  ' module (e.g. pip install randomstate)')
 
             def sample_std_normal(thread_id, shape, dtype):
                 # create a thread-specifc RNG
@@ -697,7 +697,16 @@ class BoundaryAttack(Attack):
             spherical_step,
             source_step,
             internal_dtype,
-            rng=randomstate):
+            rng=None):
+
+        if rng is None:
+            try:
+                import randomstate
+            except ImportError:  # pragma: no cover
+                raise ImportError('To use the BoundaryAttack,'
+                                  ' please install the randomstate'
+                                  ' module (e.g. pip install randomstate)')
+            rng = randomstate
 
         # ===========================================================
         # perform initial work
@@ -784,7 +793,16 @@ class BoundaryAttack(Attack):
             spherical_step,
             source_step,
             internal_dtype,
-            rng=randomstate):
+            rng=None):
+
+        if rng is None:
+            try:
+                import randomstate
+            except ImportError:  # pragma: no cover
+                raise ImportError('To use the BoundaryAttack,'
+                                  ' please install the randomstate'
+                                  ' module (e.g. pip install randomstate)')
+            rng = randomstate
 
         # ===========================================================
         # perform initial work
