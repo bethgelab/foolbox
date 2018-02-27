@@ -9,6 +9,7 @@ Distances
 
    MeanSquaredDistance
    MeanAbsoluteDistance
+   Linfinity
 
 Aliases
 -------
@@ -17,6 +18,8 @@ Aliases
    :nosignatures:
 
    MSE
+   MAE
+   Linf
 
 Base class
 ----------
@@ -161,3 +164,29 @@ class MeanAbsoluteDistance(Distance):
 
     def __str__(self):
         return 'normalized MAE = {:.5f}  %'.format(self._value * 100)
+
+
+MAE = MeanAbsoluteDistance
+
+
+class Linfinity(Distance):
+    """Calculates the L-infinity norm of the difference between two images.
+
+    """
+
+    def _calculate(self):
+        min_, max_ = self._bounds
+        diff = (self.other - self.reference) / (max_ - min_)
+        value = np.max(np.abs(diff))
+        gradient = None
+        return value, gradient
+
+    @property
+    def gradient(self):
+        raise NotImplementedError
+
+    def __str__(self):
+        return 'normalized Linf distance = {:.5f}  %'.format(self._value * 100)
+
+
+Linf = Linfinity
