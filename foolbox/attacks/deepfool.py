@@ -1,9 +1,11 @@
-import warnings
+import logging
 
 import numpy as np
 
 from .base import Attack
 from ..utils import crossentropy
+from ..distances import MeanSquaredDistance
+from ..distances import Linfinity
 
 
 class DeepFoolAttack(Attack):
@@ -19,16 +21,31 @@ class DeepFoolAttack(Attack):
 
     """
 
-    def _apply(self, a, steps=100, subsample=10):
+    def _apply(self, a, steps=100, subsample=10, p=None):
         if not a.has_gradient():
             return
 
         if a.target_class() is not None:
-            warnings.warn('Targeted adversarials not supported by DeepFool.')
+            logging.fatal('Targeted adversarials not supported by DeepFool.')
             return
 
         if subsample:
-            warnings.warn('Performs subsampling, results will be suboptimal.')
+            logging.info('Performs subsampling, results will be suboptimal.')
+
+        if p is None:
+            # set norm to optimize based on the distance measure
+            if a._distance == MeanSquaredDistance:
+                p = 2
+            elif a._distance == Linfinity:
+                p = np.inf
+            else:
+                raise NotImplementedError
+
+        if not (1 <= p <= np.inf):
+            raise ValueError
+
+        if p not in [2, np.inf]:
+            raise NotImplementedError
 
         label = a.original_class
 
@@ -44,7 +61,7 @@ class DeepFoolAttack(Attack):
         def get_residual_labels(logits):
             """Get all labels with p < p[target]"""
             return [
-                k for k in labels[1:]
+                k for k in labels
                 if logits[k] < logits[label]]
 
         perturbed = a.original_image
@@ -74,7 +91,14 @@ class DeepFoolAttack(Attack):
             diffs = [(l - loss, g - grad) for l, g in zip(losses, grads)]
 
             # calculate distances
-            distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8) for dl, dg in diffs]  # noqa: E501
+            if p == 2:
+                distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8)
+                             for dl, dg in diffs]
+            elif p == np.inf:
+                distances = [abs(dl) / (np.sum(np.abs(dg)) + 1e-8)
+                             for dl, dg in diffs]
+            else:
+                assert False
 
             # choose optimal one
             optimal = np.argmin(distances)
@@ -82,8 +106,25 @@ class DeepFoolAttack(Attack):
 
             # apply perturbation
             # the (-dg) corrects the sign, gradient here is -gradient of paper
-            perturbation = abs(df) / (np.linalg.norm(dg) + 1e-8)**2 * (-dg)
+            if p == 2:
+                perturbation = abs(df) / (np.linalg.norm(dg) + 1e-8)**2 * (-dg)
+            elif p == np.inf:
+                perturbation = abs(df) / (np.sum(np.abs(dg)) + 1e-8) * np.sign(-dg)  # noqa: E501
+            else:
+                assert False
             perturbed = perturbed + 1.05 * perturbation
             perturbed = np.clip(perturbed, min_, max_)
 
         a.predictions(perturbed)  # to find an adversarial in the last step
+
+
+class DeepFoolL2Attack(DeepFoolAttack):
+    def _apply(self, a, steps=100, subsample=10):
+        super(DeepFoolL2Attack, self)._apply(
+            a, steps=steps, subsample=subsample, p=2)
+
+
+class DeepFoolLinfinityAttack(DeepFoolAttack):
+    def _apply(self, a, steps=100, subsample=10):
+        super(DeepFoolLinfinityAttack, self)._apply(
+            a, steps=steps, subsample=subsample, p=np.inf)

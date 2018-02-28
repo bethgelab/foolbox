@@ -4,7 +4,7 @@ from .base import Attack
 from .gradientsign import FGSM, GradientSignAttack, IterativeGradientSignAttack
 from .gradient import GradientAttack, IterativeGradientAttack
 from .lbfgs import LBFGSAttack, ApproximateLBFGSAttack
-from .deepfool import DeepFoolAttack
+from .deepfool import DeepFoolAttack, DeepFoolL2Attack, DeepFoolLinfinityAttack
 from .saliency import SaliencyMapAttack
 from .blur import GaussianBlurAttack
 from .contrast import ContrastReductionAttack
