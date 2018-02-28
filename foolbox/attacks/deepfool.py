@@ -26,11 +26,8 @@ class DeepFoolAttack(Attack):
             return
 
         if a.target_class() is not None:
-            logging.fatal('Targeted adversarials not supported by DeepFool.')
+            logging.fatal('DeepFool is an untargeted adversarial attack.')
             return
-
-        if subsample:
-            logging.info('Performs subsampling, results will be suboptimal.')
 
         if p is None:
             # set norm to optimize based on the distance measure
@@ -51,15 +48,15 @@ class DeepFoolAttack(Attack):
 
         # define labels
         logits, _ = a.predictions(a.original_image)
+        labels = np.argsort(logits)[::-1]
         if subsample:
-            assert isinstance(subsample, int)
             # choose the top-k classes
-            labels = np.argsort(logits)[::-1][:subsample]
-        else:  # pragma: no coverage
-            labels = np.arange(logits.shape[0])
+            logging.info('Only testing the top-{} classes'.format(subsample))
+            assert isinstance(subsample, int)
+            labels = labels[:subsample]
 
         def get_residual_labels(logits):
-            """Get all labels with p < p[target]"""
+            """Get all labels with p < p[original_class]"""
             return [
                 k for k in labels
                 if logits[k] < logits[label]]
@@ -81,6 +78,10 @@ class DeepFoolAttack(Attack):
 
             residual_labels = get_residual_labels(logits)
 
+            # instead of using the logits and the gradient of the logits,
+            # we use a numerically stable implementation of the cross-entropy
+            # and expect that the deep learning frameworks also use such a
+            # stable implemenation to calculate the gradient
             losses = [
                 -crossentropy(logits=logits, label=k)
                 for k in residual_labels]
@@ -109,9 +110,15 @@ class DeepFoolAttack(Attack):
             if p == 2:
                 perturbation = abs(df) / (np.linalg.norm(dg) + 1e-8)**2 * (-dg)
             elif p == np.inf:
-                perturbation = abs(df) / (np.sum(np.abs(dg)) + 1e-8) * np.sign(-dg)  # noqa: E501
+                perturbation = abs(df) / (np.sum(np.abs(dg)) + 1e-8) \
+                    * np.sign(-dg)
             else:
                 assert False
+
+            # the original implementation accumulates the perturbations
+            # and only adds the overshoot when adding the accumulated
+            # perturbation to the original image; we apply the overshoot
+            # to each perturbation (step)
             perturbed = perturbed + 1.05 * perturbation
             perturbed = np.clip(perturbed, min_, max_)
 
