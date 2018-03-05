@@ -62,7 +62,7 @@ class KerasModel(DifferentiableModel):
 
         if predicts == 'probabilities':
             if K.backend() == 'tensorflow':
-                predictions, predictions.op.inputs
+                predictions, = predictions.op.inputs
                 loss = K.sparse_categorical_crossentropy(
                     label_input, predictions, from_logits=True)
             else:
