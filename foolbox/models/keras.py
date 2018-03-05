@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import numpy as np
+import logging
 
 from .base import DifferentiableModel
 
@@ -60,11 +61,19 @@ class KerasModel(DifferentiableModel):
         self._num_classes = num_classes
 
         if predicts == 'probabilities':
-            loss = K.sparse_categorical_crossentropy(
-                label_input, predictions, from_logits=False)
-            # transform the probability predictions into logits, so that
-            # the rest of this code can assume predictions to be logits
-            predictions = self._to_logits(predictions)
+            if K.backend() == 'tensorflow':
+                predictions, predictions.op.inputs
+                loss = K.sparse_categorical_crossentropy(
+                    label_input, predictions, from_logits=True)
+            else:
+                logging.warning('relying on numerically unstable conversion'
+                                ' from probabilities to softmax')
+                loss = K.sparse_categorical_crossentropy(
+                    label_input, predictions, from_logits=False)
+
+                # transform the probability predictions into logits, so that
+                # the rest of this code can assume predictions to be logits
+                predictions = self._to_logits(predictions)
         elif predicts == 'logits':
             loss = K.sparse_categorical_crossentropy(
                 label_input, predictions, from_logits=True)
