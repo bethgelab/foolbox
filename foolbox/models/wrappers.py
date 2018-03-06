@@ -81,7 +81,9 @@ class CompositeModel(DifferentiableModel):
         return self.forward_model.batch_predictions(images)
 
     def predictions_and_gradient(self, image, label):
-        return self.backward_model.predictions_and_gradient(image, label)
+        predictions = self.forward_model.predictions(image)
+        gradient = self.backward_model.gradient(image, label)
+        return [predictions, gradient]
 
     def gradient(self, image, label):
         return self.backward_model.gradient(image, label)
