@@ -30,7 +30,7 @@ def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):
             bn_model.gradient(bn_image, bn_label) ==
             model.gradient(bn_image, bn_label))
         assert np.all(
-            gl_bn_model.predictions_and_gradient(bn_image, bn_label)[0] ==
+            gl_bn_model.predictions(bn_image) ==
             model.predictions_and_gradient(bn_image, bn_label)[0])
         assert np.all(
             bn_model.predictions_and_gradient(bn_image, bn_label)[1] ==
