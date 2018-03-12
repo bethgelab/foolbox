@@ -22,6 +22,8 @@ from foolbox.models import PyTorchModel
 from foolbox.models.wrappers import GradientLess
 from foolbox import Adversarial
 from foolbox.distances import MSE
+from foolbox.distances import Linfinity
+from foolbox.distances import MAE
 
 
 @pytest.fixture
@@ -182,6 +184,30 @@ def bn_adversarial():
     cm_model = contextmanager(bn_model)
     with cm_model() as model:
         yield Adversarial(model, criterion, image, label)
+
+
+@pytest.fixture
+def bn_adversarial_linf():
+    criterion = bn_criterion()
+    image = bn_image()
+    label = bn_label()
+    distance = Linfinity
+
+    cm_model = contextmanager(bn_model)
+    with cm_model() as model:
+        yield Adversarial(model, criterion, image, label, distance=distance)
+
+
+@pytest.fixture
+def bn_adversarial_mae():
+    criterion = bn_criterion()
+    image = bn_image()
+    label = bn_label()
+    distance = MAE
+
+    cm_model = contextmanager(bn_model)
+    with cm_model() as model:
+        yield Adversarial(model, criterion, image, label, distance=distance)
 
 
 @pytest.fixture

@@ -24,6 +24,8 @@
    FGSM
    LBFGSAttack
    DeepFoolAttack
+   DeepFoolL2Attack
+   DeepFoolLinfinityAttack
    SLSQPAttack
    SaliencyMapAttack
 
