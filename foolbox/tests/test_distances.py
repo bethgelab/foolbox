@@ -70,7 +70,7 @@ def test_linfinity():
         np.array([0, .5]),
         np.array([.7, .5]),
         bounds=(0, 1))
-    assert d.value == approx(7.)
+    assert d.value == approx(.7)
     with pytest.raises(NotImplementedError):
         d.gradient
 
