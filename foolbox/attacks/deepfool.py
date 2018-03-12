@@ -36,7 +36,10 @@ class DeepFoolAttack(Attack):
             elif a._distance == Linfinity:
                 p = np.inf
             else:
-                raise NotImplementedError
+                raise NotImplementedError('Please choose a distance measure'
+                                          ' for which DeepFool is implemented'
+                                          ' or specify manually which norm'
+                                          ' to optimize.')
 
         if not (1 <= p <= np.inf):
             raise ValueError
