@@ -1,7 +1,7 @@
 worktrees/
 .mypy_cache
-/Makefile
-/wip/
+Makefile
+wip/
 
 # Created by https://www.gitignore.io/api/osx,vim,linux,python
 
