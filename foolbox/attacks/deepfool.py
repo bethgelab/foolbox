@@ -101,7 +101,7 @@ class DeepFoolAttack(Attack):
             elif p == np.inf:
                 distances = [abs(dl) / (np.sum(np.abs(dg)) + 1e-8)
                              for dl, dg in diffs]
-            else:
+            else:  # pragma: no cover
                 assert False
 
             # choose optimal one
@@ -115,7 +115,7 @@ class DeepFoolAttack(Attack):
             elif p == np.inf:
                 perturbation = abs(df) / (np.sum(np.abs(dg)) + 1e-8) \
                     * np.sign(-dg)
-            else:
+            else:  # pragma: no cover
                 assert False
 
             # the original implementation accumulates the perturbations

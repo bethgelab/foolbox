@@ -72,3 +72,12 @@ def test_deepfool_auto_mae(bn_adversarial_mae):
         attack(adv)
     assert adv.image is None
     assert adv.distance.value == np.inf
+
+
+def test_deepfool_auto_p0(bn_adversarial):
+    adv = bn_adversarial
+    attack = DeepFoolAttack()
+    with pytest.raises(ValueError):
+        attack(adv, p=0)
+    assert adv.image is None
+    assert adv.distance.value == np.inf

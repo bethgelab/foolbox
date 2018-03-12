@@ -39,6 +39,14 @@ def test_mse():
     assert distances.MSE == distances.MeanSquaredDistance
 
 
+def test_mae():
+    assert distances.MAE == distances.MeanAbsoluteDistance
+
+
+def test_linf():
+    assert distances.Linf == distances.Linfinity
+
+
 def test_mean_squared_distance():
     d = distances.MeanSquaredDistance(
         np.array([0, .5]),
@@ -57,9 +65,20 @@ def test_mean_absolute_distance():
     assert (d.gradient == np.array([0.5, 0])).all()
 
 
+def test_linfinity():
+    d = distances.Linfinity(
+        np.array([0, .5]),
+        np.array([.7, .5]),
+        bounds=(0, 1))
+    assert d.value == approx(7.)
+    with pytest.raises(NotImplementedError):
+        d.gradient
+
+
 @pytest.mark.parametrize('Distance', [
     distances.MeanSquaredDistance,
     distances.MeanAbsoluteDistance,
+    distances.Linfinity,
 ])
 def test_str_repr(Distance):
     """Tests that str and repr contain the value
