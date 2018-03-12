@@ -4,6 +4,22 @@ Development
 
 To install Foolbox in editable mode, see the installation instructions under :ref:`dev-install`.
 
+Running Tests
+=======================
+
+pytest
+``````
+
+To run the tests, you need to have `pytest <https://docs.pytest.org/en/latest/getting-started.html>`_ and `pytest-cov <http://pytest-cov.readthedocs.io/en/latest/readme.html#installation>`_ installed. Afterwards, you can simply run ``pytest`` in the root folder of the project.
+
+flake8
+``````
+Foolbox follows the `PEP 8 style guide for Python code <https://www.python.org/dev/peps/pep-0008/>`_. To check for violations, we use `flake8 <http://flake8.pycqa.org/en/latest/>`_ and run it like this:
+
+.. code-block:: sh
+
+   flake8 --ignore E402,E741 .
+
 New Adversarial Attacks
 =======================
 

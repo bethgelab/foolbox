@@ -57,3 +57,6 @@ Detailed description
 
 .. autoclass:: GradientLess
    :members:
+
+.. autoclass:: CompositeModel
+   :members:
