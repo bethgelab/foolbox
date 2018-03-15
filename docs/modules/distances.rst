@@ -18,6 +18,9 @@ Detailed description
 .. autoclass:: Linfinity
    :members:
 
+.. autoclass:: L0
+   :members:
+
 .. autoclass:: MSE
    :members:
 
