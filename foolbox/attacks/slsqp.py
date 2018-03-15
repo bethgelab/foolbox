@@ -22,7 +22,7 @@ class SLSQPAttack(Attack):
 
         # flatten the image (and remember the shape)
         shape = image.shape
-        n = np.prod(shape)
+        n = image.size
         image = image.flatten()
 
         np.random.seed(42)
