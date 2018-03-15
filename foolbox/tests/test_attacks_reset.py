@@ -15,7 +15,7 @@ def test_attack_startingpoint(bn_adversarial):
     adv = bn_adversarial
     attack = Attack()
     o = adv.original_image
-    np.random.seed(22)
+    np.random.seed(2)
     starting_point = np.random.uniform(
         0, 1, size=o.shape).astype(o.dtype)
     attack(adv, starting_point=starting_point)
@@ -27,7 +27,7 @@ def test_attack_continue(bn_adversarial):
     adv = bn_adversarial
     attack = Attack()
     o = adv.original_image
-    np.random.seed(22)
+    np.random.seed(2)
     starting_point = np.random.uniform(
         0, 1, size=o.shape).astype(o.dtype)
     adv.predictions(starting_point)

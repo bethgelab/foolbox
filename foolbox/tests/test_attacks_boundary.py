@@ -37,7 +37,7 @@ def test_attack_parameters(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
     o = adv.original_image
-    np.random.seed(22)
+    np.random.seed(2)
     starting_point = np.random.uniform(
         0, 1, size=o.shape).astype(o.dtype)
     attack(
@@ -70,7 +70,7 @@ def test_attack_parameters3(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
     o = adv.original_image
-    np.random.seed(22)
+    np.random.seed(2)
     starting_point = np.random.uniform(
         0, 1, size=o.shape).astype(o.dtype)
     attack(
