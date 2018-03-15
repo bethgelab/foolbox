@@ -124,7 +124,7 @@ class MeanSquaredDistance(Distance):
 
     def _calculate(self):
         min_, max_ = self._bounds
-        n = np.prod(self.reference.shape)
+        n = self.reference.size
         f = n * (max_ - min_)**2
 
         diff = self.other - self.reference
@@ -158,7 +158,7 @@ class MeanAbsoluteDistance(Distance):
         min_, max_ = self._bounds
         diff = (self.other - self.reference) / (max_ - min_)
         value = np.mean(np.abs(diff))
-        n = np.prod(self.reference.shape)
+        n = self.reference.size
         gradient = 1 / n * np.sign(diff) / (max_ - min_)
         return value, gradient
 
