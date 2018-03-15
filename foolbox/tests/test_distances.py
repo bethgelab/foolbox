@@ -99,5 +99,9 @@ def test_str_repr(Distance):
     other = np.ones((10, 10))
     d = Distance(reference, other, bounds=(0, 1))
     assert isinstance(str(d), str)
-    assert '1.00e+' in str(d)
-    assert '1.00e+' in repr(d)
+    if 'L0' in str(d):
+        assert '100' in str(d)
+        assert '100' in repr(d)
+    else:
+        assert '1.00e+' in str(d)
+        assert '1.00e+' in repr(d)
