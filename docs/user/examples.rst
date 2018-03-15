@@ -22,7 +22,8 @@ Keras: ResNet50
    model = foolbox.models.KerasModel(kmodel, bounds=(0, 255), preprocessing=preprocessing)
 
    image, _ = foolbox.utils.imagenet_example()
-   print(np.argmax(model.predictions(image)))
+   # ::-1 reverses the color channels, because Keras ResNet50 expects BGR instead of RGB
+   print(np.argmax(model.predictions(image[:, :, ::-1])))
 
 TensorFlow: VGG19
 -----------------
