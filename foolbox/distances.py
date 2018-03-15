@@ -10,6 +10,7 @@ Distances
    MeanSquaredDistance
    MeanAbsoluteDistance
    Linfinity
+   L0
 
 Aliases
 -------
@@ -143,7 +144,7 @@ class MeanSquaredDistance(Distance):
         return self._gradient
 
     def __str__(self):
-        return 'normalized MSE = {:.5f}  %'.format(self._value * 100)
+        return 'normalized MSE = {:.2e}'.format(self._value)
 
 
 MSE = MeanSquaredDistance
@@ -163,7 +164,7 @@ class MeanAbsoluteDistance(Distance):
         return value, gradient
 
     def __str__(self):
-        return 'normalized MAE = {:.5f}  %'.format(self._value * 100)
+        return 'normalized MAE = {:.2e}'.format(self._value)
 
 
 MAE = MeanAbsoluteDistance
@@ -186,7 +187,26 @@ class Linfinity(Distance):
         raise NotImplementedError
 
     def __str__(self):
-        return 'normalized Linf distance = {:.5f}  %'.format(self._value * 100)
+        return 'normalized Linf distance = {:.2e}'.format(self._value)
 
 
 Linf = Linfinity
+
+
+class L0(Distance):
+    """Calculates the L0 norm of the difference between two images.
+
+    """
+
+    def _calculate(self):
+        diff = self.other - self.reference
+        value = np.sum(diff != 0)
+        gradient = None
+        return value, gradient
+
+    @property
+    def gradient(self):
+        raise NotImplementedError
+
+    def __str__(self):
+        return 'L0 distance = {}'.format(self._value)
