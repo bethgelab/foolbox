@@ -55,7 +55,7 @@ class DeepFoolAttack(Attack):
         if p not in [2, np.inf]:
             raise NotImplementedError
 
-        label = a.original_class
+        _label = a.original_class
 
         # define labels
         logits, _ = a.predictions(a.original_image)
@@ -70,7 +70,7 @@ class DeepFoolAttack(Attack):
             """Get all labels with p < p[original_class]"""
             return [
                 k for k in labels
-                if logits[k] < logits[label]]
+                if logits[k] < logits[_label]]
 
         perturbed = a.original_image
         min_, max_ = a.bounds()
@@ -85,7 +85,7 @@ class DeepFoolAttack(Attack):
             # loss corresponds to f (in the paper: negative cross-entropy)
             # grad corresponds to -df/dx (gradient of cross-entropy)
 
-            loss = -crossentropy(logits=logits, label=label)
+            loss = -crossentropy(logits=logits, label=_label)
 
             residual_labels = get_residual_labels(logits)
 
