@@ -4,6 +4,7 @@ import random
 import numpy as np
 
 from .base import Attack
+from .base import call_decorator
 from .gradient import GradientAttack
 
 
@@ -20,14 +21,13 @@ class SaliencyMapAttack(Attack):
 
     """
 
-    def _apply(
-            self,
-            a,
-            max_iter=2000,
-            num_random_targets=0,
-            fast=True,
-            theta=0.1,
-            max_perturbations_per_pixel=7):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 max_iter=2000,
+                 num_random_targets=0,
+                 fast=True,
+                 theta=0.1,
+                 max_perturbations_per_pixel=7):
 
         """
 
@@ -37,6 +37,10 @@ class SaliencyMapAttack(Attack):
             perturbation per pixel relative to [min, max] range
 
         """
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
 
         # TODO: the original algorithm works on pixels across channels!
 

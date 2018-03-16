@@ -2,6 +2,7 @@ import numpy as np
 import scipy.optimize as so
 
 from .base import Attack
+from .base import call_decorator
 
 
 class SLSQPAttack(Attack):
@@ -15,7 +16,13 @@ class SLSQPAttack(Attack):
         super(SLSQPAttack, self).__init__(*args, **kwargs)
         self.last_result = None
 
-    def _apply(self, a):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         image = a.original_image
         dtype = a.original_image.dtype
         min_, max_ = a.bounds()

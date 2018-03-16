@@ -1,7 +1,7 @@
 import numpy as np
 
 from .base import Attack
-from .decorator import call_decorator
+from .base import call_decorator
 
 
 class SaltAndPepperNoiseAttack(Attack):
@@ -29,9 +29,9 @@ class SaltAndPepperNoiseAttack(Attack):
             If true, returns the adversarial input, otherwise returns
             the Adversarial object.
         epsilons : int
-            Number of different probabilities to try.
+            Number of steps to try between probability 0 and 1.
         repetitions : int
-            Number of repetitions.
+            Specifies how often the attack will be repeated.
 
         """
         a = input_or_adv

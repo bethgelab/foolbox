@@ -3,6 +3,7 @@ import logging
 import numpy as np
 
 from .base import Attack
+from .base import call_decorator
 from ..utils import crossentropy
 from ..distances import MeanSquaredDistance
 from ..distances import Linfinity
@@ -21,7 +22,14 @@ class DeepFoolAttack(Attack):
 
     """
 
-    def _apply(self, a, steps=100, subsample=10, p=None):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 steps=100, subsample=10, p=None):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         if not a.has_gradient():
             return
 
@@ -129,12 +137,16 @@ class DeepFoolAttack(Attack):
 
 
 class DeepFoolL2Attack(DeepFoolAttack):
-    def _apply(self, a, steps=100, subsample=10):
-        super(DeepFoolL2Attack, self)._apply(
-            a, steps=steps, subsample=subsample, p=2)
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 steps=100, subsample=10):
+        super(DeepFoolL2Attack, self).__call__(
+            input_or_adv, label=label, unpack=unpack,
+            steps=steps, subsample=subsample, p=2)
 
 
 class DeepFoolLinfinityAttack(DeepFoolAttack):
-    def _apply(self, a, steps=100, subsample=10):
-        super(DeepFoolLinfinityAttack, self)._apply(
-            a, steps=steps, subsample=subsample, p=np.inf)
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 steps=100, subsample=10):
+        super(DeepFoolLinfinityAttack, self).__call__(
+            input_or_adv, label=label, unpack=unpack,
+            steps=steps, subsample=subsample, p=np.inf)

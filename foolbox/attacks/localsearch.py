@@ -2,6 +2,7 @@ from __future__ import division
 import numpy as np
 
 from .base import Attack
+from .base import call_decorator
 from ..utils import softmax
 
 
@@ -10,7 +11,9 @@ class SinglePixelAttack(Attack):
 
     """
 
-    def _apply(self, a, max_pixels=1000):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 max_pixels=1000):
         channel_axis = a.channel_axis(batch=False)
         image = a.original_image
         axes = [i for i in range(image.ndim) if i != channel_axis]
@@ -52,7 +55,14 @@ class LocalSearchAttack(Attack):
 
     """
 
-    def _apply(self, a, r=1.5, p=10., d=5, t=5, R=150):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 r=1.5, p=10., d=5, t=5, R=150):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         # TODO: incorporate the modifications mentioned in the manuscript
         # under "Implementing Algorithm LocSearchAdv"
 

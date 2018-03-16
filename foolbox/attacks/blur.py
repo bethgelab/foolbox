@@ -4,6 +4,7 @@ from collections import Iterable
 from scipy.ndimage.filters import gaussian_filter
 
 from .base import Attack
+from .base import call_decorator
 
 
 class GaussianBlurAttack(Attack):
@@ -11,7 +12,14 @@ class GaussianBlurAttack(Attack):
 
     """
 
-    def _apply(self, a, epsilons=1000):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 epsilons=1000):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         image = a.original_image
         min_, max_ = a.bounds()
         axis = a.channel_axis(batch=False)

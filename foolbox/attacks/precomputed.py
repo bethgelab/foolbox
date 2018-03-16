@@ -1,6 +1,7 @@
 import numpy as np
 
 from .base import Attack
+from .base import call_decorator
 
 
 class PrecomputedImagesAttack(Attack):
@@ -36,7 +37,13 @@ class PrecomputedImagesAttack(Attack):
             raise ValueError('No precomputed output image for this image')
         return self._output_images[index]
 
-    def _apply(self, a):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         image = a.original_image
         adversarial = self._get_output(a, image)
         a.predictions(adversarial)
