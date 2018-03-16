@@ -14,6 +14,11 @@ class SinglePixelAttack(Attack):
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  max_pixels=1000):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         channel_axis = a.channel_axis(batch=False)
         image = a.original_image
         axes = [i for i in range(image.ndim) if i != channel_axis]
