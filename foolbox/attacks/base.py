@@ -36,8 +36,8 @@ class Attack(ABC):
     """
 
     def __init__(self, model=None, criterion=Misclassification()):
-        self.__default_model = model
-        self.__default_criterion = criterion
+        self._default_model = model
+        self._default_criterion = criterion
 
     def __call__(
             self,
@@ -82,8 +82,8 @@ class Attack(ABC):
             if label is None:
                 raise ValueError('Label must be passed when image is not an Adversarial instance')  # noqa: E501k
             else:
-                model = self.__default_model
-                criterion = self.__default_criterion
+                model = self._default_model
+                criterion = self._default_criterion
                 if model is None or criterion is None:
                     raise ValueError('The attack needs to be initialized with a model and a criterion or it needs to be called with an Adversarial instance.')  # noqa: E501
                 find = Adversarial(model, criterion, image, label)
@@ -123,19 +123,3 @@ class Attack(ABC):
 
         """
         return self.__class__.__name__
-
-    @abstractmethod
-    def _apply(self, a):
-        """Searches an adversarial example.
-
-        To implement an attack, subclasses should implement this
-        method.
-
-        Parameters
-        ----------
-        a : :class:`Adversarial`
-            The object that provides access to the model, criterion, original
-            image, best adversarial so far, etc.
-
-        """
-        raise NotImplementedError

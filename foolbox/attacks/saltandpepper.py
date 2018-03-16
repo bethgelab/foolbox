@@ -1,6 +1,7 @@
 import numpy as np
 
 from .base import Attack
+from .decorator import call_decorator
 
 
 class SaltAndPepperNoiseAttack(Attack):
@@ -9,7 +10,35 @@ class SaltAndPepperNoiseAttack(Attack):
 
     """
 
-    def _apply(self, a, epsilons=100, repetitions=10):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 epsilons=100, repetitions=10):
+        """Increases the amount of salt and pepper noise until the
+        image is misclassified.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial input, otherwise returns
+            the Adversarial object.
+        epsilons : int
+            Number of different probabilities to try.
+        repetitions : int
+            Number of repetitions.
+
+        """
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         image = a.original_image
         min_, max_ = a.bounds()
         axis = a.channel_axis(batch=False)
