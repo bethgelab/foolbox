@@ -128,9 +128,9 @@ class Adversarial(object):
             image,
             bounds=self.bounds())
 
-    def __new_adversarial(self, image):
+    def __new_adversarial(self, image, in_bounds):
         distance = self.normalized_distance(image)
-        if self.__best_distance > distance:
+        if in_bounds and self.__best_distance > distance:
             # new best adversarial
             if self.verbose:
                 print('new best adversarial: {}'.format(distance))
@@ -144,7 +144,7 @@ class Adversarial(object):
             return True, distance
         return False, distance
 
-    def __is_adversarial(self, image, predictions):
+    def __is_adversarial(self, image, predictions, in_bounds):
         """Interface to criterion.is_adverarial that calls
         __new_adversarial if necessary.
 
@@ -159,7 +159,7 @@ class Adversarial(object):
         is_adversarial = self.__criterion.is_adversarial(
             predictions, self.__original_class)
         if is_adversarial:
-            is_best, distance = self.__new_adversarial(image)
+            is_best, distance = self.__new_adversarial(image, in_bounds)
         else:
             is_best = False
             distance = None
@@ -232,12 +232,13 @@ class Adversarial(object):
             Controls if the bounds for the pixel values should be checked.
 
         """
-        assert not strict or self.in_bounds(image)
+        in_bounds = self.in_bounds(image)
+        assert not strict or in_bounds
 
         self._total_prediction_calls += 1
         predictions = self.__model.predictions(image)
         is_adversarial, is_best, distance = self.__is_adversarial(
-            image, predictions)
+            image, predictions, in_bounds)
 
         assert predictions.ndim == 1
         if return_details:
@@ -259,7 +260,9 @@ class Adversarial(object):
             Controls if the bounds for the pixel values should be checked.
 
         """
-        assert not strict or self.in_bounds(images)
+        if strict:
+            in_bounds = self.in_bounds(images)
+            assert in_bounds
 
         self._total_prediction_calls += len(images)
         predictions = self.__model.batch_predictions(images)
@@ -272,8 +275,12 @@ class Adversarial(object):
 
         adversarials = []
         for i in range(len(predictions)):
+            if strict:
+                in_bounds_i = True
+            else:
+                in_bounds_i = self.in_bounds(images[i])
             is_adversarial, is_best, distance = self.__is_adversarial(
-                images[i], predictions[i])
+                images[i], predictions[i], in_bounds_i)
             if is_adversarial and greedy:
                 if return_details:
                     return predictions, is_adversarial, i, is_best, distance
@@ -347,13 +354,14 @@ class Adversarial(object):
         if label is None:
             label = self.__original_class
 
-        assert not strict or self.in_bounds(image)
+        in_bounds = self.in_bounds(image)
+        assert not strict or in_bounds
 
         self._total_prediction_calls += 1
         self._total_gradient_calls += 1
         predictions, gradient = self.__model.predictions_and_gradient(image, label)  # noqa: E501
         is_adversarial, is_best, distance = self.__is_adversarial(
-            image, predictions)
+            image, predictions, in_bounds)
 
         assert predictions.ndim == 1
         assert gradient.shape == image.shape
