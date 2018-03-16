@@ -158,4 +158,5 @@ class LocalSearchAttack(Attack):
                 for x in range(_a - d, _a + d + 1)
                 for y in range(_b - d, _b + d + 1)]
             PxPy = [(x, y) for x, y in PxPy if 0 <= x < w and 0 <= y < h]
+            PxPy = list(set(PxPy))
             PxPy = np.array(PxPy)
