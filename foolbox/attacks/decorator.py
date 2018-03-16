@@ -40,7 +40,7 @@ def call_decorator(call_fn):
                           ' is already misclassified and the adversarial thus'
                           ' has a distance of 0.')
         else:
-            _ = call_fn(self, a, **kwargs)
+            _ = call_fn(self, a, label=None, unpack=None, **kwargs)
             assert _ is None, 'decorated __call__ method must return None'
 
         if a.image is None:
