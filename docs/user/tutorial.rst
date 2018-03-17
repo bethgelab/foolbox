@@ -53,7 +53,7 @@ Finally, we can create and apply the attack:
    image = np.asarray(Image.open('example.jpg'))
    label = np.argmax(model.predictions(image))
 
-   adversarial = attack(image=image, label=label)
+   adversarial = attack(image, label=label)
 
 
 Visualizing the adversarial examples

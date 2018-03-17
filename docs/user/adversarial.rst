@@ -21,7 +21,7 @@ passing `unpack=False` we tell the attack to return the
 
 .. code-block:: python3
 
-   adversarial = attack(image=image, label=label, unpack=False)
+   adversarial = attack(image, label=label, unpack=False)
 
 We can then get the actual image using the :attr:`image` attribute:
 
