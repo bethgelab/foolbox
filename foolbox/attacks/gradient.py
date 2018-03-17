@@ -4,6 +4,7 @@ from collections import Iterable
 import logging
 
 from .base import Attack
+from .base import call_decorator
 
 
 class GradientAttack(Attack):
@@ -14,7 +15,14 @@ class GradientAttack(Attack):
 
     """
 
-    def _apply(self, a, epsilons=1000, max_epsilon=1):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 epsilons=1000, max_epsilon=1):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         if not a.has_gradient():
             return
 
@@ -51,7 +59,14 @@ class IterativeGradientAttack(Attack):
 
     """
 
-    def _apply(self, a, epsilons=100, steps=10):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 epsilons=100, steps=10):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         if not a.has_gradient():
             return
 

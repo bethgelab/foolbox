@@ -4,6 +4,7 @@ from collections import Iterable
 import numpy as np
 
 from .base import Attack
+from .base import call_decorator
 
 
 class AdditiveNoiseAttack(Attack):
@@ -11,7 +12,13 @@ class AdditiveNoiseAttack(Attack):
 
     """
 
-    def _apply(self, a, epsilons=1000):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True, epsilons=1000):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         image = a.original_image
         bounds = a.bounds()
         min_, max_ = bounds

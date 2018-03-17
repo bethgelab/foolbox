@@ -3,6 +3,7 @@ import logging
 import numpy as np
 
 from .base import Attack
+from .base import call_decorator
 from ..utils import crossentropy
 from ..distances import MeanSquaredDistance
 from ..distances import Linfinity
@@ -21,7 +22,14 @@ class DeepFoolAttack(Attack):
 
     """
 
-    def _apply(self, a, steps=100, subsample=10, p=None):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 steps=100, subsample=10, p=None):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         if not a.has_gradient():
             return
 
@@ -47,7 +55,7 @@ class DeepFoolAttack(Attack):
         if p not in [2, np.inf]:
             raise NotImplementedError
 
-        label = a.original_class
+        _label = a.original_class
 
         # define labels
         logits, _ = a.predictions(a.original_image)
@@ -62,7 +70,7 @@ class DeepFoolAttack(Attack):
             """Get all labels with p < p[original_class]"""
             return [
                 k for k in labels
-                if logits[k] < logits[label]]
+                if logits[k] < logits[_label]]
 
         perturbed = a.original_image
         min_, max_ = a.bounds()
@@ -77,7 +85,7 @@ class DeepFoolAttack(Attack):
             # loss corresponds to f (in the paper: negative cross-entropy)
             # grad corresponds to -df/dx (gradient of cross-entropy)
 
-            loss = -crossentropy(logits=logits, label=label)
+            loss = -crossentropy(logits=logits, label=_label)
 
             residual_labels = get_residual_labels(logits)
 
@@ -129,12 +137,16 @@ class DeepFoolAttack(Attack):
 
 
 class DeepFoolL2Attack(DeepFoolAttack):
-    def _apply(self, a, steps=100, subsample=10):
-        super(DeepFoolL2Attack, self)._apply(
-            a, steps=steps, subsample=subsample, p=2)
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 steps=100, subsample=10):
+        super(DeepFoolL2Attack, self).__call__(
+            input_or_adv, label=label, unpack=unpack,
+            steps=steps, subsample=subsample, p=2)
 
 
 class DeepFoolLinfinityAttack(DeepFoolAttack):
-    def _apply(self, a, steps=100, subsample=10):
-        super(DeepFoolLinfinityAttack, self)._apply(
-            a, steps=steps, subsample=subsample, p=np.inf)
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 steps=100, subsample=10):
+        super(DeepFoolLinfinityAttack, self).__call__(
+            input_or_adv, label=label, unpack=unpack,
+            steps=steps, subsample=subsample, p=np.inf)

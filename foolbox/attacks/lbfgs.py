@@ -6,9 +6,9 @@ import numpy as np
 import scipy.optimize as so
 
 from .base import Attack
+from .base import call_decorator
 from .gradient import GradientAttack
-
-from foolbox import utils
+from ..utils import crossentropy as utils_ce
 
 
 class LBFGSAttack(Attack):
@@ -44,13 +44,16 @@ class LBFGSAttack(Attack):
         prefix = 'Approximate' if self._approximate_gradient else ''
         return '{}{}'.format(prefix, self.__class__.__name__)
 
-    def _apply(
-            self,
-            a,
-            epsilon=1e-5,
-            num_random_targets=0,
-            maxiter=150,
-            verbose=False):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 epsilon=1e-5,
+                 num_random_targets=0,
+                 maxiter=150,
+                 verbose=False):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
 
         if not self._approximate_gradient and not a.has_gradient():
             return
@@ -133,7 +136,7 @@ class LBFGSAttack(Attack):
                 # lbfgs with approx grad does not seem to respect the bounds
                 # setting strict to False
                 logits, _ = a.predictions(x.reshape(shape), strict=False)
-                ce = utils.crossentropy(logits=logits, label=target_class)
+                ce = utils_ce(logits=logits, label=target_class)
                 return ce
 
             def loss(x, c):
@@ -152,7 +155,7 @@ class LBFGSAttack(Attack):
                 logits, gradient, _ = a.predictions_and_gradient(
                     x.reshape(shape), target_class, strict=False)
                 gradient = gradient.reshape(-1)
-                ce = utils.crossentropy(logits=logits, label=target_class)
+                ce = utils_ce(logits=logits, label=target_class)
                 return ce, gradient
 
             def loss(x, c):

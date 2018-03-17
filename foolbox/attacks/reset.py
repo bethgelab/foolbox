@@ -3,6 +3,7 @@ import random
 import logging
 
 from .base import Attack
+from .base import call_decorator
 from .blended_noise import BlendedUniformNoiseAttack
 
 
@@ -20,7 +21,14 @@ class ResetAttack(Attack):
 
     """
 
-    def _apply(self, a, starting_point=None, initialization_attack=None):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 starting_point=None, initialization_attack=None):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         self._starting_point = starting_point
         self._initialization_attack = initialization_attack
         self.initialize_starting_point(a)

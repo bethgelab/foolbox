@@ -4,6 +4,7 @@ from collections import Iterable
 import numpy as np
 
 from .base import Attack
+from .base import call_decorator
 
 
 class BlendedUniformNoiseAttack(Attack):
@@ -12,7 +13,14 @@ class BlendedUniformNoiseAttack(Attack):
 
     """
 
-    def _apply(self, a, epsilons=1000, max_directions=1000, verbose=False):
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 epsilons=1000, max_directions=1000, verbose=False):
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
         image = a.original_image
         min_, max_ = a.bounds()
 
