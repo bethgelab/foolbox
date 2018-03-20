@@ -29,12 +29,28 @@ class SaliencyMapAttack(Attack):
                  theta=0.1,
                  max_perturbations_per_pixel=7):
 
-        """
+        """Implements the Saliency Map Attack.
 
         Parameters
         ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        max_iter : int
+            The maximum number of iterations to run.
+        num_random_targets : int
+            Number of random target classes if no target class is given
+            by the criterion.
+        fast : bool
+            Whether to use the fast saliency map calculation.
         theta : float
-            perturbation per pixel relative to [min, max] range
+            perturbation per pixel relative to [min, max] range.
+        max_perturbations_per_pixel : int
+            Maximum number of times a pixel can be modified.
 
         """
         a = input_or_adv

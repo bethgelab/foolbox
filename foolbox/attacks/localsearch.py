@@ -7,13 +7,32 @@ from ..utils import softmax
 
 
 class SinglePixelAttack(Attack):
-    """Perturbs just a single pixel and sets it to the min or max.
-
-    """
+    """Perturbs just a single pixel and sets it to the min or max."""
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  max_pixels=1000):
+
+        """Perturbs just a single pixel and sets it to the min or max.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, correctly classified image. If image is a
+            numpy array, label must be passed as well. If image is
+            an :class:`Adversarial` instance, label must not be passed.
+        label : int
+            The reference label of the original image. Must be passed
+            if image is a numpy array, must not be passed if image is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial image, otherwise returns
+            the Adversarial object.
+        max_pixels : int
+            Maximum number of pixels to try.
+
+        """
+
         a = input_or_adv
         del input_or_adv
         del label

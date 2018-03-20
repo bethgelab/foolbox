@@ -39,11 +39,3 @@ def test_attack_impossible(Attack, bn_impossible):
     attack(adv)
     assert adv.image is None
     assert adv.distance.value == np.inf
-
-
-def test_attack_verbose(bn_adversarial):
-    adv = bn_adversarial
-    attack = BlendedUniformNoiseAttack()
-    attack(adv, verbose=True)
-    assert adv.image is not None
-    assert adv.distance.value < np.inf

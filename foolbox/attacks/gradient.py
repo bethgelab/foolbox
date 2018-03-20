@@ -18,6 +18,31 @@ class GradientAttack(Attack):
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  epsilons=1000, max_epsilon=1):
+
+        """Perturbs the image with the gradient of the loss w.r.t. the image,
+        gradually increasing the magnitude until the image is misclassified.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial input, otherwise returns
+            the Adversarial object.
+        epsilons : int or Iterable[float]
+            Either Iterable of step sizes in the gradient direction
+            or number of step sizes between 0 and max_epsilon that should
+            be tried.
+        max_epsilon : float
+            Largest step size if epsilons is not an iterable.
+
+        """
+
         a = input_or_adv
         del input_or_adv
         del label
@@ -33,7 +58,7 @@ class GradientAttack(Attack):
         gradient = gradient / (gradient_norm + 1e-8) * (max_ - min_)
 
         if not isinstance(epsilons, Iterable):
-            epsilons = np.linspace(0, 1, num=epsilons + 1)[1:]
+            epsilons = np.linspace(0, max_epsilon, num=epsilons + 1)[1:]
             decrease_if_first = True
         else:
             decrease_if_first = False
@@ -62,6 +87,30 @@ class IterativeGradientAttack(Attack):
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  epsilons=100, steps=10):
+
+        """Like GradientAttack but with several steps for each epsilon.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial input, otherwise returns
+            the Adversarial object.
+        epsilons : int or Iterable[float]
+            Either Iterable of step sizes in the gradient direction
+            or number of step sizes between 0 and max_epsilon that should
+            be tried.
+        max_epsilon : float
+            Largest step size if epsilons is not an iterable.
+
+        """
+
         a = input_or_adv
         del input_or_adv
         del label

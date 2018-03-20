@@ -6,18 +6,33 @@ from .base import call_decorator
 
 
 class SLSQPAttack(Attack):
-    """Uses SLSQP to minimize the distance between the image and the adversarial
-    under the constraint that the image is adversarial."""
+    """Uses SLSQP to minimize the distance between the image and the
+    adversarial under the constraint that the image is adversarial."""
 
     # TODO: add support for criteria that are differentiable (if the network
     # is differentiable) and use this to provide constraint gradients
 
-    def __init__(self, *args, **kwargs):
-        super(SLSQPAttack, self).__init__(*args, **kwargs)
-        self.last_result = None
-
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True):
+        """Uses SLSQP to minimize the distance between the image and the
+        adversarial under the constraint that the image is adversarial.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, correctly classified image. If image is a
+            numpy array, label must be passed as well. If image is
+            an :class:`Adversarial` instance, label must not be passed.
+        label : int
+            The reference label of the original image. Must be passed
+            if image is a numpy array, must not be passed if image is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial image, otherwise returns
+            the Adversarial object.
+
+        """
+
         a = input_or_adv
         del input_or_adv
         del label
@@ -65,9 +80,5 @@ class SLSQPAttack(Attack):
             bounds=bounds,
             constraints=constraints,
             options=options)
-
-        # for debugging
-        # TODO: store in the Adversarial instance
-        self.last_result = result
 
         a.predictions(result.x.reshape(shape).astype(dtype))
