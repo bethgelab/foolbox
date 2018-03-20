@@ -140,7 +140,7 @@ in resulting publications:
 .. code-block::
 
   @article{rauber2017foolbox,
-    title={Foolbox v0.8.0: A Python toolbox to benchmark the robustness of machine learning models},
+    title={Foolbox: A Python toolbox to benchmark the robustness of machine learning models},
     author={Rauber, Jonas and Brendel, Wieland and Bethge, Matthias},
     journal={arXiv preprint arXiv:1707.04131},
     year={2017},
