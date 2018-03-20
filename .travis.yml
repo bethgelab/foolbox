@@ -11,6 +11,10 @@ env:
     matrix:
         - KERAS_BACKEND=tensorflow
         - KERAS_BACKEND=theano
+matrix:
+    exclude:
+        - python: 3.6
+          env: KERAS_BACKEND=theano
 before_install:
     - pip install -U pip
     - travis_wait travis_retry pip install --upgrade numpy
