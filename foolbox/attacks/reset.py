@@ -24,6 +24,31 @@ class ResetAttack(Attack):
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  starting_point=None, initialization_attack=None):
+
+        """Starts with an adversarial and resets as many values as possible
+        to the values of the original.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial input, otherwise returns
+            the Adversarial object.
+        starting_point : `numpy.ndarray`
+            Adversarial input to use as a starting point, in particular
+            for targeted attacks.
+        initialization_attack : :class:`Attack`
+            Attack to use to find a starting point. Defaults to
+            BlendedUniformNoiseAttack.
+
+        """
+
         a = input_or_adv
         del input_or_adv
         del label

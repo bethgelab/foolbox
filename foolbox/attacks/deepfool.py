@@ -10,7 +10,8 @@ from ..distances import Linfinity
 
 
 class DeepFoolAttack(Attack):
-    """Simple and accurate adversarial attack.
+    """Simple and close to optimal gradient-based
+    adversarial attack.
 
     Implementes DeepFool introduced in [1]_.
 
@@ -25,6 +26,33 @@ class DeepFoolAttack(Attack):
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  steps=100, subsample=10, p=None):
+
+        """Simple and close to optimal gradient-based
+        adversarial attack.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial input, otherwise returns
+            the Adversarial object.
+        steps : int
+            Maximum number of steps to perform.
+        subsample : int
+            Limit on the number of the most likely classes that should
+            be considered. A small value is usually sufficient and much
+            faster.
+        p : int or float
+            Lp-norm that should be minimzed, must be 2 or np.inf.
+
+        """
+
         a = input_or_adv
         del input_or_adv
         del label

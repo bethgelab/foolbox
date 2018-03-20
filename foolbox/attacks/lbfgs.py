@@ -48,8 +48,34 @@ class LBFGSAttack(Attack):
     def __call__(self, input_or_adv, label=None, unpack=True,
                  epsilon=1e-5,
                  num_random_targets=0,
-                 maxiter=150,
-                 verbose=False):
+                 maxiter=150):
+
+        """Uses L-BFGS-B to minimize the distance between the image and the
+        adversarial as well as the cross-entropy between the predictions for
+        the adversarial and the the one-hot encoded target class.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial input, otherwise returns
+            the Adversarial object.
+        epsilon : float
+            Epsilon of the binary search.
+        num_random_targets : int
+            Number of random target classes if no target class is given
+            by the criterion.
+        maxiter : int
+            Maximum number of iterations for L-BFGS-B.
+
+        """
+
         a = input_or_adv
         del input_or_adv
         del label
@@ -107,12 +133,12 @@ class LBFGSAttack(Attack):
         for i, target_class in enumerate(target_classes):
             self._optimize(
                 a, target_class,
-                epsilon=epsilon, maxiter=maxiter, verbose=verbose)
+                epsilon=epsilon, maxiter=maxiter)
 
-            if verbose and len(target_classes) > 1:  # pragma: no coverage
+            if len(target_classes) > 1:  # pragma: no coverage
                 logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.distance))  # noqa: E501
 
-    def _optimize(self, a, target_class, epsilon, maxiter, verbose):
+    def _optimize(self, a, target_class, epsilon, maxiter):
         image = a.original_image
         min_, max_ = a.bounds()
 
@@ -195,15 +221,13 @@ class LBFGSAttack(Attack):
         for i in range(30):
             c = 2 * c
             is_adversarial = lbfgsb(c)
-            if verbose:
-                logging.info('Tested c = {:.4e}: {}'.format(
-                    c,
-                    ('adversarial' if is_adversarial else 'not adversarial')))
+            logging.info('Tested c = {:.4e}: {}'.format(
+                c,
+                ('adversarial' if is_adversarial else 'not adversarial')))
             if is_adversarial:
                 break
         else:  # pragma: no cover
-            if verbose:
-                logging.info('Could not find an adversarial; maybe the model returns wrong gradients')  # noqa: E501
+            logging.info('Could not find an adversarial; maybe the model returns wrong gradients')  # noqa: E501
             return
 
         # binary search
@@ -212,12 +236,11 @@ class LBFGSAttack(Attack):
         while c_high - c_low >= epsilon:
             c_half = (c_low + c_high) / 2
             is_adversarial = lbfgsb(c_half)
-            if verbose:
-                logging.info('Tested c = {:.4e}: {} ({:.4e}, {:.4e})'.format(
-                    c_half,
-                    ('adversarial' if is_adversarial else 'not adversarial'),
-                    c_low,
-                    c_high))
+            logging.info('Tested c = {:.4e}: {} ({:.4e}, {:.4e})'.format(
+                c_half,
+                ('adversarial' if is_adversarial else 'not adversarial'),
+                c_low,
+                c_high))
             if is_adversarial:
                 c_high = c_half
             else:
