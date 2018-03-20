@@ -1083,7 +1083,7 @@ class BoundaryAttack(Attack):
             self.steps_to_next_tuning *= 2
         elif change in [-1, 1]:
             pass
-        else:
+        else:  # pragma: no cover
             if self.steps_to_next_tuning > 100:
                 self.steps_to_next_tuning //= 2
 
