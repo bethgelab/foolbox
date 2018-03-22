@@ -61,7 +61,7 @@ class TensorFlowModel(DifferentiableModel):
             self._loss = tf.squeeze(loss, axis=0)
             gradients = tf.gradients(loss, images)
             assert len(gradients) == 1
-            if gradients[0] is None:  # pragma: no cover
+            if gradients[0] is None:
                 gradients[0] = tf.zeros_like(images)
             self._gradient = tf.squeeze(gradients[0], axis=0)
 
@@ -69,7 +69,7 @@ class TensorFlowModel(DifferentiableModel):
             bw_loss = tf.reduce_sum(self._logits * self._bw_gradient_pre)
             bw_gradients = tf.gradients(bw_loss, images)
             assert len(bw_gradients) == 1
-            if bw_gradients[0] is None:  # pragma: no cover
+            if bw_gradients[0] is None:
                 bw_gradients[0] = tf.zeros_like(images)
             self._bw_gradient = tf.squeeze(bw_gradients[0], axis=0)
 
