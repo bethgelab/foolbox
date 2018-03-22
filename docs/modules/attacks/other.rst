@@ -5,3 +5,4 @@ Other attacks
 
 .. autoclass:: PrecomputedImagesAttack
    :members:
+   :special-members:
