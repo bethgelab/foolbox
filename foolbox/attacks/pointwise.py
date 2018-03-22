@@ -4,20 +4,13 @@ import logging
 
 from .base import Attack
 from .base import call_decorator
-from .blended_noise import BlendedUniformNoiseAttack
+from .saltandpepper import SaltAndPepperNoiseAttack
 
 
-class ResetAttack(Attack):
-    """Starts with an adversarial and resets as many values as possible
-    to the values of the original.
-
-    Based on the FindWitness algorithm described in [1].
-
-    References
-    ----------
-    .. [1] Daniel Lowd, Christopher Meek, "Adversarial Learning",
-           Proceedings of the Eleventh ACM SIGKDD International Conference
-           on Knowledge Discovery in Data Mining, KDD 2005.
+class PointwiseAttack(Attack):
+    """Starts with an adversarial and performs a binary search between
+    the adversarial and the original for each dimension of the input
+    individually.
 
     """
 
@@ -25,8 +18,9 @@ class ResetAttack(Attack):
     def __call__(self, input_or_adv, label=None, unpack=True,
                  starting_point=None, initialization_attack=None):
 
-        """Starts with an adversarial and resets as many values as possible
-        to the values of the original.
+        """Starts with an adversarial and performs a binary search between
+        the adversarial and the original for each dimension of the input
+        individually.
 
         Parameters
         ----------
@@ -69,7 +63,7 @@ class ResetAttack(Attack):
         N = a.original_image.size
 
         original = a.original_image.reshape(-1)
-        x = a.image.reshape(-1)
+        x = a.image.copy().reshape(-1)
 
         assert original.dtype == x.dtype
 
@@ -91,7 +85,8 @@ class ResetAttack(Attack):
 
                 # if adversarial, restart from there
                 if is_adversarial:
-                    logging.info('Reduced distance: {}'.format(a.distance))
+                    logging.info('Reset value to original -> new distance:'
+                                 ' {}'.format(a.distance))
                     break
 
                 # if not, undo change
@@ -99,6 +94,66 @@ class ResetAttack(Attack):
             else:
                 # no index was succesful
                 break
+
+        logging.info('Starting binary searches')
+
+        while True:
+            # draw random shuffling of all indices
+            indices = list(range(N))
+            random.shuffle(indices)
+
+            # whether that run through all values made any improvement
+            improved = False
+
+            logging.info('Starting new loop through all values')
+
+            for index in indices:
+                # change index
+                old_value = x[index]
+                original_value = original[index]
+                if old_value == original_value:
+                    continue
+                x[index] = original_value
+
+                # check if still adversarial
+                _, is_adversarial = a.predictions(x.reshape(shape))
+
+                # if adversarial, no binary search needed
+                if is_adversarial:
+                    logging.info('Reset value at {} to original ->'
+                                 ' new distance: {}'.format(
+                                     index, a.distance))
+                    improved = True
+                else:
+                    # binary search
+                    adv_value = old_value
+                    non_adv_value = original_value
+                    best_adv_value = self.binary_search(
+                        a, x, index, adv_value, non_adv_value, shape)
+
+                    if old_value != best_adv_value:
+                        x[index] = best_adv_value
+                        improved = True
+                        logging.info('Set value at {} from {} to {}'
+                                     ' (original has {}) ->'
+                                     ' new distance: {}'.format(
+                                         index, old_value, best_adv_value,
+                                         original_value, a.distance))
+
+            if not improved:
+                # no improvement for any of the indices
+                break
+
+    def binary_search(self, a, x, index, adv_value, non_adv_value, shape):
+        for i in range(10):
+            next_value = (adv_value + non_adv_value) / 2
+            x[index] = next_value
+            _, is_adversarial = a.predictions(x.reshape(shape))
+            if is_adversarial:
+                adv_value = next_value
+            else:
+                non_adv_value = next_value
+        return adv_value
 
     def initialize_starting_point(self, a):
         starting_point = self._starting_point
@@ -123,8 +178,8 @@ class ResetAttack(Attack):
             return
 
         if init_attack is None:
-            init_attack = BlendedUniformNoiseAttack
-            print(
+            init_attack = SaltAndPepperNoiseAttack
+            logging.info(
                 'Neither starting_point nor initialization_attack given.'
                 ' Falling back to {} for initialization.'.format(
                     init_attack.__name__))

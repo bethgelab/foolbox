@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import ResetAttack as Attack
+from foolbox.attacks import PointwiseAttack as Attack
 
 
 def test_attack(bn_adversarial):
