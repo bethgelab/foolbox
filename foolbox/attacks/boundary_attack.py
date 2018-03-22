@@ -285,20 +285,21 @@ class BoundaryAttack(Attack):
             rnd_normal_queue = queue.Queue(queue_size)
 
             try:
-                import randomstate
+                import randomgen
             except ImportError:  # pragma: no cover
                 raise ImportError('To use the BoundaryAttack,'
-                                  ' please install the randomstate'
-                                  ' module (e.g. pip install randomstate)')
+                                  ' please install the randomgen'
+                                  ' module (e.g. pip install randomgen)')
 
             def sample_std_normal(thread_id, shape, dtype):
                 # create a thread-specifc RNG
-                rng = randomstate.RandomState(seed=20 + thread_id)
+                rng = randomgen.RandomGenerator(
+                    randomgen.Xoroshiro128(seed=20 + thread_id))
 
                 t = threading.currentThread()
                 while getattr(t, 'do_run', True):
                     rnd_normal = rng.standard_normal(
-                        size=shape, dtype=dtype, method='zig')
+                        size=shape, dtype=dtype)
                     rnd_normal_queue.put(rnd_normal)
 
             self.printv('Using {} threads to create random numbers'.format(
@@ -698,12 +699,12 @@ class BoundaryAttack(Attack):
 
         if rng is None:
             try:
-                import randomstate
+                import randomgen
             except ImportError:  # pragma: no cover
                 raise ImportError('To use the BoundaryAttack,'
-                                  ' please install the randomstate'
-                                  ' module (e.g. pip install randomstate)')
-            rng = randomstate
+                                  ' please install the randomgen'
+                                  ' module (e.g. pip install randomgen)')
+            rng = randomgen.RandomGenerator()
 
         # ===========================================================
         # perform initial work
@@ -720,11 +721,11 @@ class BoundaryAttack(Attack):
         # draw a random direction
         # ===========================================================
 
-        # randomstate's rnd is faster and more flexible than numpy's if
+        # randomgen's rnd is faster and more flexible than numpy's if
         # has a dtype argument and supports the much faster Ziggurat method
         if rnd_normal_queue is None:
             perturbation = rng.standard_normal(
-                size=shape, dtype=original.dtype, method='zig')
+                size=shape, dtype=original.dtype)
         else:
             perturbation = rnd_normal_queue.get()
 
@@ -794,12 +795,12 @@ class BoundaryAttack(Attack):
 
         if rng is None:
             try:
-                import randomstate
+                import randomgen
             except ImportError:  # pragma: no cover
                 raise ImportError('To use the BoundaryAttack,'
-                                  ' please install the randomstate'
-                                  ' module (e.g. pip install randomstate)')
-            rng = randomstate
+                                  ' please install the randomgen'
+                                  ' module (e.g. pip install randomgen)')
+            rng = randomgen.RandomGenerator()
 
         # ===========================================================
         # perform initial work
@@ -816,11 +817,11 @@ class BoundaryAttack(Attack):
         # draw a random direction
         # ===========================================================
 
-        # randomstate's rnd is faster and more flexible than numpy's if
+        # randomgen's rnd is faster and more flexible than numpy's if
         # has a dtype argument and supports the much faster Ziggurat method
         if rnd_normal_queue is None:
             perturbation = rng.standard_normal(
-                size=shape, dtype=original.dtype, method='zig')
+                size=shape, dtype=original.dtype)
         else:
             perturbation = rnd_normal_queue.get()
 
