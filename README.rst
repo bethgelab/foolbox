@@ -15,6 +15,9 @@ You might want to have a look at our recently announced `Robust Vision Benchmark
 .. image:: https://coveralls.io/repos/github/bethgelab/foolbox/badge.svg
     :target: https://coveralls.io/github/bethgelab/foolbox
 
+.. image:: https://badge.fury.io/py/foolbox.svg
+    :target: https://badge.fury.io/py/foolbox
+
 
 
 =======
