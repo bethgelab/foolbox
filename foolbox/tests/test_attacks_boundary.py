@@ -10,7 +10,7 @@ from foolbox.attacks import BlendedUniformNoiseAttack
 # https://github.com/bashtage/randomgen/issues/11
 
 
-@pytest.mark.filterwarnings('ignore:ImportWarning')
+@pytest.mark.filterwarnings("ignore:can't resolve package")
 def test_attack(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
@@ -19,7 +19,7 @@ def test_attack(bn_adversarial):
     assert adv.distance.value < np.inf
 
 
-@pytest.mark.filterwarnings('ignore:ImportWarning')
+@pytest.mark.filterwarnings("ignore:can't resolve package")
 def test_attack_non_verbose(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
@@ -28,7 +28,7 @@ def test_attack_non_verbose(bn_adversarial):
     assert adv.distance.value < np.inf
 
 
-@pytest.mark.filterwarnings('ignore:ImportWarning')
+@pytest.mark.filterwarnings("ignore:can't resolve package")
 def test_attack_continue(bn_adversarial):
     adv = bn_adversarial
     attack1 = BlendedUniformNoiseAttack()
@@ -41,7 +41,7 @@ def test_attack_continue(bn_adversarial):
     assert adv.distance.value < d1
 
 
-@pytest.mark.filterwarnings('ignore:ImportWarning')
+@pytest.mark.filterwarnings("ignore:can't resolve package")
 def test_attack_parameters(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
@@ -63,7 +63,7 @@ def test_attack_parameters(bn_adversarial):
     assert adv.distance.value < np.inf
 
 
-@pytest.mark.filterwarnings('ignore:ImportWarning')
+@pytest.mark.filterwarnings("ignore:can't resolve package")
 def test_attack_parameters2(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
@@ -76,7 +76,7 @@ def test_attack_parameters2(bn_adversarial):
     assert adv.distance.value < np.inf
 
 
-@pytest.mark.filterwarnings('ignore:ImportWarning')
+@pytest.mark.filterwarnings("ignore:can't resolve package")
 def test_attack_parameters3(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
@@ -97,7 +97,7 @@ def test_attack_parameters3(bn_adversarial):
     assert adv.distance.value < np.inf
 
 
-@pytest.mark.filterwarnings('ignore:ImportWarning')
+@pytest.mark.filterwarnings("ignore:can't resolve package")
 def test_attack_gl(gl_bn_adversarial):
     adv = gl_bn_adversarial
     attack = BoundaryAttack()
@@ -106,7 +106,7 @@ def test_attack_gl(gl_bn_adversarial):
     assert adv.distance.value < np.inf
 
 
-@pytest.mark.filterwarnings('ignore:ImportWarning')
+@pytest.mark.filterwarnings("ignore:can't resolve package")
 def test_attack_impossible(bn_impossible):
     adv = bn_impossible
     attack = BoundaryAttack()
@@ -115,7 +115,7 @@ def test_attack_impossible(bn_impossible):
     assert adv.distance.value == np.inf
 
 
-@pytest.mark.filterwarnings('ignore:ImportWarning')
+@pytest.mark.filterwarnings("ignore:can't resolve package")
 def test_attack_convergence(bn_adversarial):
     adv = bn_adversarial
     attack1 = DeepFoolAttack()
