@@ -218,8 +218,8 @@ def test_tensorflow_model_non_diff(num_classes):
     g = tf.Graph()
     with g.as_default():
         images = tf.placeholder(tf.float32, (None, 5, 5, channels))
-        images = tf.cast(images > 0, tf.float32)
-        logits = mean_brightness_net(images)
+        images_nd = tf.cast(images > 0, tf.float32)
+        logits = mean_brightness_net(images_nd)
 
     with tf.Session(graph=g):
         model = TensorFlowModel(
