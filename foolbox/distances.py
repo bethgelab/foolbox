@@ -158,7 +158,7 @@ class MeanAbsoluteDistance(Distance):
     def _calculate(self):
         min_, max_ = self._bounds
         diff = (self.other - self.reference) / (max_ - min_)
-        value = np.mean(np.abs(diff))
+        value = np.mean(np.abs(diff)).astype(np.float64)
         n = self.reference.size
         gradient = 1 / n * np.sign(diff) / (max_ - min_)
         return value, gradient
@@ -178,7 +178,7 @@ class Linfinity(Distance):
     def _calculate(self):
         min_, max_ = self._bounds
         diff = (self.other - self.reference) / (max_ - min_)
-        value = np.max(np.abs(diff))
+        value = np.max(np.abs(diff)).astype(np.float64)
         gradient = None
         return value, gradient
 
