@@ -21,5 +21,6 @@ Decision-based attacks
 .. autoclass:: SaltAndPepperNoiseAttack
    :members:
 
-.. autoclass:: ResetAttack
+.. autoclass:: PointwiseAttack
    :members:
+   :special-members:
