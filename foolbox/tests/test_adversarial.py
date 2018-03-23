@@ -145,3 +145,5 @@ def test_inplace(bn_model, bn_adversarial, bn_label):
     assert np.argmax(bn_model.predictions(bn_adversarial.original_image)) == bn_label  # noqa: E501
     assert np.argmax(bn_model.predictions(bn_adversarial.image)) != bn_label
     assert not (bn_adversarial.image == bn_adversarial.original_image).all()
+    assert (bn_adversarial.distance.reference == bn_adversarial.original_image).all()  # noqa: E501
+    assert (bn_adversarial.distance.other == bn_adversarial.image).all()
