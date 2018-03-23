@@ -9,6 +9,7 @@ import numpy as np
 
 from foolbox import Adversarial
 from foolbox.distances import MSE
+import foolbox
 
 
 # def test_adversarial(bn_model, bn_criterion, bn_image, bn_label):
@@ -124,3 +125,25 @@ def test_adversarial(model, criterion, image, label):
     del model.predictions_and_gradient
 
     assert not adversarial.has_gradient()
+
+
+def test_inplace(bn_model, bn_adversarial, bn_label):
+    class TestAttack(foolbox.attacks.Attack):
+        @foolbox.attacks.base.call_decorator
+        def __call__(self, input_or_adv, label, unpack):
+            a = input_or_adv
+            x = np.zeros_like(a.original_image)
+            a.predictions(x)
+            x[:] = a.original_image
+
+    assert bn_adversarial.image is None
+    assert np.argmax(bn_model.predictions(bn_adversarial.original_image)) == bn_label  # noqa: E501
+    attack = TestAttack()
+    attack(bn_adversarial)
+    assert bn_adversarial.image is not None
+    assert bn_adversarial.distance.value > 0
+    assert np.argmax(bn_model.predictions(bn_adversarial.original_image)) == bn_label  # noqa: E501
+    assert np.argmax(bn_model.predictions(bn_adversarial.image)) != bn_label
+    assert not (bn_adversarial.image == bn_adversarial.original_image).all()
+    assert (bn_adversarial.distance.reference == bn_adversarial.original_image).all()  # noqa: E501
+    assert (bn_adversarial.distance.other == bn_adversarial.image).all()
