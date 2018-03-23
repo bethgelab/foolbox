@@ -129,6 +129,7 @@ class Adversarial(object):
             bounds=self.bounds())
 
     def __new_adversarial(self, image, in_bounds):
+        image = image.copy()  # to prevent inplace changes
         distance = self.normalized_distance(image)
         if in_bounds and self.__best_distance > distance:
             # new best adversarial
