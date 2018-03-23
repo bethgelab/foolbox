@@ -119,7 +119,7 @@ class PointwiseAttack(Attack):
                 _, is_adversarial = a.predictions(x.reshape(shape))
 
                 # if adversarial, no binary search needed
-                if is_adversarial:
+                if is_adversarial:  # pragma: no cover
                     logging.info('Reset value at {} to original ->'
                                  ' new distance: {}'.format(
                                      index, a.distance))
