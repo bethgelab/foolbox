@@ -8,10 +8,11 @@ with open(join(dirname(__file__), 'foolbox/VERSION')) as f:
     version = f.read().strip()
 
 try:
-    # obtain long description from README and CHANGES
+    # obtain long description from README
     # Specify encoding to get a unicode type in Python 2 and a str in Python 3
-    with io.open(join(dirname(__file__), 'README.rst'), 'r', encoding='utf-8') as f:  # noqa: E501
-        README = f.read()
+    readme_path = join(dirname(__file__), 'README.rst')
+    with io.open(readme_path, encoding='utf-8') as fr:
+        README = fr.read()
 except IOError:
     README = ''
 
