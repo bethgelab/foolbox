@@ -118,7 +118,7 @@ FGSM (GradientSignAttack)
    adversarial = attack(image[:,:,::-1], label)
 
 
-Creating a targeted adversaial for the Keras ResNet model
+Creating a targeted adversarial for the Keras ResNet model
 =========================================================
 
 .. code-block:: python3
