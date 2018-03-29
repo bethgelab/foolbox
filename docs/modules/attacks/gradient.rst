@@ -31,6 +31,14 @@ Gradient-based attacks
    :members:
    :special-members:
 
+.. autoclass:: DeepFoolL2Attack
+   :members:
+   :special-members:
+
+.. autoclass:: DeepFoolLinfinityAttack
+   :members:
+   :special-members:
+
 .. autoclass:: SLSQPAttack
    :members:
    :special-members:

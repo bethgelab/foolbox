@@ -18,12 +18,18 @@ Decision-based attacks
 .. autoclass:: AdditiveUniformNoiseAttack
    :members:
    :special-members:
+   :inherited-members:
 
 .. autoclass:: AdditiveGaussianNoiseAttack
    :members:
    :special-members:
+   :inherited-members:
 
 .. autoclass:: SaltAndPepperNoiseAttack
+   :members:
+   :special-members:
+
+.. autoclass:: BlendedUniformNoiseAttack
    :members:
    :special-members:
 

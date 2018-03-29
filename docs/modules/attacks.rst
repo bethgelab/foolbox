@@ -50,9 +50,9 @@
    ContrastReductionAttack
    AdditiveUniformNoiseAttack
    AdditiveGaussianNoiseAttack
-   BlendedUniformNoiseAttack
    SaltAndPepperNoiseAttack
-   ResetAttack
+   BlendedUniformNoiseAttack
+   PointwiseAttack
 
 
 .. rubric:: :doc:`attacks/other`
