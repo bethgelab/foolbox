@@ -6,10 +6,6 @@ from foolbox.attacks import DeepFoolAttack
 from foolbox.attacks import BlendedUniformNoiseAttack
 
 
-# Filter warnings because of this issue:
-# https://github.com/bashtage/randomgen/issues/11
-
-
 def test_attack(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
@@ -71,6 +67,7 @@ def test_attack_parameters2(bn_adversarial):
     assert adv.distance.value < np.inf
 
 
+@pytest.mark.filterwarnings("ignore:Batch size tuning after so few steps")
 def test_attack_parameters3(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
@@ -107,6 +104,7 @@ def test_attack_impossible(bn_impossible):
     assert adv.distance.value == np.inf
 
 
+@pytest.mark.filterwarnings("ignore:Internal inconsistency, probably caused")
 def test_attack_convergence(bn_adversarial):
     adv = bn_adversarial
     attack1 = DeepFoolAttack()
