@@ -600,7 +600,7 @@ class BoundaryAttack(Attack):
             self.log_step(step, distance, message)
             sys.stdout.flush()
 
-            if self.stats_numerical_problems > 1000:
+            if self.stats_numerical_problems > 1000:  # pragma: no cover
                 warnings.warn('Too many intenral inconsistencies,'
                               ' aborting attack.')
                 break
