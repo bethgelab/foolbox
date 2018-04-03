@@ -562,6 +562,7 @@ class BoundaryAttack(Attack):
             # Handle the new adversarial
             # ===========================================================
 
+            message = ''
             if new_perturbed is not None:
                 if not new_distance < distance:
                     # assert not is_best  # consistency with adversarial object
@@ -580,8 +581,6 @@ class BoundaryAttack(Attack):
                     # update the variables
                     perturbed = new_perturbed
                     distance = new_distance
-            else:
-                message = ''
 
             # ===========================================================
             # Update step sizes
@@ -600,6 +599,11 @@ class BoundaryAttack(Attack):
             message += ' (took {:.5f} seconds)'.format(t_step)
             self.log_step(step, distance, message)
             sys.stdout.flush()
+
+            if self.stats_numerical_problems > 1000:  # pragma: no cover
+                warnings.warn('Too many intenral inconsistencies,'
+                              ' aborting attack.')
+                break
 
         # ===========================================================
         # Stop threads that generate random numbers
