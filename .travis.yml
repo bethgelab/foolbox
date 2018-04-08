@@ -54,10 +54,12 @@ before_install:
     - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then travis_wait travis_retry pip install https://cntk.ai/PythonWheel/CPU-Only/cntk-2.3-cp35-cp35m-linux_x86_64.whl; fi
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then travis_wait travis_retry pip install https://cntk.ai/PythonWheel/CPU-Only/cntk-2.3-cp36-cp36m-linux_x86_64.whl; fi
     - python -c 'import cntk; print(cntk.__version__)'
+
+    - pip install pytest-faulthandler
 install:
     - pip install -e .
 script:
-    - pytest
+    - pytest -vs
     - flake8 --ignore E402,E741 .
 after_success:
     - coveralls
