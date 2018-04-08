@@ -1,11 +1,11 @@
 import tensorflow
 print(tensorflow.__version__)
-import theano
-print(theano.__version__)
-import mxnet
-print(mxnet.__version__)
-import keras
-print(keras.__version__)
+# import theano
+# print(theano.__version__)
+# import mxnet
+# print(mxnet.__version__)
+# import keras
+# print(keras.__version__)
 import torch
 print(torch.__version__)
 
