@@ -19,9 +19,7 @@ def test_pytorch_model(num_classes):
 
         def forward(self, x):
             x = torch.mean(x, 3)
-            x = torch.squeeze(x, dim=3)
             x = torch.mean(x, 2)
-            x = torch.squeeze(x, dim=2)
             logits = x
             return logits
 
@@ -69,9 +67,7 @@ def test_pytorch_model_preprocessing():
 
         def forward(self, x):
             x = torch.mean(x, 3)
-            x = torch.squeeze(x, dim=3)
             x = torch.mean(x, 2)
-            x = torch.squeeze(x, dim=2)
             logits = x
             return logits
 
@@ -134,9 +130,7 @@ def test_pytorch_model_gradient():
 
         def forward(self, x):
             x = torch.mean(x, 3)
-            x = torch.squeeze(x, dim=3)
             x = torch.mean(x, 2)
-            x = torch.squeeze(x, dim=2)
             logits = x
             return logits
 
@@ -186,9 +180,7 @@ def test_pytorch_backward(num_classes):
 
         def forward(self, x):
             x = torch.mean(x, 3)
-            x = torch.squeeze(x, dim=3)
             x = torch.mean(x, 2)
-            x = torch.squeeze(x, dim=2)
             logits = x
             return logits
 
