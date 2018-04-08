@@ -1,3 +1,14 @@
+import tensorflow
+print(tensorflow.__version__)
+import theano
+print(theano.__version__)
+import mxnet
+print(mxnet.__version__)
+import keras
+print(keras.__version__)
+import torch
+print(torch.__version__)
+
 import sys
 if sys.version_info > (3, 2):
     from unittest.mock import Mock
