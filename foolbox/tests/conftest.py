@@ -1,3 +1,9 @@
+# the different frameworks interfer with each other and
+# sometimes cause segfaults or similar problems;
+# choosing the right import order seems to be a
+# workaround; given the current test order,
+# first import tensorflow, then pytorch and then
+# according to test order seems to solve it
 import tensorflow
 print(tensorflow.__version__)
 # import theano
@@ -8,6 +14,7 @@ print(tensorflow.__version__)
 # print(keras.__version__)
 import torch
 print(torch.__version__)
+
 
 import sys
 if sys.version_info > (3, 2):

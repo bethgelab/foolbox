@@ -63,8 +63,7 @@ install:
     - pip install -e .
 script:
     - pytest --collect-only
-    - pytest -vs foolbox/tests/test_models_pytorch.py
-    - pytest -vs
+    - pytest
     - flake8 --ignore E402,E741 .
 after_success:
     - coveralls

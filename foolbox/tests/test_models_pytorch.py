@@ -1,6 +1,3 @@
-import sys
-print(sys.modules.keys())
-
 import pytest
 import numpy as np
 
