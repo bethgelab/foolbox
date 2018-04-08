@@ -61,7 +61,7 @@ before_install:
 install:
     - pip install -e .
 script:
-    - pytest -vs
+    - pytest -vs foolbox/tests/test_models_pytorch.py
     - flake8 --ignore E402,E741 .
 after_success:
     - coveralls
