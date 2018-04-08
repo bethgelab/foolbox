@@ -12,7 +12,6 @@ from contextlib import contextmanager
 import numpy as np
 import pytest
 from PIL import Image
-import tensorflow as tf
 
 from foolbox.criteria import Misclassification
 from foolbox.criteria import TargetClass
@@ -65,6 +64,8 @@ def bn_model():
     """Creates a simple brightness model that does not require training.
 
     """
+
+    import tensorflow as tf
 
     bounds = (0, 1)
     channel_axis = 3
