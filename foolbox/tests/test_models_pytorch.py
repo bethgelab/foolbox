@@ -1,13 +1,13 @@
 import pytest
 import numpy as np
-import torch
-import torch.nn as nn
 
 from foolbox.models import PyTorchModel
 
 
 @pytest.mark.parametrize('num_classes', [10, 1000])
 def test_pytorch_model(num_classes):
+    import torch
+    import torch.nn as nn
 
     bounds = (0, 255)
     channels = num_classes
@@ -19,9 +19,7 @@ def test_pytorch_model(num_classes):
 
         def forward(self, x):
             x = torch.mean(x, 3)
-            x = torch.squeeze(x, dim=3)
             x = torch.mean(x, 2)
-            x = torch.squeeze(x, dim=2)
             logits = x
             return logits
 
@@ -55,6 +53,9 @@ def test_pytorch_model(num_classes):
 
 
 def test_pytorch_model_preprocessing():
+    import torch
+    import torch.nn as nn
+
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
@@ -66,9 +67,7 @@ def test_pytorch_model_preprocessing():
 
         def forward(self, x):
             x = torch.mean(x, 3)
-            x = torch.squeeze(x, dim=3)
             x = torch.mean(x, 2)
-            x = torch.squeeze(x, dim=2)
             logits = x
             return logits
 
@@ -117,6 +116,9 @@ def test_pytorch_model_preprocessing():
 
 
 def test_pytorch_model_gradient():
+    import torch
+    import torch.nn as nn
+
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
@@ -128,9 +130,7 @@ def test_pytorch_model_gradient():
 
         def forward(self, x):
             x = torch.mean(x, 3)
-            x = torch.squeeze(x, dim=3)
             x = torch.mean(x, 2)
-            x = torch.squeeze(x, dim=2)
             logits = x
             return logits
 
@@ -167,6 +167,8 @@ def test_pytorch_model_gradient():
 
 @pytest.mark.parametrize('num_classes', [10, 1000])
 def test_pytorch_backward(num_classes):
+    import torch
+    import torch.nn as nn
 
     bounds = (0, 255)
     channels = num_classes
@@ -178,9 +180,7 @@ def test_pytorch_backward(num_classes):
 
         def forward(self, x):
             x = torch.mean(x, 3)
-            x = torch.squeeze(x, dim=3)
             x = torch.mean(x, 2)
-            x = torch.squeeze(x, dim=2)
             logits = x
             return logits
 

@@ -1,3 +1,21 @@
+# the different frameworks interfer with each other and
+# sometimes cause segfaults or similar problems;
+# choosing the right import order seems to be a
+# workaround; given the current test order,
+# first import tensorflow, then pytorch and then
+# according to test order seems to solve it
+import tensorflow
+print(tensorflow.__version__)
+# import theano
+# print(theano.__version__)
+# import mxnet
+# print(mxnet.__version__)
+# import keras
+# print(keras.__version__)
+import torch
+print(torch.__version__)
+
+
 import sys
 if sys.version_info > (3, 2):
     from unittest.mock import Mock
@@ -12,7 +30,6 @@ from contextlib import contextmanager
 import numpy as np
 import pytest
 from PIL import Image
-import tensorflow as tf
 
 from foolbox.criteria import Misclassification
 from foolbox.criteria import TargetClass
@@ -66,6 +83,8 @@ def bn_model():
 
     """
 
+    import tensorflow as tf
+
     bounds = (0, 1)
     channel_axis = 3
     channels = 10  # == num_classes
@@ -102,9 +121,7 @@ def bn_model_pytorch():
         def forward(self, x):
             assert isinstance(x.data, torch.FloatTensor)
             x = torch.mean(x, 3)
-            x = torch.squeeze(x, dim=3)
             x = torch.mean(x, 2)
-            x = torch.squeeze(x, dim=2)
             logits = x
             return logits
 

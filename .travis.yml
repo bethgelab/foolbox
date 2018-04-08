@@ -24,17 +24,23 @@ before_install:
     - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then pip install -r requirements-dev-py3.txt; fi
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install -r requirements-dev-py3.txt; fi
     - travis_wait travis_retry pip install -r requirements-dev.txt
+
     - travis_wait travis_retry pip install --upgrade tensorflow
+    - python -c 'import tensorflow; print(tensorflow.__version__)'
     - travis_wait travis_retry pip install --upgrade theano
+    - python -c 'import theano; print(theano.__version__)'
     - travis_wait travis_retry pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
-    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp27-none-linux_x86_64.whl; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp35-cp35m-linux_x86_64.whl; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp36-cp36m-linux_x86_64.whl; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then travis_wait travis_retry pip install https://cntk.ai/PythonWheel/CPU-Only/cntk-2.3-cp27-cp27mu-linux_x86_64.whl; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then travis_wait travis_retry pip install https://cntk.ai/PythonWheel/CPU-Only/cntk-2.3-cp35-cp35m-linux_x86_64.whl; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then travis_wait travis_retry pip install https://cntk.ai/PythonWheel/CPU-Only/cntk-2.3-cp36-cp36m-linux_x86_64.whl; fi
+    - python -c 'import lasagne; print(lasagne.__version__)'
+
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then travis_wait travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.3.1-cp27-cp27mu-linux_x86_64.whl; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then travis_wait travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.3.1-cp35-cp35m-linux_x86_64.whl; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then travis_wait travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.3.1-cp36-cp36m-linux_x86_64.whl; fi
+    - python -c 'import torch; print(torch.__version__)'
+
     - travis_wait travis_retry pip install --upgrade keras>=2.1.5
+    - python -c 'import keras; print(keras.__version__)'
     - travis_wait travis_retry pip install --upgrade mxnet==0.10.0
+    - python -c 'import mxnet; print(mxnet.__version__)'
 
     #install open mpi for cntk
     - mkdir /tmp/mpi
@@ -43,9 +49,20 @@ before_install:
     - unzip ./openmpi_1.10-3.zip
     - sudo dpkg -i openmpi_1.10-3.deb
     - popd
+
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then travis_wait travis_retry pip install https://cntk.ai/PythonWheel/CPU-Only/cntk-2.3-cp27-cp27mu-linux_x86_64.whl; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then travis_wait travis_retry pip install https://cntk.ai/PythonWheel/CPU-Only/cntk-2.3-cp35-cp35m-linux_x86_64.whl; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then travis_wait travis_retry pip install https://cntk.ai/PythonWheel/CPU-Only/cntk-2.3-cp36-cp36m-linux_x86_64.whl; fi
+    - python -c 'import cntk; print(cntk.__version__)'
+
+    - python -c 'import tensorflow; import torch; print(tensorflow.__version__); print(torch.__version__)'
+    - python -c 'import torch; import tensorflow; print(tensorflow.__version__); print(torch.__version__)'
+
+    - pip install pytest-faulthandler
 install:
     - pip install -e .
 script:
+    - pytest --collect-only
     - pytest
     - flake8 --ignore E402,E741 .
 after_success:
