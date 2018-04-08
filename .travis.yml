@@ -55,7 +55,8 @@ before_install:
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then travis_wait travis_retry pip install https://cntk.ai/PythonWheel/CPU-Only/cntk-2.3-cp36-cp36m-linux_x86_64.whl; fi
     - python -c 'import cntk; print(cntk.__version__)'
 
-    - python -c 'import torch; print(torch.__version__)'
+    - python -c 'import tensorflow; import torch; print(tensorflow.__version__); print(torch.__version__)'
+    - python -c 'import torch; import tensorflow; print(tensorflow.__version__); print(torch.__version__)'
 
     - pip install pytest-faulthandler
 install:
