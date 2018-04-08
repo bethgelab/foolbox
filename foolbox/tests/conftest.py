@@ -121,9 +121,7 @@ def bn_model_pytorch():
         def forward(self, x):
             assert isinstance(x.data, torch.FloatTensor)
             x = torch.mean(x, 3)
-            x = torch.squeeze(x, dim=3)
             x = torch.mean(x, 2)
-            x = torch.squeeze(x, dim=2)
             logits = x
             return logits
 
