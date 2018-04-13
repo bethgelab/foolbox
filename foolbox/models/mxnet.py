@@ -4,6 +4,7 @@ import numpy as np
 
 from .base import DifferentiableModel
 
+
 class MXNetModel(DifferentiableModel):
     """Creates a :class:`Model` instance from existing `MXNet` symbols and weights.
 
@@ -63,9 +64,10 @@ class MXNetModel(DifferentiableModel):
         self._label_sym = label
 
         log_softmax = mx.sym.log_softmax(logits)
-        loss = mx.sym.sum(mx.sym.one_hot(indices=label, depth=num_classes) * log_softmax)
+        loss = mx.sym.sum(
+            mx.sym.one_hot(indices=label, depth=num_classes) * log_softmax)
 
-        #loss = mx.symbol.softmax_cross_entropy(logits, label)
+        # loss = mx.symbol.softmax_cross_entropy(logits, label)
         self._loss_sym = loss
 
         self._args_map = args.copy()
