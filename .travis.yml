@@ -39,7 +39,7 @@ before_install:
 
     - travis_wait travis_retry pip install --upgrade keras>=2.1.5
     - python -c 'import keras; print(keras.__version__)'
-    - travis_wait travis_retry pip install --upgrade mxnet==0.10.0
+    - travis_wait travis_retry pip install --upgrade mxnet>=1.1.0
     - python -c 'import mxnet; print(mxnet.__version__)'
 
     #install open mpi for cntk
