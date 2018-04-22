@@ -167,7 +167,7 @@ class DeepFoolAttack(Attack):
 class DeepFoolL2Attack(DeepFoolAttack):
     def __call__(self, input_or_adv, label=None, unpack=True,
                  steps=100, subsample=10):
-        super(DeepFoolL2Attack, self).__call__(
+        return super(DeepFoolL2Attack, self).__call__(
             input_or_adv, label=label, unpack=unpack,
             steps=steps, subsample=subsample, p=2)
 
@@ -175,6 +175,6 @@ class DeepFoolL2Attack(DeepFoolAttack):
 class DeepFoolLinfinityAttack(DeepFoolAttack):
     def __call__(self, input_or_adv, label=None, unpack=True,
                  steps=100, subsample=10):
-        super(DeepFoolLinfinityAttack, self).__call__(
+        return super(DeepFoolLinfinityAttack, self).__call__(
             input_or_adv, label=label, unpack=unpack,
             steps=steps, subsample=subsample, p=np.inf)
