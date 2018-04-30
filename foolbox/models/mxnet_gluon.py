@@ -6,16 +6,12 @@ import numpy as np
 
 
 class MXNetGluonModel(DifferentiableModel):
-    """Creates a :class:`Model` instance from existing `MXNet` symbols and weights.
+    """Creates a :class:`Model` instance from an existing `MXNet Gluon` Block.
 
     Parameters
     ----------
-    data : `mxnet.symbol.Variable`
-        The input to the model.
-    logits : `mxnet.symbol.Symbol`
-        The predictions of the model, before the softmax.
-    args : `dictionary mapping str to mxnet.nd.array`
-        The parameters of the model.
+    block : `mxnet.gluon.Block`
+        The Gluon Block representing the model to be run.
     ctx : `mxnet.context.Context`
         The device, e.g. mxnet.cpu() or mxnet.gpu().
     num_classes : int
@@ -25,8 +21,6 @@ class MXNetGluonModel(DifferentiableModel):
         (0, 1) or (0, 255).
     channel_axis : int
         The index of the axis that represents color channels.
-    aux_states : `dictionary mapping str to mxnet.nd.array`
-        The states of auxiliary parameters of the model.
     preprocessing: 2-element tuple with floats or numpy arrays
         Elementwises preprocessing of input; we first subtract the first
         element of preprocessing from the input and then divide the input by
@@ -59,36 +53,34 @@ class MXNetGluonModel(DifferentiableModel):
     def num_classes(self):
         return self._num_classes
 
-    def batch_predictions(self, image):
+    def batch_predictions(self, images):
         import mxnet as mx
-        image = self._process_input(image)
-        data_array = mx.nd.array(image, ctx=self._device)
+        images = self._process_input(images)
+        data_array = mx.nd.array(images, ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
             L = self._block(data_array)
-        return np.squeeze(L.asnumpy(), axis=0)
-
-    def predictions(self, image):
-        return self.batch_predictions(image)
+        return L.asnumpy()
 
     def predictions_and_gradient(self, image, label):
         import mxnet as mx
         image = self._process_input(image)
         label = mx.nd.array([label])
-        data_array = mx.nd.array(image, ctx=self._device)
+        data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
             L = self._block(data_array)
             loss = mx.nd.softmax_cross_entropy(L, label)
             loss.backward()
-        return np.squeeze(L.asnumpy(), axis=0),
-        self._process_gradient(data_array.grad.asnumpy())
+        return np.squeeze(L.asnumpy(), axis=0), \
+            np.squeeze(self._process_gradient(data_array.grad.asnumpy()),
+                       axis=0)
 
     def _loss_fn(self, image, label):
         import mxnet as mx
         image = self._process_input(image)
         label = mx.nd.array([label])
-        data_array = mx.nd.array(image, ctx=self._device)
+        data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
             L = self._block(data_array)

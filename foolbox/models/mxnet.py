@@ -63,7 +63,9 @@ class MXNetModel(DifferentiableModel):
         label = mx.symbol.Variable('label')
         self._label_sym = label
 
+        # workaround for https://github.com/apache/incubator-mxnet/issues/6874
         log_softmax = mx.sym.log_softmax(logits)
+
         loss = mx.sym.sum(
             mx.sym.one_hot(indices=label, depth=num_classes) * log_softmax)
 
