@@ -53,17 +53,23 @@ class PyTorchModel(DifferentiableModel):
     def batch_predictions(self, images):
         # lazy import
         import torch
+        from torch.autograd import Variable
 
-        with torch.no_grad():
-            images = self._process_input(images)
-            n = len(images)
-            images = torch.from_numpy(images)
-            if self.cuda:  # pragma: no cover
-                images = images.cuda()
+        images = self._process_input(images)
+        n = len(images)
+        images = torch.from_numpy(images)
+        if self.cuda:  # pragma: no cover
+            images = images.cuda()
+        if torch.__version__[:3] < '0.4':
+            images = Variable(images, volatile=True)
             predictions = self._model(images)
-            if self.cuda:  # pragma: no cover
-                predictions = predictions.cpu()
-            predictions = predictions.numpy()
+            predictions = predictions.data
+        else:
+            with torch.no_grad():
+                predictions = self._model(images)
+        if self.cuda:  # pragma: no cover
+            predictions = predictions.cpu()
+        predictions = predictions.numpy()
         assert predictions.ndim == 2
         assert predictions.shape == (n, self.num_classes())
         return predictions
