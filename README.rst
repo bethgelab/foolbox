@@ -1,11 +1,3 @@
-.. image:: http://bethgelab.org/media/banners/benchmark_banner_small.png
-    :target: https://robust.vision/benchmark
-
-You might want to have a look at our recently announced `Robust Vision Benchmark <https://robust.vision/benchmark>`__.
-
-------------
-
-
 .. image:: https://readthedocs.org/projects/foolbox/badge/?version=latest
     :target: https://foolbox.readthedocs.io/en/latest/
 
@@ -160,3 +152,9 @@ Authors
 * `Jonas Rauber <https://github.com/jonasrauber>`_
 * `Wieland Brendel <https://github.com/wielandbrendel>`_
 
+------------
+
+.. image:: http://bethgelab.org/media/banners/benchmark_banner_small.png
+    :target: https://robust.vision/benchmark
+
+You might want to have a look at our recently announced `Robust Vision Benchmark <https://robust.vision/benchmark>`__.
