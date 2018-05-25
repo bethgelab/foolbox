@@ -63,7 +63,13 @@ class MXNetModel(DifferentiableModel):
         label = mx.symbol.Variable('label')
         self._label_sym = label
 
-        loss = mx.symbol.softmax_cross_entropy(logits, label)
+        # workaround for https://github.com/apache/incubator-mxnet/issues/6874
+        log_softmax = mx.sym.log_softmax(logits)
+
+        loss = mx.sym.sum(
+            mx.sym.one_hot(indices=label, depth=num_classes) * log_softmax)
+
+        # loss = mx.symbol.softmax_cross_entropy(logits, label)
         self._loss_sym = loss
 
         self._args_map = args.copy()
