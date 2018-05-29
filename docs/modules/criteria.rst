@@ -12,6 +12,9 @@ Detailed description
 .. autoclass:: Misclassification
    :members:
 
+.. autoclass:: ConfidentMisclassification
+   :members:
+
 .. autoclass:: TopKMisclassification
    :members:
 

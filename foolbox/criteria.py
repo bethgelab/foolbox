@@ -185,6 +185,34 @@ class Misclassification(Criterion):
         return top1 != label
 
 
+class ConfidentMisclassification(Criterion):
+    """Defines adversarials as images for which the probability
+    of any class other than the original is above a given threshold.
+
+    Parameters
+    ----------
+    p : float
+        The threshold probability. If the probability of any class
+        other than the original is above this threshold, the image is
+        considered an adversarial. It must satisfy 0 <= p <= 1.
+
+    """
+
+    def __init__(self, p):
+        super(ConfidentMisclassification, self).__init__()
+        assert 0 <= p <= 1
+        self.p = p
+
+    def name(self):
+        return '{}-{:.04f}'.format(
+            self.__class__.__name__, self.p)
+
+    def is_adversarial(self, predictions, label):
+        top1 = np.argmax(predictions)
+        probabilities = softmax(predictions)
+        return (np.max(probabilities) > self.p) and (top1 != label)
+
+
 class TopKMisclassification(Criterion):
     """Defines adversarials as images for which the original class is
     not one of the top k predicted classes.
