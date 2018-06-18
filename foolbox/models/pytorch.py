@@ -60,7 +60,8 @@ class PyTorchModel(DifferentiableModel):
         images = torch.from_numpy(images)
         if self.cuda:  # pragma: no cover
             images = images.cuda()
-        if torch.__version__[:3] < '0.4':
+        version = torch.__version__.split('.')[:2]
+        if int(version[0]) == 0 and int(version[1]) < 4:
             images = Variable(images, volatile=True)
             predictions = self._model(images)
             predictions = predictions.data
