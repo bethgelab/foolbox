@@ -66,11 +66,14 @@ class PyTorchModel(DifferentiableModel):
             predictions = self._model(images)
             predictions = predictions.data
         else:
-            with torch.no_grad():
-                predictions = self._model(images)
+            predictions = self._model(images)
+            # with torch.no_grad():
+            #     # if a model requires gradients for inference,
+            #     # it should overwrite this using a torch.enable_grad()
+            #     predictions = self._model(images)
         if self.cuda:  # pragma: no cover
             predictions = predictions.cpu()
-        predictions = predictions.numpy()
+        predictions = predictions.detach().numpy()
         assert predictions.ndim == 2
         assert predictions.shape == (n, self.num_classes())
         return predictions
