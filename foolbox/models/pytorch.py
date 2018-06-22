@@ -88,7 +88,9 @@ class PyTorchModel(DifferentiableModel):
             #     predictions = self._model(images)
         if self.cuda:  # pragma: no cover
             predictions = predictions.cpu()
-        predictions = predictions.detach().numpy()
+        if not self._old_pytorch():
+            predictions = predictions.detach()
+        predictions = predictions.numpy()
         assert predictions.ndim == 2
         assert predictions.shape == (n, self.num_classes())
         return predictions
@@ -130,6 +132,8 @@ class PyTorchModel(DifferentiableModel):
         if self.cuda:  # pragma: no cover
             predictions = predictions.cpu()
 
+        if not self._old_pytorch():
+            predictions = predictions.detach()
         predictions = predictions.numpy()
         predictions = np.squeeze(predictions, axis=0)
         assert predictions.ndim == 1
@@ -139,6 +143,8 @@ class PyTorchModel(DifferentiableModel):
             grad = grad.data
         if self.cuda:  # pragma: no cover
             grad = grad.cpu()
+        if not self._old_pytorch():
+            grad = grad.detach()
         grad = grad.numpy()
         grad = self._process_gradient(grad)
         grad = np.squeeze(grad, axis=0)
@@ -217,6 +223,8 @@ class PyTorchModel(DifferentiableModel):
             grad = grad.data
         if self.cuda:  # pragma: no cover
             grad = grad.cpu()
+        if not self._old_pytorch():
+            grad = grad.detach()
         grad = grad.numpy()
         grad = self._process_gradient(grad)
         grad = np.squeeze(grad, axis=0)
