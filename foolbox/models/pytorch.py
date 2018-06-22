@@ -67,7 +67,7 @@ class PyTorchModel(DifferentiableModel):
     def batch_predictions(self, images):
         # lazy import
         import torch
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             from torch.autograd import Variable
 
         images = self._process_input(images)
@@ -75,7 +75,7 @@ class PyTorchModel(DifferentiableModel):
         images = torch.from_numpy(images)
         if self.cuda:  # pragma: no cover
             images = images.cuda()
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             images = Variable(images, volatile=True)
             predictions = self._model(images)
             predictions = predictions.data
@@ -102,7 +102,7 @@ class PyTorchModel(DifferentiableModel):
         # lazy import
         import torch
         import torch.nn as nn
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             from torch.autograd import Variable
 
         image = self._process_input(image)
@@ -117,7 +117,7 @@ class PyTorchModel(DifferentiableModel):
         if self.cuda:  # pragma: no cover
             images = images.cuda()
 
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             target = Variable(target)
             images = Variable(images, requires_grad=True)
         else:
@@ -129,7 +129,7 @@ class PyTorchModel(DifferentiableModel):
         loss.backward()
         grad = images.grad
 
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             predictions = predictions.data
         if self.cuda:  # pragma: no cover
             predictions = predictions.cpu()
@@ -141,7 +141,7 @@ class PyTorchModel(DifferentiableModel):
         assert predictions.ndim == 1
         assert predictions.shape == (self.num_classes(),)
 
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             grad = grad.data
         if self.cuda:  # pragma: no cover
             grad = grad.cpu()
@@ -158,7 +158,7 @@ class PyTorchModel(DifferentiableModel):
         # lazy import
         import torch
         import torch.nn as nn
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             from torch.autograd import Variable
 
         image = self._process_input(image)
@@ -166,18 +166,18 @@ class PyTorchModel(DifferentiableModel):
         target = torch.from_numpy(target)
         if self.cuda:  # pragma: no cover
             target = target.cuda()
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             target = Variable(target)
 
         images = torch.from_numpy(image[None])
         if self.cuda:  # pragma: no cover
             images = images.cuda()
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             images = Variable(images, volatile=True)
         predictions = self._model(images)
         ce = nn.CrossEntropyLoss()
         loss = ce(predictions, target)
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             loss = loss.data
         if self.cuda:  # pragma: no cover
             loss = loss.cpu()
@@ -187,7 +187,7 @@ class PyTorchModel(DifferentiableModel):
     def backward(self, gradient, image):
         # lazy import
         import torch
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             from torch.autograd import Variable
 
         assert gradient.ndim == 1
@@ -195,7 +195,7 @@ class PyTorchModel(DifferentiableModel):
         gradient = torch.from_numpy(gradient)
         if self.cuda:  # pragma: no cover
             gradient = gradient.cuda()
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             gradient = Variable(gradient)
 
         image = self._process_input(image)
@@ -204,7 +204,7 @@ class PyTorchModel(DifferentiableModel):
         images = torch.from_numpy(images)
         if self.cuda:  # pragma: no cover
             images = images.cuda()
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             images = Variable(images, requires_grad=True)
         else:
             images.requires_grad_()
@@ -223,7 +223,7 @@ class PyTorchModel(DifferentiableModel):
 
         grad = images.grad
 
-        if self._old_pytorch():
+        if self._old_pytorch():  # pragma: no cover
             grad = grad.data
         if self.cuda:  # pragma: no cover
             grad = grad.cpu()
