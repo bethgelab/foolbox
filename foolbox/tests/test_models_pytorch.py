@@ -27,8 +27,7 @@ def test_pytorch_model(num_classes):
     model = PyTorchModel(
         model,
         bounds=bounds,
-        num_classes=num_classes,
-        cuda=False)
+        num_classes=num_classes)
 
     test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
     test_label = 7
@@ -78,21 +77,18 @@ def test_pytorch_model_preprocessing():
     model1 = PyTorchModel(
         model,
         bounds=bounds,
-        num_classes=num_classes,
-        cuda=False)
+        num_classes=num_classes)
 
     model2 = PyTorchModel(
         model,
         bounds=bounds,
         num_classes=num_classes,
-        cuda=False,
         preprocessing=preprocessing)
 
     model3 = PyTorchModel(
         model,
         bounds=bounds,
-        num_classes=num_classes,
-        cuda=False)
+        num_classes=num_classes)
 
     np.random.seed(22)
     test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
@@ -142,7 +138,6 @@ def test_pytorch_model_gradient():
         model,
         bounds=bounds,
         num_classes=num_classes,
-        cuda=False,
         preprocessing=preprocessing)
 
     epsilon = 1e-2
@@ -188,8 +183,7 @@ def test_pytorch_backward(num_classes):
     model = PyTorchModel(
         model,
         bounds=bounds,
-        num_classes=num_classes,
-        cuda=False)
+        num_classes=num_classes)
 
     test_image = np.random.rand(channels, 5, 5).astype(np.float32)
     test_grad_pre = np.random.rand(num_classes).astype(np.float32)
