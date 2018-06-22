@@ -120,6 +120,8 @@ class PyTorchModel(DifferentiableModel):
         if self._old_pytorch():
             target = Variable(target)
             images = Variable(images, requires_grad=True)
+        else:
+            images.requires_grad_()
 
         predictions = self._model(images)
         ce = nn.CrossEntropyLoss()
@@ -204,6 +206,8 @@ class PyTorchModel(DifferentiableModel):
             images = images.cuda()
         if self._old_pytorch():
             images = Variable(images, requires_grad=True)
+        else:
+            images.requires_grad_()
         predictions = self._model(images)
 
         print(predictions.size())
