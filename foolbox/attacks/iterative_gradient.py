@@ -1,65 +1,56 @@
 from __future__ import division
 import numpy as np
 from collections import Iterable
-import logging
 import abc
 
 from .base import Attack
 from .base import call_decorator
 
 
-class SingleStepGradientBaseAttack(Attack):
-    """Common base class for single step gradient attacks."""
+class IterativeGradientBaseAttack(Attack):
+    """Common base class for iterative gradient attacks."""
 
     @abc.abstractmethod
-    def _gradient(self, a):
+    def _gradient(self, a, x):
         raise NotImplementedError
 
-    def _run(self, a, epsilons, max_epsilon):
+    def _run(self, a, epsilons, max_epsilon, steps):
         if not a.has_gradient():
             return
 
         image = a.original_image
         min_, max_ = a.bounds()
 
-        gradient = self._gradient(a)
-
         if not isinstance(epsilons, Iterable):
-            epsilons = np.linspace(0, max_epsilon, num=epsilons + 1)[1:]
-            decrease_if_first = True
-        else:
-            decrease_if_first = False
+            assert isinstance(epsilons, int)
+            max_epsilon_iter = max_epsilon / steps
+            epsilons = np.linspace(0, max_epsilon_iter, num=epsilons + 1)[1:]
 
-        for _ in range(2):  # to repeat with decreased epsilons if necessary
-            for i, epsilon in enumerate(epsilons):
-                perturbed = image + gradient * epsilon
+        for epsilon in epsilons:
+            perturbed = image
+
+            for _ in range(steps):
+                gradient = self._gradient(a, perturbed)
+
+                perturbed = perturbed + gradient * epsilon
                 perturbed = np.clip(perturbed, min_, max_)
 
-                _, is_adversarial = a.predictions(perturbed)
-                if is_adversarial:
-                    if decrease_if_first and i < 20:
-                        logging.info('repeating attack with smaller epsilons')
-                        break
-                    return
-
-            max_epsilon = epsilons[i]
-            epsilons = np.linspace(0, max_epsilon, num=20 + 1)[1:]
+                a.predictions(perturbed)
+                # we don't return early if an adversarial was found
+                # because there might be a different epsilon
+                # and/or step that results in a better adversarial
 
 
-class GradientAttack(SingleStepGradientBaseAttack):
-    """Perturbs the image with the gradient of the loss w.r.t. the image,
-    gradually increasing the magnitude until the image is misclassified.
-
-    Does not do anything if the model does not have a gradient.
+class IterativeGradientAttack(IterativeGradientBaseAttack):
+    """Like GradientAttack but with several steps for each epsilon.
 
     """
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=1000, max_epsilon=1):
+                 epsilons=100, max_epsilon=1, steps=10):
 
-        """Perturbs the image with the gradient of the loss w.r.t. the image,
-        gradually increasing the magnitude until the image is misclassified.
+        """Like GradientAttack but with several steps for each epsilon.
 
         Parameters
         ----------
@@ -79,6 +70,8 @@ class GradientAttack(SingleStepGradientBaseAttack):
             be tried.
         max_epsilon : float
             Largest step size if epsilons is not an iterable.
+        steps : int
+            Number of iterations to run.
 
         """
 
@@ -87,30 +80,26 @@ class GradientAttack(SingleStepGradientBaseAttack):
         del label
         del unpack
 
-        return self._run(a, epsilons=epsilons, max_epsilon=max_epsilon)
+        self._run(a, epsilons=epsilons, max_epsilon=max_epsilon, steps=steps)
 
-    def _gradient(self, a):
+    def _gradient(self, a, x):
         min_, max_ = a.bounds()
-        gradient = a.gradient()
+        gradient = a.gradient(x)
         gradient_norm = np.sqrt(np.mean(np.square(gradient)))
         gradient = gradient / (gradient_norm + 1e-8) * (max_ - min_)
         return gradient
 
 
-class GradientSignAttack(SingleStepGradientBaseAttack):
-    """Adds the sign of the gradient to the image, gradually increasing
-    the magnitude until the image is misclassified.
-
-    Does not do anything if the model does not have a gradient.
+class IterativeGradientSignAttack(IterativeGradientBaseAttack):
+    """Like GradientSignAttack but with several steps for each epsilon.
 
     """
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=1000, max_epsilon=1):
+                 epsilons=100, max_epsilon=1, steps=10):
 
-        """Adds the sign of the gradient to the image, gradually increasing
-        the magnitude until the image is misclassified.
+        """Like GradientSignAttack but with several steps for each epsilon.
 
         Parameters
         ----------
@@ -130,6 +119,8 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
             that should be tried.
         max_epsilon : float
             Largest step size if epsilons is not an iterable.
+        steps : int
+            Number of iterations to run.
 
         """
 
@@ -138,13 +129,10 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
         del label
         del unpack
 
-        return self._run(a, epsilons=epsilons, max_epsilon=max_epsilon)
+        self._run(a, epsilons=epsilons, max_epsilon=max_epsilon, steps=steps)
 
-    def _gradient(self, a):
+    def _gradient(self, a, x):
         min_, max_ = a.bounds()
-        gradient = a.gradient()
+        gradient = a.gradient(x)
         gradient = np.sign(gradient) * (max_ - min_)
         return gradient
-
-
-FGSM = GradientSignAttack

@@ -1,8 +1,8 @@
 # flake8: noqa
 
 from .base import Attack
-from .gradientsign import FGSM, GradientSignAttack, IterativeGradientSignAttack
-from .gradient import GradientAttack, IterativeGradientAttack
+from .gradient import GradientAttack, GradientSignAttack, FGSM
+from .iterative_gradient import IterativeGradientAttack, IterativeGradientSignAttack
 from .lbfgs import LBFGSAttack, ApproximateLBFGSAttack
 from .deepfool import DeepFoolAttack, DeepFoolL2Attack, DeepFoolLinfinityAttack
 from .saliency import SaliencyMapAttack
