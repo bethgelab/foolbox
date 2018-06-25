@@ -210,7 +210,7 @@ class DifferentiableModel(Model):
 
     # TODO: make this an abstract method once support is added to all models
     def backward(self, gradient, image):
-        """Backpropages the gradient of some loss w.r.t. the logits
+        """Backpropagates the gradient of some loss w.r.t. the logits
         through the network and returns the gradient of that loss w.r.t
         to the input image.
 
