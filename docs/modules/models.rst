@@ -17,6 +17,7 @@ Models
    TheanoModel
    LasagneModel
    MXNetModel
+   MXNetGluonModel
 
 Wrappers
 --------
@@ -50,6 +51,12 @@ Detailed description
    :members:
 
 .. autoclass:: LasagneModel
+   :members:
+
+.. autoclass:: MXNetModel
+   :members:
+
+.. autoclass:: MXNetGluonModel
    :members:
 
 .. autoclass:: ModelWrapper
