@@ -324,7 +324,6 @@ class LinfinityBasicIterativeAttack(
                   random_start, return_early)
 
 
-
 BasicIterativeMethod = LinfinityBasicIterativeAttack
 BIM = BasicIterativeMethod
 
@@ -401,7 +400,6 @@ class L1BasicIterativeAttack(
                   random_start, return_early)
 
 
-
 class L2BasicIterativeAttack(
         L2GradientMixin,
         L2ClippingMixin,
@@ -472,7 +470,6 @@ class L2BasicIterativeAttack(
         self._run(a, binary_search,
                   epsilon, stepsize, iterations,
                   random_start, return_early)
-
 
 
 class ProjectedGradientDescentAttack(
@@ -561,7 +558,6 @@ class ProjectedGradientDescentAttack(
                   random_start, return_early)
 
 
-
 ProjectedGradientDescent = ProjectedGradientDescentAttack
 PGD = ProjectedGradientDescent
 
@@ -643,7 +639,6 @@ class RandomStartProjectedGradientDescentAttack(
         self._run(a, binary_search,
                   epsilon, stepsize, iterations,
                   random_start, return_early)
-
 
 
 RandomProjectedGradientDescent = RandomStartProjectedGradientDescentAttack
