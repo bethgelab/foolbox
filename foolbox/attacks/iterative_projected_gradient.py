@@ -265,6 +265,7 @@ class LinfinityBasicIterativeAttack(
 
     """
 
+    @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -341,6 +342,7 @@ class L1BasicIterativeAttack(
 
     """
 
+    @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -413,6 +415,7 @@ class L2BasicIterativeAttack(
 
     """
 
+    @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -499,6 +502,7 @@ class ProjectedGradientDescentAttack(
 
     """
 
+    @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -582,6 +586,7 @@ class RandomStartProjectedGradientDescentAttack(
 
     """
 
+    @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
