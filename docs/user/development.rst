@@ -10,7 +10,7 @@ Running Tests
 pytest
 ``````
 
-To run the tests, you need to have `pytest <https://docs.pytest.org/en/latest/getting-started.html>`_ and `pytest-cov <http://pytest-cov.readthedocs.io/en/latest/readme.html#installation>`_ installed. Afterwards, you can simply run ``pytest`` in the root folder of the project.
+To run the tests, you need to have `pytest <https://docs.pytest.org/en/latest/getting-started.html>`_ and `pytest-cov <http://pytest-cov.readthedocs.io/en/latest/readme.html#installation>`_ installed. Afterwards, you can simply run ``pytest`` in the root folder of the project. Some tests will require TensorFlow, PyTorch and the other frameworks, so to run all tests, you need to have all of them installed.
 
 flake8
 ``````
