@@ -88,6 +88,9 @@ class LBFGSAttack(Attack):
 
         target_class = a.target_class()
         if target_class is None:
+            if num_random_targets == 0 and self._approximate_gradient:
+                num_random_targets = 1
+
             if num_random_targets == 0:
                 gradient_attack = GradientAttack()
                 gradient_attack(a)
@@ -96,14 +99,12 @@ class LBFGSAttack(Attack):
                     # using GradientAttack did not work,
                     # falling back to random target
                     num_random_targets = 1
-                    logging.info('Using GradientAttack to determine a target class failed, falling back to a random target class')  # noqa: E501
+                    logging.warning('Using GradientAttack to determine a target class failed, falling back to a random target class')  # noqa: E501
                 else:
                     logits, _ = a.predictions(adv_img)
                     target_class = np.argmax(logits)
                     target_classes = [target_class]
                     logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))  # noqa: E501
-            else:
-                num_random_targets = 1
 
             if num_random_targets > 0:
 
