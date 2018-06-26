@@ -2,6 +2,7 @@ from __future__ import division
 import numpy as np
 from collections import Iterable
 import abc
+import logging
 
 from .base import Attack
 from .base import call_decorator
@@ -15,6 +16,10 @@ class IterativeGradientBaseAttack(Attack):
         raise NotImplementedError
 
     def _run(self, a, epsilons, max_epsilon, steps):
+        logging.warning('Please consider using the L2BasicIterativeAttack, '
+                        ' the LinfinityBasicIterativeAttack or one of its'
+                        ' other variants such as the ProjectedGradientDescent'
+                        ' attack.')
         if not a.has_gradient():
             return
 

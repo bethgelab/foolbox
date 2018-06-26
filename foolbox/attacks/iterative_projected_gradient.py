@@ -306,6 +306,22 @@ class LinfinityBasicIterativeAttack(
         LinfinityClippingMixin,
         LinfinityDistanceCheckMixin,
         IterativeProjectedGradientBaseAttack):
+
+    """The Basic Iterative Method introduced in [1]_.
+
+    This attack is also known as Projected Gradient
+    Descent (PGD) (without random start) or FGMS^k.
+
+    References
+    ----------
+    .. [1] Alexey Kurakin, Ian Goodfellow, Samy Bengio,
+           "Adversarial examples in the physical world",
+            https://arxiv.org/abs/1607.02533
+
+    .. seealso:: :class:`ProjectedGradientDescentAttack`
+
+    """
+
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -332,6 +348,14 @@ class L1BasicIterativeAttack(
         L1ClippingMixin,
         L1DistanceCheckMixin,
         IterativeProjectedGradientBaseAttack):
+
+    """Modified version of the Basic Iterative Method
+    that minimizes the L1 distance.
+
+    .. seealso:: :class:`LinfinityBasicIterativeAttack`
+
+    """
+
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -354,6 +378,14 @@ class L2BasicIterativeAttack(
         L2ClippingMixin,
         L2DistanceCheckMixin,
         IterativeProjectedGradientBaseAttack):
+
+    """Modified version of the Basic Iterative Method
+    that minimizes the L2 distance.
+
+    .. seealso:: :class:`LinfinityBasicIterativeAttack`
+
+    """
+
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -376,6 +408,28 @@ class ProjectedGradientDescentAttack(
         LinfinityClippingMixin,
         LinfinityDistanceCheckMixin,
         IterativeProjectedGradientBaseAttack):
+
+    """The Projected Gradient Descent Attack
+    introduced in [1]_ without random start.
+
+    When used without a random start, this attack
+    is also known as Basic Iterative Method (BIM)
+    or FGSM^k.
+
+    References
+    ----------
+    .. [1] Aleksander Madry, Aleksandar Makelov, Ludwig Schmidt,
+           Dimitris Tsipras, Adrian Vladu, "Towards Deep Learning
+           Models Resistant to Adversarial Attacks",
+           https://arxiv.org/abs/1706.06083
+
+    .. seealso::
+
+       :class:`LinfinityBasicIterativeMethod` and
+       :class:`RandomStartProjectedGradientDescentAttack`
+
+    """
+
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -402,6 +456,21 @@ class RandomStartProjectedGradientDescentAttack(
         LinfinityClippingMixin,
         LinfinityDistanceCheckMixin,
         IterativeProjectedGradientBaseAttack):
+
+    """The Projected Gradient Descent Attack
+    introduced in [1]_ with random start.
+
+    References
+    ----------
+    .. [1] Aleksander Madry, Aleksandar Makelov, Ludwig Schmidt,
+           Dimitris Tsipras, Adrian Vladu, "Towards Deep Learning
+           Models Resistant to Adversarial Attacks",
+           https://arxiv.org/abs/1706.06083
+
+    .. seealso:: :class:`ProjectedGradientDescentAttack`
+
+    """
+
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -427,6 +496,20 @@ class MomentumIterativeAttack(
         LinfinityClippingMixin,
         LinfinityDistanceCheckMixin,
         IterativeProjectedGradientBaseAttack):
+
+    """The Momentum Iterative Method attack
+    introduced in [1]_. It's like the Basic
+    Iterative Method or Projected Gradient
+    Descent except that it uses momentum.
+
+    References
+    ----------
+    .. [1] Yinpeng Dong, Fangzhou Liao, Tianyu Pang, Hang Su,
+           Jun Zhu, Xiaolin Hu, Jianguo Li, "Boosting Adversarial
+           Attacks with Momentum",
+           https://arxiv.org/abs/1710.06081
+
+    """
 
     def _gradient(self, a, x, class_, strict=True):
         # get current gradient
@@ -459,8 +542,9 @@ class MomentumIterativeAttack(
                  decay_factor=1.0,
                  random_start=False,
                  return_early=True):
-        """Simple iterative gradient-based attack known as
-        Basic Iterative Method, Projected Gradient Descent or FGSM^k.
+
+        """Momentum-based iterative gradient attack known as
+        Momentum Iterative Method.
 
         Parameters
         ----------

@@ -17,17 +17,29 @@
 .. autosummary::
    :nosignatures:
 
-   GradientSignAttack
-   IterativeGradientSignAttack
    GradientAttack
-   IterativeGradientAttack
+   GradientSignAttack
    FGSM
+   LinfinityBasicIterativeAttack
+   BasicIterativeMethod
+   BIM
+   L1BasicIterativeAttack
+   L2BasicIterativeAttack
+   ProjectedGradientDescentAttack
+   ProjectedGradientDescent
+   RandomStartProjectedGradientDescentAttack
+   RandomProjectedGradientDescent
+   RandomPGD
+   MomentumIterativeAttack
+   MomentumIterativeMethod
    LBFGSAttack
    DeepFoolAttack
    DeepFoolL2Attack
    DeepFoolLinfinityAttack
    SLSQPAttack
    SaliencyMapAttack
+   IterativeGradientAttack
+   IterativeGradientSignAttack
 
 
 .. rubric:: :doc:`attacks/score`
