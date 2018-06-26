@@ -16,7 +16,7 @@ class IterativeGradientBaseAttack(Attack):
         raise NotImplementedError
 
     def _run(self, a, epsilons, max_epsilon, steps):
-        logging.warning('Please consider using the L2BasicIterativeAttack, '
+        logging.warning('Please consider using the L2BasicIterativeAttack,'
                         ' the LinfinityBasicIterativeAttack or one of its'
                         ' other variants such as the ProjectedGradientDescent'
                         ' attack.')
