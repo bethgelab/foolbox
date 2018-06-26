@@ -16,3 +16,10 @@ from .saltandpepper import SaltAndPepperNoiseAttack
 from .precomputed import PrecomputedImagesAttack
 from .boundary_attack import BoundaryAttack
 from .pointwise import PointwiseAttack
+
+from .iterative_projected_gradient import LinfinityBasicIterativeAttack, BasicIterativeMethod, BIM
+from .iterative_projected_gradient import L1BasicIterativeAttack
+from .iterative_projected_gradient import L2BasicIterativeAttack
+from .iterative_projected_gradient import ProjectedGradientDescentAttack, ProjectedGradientDescent, PGD
+from .iterative_projected_gradient import RandomStartProjectedGradientDescentAttack, RandomProjectedGradientDescent, RandomPGD
+from .iterative_projected_gradient import MomentumIterativeAttack, MomentumIterativeMethod
