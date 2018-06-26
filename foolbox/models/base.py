@@ -95,7 +95,7 @@ class Model(ABC):
 
         See Also
         --------
-        :meth:`prediction`
+        :meth:`predictions`
 
         """
         raise NotImplementedError
