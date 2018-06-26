@@ -58,7 +58,9 @@ Example
    attack = foolbox.attacks.FGSM(fmodel)
    adversarial = attack(image[:, :, ::-1], label)
 
-The result can be plotted like this:
+For more examples, have a look at the `documentation <https://foolbox.readthedocs.io/en/latest/user/examples.html>`__.
+
+Finally, the result can be plotted like this:
 
 .. code-block:: python
 
