@@ -18,9 +18,35 @@ Attacks = [
 ]
 
 
+def test_attack_no_binary_search(bn_adversarial_linf):
+    adv = bn_adversarial_linf
+    attack = LinfinityBasicIterativeAttack()
+    attack(adv, binary_search=False)
+    assert adv.image is not None
+    assert adv.distance.value < np.inf
+
+
 @pytest.mark.parametrize('Attack', Attacks)
-def test_attack(Attack, bn_adversarial):
+def test_attack_linf(Attack, bn_adversarial_linf):
+    adv = bn_adversarial_linf
+    attack = Attack()
+    attack(adv, binary_search=10)
+    assert adv.image is not None
+    assert adv.distance.value < np.inf
+
+
+@pytest.mark.parametrize('Attack', Attacks)
+def test_attack_l2(Attack, bn_adversarial):
     adv = bn_adversarial
+    attack = Attack()
+    attack(adv)
+    assert adv.image is not None
+    assert adv.distance.value < np.inf
+
+
+@pytest.mark.parametrize('Attack', Attacks)
+def test_attack_l1(Attack, bn_adversarial_mae):
+    adv = bn_adversarial_mae
     attack = Attack()
     attack(adv)
     assert adv.image is not None
