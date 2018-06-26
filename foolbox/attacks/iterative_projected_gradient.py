@@ -205,9 +205,9 @@ class IterativeProjectedGradientBaseAttack(Attack):
 
         assert epsilon > 0
 
-        return self._run(a, binary_search,
-                         epsilon, stepsize, iterations,
-                         random_start, return_early)
+        self._run(a, binary_search,
+                  epsilon, stepsize, iterations,
+                  random_start, return_early)
 
 
 class LinfinityGradientMixin(object):
@@ -508,9 +508,9 @@ class MomentumIterativeAttack(
 
         self._decay_factor = decay_factor
 
-        return self._run(a, binary_search,
-                         epsilon, stepsize, iterations,
-                         random_start, return_early)
+        self._run(a, binary_search,
+                  epsilon, stepsize, iterations,
+                  random_start, return_early)
 
 
 MomentumIterativeMethod = MomentumIterativeAttack
