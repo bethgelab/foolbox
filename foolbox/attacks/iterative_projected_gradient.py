@@ -7,6 +7,7 @@ import warnings
 from .base import Attack
 from .base import call_decorator
 from .. import distances
+from ..utils import crossentropy
 
 
 class IterativeProjectedGradientBaseAttack(Attack):
@@ -36,7 +37,7 @@ class IterativeProjectedGradientBaseAttack(Attack):
         target_class = a.target_class()
         targeted = target_class is not None
 
-        if targeted is None:
+        if targeted:
             class_ = target_class
         else:
             class_ = a.original_class
@@ -55,10 +56,10 @@ class IterativeProjectedGradientBaseAttack(Attack):
         targeted, class_ = self._get_mode_and_class(a)
 
         if binary_search:
-            if isinstance(binary_search, int):
-                k = binary_search
+            if isinstance(binary_search, bool):
+                k = 20
             else:
-                k = 10
+                k = int(binary_search)
             return self._run_binary_search(
                 a, epsilon, stepsize, iterations,
                 random_start, targeted, class_, return_early, k=k)
@@ -82,6 +83,7 @@ class IterativeProjectedGradientBaseAttack(Attack):
             if try_epsilon(epsilon):
                 logging.info('successful for eps = {}'.format(epsilon))
                 break
+            logging.info('not successful for eps = {}'.format(epsilon))
             epsilon = epsilon * 1.5
         else:
             logging.warning('exponential search failed')
@@ -135,7 +137,14 @@ class IterativeProjectedGradientBaseAttack(Attack):
 
             x = np.clip(x, min_, max_)
 
-            _, is_adversarial = a.predictions(x)
+            logits, is_adversarial = a.predictions(x)
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                if targeted:
+                    ce = crossentropy(a.original_class, logits)
+                    logging.debug('crossentropy to {} is {}'.format(
+                        a.original_class, ce))
+                ce = crossentropy(class_, logits)
+                logging.debug('crossentropy to {} is {}'.format(class_, ce))
             if is_adversarial:
                 if return_early:
                     return True
@@ -166,10 +175,12 @@ class IterativeProjectedGradientBaseAttack(Attack):
         unpack : bool
             If true, returns the adversarial input, otherwise returns
             the Adversarial object.
-        binary_search : bool
+        binary_search : bool or int
             Whether to perform a binary search over epsilon and stepsize,
             keeping their ratio constant and using their values to start
             the search. If False, hyperparameters are not optimized.
+            Can also be an integer, specifying the number of binary
+            search steps (default 20).
         epsilon : float
             Limit on the perturbation size; if binary_search is True,
             this value is only for initialization and automatically
@@ -194,7 +205,7 @@ class IterativeProjectedGradientBaseAttack(Attack):
 
         assert epsilon > 0
 
-        return self._run(self, a, binary_search,
+        return self._run(a, binary_search,
                          epsilon, stepsize, iterations,
                          random_start, return_early)
 
@@ -211,7 +222,8 @@ class LinfinityGradientMixin(object):
 class L1GradientMixin(object):
     def _gradient(self, a, x, class_, strict=True):
         gradient = a.gradient(x, class_, strict=strict)
-        gradient = gradient / np.sum(np.abs(gradient))
+        # using mean to make range of epsilons comparable to Linf
+        gradient = gradient / np.mean(np.abs(gradient))
         min_, max_ = a.bounds()
         gradient = (max_ - min_) * gradient
         return gradient
@@ -220,7 +232,8 @@ class L1GradientMixin(object):
 class L2GradientMixin(object):
     def _gradient(self, a, x, class_, strict=True):
         gradient = a.gradient(x, class_, strict=strict)
-        gradient = gradient / np.sqrt(np.sum(np.square(gradient)))
+        # using mean to make range of epsilons comparable to Linf
+        gradient = gradient / np.sqrt(np.mean(np.square(gradient)))
         min_, max_ = a.bounds()
         gradient = (max_ - min_) * gradient
         return gradient
@@ -236,7 +249,8 @@ class LinfinityClippingMixin(object):
 
 class L1ClippingMixin(object):
     def _clip_perturbation(self, a, perturbation, epsilon):
-        norm = np.sum(np.abs(perturbation))
+        # using mean to make range of epsilons comparable to Linf
+        norm = np.mean(np.abs(perturbation))
         norm = max(1e-12, norm)  # avoid divsion by zero
         min_, max_ = a.bounds()
         s = max_ - min_
@@ -247,7 +261,8 @@ class L1ClippingMixin(object):
 
 class L2ClippingMixin(object):
     def _clip_perturbation(self, a, perturbation, epsilon):
-        norm = np.sqrt(np.sum(np.square(perturbation)))
+        # using mean to make range of epsilons comparable to Linf
+        norm = np.sqrt(np.mean(np.square(perturbation)))
         norm = max(1e-12, norm)  # avoid divsion by zero
         min_, max_ = a.bounds()
         s = max_ - min_
@@ -463,6 +478,8 @@ class MomentumIterativeAttack(
             Whether to perform a binary search over epsilon and stepsize,
             keeping their ratio constant and using their values to start
             the search. If False, hyperparameters are not optimized.
+            Can also be an integer, specifying the number of binary
+            search steps (default 20).
         epsilon : float
             Limit on the perturbation size; if binary_search is True,
             this value is only for initialization and automatically
@@ -491,7 +508,7 @@ class MomentumIterativeAttack(
 
         self._decay_factor = decay_factor
 
-        return self._run(self, a, binary_search,
+        return self._run(a, binary_search,
                          epsilon, stepsize, iterations,
                          random_start, return_early)
 
