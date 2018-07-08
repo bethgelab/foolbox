@@ -65,30 +65,30 @@ class TheanoModel(DifferentiableModel):
             [bw_gradient_pre, images], bw_gradient)
 
     def batch_predictions(self, images):
-        images = self._process_input(images)
+        images, _ = self._process_input(images)
         predictions = self._batch_prediction_fn(images)
         assert predictions.shape == (images.shape[0], self.num_classes())
         return predictions
 
     def predictions_and_gradient(self, image, label):
-        image = self._process_input(image)
+        image, dpdx = self._process_input(image)
         label = np.array(label, dtype=np.int32)
         predictions, gradient = self._predictions_and_gradient_fn(
             image[np.newaxis], label[np.newaxis])
         predictions = np.squeeze(predictions, axis=0)
-        gradient = self._process_gradient(gradient)
         gradient = np.squeeze(gradient, axis=0)
+        gradient = self._process_gradient(dpdx, gradient)
         assert predictions.shape == (self.num_classes(),)
         assert gradient.shape == image.shape
         assert gradient.dtype == image.dtype
         return predictions, gradient
 
     def gradient(self, image, label):
-        image = self._process_input(image)
+        image, dpdx = self._process_input(image)
         label = np.array(label, dtype=np.int32)
         gradient = self._gradient_fn(image[np.newaxis], label[np.newaxis])
-        gradient = self._process_gradient(gradient)
         gradient = np.squeeze(gradient, axis=0)
+        gradient = self._process_gradient(dpdx, gradient)
         assert gradient.shape == image.shape
         assert gradient.dtype == image.dtype
         return gradient
@@ -98,11 +98,11 @@ class TheanoModel(DifferentiableModel):
 
     def backward(self, gradient, image):
         assert gradient.ndim == 1
-        image = self._process_input(image)
+        image, dpdx = self._process_input(image)
         gradient = self._bw_gradient_fn(
             gradient[np.newaxis], image[np.newaxis])
-        gradient = self._process_gradient(gradient)
         gradient = np.squeeze(gradient, axis=0)
+        gradient = self._process_gradient(dpdx, gradient)
         assert gradient.shape == image.shape
         assert gradient.dtype == image.dtype
         return gradient

@@ -70,7 +70,7 @@ class PyTorchModel(DifferentiableModel):
         if self._old_pytorch():  # pragma: no cover
             from torch.autograd import Variable
 
-        images = self._process_input(images)
+        images, _ = self._process_input(images)
         n = len(images)
         images = torch.from_numpy(images)
         if self.cuda:  # pragma: no cover
@@ -105,7 +105,7 @@ class PyTorchModel(DifferentiableModel):
         if self._old_pytorch():  # pragma: no cover
             from torch.autograd import Variable
 
-        image = self._process_input(image)
+        image, dpdx = self._process_input(image)
         target = np.array([label])
         target = torch.from_numpy(target)
         if self.cuda:  # pragma: no cover
@@ -148,8 +148,8 @@ class PyTorchModel(DifferentiableModel):
         if not self._old_pytorch():
             grad = grad.detach()
         grad = grad.numpy()
-        grad = self._process_gradient(grad)
         grad = np.squeeze(grad, axis=0)
+        grad = self._process_gradient(dpdx, grad)
         assert grad.shape == image.shape
 
         return predictions, grad
@@ -161,7 +161,7 @@ class PyTorchModel(DifferentiableModel):
         if self._old_pytorch():  # pragma: no cover
             from torch.autograd import Variable
 
-        image = self._process_input(image)
+        image, _ = self._process_input(image)
         target = np.array([label])
         target = torch.from_numpy(target)
         if self.cuda:  # pragma: no cover
@@ -198,7 +198,7 @@ class PyTorchModel(DifferentiableModel):
         if self._old_pytorch():  # pragma: no cover
             gradient = Variable(gradient)
 
-        image = self._process_input(image)
+        image, dpdx = self._process_input(image)
         assert image.ndim == 3
         images = image[np.newaxis]
         images = torch.from_numpy(images)
@@ -230,8 +230,8 @@ class PyTorchModel(DifferentiableModel):
         if not self._old_pytorch():
             grad = grad.detach()
         grad = grad.numpy()
-        grad = self._process_gradient(grad)
         grad = np.squeeze(grad, axis=0)
+        grad = self._process_gradient(dpdx, grad)
         assert grad.shape == image.shape
 
         return grad
