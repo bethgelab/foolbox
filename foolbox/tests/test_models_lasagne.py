@@ -60,8 +60,8 @@ def test_lasagne_gradient(num_classes):
     images = InputLayer((None, channels, 5, 5), images_var)
     logits = mean_brightness_net(images)
 
-    preprocessing = (np.arange(num_classes)[None, None],
-                     np.random.uniform(size=(5, 5, channels)) + 1)
+    preprocessing = (np.arange(num_classes)[:, None, None],
+                     np.random.uniform(size=(channels, 5, 5)) + 1)
 
     model = LasagneModel(
         images,
