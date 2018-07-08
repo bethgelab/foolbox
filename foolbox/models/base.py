@@ -26,7 +26,7 @@ def _create_preprocessing_fn(params):
             return x - _mean, identity
     elif np.all(mean == 0):
         def preprocessing(x):
-            _std = std.astype(x.type)
+            _std = std.astype(x.dtype)
 
             def grad(dmdp):
                 return dmdp / _std
@@ -34,7 +34,7 @@ def _create_preprocessing_fn(params):
     else:
         def preprocessing(x):
             _mean = mean.astype(x.dtype)
-            _std = std.astype(x.type)
+            _std = std.astype(x.dtype)
             result = x - _mean
             result /= _std
 
