@@ -36,11 +36,13 @@ from foolbox.criteria import TargetClass
 from foolbox.criteria import OriginalClassProbability
 from foolbox.models import TensorFlowModel
 from foolbox.models import PyTorchModel
-from foolbox.models.wrappers import ModelWithoutGradients
+from foolbox.models import ModelWithoutGradients
+from foolbox.models import ModelWithEstimatedGradients
 from foolbox import Adversarial
 from foolbox.distances import MSE
 from foolbox.distances import Linfinity
 from foolbox.distances import MAE
+from foolbox.gradient_estimators import CoordinateWiseGradientEstimator
 
 
 @pytest.fixture
@@ -146,6 +148,18 @@ def gl_bn_model():
 
 
 @pytest.fixture
+def eg_bn_model():
+    """Same as bn_model but with estimated gradient.
+
+    """
+    cm_model = contextmanager(bn_model)
+    with cm_model() as model:
+        gradient_estimator = CoordinateWiseGradientEstimator(epsilon=0.01)
+        model = ModelWithEstimatedGradients(model, gradient_estimator)
+        yield model
+
+
+@pytest.fixture
 def bn_image():
     np.random.seed(22)
     image = np.random.uniform(size=(5, 5, 10)).astype(np.float32)
@@ -245,6 +259,17 @@ def gl_bn_adversarial():
     label = bn_label()
 
     cm_model = contextmanager(gl_bn_model)
+    with cm_model() as model:
+        yield Adversarial(model, criterion, image, label)
+
+
+@pytest.fixture
+def eg_bn_adversarial():
+    criterion = bn_criterion()
+    image = bn_image()
+    label = bn_label()
+
+    cm_model = contextmanager(eg_bn_model)
     with cm_model() as model:
         yield Adversarial(model, criterion, image, label)
 
