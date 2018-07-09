@@ -9,6 +9,42 @@ else:  # pragma: no cover
     ABC = abc.ABCMeta('ABC', (), {})
 
 
+def _create_preprocessing_fn(params):
+    mean, std = params
+    mean = np.asarray(mean)
+    std = np.asarray(std)
+
+    def identity(x):
+        return x
+
+    if np.all(mean == 0) and np.all(std == 1):
+        def preprocessing(x):
+            return x, identity
+    elif np.all(std == 1):
+        def preprocessing(x):
+            _mean = mean.astype(x.dtype)
+            return x - _mean, identity
+    elif np.all(mean == 0):
+        def preprocessing(x):
+            _std = std.astype(x.dtype)
+
+            def grad(dmdp):
+                return dmdp / _std
+            return x / _std, grad
+    else:
+        def preprocessing(x):
+            _mean = mean.astype(x.dtype)
+            _std = std.astype(x.dtype)
+            result = x - _mean
+            result /= _std
+
+            def grad(dmdp):
+                return dmdp / _std
+            return result, grad
+
+    return preprocessing
+
+
 class Model(ABC):
     """Base class to provide attacks with a unified interface to models.
 
@@ -38,7 +74,10 @@ class Model(ABC):
         self._bounds = bounds
         assert channel_axis in [0, 1, 2, 3]
         self._channel_axis = channel_axis
-        assert len(preprocessing) == 2
+
+        if not callable(preprocessing):
+            preprocessing = _create_preprocessing_fn(preprocessing)
+        assert callable(preprocessing)
         self._preprocessing = preprocessing
 
     def __enter__(self):
@@ -53,30 +92,28 @@ class Model(ABC):
     def channel_axis(self):
         return self._channel_axis
 
-    def _process_input(self, input_):
-        psub, pdiv = self._preprocessing
-        psub = np.asarray(psub, dtype=input_.dtype)
-        pdiv = np.asarray(pdiv, dtype=input_.dtype)
-        result = input_
-        if np.any(psub != 0):
-            result = input_ - psub  # creates a copy
-        if np.any(pdiv != 1):
-            if np.any(psub != 0):  # already copied
-                result /= pdiv  # in-place
-            else:
-                result = result / pdiv  # creates a copy
-        assert result.dtype == input_.dtype
-        return result
+    def _process_input(self, x):
+        p, grad = self._preprocessing(x)
+        if hasattr(p, 'dtype'):
+            assert p.dtype == x.dtype
+        p = np.asarray(p, dtype=x.dtype)
+        assert callable(grad)
+        return p, grad
 
-    def _process_gradient(self, gradient):
-        _, pdiv = self._preprocessing
-        pdiv = np.asarray(pdiv, dtype=gradient.dtype)
-        if np.any(pdiv != 1):
-            result = gradient / pdiv
-        else:
-            result = gradient
-        assert result.dtype == gradient.dtype
-        return result
+    def _process_gradient(self, backward, dmdp):
+        """
+        backward: `callable`
+            callable that backpropagates the gradient of the model w.r.t to
+            preprocessed input through the preprocessing to get the gradient
+            of the model's output w.r.t. the input before preprocessing
+        dmdp: gradient of model w.r.t. preprocessed input
+        """
+        if backward is None:  # pragma: no cover
+            raise ValueError('Your preprocessing function does not provide'
+                             ' an (approximate) gradient')
+        dmdx = backward(dmdp)
+        assert dmdx.dtype == dmdp.dtype
+        return dmdx
 
     @abstractmethod
     def batch_predictions(self, images):

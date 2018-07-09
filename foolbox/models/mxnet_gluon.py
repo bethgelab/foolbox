@@ -55,7 +55,7 @@ class MXNetGluonModel(DifferentiableModel):
 
     def batch_predictions(self, images):
         import mxnet as mx
-        images = self._process_input(images)
+        images, _ = self._process_input(images)
         data_array = mx.nd.array(images, ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
@@ -64,26 +64,27 @@ class MXNetGluonModel(DifferentiableModel):
 
     def predictions_and_gradient(self, image, label):
         import mxnet as mx
-        image = self._process_input(image)
+        image, dpdx = self._process_input(image)
         label = mx.nd.array([label])
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
-            L = self._block(data_array)
-            loss = mx.nd.softmax_cross_entropy(L, label)
+            logits = self._block(data_array)
+            loss = mx.nd.softmax_cross_entropy(logits, label)
             loss.backward()
-        return np.squeeze(L.asnumpy(), axis=0), \
-            np.squeeze(self._process_gradient(data_array.grad.asnumpy()),
-                       axis=0)
+        predictions = np.squeeze(logits.asnumpy(), axis=0)
+        gradient = np.squeeze(data_array.grad.asnumpy(), axis=0)
+        gradient = self._process_gradient(dpdx, gradient)
+        return predictions, gradient
 
     def _loss_fn(self, image, label):
         import mxnet as mx
-        image = self._process_input(image)
+        image, _ = self._process_input(image)
         label = mx.nd.array([label])
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
-            L = self._block(data_array)
-            loss = mx.nd.softmax_cross_entropy(L, label)
+            logits = self._block(data_array)
+            loss = mx.nd.softmax_cross_entropy(logits, label)
             loss.backward()
         return loss.asnumpy()
