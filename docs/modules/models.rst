@@ -26,7 +26,9 @@ Wrappers
    :nosignatures:
 
    ModelWrapper
-   GradientLess
+   DifferentiableModelWrapper
+   ModelWithoutGradients
+   ModelWithEstimatedGradients
    CompositeModel
 
 Detailed description
@@ -62,7 +64,13 @@ Detailed description
 .. autoclass:: ModelWrapper
    :members:
 
-.. autoclass:: GradientLess
+.. autoclass:: DifferentiableModelWrapper
+   :members:
+
+.. autoclass:: ModelWithoutGradients
+   :members:
+
+.. autoclass:: ModelWithEstimatedGradients
    :members:
 
 .. autoclass:: CompositeModel
