@@ -6,11 +6,11 @@ from foolbox.models.base import _create_preprocessing_fn
 params = [
     (0, 1),
     (0, 255),
-    (128, 0),
+    (128, 1),
     (128, 255),
     (0., 1.),
     (0., 255.),
-    (128., 0.),
+    (128., 1.),
     (128., 255.),
     (np.array([1., 2., 3.], dtype=np.float64),
      np.array([1., 2., 3.], dtype=np.float64)),
@@ -24,7 +24,7 @@ def test_preprocessing(params, image):
     preprocessed, backward = preprocessing(image)
     assert image.shape == preprocessed.shape
     assert image.dtype == preprocessed.dtype
-    assert np.all((image - params[0]) / params[1] == preprocessed)
+    assert np.allclose((image - params[0]) / params[1] == preprocessed)
     assert np.all(image == image_copy)
     assert callable(backward)
     dmdp = image
