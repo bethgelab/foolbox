@@ -108,7 +108,7 @@ class Model(ABC):
             of the model's output w.r.t. the input before preprocessing
         dmdp: gradient of model w.r.t. preprocessed input
         """
-        if backward is None:
+        if backward is None:  # pragma: no cover
             raise ValueError('Your preprocessing function does not provide'
                              ' an (approximate) gradient')
         dmdx = backward(dmdp)
