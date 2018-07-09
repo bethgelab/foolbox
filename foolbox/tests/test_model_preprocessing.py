@@ -24,7 +24,7 @@ def test_preprocessing(params, image):
     preprocessed, backward = preprocessing(image)
     assert image.shape == preprocessed.shape
     assert image.dtype == preprocessed.dtype
-    assert np.allclose((image - params[0]) / params[1] == preprocessed)
+    assert np.allclose((image - params[0]) / params[1], preprocessed)
     assert np.all(image == image_copy)
     assert callable(backward)
     dmdp = image
