@@ -56,10 +56,10 @@ class DifferentiableModelWrapper(ModelWrapper):
     """
 
     def predictions_and_gradient(self, image, label):
-        return self.wrapped_model.predictions_and_gradient(image)
+        return self.wrapped_model.predictions_and_gradient(image, label)
 
     def gradient(self, image, label):
-        return self.wrapped_model.gradient(image)
+        return self.wrapped_model.gradient(image, label)
 
     def backward(self, gradient, image):
         return self.wrapped_model.backward(gradient, image)
