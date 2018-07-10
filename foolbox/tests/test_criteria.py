@@ -117,3 +117,24 @@ def test_target_class_probability():
 
     assert '3' in c.name()
     assert '0.9' in c.name()
+
+
+def test_confident_misclassification():
+    predictions = np.array([0.1, 0.5, 0.7, 10., 0.4])  # 99%
+
+    for p in [0.1, 0.5, 0.9]:
+        c = criteria.ConfidentMisclassification(p=p)
+        for i in [0, 1, 2, 4]:
+            assert c.is_adversarial(predictions, i)
+        assert not c.is_adversarial(predictions, 3)
+
+    predictions = np.array([0.1, 0.5, 0.7, 10., 10.1])  # 47% and 52%
+
+    for p in [0.1, 0.5, 0.9]:
+        c = criteria.ConfidentMisclassification(p=p)
+        for i in range(4):
+            expect = i < 4 and p <= 0.5
+            assert c.is_adversarial(predictions, i) == expect
+
+    c = criteria.ConfidentMisclassification(p=0.9)
+    assert '0.9' in c.name()
