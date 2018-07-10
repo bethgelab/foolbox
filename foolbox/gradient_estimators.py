@@ -4,7 +4,7 @@ from .utils import batch_crossentropy
 
 
 class CoordinateWiseGradientEstimator(object):
-    def __init__(self, epsilon, clip=False):
+    def __init__(self, epsilon, clip=True):
         self._epsilon = epsilon
         self.clip = clip
 
