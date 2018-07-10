@@ -83,3 +83,14 @@ def test_attack2(binarized2_bn_adversarial):
     x = adv.image
     d = x[x != o]
     np.testing.assert_allclose(d, 0.5)
+
+
+def test_attack_wrong_arg(binarized_bn_adversarial):
+    adv = binarized_bn_adversarial
+
+    attack = GradientAttack()
+    attack(adv)
+
+    attack = BinarizationRefinementAttack()
+    with pytest.raises(ValueError):
+        attack(adv, included_in='blabla')
