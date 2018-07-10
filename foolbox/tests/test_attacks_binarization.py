@@ -55,7 +55,7 @@ def test_attack_sp(binarized_bn_adversarial):
 
     attack = BinarizationRefinementAttack(adv._model)
     adv = attack(adv.original_image, adv.original_class,
-                 starting_point=adv.image)
+                 starting_point=adv.image, unpack=False)
     v2 = adv.distance.value
 
     assert v2 < v1 < np.inf
@@ -73,8 +73,8 @@ def test_attack2(binarized2_bn_adversarial):
     attack(adv)
     v1 = adv.distance.value
 
-    attack = BinarizationRefinementAttack(included_in='lower')
-    attack(adv)
+    attack = BinarizationRefinementAttack()
+    attack(adv, included_in='lower')
     v2 = adv.distance.value
 
     assert v2 < v1 < np.inf
