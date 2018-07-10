@@ -30,8 +30,10 @@ def test_diff_wrapper(bn_model, bn_image, bn_label):
     assert np.all(model1.predictions(x) == model2.predictions(x))
     assert np.all(model1.batch_predictions(xs) == model2.batch_predictions(xs))
     assert np.all(model1.gradient(x, la) == model2.gradient(x, la))
-    assert np.all(model1.predictions_and_gradient(x, la) ==
-                  model2.predictions_and_gradient(x, la))
+    assert np.all(model1.predictions_and_gradient(x, la)[0] ==
+                  model2.predictions_and_gradient(x, la)[0])
+    assert np.all(model1.predictions_and_gradient(x, la)[1] ==
+                  model2.predictions_and_gradient(x, la)[1])
     assert np.all(model1.backward(x, x) == model2.backward(x, x))
 
 
