@@ -1,9 +1,11 @@
+import pytest
 from pytest import approx
 import numpy as np
 
 from foolbox.utils import softmax
 from foolbox.utils import crossentropy
 from foolbox.utils import imagenet_example
+from foolbox.utils import binarize
 
 
 def test_softmax():
@@ -39,3 +41,11 @@ def test_imagenet_example_channels_first():
 
     for i in range(3):
         assert np.all(image[i] == image2[:, :, i])
+
+
+def test_binarize():
+    x = np.array([0.1, 0.5, 0.7, 0.4])
+    x1 = binarize(x, (-2, 2), 0.5)
+    assert np.all(abs(x1) == 2)
+    with pytest.raises(ValueError):
+        binarize(x, (-2, 2), 0.5, included_in='blabla')
