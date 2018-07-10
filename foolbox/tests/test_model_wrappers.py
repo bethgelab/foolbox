@@ -20,17 +20,18 @@ def test_wrapping(gl_bn_model, bn_image):
         gl_bn_model.batch_predictions(bn_image[np.newaxis])[0])
 
 
-def test_diff_wrapper(bn_model, bn_image):
+def test_diff_wrapper(bn_model, bn_image, bn_label):
     x = bn_image
+    la = bn_label
     xs = x[np.newaxis]
     model1 = bn_model
     model2 = DifferentiableModelWrapper(model1)
     assert model1.num_classes() == model2.num_classes()
     assert np.all(model1.predictions(x) == model2.predictions(x))
     assert np.all(model1.batch_predictions(xs) == model2.batch_predictions(xs))
-    assert np.all(model1.gradient(x) == model2.gradient(x))
-    assert np.all(model1.predictions_and_gradient(x) ==
-                  model2.predictions_and_gradient(x))
+    assert np.all(model1.gradient(x, la) == model2.gradient(x, la))
+    assert np.all(model1.predictions_and_gradient(x, la) ==
+                  model2.predictions_and_gradient(x, la))
     assert np.all(model1.backward(x, x) == model2.backward(x, x))
 
 
@@ -53,8 +54,9 @@ def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):
 
 
 def test_estimate_gradient_wrapper(eg_bn_adversarial, bn_image):
-    p = eg_bn_adversarial.predictions(bn_image)
+    p, ia = eg_bn_adversarial.predictions(bn_image)
     g = eg_bn_adversarial.gradient(bn_image)
-    p2, g2 = eg_bn_adversarial.predictions_and_gradient(bn_image)
+    p2, g2, ia2 = eg_bn_adversarial.predictions_and_gradient(bn_image)
     assert np.all(p == p2)
     assert np.all(g == g2)
+    assert ia == ia2
