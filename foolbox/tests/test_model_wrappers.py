@@ -34,7 +34,8 @@ def test_diff_wrapper(bn_model, bn_image, bn_label):
                   model2.predictions_and_gradient(x, la)[0])
     assert np.all(model1.predictions_and_gradient(x, la)[1] ==
                   model2.predictions_and_gradient(x, la)[1])
-    assert np.all(model1.backward(x, x) == model2.backward(x, x))
+    g = model1.predictions(x)
+    assert np.all(model1.backward(g, x) == model2.backward(g, x))
 
 
 def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):
