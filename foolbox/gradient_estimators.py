@@ -64,7 +64,7 @@ class EvolutionaryStrategiesGradientEstimator(object):
     """
     def __init__(self, epsilon, samples=100, clip=True):
         self._epsilon = epsilon
-        if samples % 2 != 0:
+        if samples % 2 != 0:  # pragma: no cover
             warnings.warn('antithetic sampling: samples should be even')
         self._samples = (samples // 2) * 2
         self.clip = clip
@@ -81,7 +81,7 @@ class EvolutionaryStrategiesGradientEstimator(object):
         noise = self._get_noise(x.shape, x.dtype)
         N = len(noise)
 
-        if N >= 2 * x.size:
+        if N >= 2 * x.size:  # pragma: no cover
             logging.info('CoordinateWiseGradientEstimator might be better'
                          ' without requiring more samples.')
 
