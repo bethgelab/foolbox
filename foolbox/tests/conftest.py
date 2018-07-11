@@ -43,6 +43,7 @@ from foolbox.distances import MSE
 from foolbox.distances import Linfinity
 from foolbox.distances import MAE
 from foolbox.gradient_estimators import CoordinateWiseGradientEstimator
+from foolbox.gradient_estimators import EvolutionaryStrategiesGradientEstimator
 from foolbox.utils import binarize
 
 
@@ -148,16 +149,21 @@ def gl_bn_model():
         yield model
 
 
-@pytest.fixture
-def eg_bn_model():
+@pytest.fixture(params=[CoordinateWiseGradientEstimator,
+                        EvolutionaryStrategiesGradientEstimator])
+def eg_bn_model_factory(request):
     """Same as bn_model but with estimated gradient.
 
     """
-    cm_model = contextmanager(bn_model)
-    with cm_model() as model:
-        gradient_estimator = CoordinateWiseGradientEstimator(epsilon=0.01)
-        model = ModelWithEstimatedGradients(model, gradient_estimator)
-        yield model
+    GradientEstimator = request.param
+
+    def eg_bn_model():
+        cm_model = contextmanager(bn_model)
+        with cm_model() as model:
+            gradient_estimator = GradientEstimator(epsilon=0.01)
+            model = ModelWithEstimatedGradients(model, gradient_estimator)
+            yield model
+    return eg_bn_model
 
 
 @pytest.fixture
@@ -264,11 +270,14 @@ def gl_bn_adversarial():
         yield Adversarial(model, criterion, image, label)
 
 
-@pytest.fixture
-def eg_bn_adversarial():
+@pytest.fixture(params=[CoordinateWiseGradientEstimator,
+                        EvolutionaryStrategiesGradientEstimator])
+def eg_bn_adversarial(request):
     criterion = bn_criterion()
     image = bn_image()
     label = bn_label()
+
+    eg_bn_model = eg_bn_model_factory(request)
 
     cm_model = contextmanager(eg_bn_model)
     with cm_model() as model:

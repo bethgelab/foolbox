@@ -58,7 +58,9 @@ def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):
 
 def test_estimate_gradient_wrapper(eg_bn_adversarial, bn_image):
     p, ia = eg_bn_adversarial.predictions(bn_image)
+    np.random.seed(22)
     g = eg_bn_adversarial.gradient(bn_image)
+    np.random.seed(22)
     p2, g2, ia2 = eg_bn_adversarial.predictions_and_gradient(bn_image)
     assert np.all(p == p2)
     assert np.all(g == g2)
