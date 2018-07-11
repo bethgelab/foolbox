@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+Gradient estimators to numerically approximate gradients.
+"""
 import logging
 import warnings
 import numpy as np
