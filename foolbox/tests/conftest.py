@@ -151,16 +151,19 @@ def gl_bn_model():
 
 @pytest.fixture(params=[CoordinateWiseGradientEstimator,
                         EvolutionaryStrategiesGradientEstimator])
-def eg_bn_model(request):
+def eg_bn_model_factory(request):
     """Same as bn_model but with estimated gradient.
 
     """
     GradientEstimator = request.param
-    cm_model = contextmanager(bn_model)
-    with cm_model() as model:
-        gradient_estimator = GradientEstimator(epsilon=0.01)
-        model = ModelWithEstimatedGradients(model, gradient_estimator)
-        yield model
+
+    def eg_bn_model():
+        cm_model = contextmanager(bn_model)
+        with cm_model() as model:
+            gradient_estimator = GradientEstimator(epsilon=0.01)
+            model = ModelWithEstimatedGradients(model, gradient_estimator)
+            yield model
+    return eg_bn_model
 
 
 @pytest.fixture
@@ -267,11 +270,14 @@ def gl_bn_adversarial():
         yield Adversarial(model, criterion, image, label)
 
 
-@pytest.fixture
-def eg_bn_adversarial():
+@pytest.fixture(params=[CoordinateWiseGradientEstimator,
+                        EvolutionaryStrategiesGradientEstimator])
+def eg_bn_adversarial(request):
     criterion = bn_criterion()
     image = bn_image()
     label = bn_label()
+
+    eg_bn_model = eg_bn_model_factory(request)
 
     cm_model = contextmanager(eg_bn_model)
     with cm_model() as model:
