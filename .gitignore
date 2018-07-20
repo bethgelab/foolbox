@@ -160,4 +160,7 @@ Session.vim
 # auto-generated tag files
 tags
 
+# PyCharm
+.idea/
+
 # End of https://www.gitignore.io/api/osx,vim,linux,python
