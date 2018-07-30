@@ -1,20 +1,30 @@
 import logging
 
+from foolbox import Adversarial
+
 from .base import Attack
 from .base import call_decorator
 
 import numpy as np
 
+
 class NewtonFoolAttack(Attack):
+    """Implements the NewtonFool Attacl.
+
+    The attack was introduced in [1]_.
+
+    References
+    ----------
+    .. [1] Uyeong Jang et al., "Objective Metrics and Gradient Descent Algorithms
+                                for Adversarial Examples in Machine Learning",
+        https://andrewxiwu.github.io/public/papers/2017/JWJ17-objective-metrics-and-gradient-descent-based-algorithms-for-adversarial-examples-in-machine-learning.pdf
+   """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True):
+    def __call__(self, input_or_adv: Adversarial, label=None, unpack=True,
+                 max_iter=100,
+                 eta=0.1):
         """
-
-        Implementaton according to "Objective Metrics and Gradient Descent Algorithms for
-        Adversarial Examples in Machine Learning" from Uyeong Jang et al.
-        Paper: https://andrewxiwu.github.io/public/papers/2017/JWJ17-objective-metrics-and-gradient-descent-based-algorithms-for-adversarial-examples-in-machine-learning.pdf
-
         Parameters
         ----------
         input_or_adv : `numpy.ndarray` or :class:`Adversarial`
@@ -27,8 +37,77 @@ class NewtonFoolAttack(Attack):
         unpack : bool
             If true, returns the adversarial input, otherwise returns
             the Adversarial object.
+        max_iter : int
+            The maximum number of iterations.
+        eta : float
+            the eta coefficient
         """
-        print(np.argmax(input_or_adv))
-        pass
 
+        if input_or_adv is None:
+            print("=================> input_or_adv is None !!!!")
+        else:
+            print("=================> input_or_adv is not None !!!!")
+            print(input_or_adv)
 
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
+        if not a.has_gradient():
+            return
+
+        if a.target_class() is not None:
+            logging.fatal('NewtonFool is an untargeted adversarial attack.')
+            return
+
+        print("###################################")
+
+        perturbed_image = a.original_image
+        min_, max_ = a.bounds()
+
+        for i in range(max_iter):
+            norm = np.linalg.norm(np.reshape(perturbed_image, [-1]))
+
+            # (1) get the score and gradients
+            logits, gradients, is_adversarial = a.predictions_and_gradient(perturbed_image)
+
+            if is_adversarial:
+                return
+
+            score = np.argmax(logits)
+
+            # (2) calculate gradient norm
+            gradient_norm = np.linalg.norm(np.reshape(gradients, [-1]))
+
+            # (3) calculate delta
+            delta = self._delta(eta, norm, score, gradient_norm, a.num_classes())
+
+            # (4) calculate & apply current pertubation
+            current_pertubation = self._perturbation(delta, gradients, gradient_norm)
+
+            perturbed_image += current_pertubation
+            perturbed_image = np.clip(perturbed_image, min_, max_)
+
+            print(gradients.shape)
+            print(perturbed_image.shape)
+
+            print('score: ', score)
+            print('norm: ', norm)
+            print('delta: ', delta)
+            print('gradient_norm: ', gradient_norm)
+
+        return
+
+    @staticmethod
+    def _delta(eta, norm, score, gradient_norm, num_classes):
+        a = eta * norm * gradient_norm
+        b = score - 1.0 / num_classes
+        return min(a, b)
+
+    @staticmethod
+    def _perturbation(delta, gradients, gradient_norm):
+        a = -delta * gradients
+        b = float(gradient_norm ** 2)
+        direction = a / b
+        return direction
