@@ -90,7 +90,7 @@ def call_decorator(call_fn):
         assert a is not None
 
         if a.distance.value == 0.:
-            warnings.warn('Not running the attackbo because the original input'
+            warnings.warn('Not running the attack because the original input'
                           ' is already misclassified and the adversarial thus'
                           ' has a distance of 0.')
         else:

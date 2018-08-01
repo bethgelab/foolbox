@@ -1,9 +1,8 @@
 import logging
 
-from foolbox import Adversarial
-
 from .base import Attack
 from .base import call_decorator
+from ..utils import softmax
 
 import numpy as np
 
@@ -21,7 +20,7 @@ class NewtonFoolAttack(Attack):
    """
 
     @call_decorator
-    def __call__(self, input_or_adv: Adversarial, label=None, unpack=True,
+    def __call__(self, input_or_adv, label=None, unpack=True,
                  max_iter=100,
                  eta=0.1):
         """
@@ -43,12 +42,6 @@ class NewtonFoolAttack(Attack):
             the eta coefficient
         """
 
-        if input_or_adv is None:
-            print("=================> input_or_adv is None !!!!")
-        else:
-            print("=================> input_or_adv is not None !!!!")
-            print(input_or_adv)
-
         a = input_or_adv
         del input_or_adv
         del label
@@ -61,13 +54,12 @@ class NewtonFoolAttack(Attack):
             logging.fatal('NewtonFool is an untargeted adversarial attack.')
             return
 
-        print("###################################")
-
-        perturbed_image = a.original_image
+        reshape = np.reshape(a.original_image, [-1])
+        l2_norm = np.linalg.norm(reshape)
         min_, max_ = a.bounds()
+        perturbed_image = a.original_image.copy()
 
         for i in range(max_iter):
-            norm = np.linalg.norm(np.reshape(perturbed_image, [-1]))
 
             # (1) get the score and gradients
             logits, gradients, is_adversarial = a.predictions_and_gradient(perturbed_image)
@@ -75,29 +67,27 @@ class NewtonFoolAttack(Attack):
             if is_adversarial:
                 return
 
-            score = np.argmax(logits)
+            score = np.max(softmax(logits))
+            # instead of using the logits and the gradient of the logits,
+            # we use a numerically stable implementation of the cross-entropy
+            # and expect that the deep learning frameworks also use such a
+            # stable implemenation to calculate the gradient
+            # grad is calculated from CE but we want softmax -> revert chain rule
+            gradients = - gradients / score
 
             # (2) calculate gradient norm
-            gradient_norm = np.linalg.norm(np.reshape(gradients, [-1]))
+            gradient_l2_norm = np.linalg.norm(np.reshape(gradients, [-1]))
 
             # (3) calculate delta
-            delta = self._delta(eta, norm, score, gradient_norm, a.num_classes())
+            delta = self._delta(eta, l2_norm, score, gradient_l2_norm, a.num_classes())
+
+            # delta = 0.01
 
             # (4) calculate & apply current pertubation
-            current_pertubation = self._perturbation(delta, gradients, gradient_norm)
+            current_pertubation = self._perturbation(delta, gradients, gradient_l2_norm)
 
             perturbed_image += current_pertubation
             perturbed_image = np.clip(perturbed_image, min_, max_)
-
-            print(gradients.shape)
-            print(perturbed_image.shape)
-
-            print('score: ', score)
-            print('norm: ', norm)
-            print('delta: ', delta)
-            print('gradient_norm: ', gradient_norm)
-
-        return
 
     @staticmethod
     def _delta(eta, norm, score, gradient_norm, num_classes):
@@ -107,7 +97,7 @@ class NewtonFoolAttack(Attack):
 
     @staticmethod
     def _perturbation(delta, gradients, gradient_norm):
-        a = -delta * gradients
+        a = delta * gradients
         b = float(gradient_norm ** 2)
-        direction = a / b
+        direction = -(a / b)
         return direction
