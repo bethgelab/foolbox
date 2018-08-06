@@ -264,4 +264,4 @@ def test_pytorch_model_preprocessing_shape_change():
     g1 = np.transpose(g1, (1, 2, 0))
     g2 = model2.gradient(test_images_nhwc[0], 3)
 
-    assert np.all(g1 == g2)
+    np.testing.assert_array_almost_equal(g1, g2)
