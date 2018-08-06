@@ -72,7 +72,6 @@ class Model(ABC):
     def __init__(self, bounds, channel_axis, preprocessing=(0, 1)):
         assert len(bounds) == 2
         self._bounds = bounds
-        assert channel_axis in [0, 1, 2, 3]
         self._channel_axis = channel_axis
 
         if not callable(preprocessing):

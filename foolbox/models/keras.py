@@ -152,6 +152,7 @@ class KerasModel(DifferentiableModel):
         return predictions
 
     def predictions_and_gradient(self, image, label):
+        input_shape = image.shape
         px, dpdx = self._process_input(image)
         predictions, gradient = self._pred_grad_fn([
             px[np.newaxis],
@@ -160,7 +161,7 @@ class KerasModel(DifferentiableModel):
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
         assert predictions.shape == (self.num_classes(),)
-        assert gradient.shape == image.shape
+        assert gradient.shape == input_shape
         return predictions, gradient
 
     def backward(self, gradient, image):
