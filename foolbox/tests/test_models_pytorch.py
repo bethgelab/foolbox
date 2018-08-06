@@ -198,3 +198,70 @@ def test_pytorch_backward(num_classes):
     np.testing.assert_almost_equal(
         test_grad,
         manual_grad)
+
+
+def test_pytorch_model_preprocessing_shape_change():
+    import torch
+    import torch.nn as nn
+
+    num_classes = 1000
+    bounds = (0, 255)
+    channels = num_classes
+
+    class Net(nn.Module):
+
+        def __init__(self):
+            super(Net, self).__init__()
+
+        def forward(self, x):
+            x = torch.mean(x, 3)
+            x = torch.mean(x, 2)
+            logits = x
+            return logits
+
+    model = Net()
+
+    model1 = PyTorchModel(
+        model,
+        bounds=bounds,
+        num_classes=num_classes)
+
+    def preprocessing2(x):
+        if x.ndim == 3:
+            x = np.transpose(x, axes=(2, 0, 1))
+        elif x.ndim == 4:
+            x = np.transpose(x, axes=(0, 3, 1, 2))
+
+        def grad(dmdp):
+            assert dmdp.ndim == 3
+            dmdx = np.transpose(dmdp, axes=(1, 2, 0))
+            return dmdx
+
+        return x, grad
+
+    model2 = PyTorchModel(
+        model,
+        bounds=bounds,
+        num_classes=num_classes,
+        preprocessing=preprocessing2)
+
+    np.random.seed(22)
+    test_images_nhwc = np.random.rand(2, 5, 5, channels).astype(np.float32)
+    test_images_nchw = np.transpose(test_images_nhwc, (0, 3, 1, 2))
+
+    p1 = model1.batch_predictions(test_images_nchw)
+    p2 = model2.batch_predictions(test_images_nhwc)
+
+    assert np.all(p1 == p2)
+
+    p1 = model1.predictions(test_images_nchw[0])
+    p2 = model2.predictions(test_images_nhwc[0])
+
+    assert np.all(p1 == p2)
+
+    g1 = model1.gradient(test_images_nchw[0], 3)
+    assert g1.ndim == 3
+    g1 = np.transpose(g1, (1, 2, 0))
+    g2 = model2.gradient(test_images_nhwc[0], 3)
+
+    np.testing.assert_array_almost_equal(g1, g2)

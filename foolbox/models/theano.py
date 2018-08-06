@@ -71,6 +71,7 @@ class TheanoModel(DifferentiableModel):
         return predictions
 
     def predictions_and_gradient(self, image, label):
+        input_shape = image.shape
         image, dpdx = self._process_input(image)
         label = np.array(label, dtype=np.int32)
         predictions, gradient = self._predictions_and_gradient_fn(
@@ -79,17 +80,18 @@ class TheanoModel(DifferentiableModel):
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
         assert predictions.shape == (self.num_classes(),)
-        assert gradient.shape == image.shape
+        assert gradient.shape == input_shape
         assert gradient.dtype == image.dtype
         return predictions, gradient
 
     def gradient(self, image, label):
+        input_shape = image.shape
         image, dpdx = self._process_input(image)
         label = np.array(label, dtype=np.int32)
         gradient = self._gradient_fn(image[np.newaxis], label[np.newaxis])
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
-        assert gradient.shape == image.shape
+        assert gradient.shape == input_shape
         assert gradient.dtype == image.dtype
         return gradient
 
@@ -98,11 +100,12 @@ class TheanoModel(DifferentiableModel):
 
     def backward(self, gradient, image):
         assert gradient.ndim == 1
+        input_shape = image.shape
         image, dpdx = self._process_input(image)
         gradient = self._bw_gradient_fn(
             gradient[np.newaxis], image[np.newaxis])
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
-        assert gradient.shape == image.shape
+        assert gradient.shape == input_shape
         assert gradient.dtype == image.dtype
         return gradient
