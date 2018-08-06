@@ -234,7 +234,7 @@ def test_pytorch_model_preprocessing_shape_change():
 
         def grad(dmdp):
             assert dmdp.ndim == 3
-            dmdx = np.transpose(x, axes=(1, 2, 0))
+            dmdx = np.transpose(dmdp, axes=(1, 2, 0))
             return dmdx
 
         return x, grad
