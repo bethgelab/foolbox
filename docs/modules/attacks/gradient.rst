@@ -71,6 +71,10 @@ Gradient-based attacks
    :members:
    :special-members:
 
+.. autoclass:: NewtonFoolAttack
+   :members:
+   :special-members:
+
 .. autoclass:: DeepFoolL2Attack
    :members:
    :special-members:

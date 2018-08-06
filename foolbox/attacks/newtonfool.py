@@ -8,21 +8,20 @@ import numpy as np
 
 
 class NewtonFoolAttack(Attack):
-    """Implements the NewtonFool Attacl.
+    """Implements the NewtonFool Attack.
 
     The attack was introduced in [1]_.
 
     References
     ----------
-    .. [1] Uyeong Jang et al., "Objective Metrics and Gradient Descent Algorithms
-                                for Adversarial Examples in Machine Learning",
-        https://andrewxiwu.github.io/public/papers/2017/JWJ17-objective-metrics-and-gradient-descent-based-algorithms-for-adversarial-examples-in-machine-learning.pdf
+    .. [1] Uyeong Jang et al., "Objective Metrics and Gradient Descent Algorithms for
+           Adversarial Examples in Machine Learning", https://dl.acm.org/citation.cfm?id=3134635
    """
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  max_iter=100,
-                 eta=0.1):
+                 eta=0.01):
         """
         Parameters
         ----------
