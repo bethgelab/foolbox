@@ -72,4 +72,5 @@
 .. autosummary::
    :nosignatures:
 
+   BinarizationRefinementAttack
    PrecomputedImagesAttack

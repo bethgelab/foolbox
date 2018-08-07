@@ -71,27 +71,36 @@ class LasagneModel(DifferentiableModel):
             [bw_gradient_pre, images], bw_gradient)
 
     def batch_predictions(self, images):
+        images, _ = self._process_input(images)
         predictions = self._batch_prediction_fn(images)
         assert predictions.shape == (images.shape[0], self.num_classes())
         return predictions
 
     def predictions_and_gradient(self, image, label):
+        input_shape = image.shape
+        image, dpdx = self._process_input(image)
         label = np.array(label, dtype=np.int32)
         predictions, gradient = self._predictions_and_gradient_fn(
             image[np.newaxis], label[np.newaxis])
         predictions = np.squeeze(predictions, axis=0)
         gradient = np.squeeze(gradient, axis=0)
-        assert predictions.shape == (self.num_classes(),)
-        assert gradient.shape == image.shape
         gradient = gradient.astype(image.dtype, copy=False)
+        gradient = self._process_gradient(dpdx, gradient)
+        assert predictions.shape == (self.num_classes(),)
+        assert gradient.shape == input_shape
+        assert gradient.dtype == image.dtype
         return predictions, gradient
 
     def gradient(self, image, label):
+        input_shape = image.shape
+        image, dpdx = self._process_input(image)
         label = np.array(label, dtype=np.int32)
         gradient = self._gradient_fn(image[np.newaxis], label[np.newaxis])
         gradient = np.squeeze(gradient, axis=0)
-        assert gradient.shape == image.shape
         gradient = gradient.astype(image.dtype, copy=False)
+        gradient = self._process_gradient(dpdx, gradient)
+        assert gradient.shape == input_shape
+        assert gradient.dtype == image.dtype
         return gradient
 
     def num_classes(self):
@@ -99,10 +108,13 @@ class LasagneModel(DifferentiableModel):
 
     def backward(self, gradient, image):
         assert gradient.ndim == 1
+        input_shape = image.shape
+        image, dpdx = self._process_input(image)
         gradient = self._bw_gradient_fn(
             gradient[np.newaxis], image[np.newaxis])
         gradient = np.squeeze(gradient, axis=0)
-        assert gradient.shape == image.shape
         gradient = gradient.astype(image.dtype, copy=False)
-        assert gradient.shape == image.shape
+        gradient = self._process_gradient(dpdx, gradient)
+        assert gradient.shape == input_shape
+        assert gradient.dtype == image.dtype
         return gradient

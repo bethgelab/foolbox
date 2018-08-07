@@ -30,17 +30,81 @@ class ModelWrapper(Model):
     def __exit__(self, exc_type, exc_value, traceback):
         return self.wrapped_model.__exit__(exc_type, exc_value, traceback)
 
-
-class GradientLess(ModelWrapper):
-    """Turns a model into a model without gradients.
-
-    """
-
     def batch_predictions(self, images):
         return self.wrapped_model.batch_predictions(images)
 
+    def predictions(self, image):
+        return self.wrapped_model.predictions(image)
+
     def num_classes(self):
         return self.wrapped_model.num_classes()
+
+
+class DifferentiableModelWrapper(ModelWrapper):
+    """Base class for models that wrap other models and provide
+    gradient methods.
+
+    This base class can be used to implement model wrappers
+    that turn models into new models, for example by preprocessing
+    the input or modifying the gradient.
+
+    Parameters
+    ----------
+    model : :class:`Model`
+        The model that is wrapped.
+
+    """
+
+    def predictions_and_gradient(self, image, label):
+        return self.wrapped_model.predictions_and_gradient(image, label)
+
+    def gradient(self, image, label):
+        return self.wrapped_model.gradient(image, label)
+
+    def backward(self, gradient, image):
+        return self.wrapped_model.backward(gradient, image)
+
+
+class ModelWithoutGradients(ModelWrapper):
+    """Turns a model into a model without gradients.
+
+    """
+    pass
+
+
+class ModelWithEstimatedGradients(DifferentiableModelWrapper):
+    """Turns a model into a model with gradients estimated
+    by the given gradient estimator.
+
+    Parameters
+    ----------
+    model : :class:`Model`
+        The model that is wrapped.
+    gradient_estimator : `callable`
+        Callable taking three arguments (pred_fn, image, label) and
+        returning the estimated gradients. pred_fn will be the
+        batch_predictions method of the wrapped model.
+    """
+
+    def __init__(self, model, gradient_estimator):
+        super(ModelWithEstimatedGradients, self).__init__(
+            model=model)
+
+        assert callable(gradient_estimator)
+        self._gradient_estimator = gradient_estimator
+
+    def predictions_and_gradient(self, image, label):
+        predictions = self.predictions(image)
+        gradient = self.gradient(image, label)
+        return predictions, gradient
+
+    def gradient(self, image, label):
+        pred_fn = self.batch_predictions
+        bounds = self.bounds()
+        return self._gradient_estimator(pred_fn, image, label, bounds)
+
+    def backward(self, gradient, image):
+        raise NotImplementedError
 
 
 class CompositeModel(DifferentiableModel):

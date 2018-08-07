@@ -87,34 +87,34 @@ class TensorFlowModel(DifferentiableModel):
         return n
 
     def batch_predictions(self, images):
-        images = self._process_input(images)
+        images, _ = self._process_input(images)
         predictions = self._session.run(
             self._batch_logits,
             feed_dict={self._images: images})
         return predictions
 
     def predictions_and_gradient(self, image, label):
-        image = self._process_input(image)
+        image, dpdx = self._process_input(image)
         predictions, gradient = self._session.run(
             [self._logits, self._gradient],
             feed_dict={
                 self._images: image[np.newaxis],
                 self._label: label})
-        gradient = self._process_gradient(gradient)
+        gradient = self._process_gradient(dpdx, gradient)
         return predictions, gradient
 
     def gradient(self, image, label):
-        image = self._process_input(image)
+        image, dpdx = self._process_input(image)
         g = self._session.run(
             self._gradient,
             feed_dict={
                 self._images: image[np.newaxis],
                 self._label: label})
-        g = self._process_gradient(g)
+        g = self._process_gradient(dpdx, g)
         return g
 
     def _loss_fn(self, image, label):
-        image = self._process_input(image)
+        image, dpdx = self._process_input(image)
         loss = self._session.run(
             self._loss,
             feed_dict={
@@ -124,12 +124,13 @@ class TensorFlowModel(DifferentiableModel):
 
     def backward(self, gradient, image):
         assert gradient.ndim == 1
-        image = self._process_input(image)
+        input_shape = image.shape
+        image, dpdx = self._process_input(image)
         g = self._session.run(
             self._bw_gradient,
             feed_dict={
                 self._images: image[np.newaxis],
                 self._bw_gradient_pre: gradient})
-        g = self._process_gradient(g)
-        assert g.shape == image.shape
+        g = self._process_gradient(dpdx, g)
+        assert g.shape == input_shape
         return g

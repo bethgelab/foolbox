@@ -144,31 +144,35 @@ class KerasModel(DifferentiableModel):
         return self._num_classes
 
     def batch_predictions(self, images):
-        predictions = self._batch_pred_fn([self._process_input(images)])
+        px, _ = self._process_input(images)
+        predictions = self._batch_pred_fn([px])
         assert len(predictions) == 1
         predictions = predictions[0]
         assert predictions.shape == (images.shape[0], self.num_classes())
         return predictions
 
     def predictions_and_gradient(self, image, label):
+        input_shape = image.shape
+        px, dpdx = self._process_input(image)
         predictions, gradient = self._pred_grad_fn([
-            self._process_input(image[np.newaxis]),
+            px[np.newaxis],
             np.array([label])])
         predictions = np.squeeze(predictions, axis=0)
         gradient = np.squeeze(gradient, axis=0)
-        gradient = self._process_gradient(gradient)
+        gradient = self._process_gradient(dpdx, gradient)
         assert predictions.shape == (self.num_classes(),)
-        assert gradient.shape == image.shape
+        assert gradient.shape == input_shape
         return predictions, gradient
 
     def backward(self, gradient, image):
         assert gradient.ndim == 1
         gradient = np.reshape(gradient, (-1, 1))
+        px, dpdx = self._process_input(image)
         gradient = self._bw_grad_fn([
             gradient,
-            self._process_input(image[np.newaxis]),
+            px[np.newaxis],
         ])
         gradient = np.squeeze(gradient, axis=0)
-        gradient = self._process_gradient(gradient)
+        gradient = self._process_gradient(dpdx, gradient)
         assert gradient.shape == image.shape
         return gradient
