@@ -27,14 +27,6 @@ def test_targeted_attack(bn_targeted_adversarial):
     assert adv.distance.value == np.inf
 
 
-def test_subsample(bn_adversarial):
-    adv = bn_adversarial
-    attack = Attack()
-    attack(adv, subsample=5)
-    assert adv.image is not None
-    assert adv.distance.value < np.inf
-
-
 def test_attack_impossible(bn_impossible):
     adv = bn_impossible
     attack = Attack()
