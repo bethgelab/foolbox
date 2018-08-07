@@ -7,67 +7,6 @@ from .base import call_decorator
 from ..criteria import Misclassification
 
 
-def _preprocess_image(image, preprocessing, color_axis):
-    if color_axis == 2:
-        return image
-        image = _transpose_image(image) / 255
-    psub, pdiv = preprocessing
-    psub = np.asarray(psub, dtype=image.dtype)
-    pdiv = np.asarray(pdiv, dtype=image.dtype)
-    result = image
-    if np.any(psub != 0):
-        result = image - psub  # creates a copy
-    if np.any(pdiv != 1):
-        if np.any(psub != 0):  # already copied
-            result /= pdiv  # in-place
-        else:
-            result = result / pdiv  # creates a copy
-    assert result.dtype == image.dtype
-    if color_axis == 2:
-        return _re_transpose_image(result)
-    else:
-        return result
-
-
-def _deprocess_image(image, preprocessing, color_axis):
-    if color_axis == 2:
-        return image
-        image = _transpose_image(image)
-    psub, pdiv = preprocessing
-    psub = np.asarray(psub, dtype=image.dtype)
-    pdiv = np.asarray(pdiv, dtype=image.dtype)
-    result = image
-    if np.any(pdiv != 1):
-        if np.any(psub != 0):  # already copied
-            result *= pdiv  # in-place
-        else:
-            result = result * pdiv  # creates a copy
-    if np.any(psub != 0):
-        result = image + psub  # creates a copy
-    assert result.dtype == image.dtype
-    if color_axis == 2:
-        return _re_transpose_image(result) * 255
-    else:
-        return result
-
-
-def _deprocess_gradient(gradient, preprocessing, color_axis):
-    if color_axis == 2:
-        return gradient
-        gradient = _transpose_image(gradient)
-    _, pdiv = preprocessing
-    pdiv = np.asarray(pdiv, dtype=gradient.dtype)
-    if np.any(pdiv != 1):
-        result = gradient * pdiv
-    else:
-        result = gradient
-    assert result.dtype == gradient.dtype
-    if color_axis == 2:
-        return _re_transpose_image(result)
-    else:
-        return result
-
-
 def _transpose_image(image):
     # transpose the image so the color axis
     # is at the front: image.shape is then cxhxw:
@@ -76,17 +15,16 @@ def _transpose_image(image):
 
 def _re_transpose_image(image):
     # transpose the image back so the color axis
-    #  is at the end: image.shape is then hxwxc:
+    # is at the end: image.shape is then hxwxc:
     return np.transpose(image, (1, 2, 0))
 
 
 def _difference_map(image, color_axis):
-    """
-    Difference map of the image
+    """Difference map of the image.
     Approximate derivatives of the function image[c,:,:]
     (e.g. PyTorch) or image[:,:,c] (e.g. Keras).
 
-    dfdx, dfdy = difference_map( image )
+    dfdx, dfdy = difference_map(image)
 
     In:
     image: numpy.ndarray
@@ -110,14 +48,8 @@ def _difference_map(image, color_axis):
     positive x-direction is along rows from left to right.
     positive y-direction is along columns from above to below.
 
-    #################################################
-    Note from Evgenia: I am not sure why they did not
-    use the function np.gradient for this.
-    It seems to give very similar results. I have
-    let it at the original implementation, though.
-    #################################################
-
     """
+
     if color_axis == 2:
         image = _transpose_image(image)
     # Derivative in x direction (rows from left to right)
@@ -142,8 +74,7 @@ def _difference_map(image, color_axis):
 
 
 def _compose(image, vec_field, color_axis):
-    """
-    Calculate the composition of the function image with the vector
+    """Calculate the composition of the function image with the vector
     field vec_field by interpolation.
 
     new_func = compose(image, vec_field)
@@ -162,7 +93,9 @@ def _compose(image, vec_field, color_axis):
 
     positive x-direction is along rows from left to right
     positive y-direction is along columns from above to below
+
     """
+
     if color_axis == 2:
         image = _transpose_image(image)
 
@@ -189,9 +122,8 @@ def _compose(image, vec_field, color_axis):
         return new_image
 
 
-def _create_tau(fval, gradf, d1x, d2x, color_axis, smooth=0):
-    """
-    Calculate the deformation vector field
+def _create_vec_field(fval, gradf, d1x, d2x, color_axis, smooth=0):
+    """Calculate the deformation vector field
 
     In:
     fval: float
@@ -206,9 +138,11 @@ def _create_tau(fval, gradf, d1x, d2x, color_axis, smooth=0):
         (default is 0 for no smoothing).
 
     Out:
-    tau: numpy.ndarray
+    vec_field: numpy.ndarray
         of shape (2,h,w).
+
     """
+
     if color_axis == 2:
         gradf = _transpose_image(gradf)
 
@@ -229,23 +163,28 @@ def _create_tau(fval, gradf, d1x, d2x, color_axis, smooth=0):
         alpha1 = gaussian_filter(alpha1, smooth)
         alpha2 = gaussian_filter(alpha2, smooth)
 
-    tau = np.empty((h, w, 2))
-    tau[:, :, 0] = -fval * alpha1 / norm_squared_alpha
-    tau[:, :, 1] = -fval * alpha2 / norm_squared_alpha
+    vec_field = np.empty((h, w, 2))
+    vec_field[:, :, 0] = -fval * alpha1 / norm_squared_alpha
+    vec_field[:, :, 1] = -fval * alpha2 / norm_squared_alpha
 
-    return tau
+    return vec_field
 
 
 class ADefAttack(Attack):
-    """
-    Adversarial Attack that distorts the image, i.e. changes the locations
-     of pixels. The algorithm is described in [1],
+    """Adversarial Attack that distorts the image, i.e. changes the locations
+    of pixels. The algorithm is described in [1],
     A Repository with the original code can be found in [2].
 
-     Find an adversarial deformation of each image in batch w.r.t model.
+    References
+    ----------
+    .. [1] Rima Alaifari, Giovanni S. Alberti, and Tandri Gauksson1:
+           "ADef: an Iterative Algorithm to Construct Adversarial
+           Deformations", https://arxiv.org/pdf/1804.07729.pdf
 
-        Parameters  (from FoolBox)
-        ----------
+    .. [2] https://gitlab.math.ethz.ch/tandrig/ADef/tree/master
+
+    Parameters
+    ----------
     input_or_adv : `numpy.ndarray` or :class:`Adversarial`
         The original, unperturbed input as a `numpy.ndarray` or
         an :class:`Adversarial` instance.
@@ -256,57 +195,29 @@ class ADefAttack(Attack):
     unpack : bool
         If true, returns the adversarial input, otherwise returns
         the Adversarial object.
-    max_iter: int > 0
+    max_iter : int > 0
         Maximum number of iterations (default max_iter = 100).
-                     (from ADef)
-    ind_of_candidates: int > 0, or array_like of int values > 0
+    ind_of_candidates : int > 0, or array_like of int values > 0
         The indices of labels to target in the ordering of descending
         confidence.
         For example:
         - ind_of_candidates = [1,2,3] to target the top three labels.
         - ind_of_candidates = 5 to to target the fifth best label.
-    max_norm: float
+    max_norm : float
         Maximum l2 norm of vector field (default max_norm = numpy.inf).
-    overshoot: float >= 1
+    overshoot : float >= 1
         Multiply the resulting vector field by this number,
         if deformed image is still correctly classified
         (default is overshoot = 1 for no overshooting).
-    smooth: float >= 0
+    smooth : float >= 0
         Width of the Gaussian kernel used for smoothing.
         (default is smooth = 0 for no smoothing).
-    targeting: bool
+    targeting : bool
         targeting = False (default) to stop as soon as model misclassifies
         input targeting = True to stop only once a candidate label is achieved.
-    verbose: bool
+    verbose : bool
         verbose = True (default) to print progress,
         verbose = False for silence.
-    preprocessing: tuple  ToDo do we need preprocessing?
-
-    Out:
-
-    To access the vectorfields, an additional attribute
-    "result_data" (type=dict) is created 'on the fly' after the image
-    is detected as being "adversarial" and before "return". It can be accessed
-    from the main program via attack.result_data. Currently, it is not
-    initialized before it is created (which is maybe not very nice),
-    because I did not know whether this is actually desired,
-    since it is only required and thus created for this particular
-    attack. Also, I was not sure where to initialize it.
-
-    result_data: dict
-        result_data['vector_fields']: numpy.ndarray
-            of shape hxwx2.
-            The deforming vector fields.
-        result_data['deformed_label']: numpy.ndarray
-            The predicted label of the deformed image.
-
-      References
-    ----------
-      [1] Rima Alaifari, Giovanni S. Alberti, and Tandri Gauksson1:
-           "ADef: an Iterative Algorithm to Construct Adversarial
-           Deformations", https://arxiv.org/pdf/1804.07729.pdf
-
-      [2] https://gitlab.math.ethz.ch/tandrig/ADef/tree/master
 
     """
 
@@ -317,8 +228,7 @@ class ADefAttack(Attack):
     @call_decorator
     def __call__(self, input_or_adv, ind_of_candidates=1, unpack=True,
                  max_iter=100, max_norm=np.inf, label=None,
-                 overshoot=1.1, smooth=1., targeting=False, verbose=False,
-                 preprocessing=(0, 1)):
+                 overshoot=1.1, smooth=1.0, targeting=False, verbose=False):
 
         vprint = print if verbose else lambda *a, **k: None
         a = input_or_adv
@@ -336,7 +246,7 @@ class ADefAttack(Attack):
         ind_of_candidates = ind_of_candidates[ind_of_candidates >= 0]
 
         # Number of classes to target + 1 (>=2).
-        #  Example 1: num_classes = 10 for MNIST
+        # Example 1: num_classes = 10 for MNIST
         # Example 2: If ind_of_candidates == 1,
         # then only the second highest label is targeted
         num_classes = ind_of_candidates.size
@@ -345,7 +255,8 @@ class ADefAttack(Attack):
 
         perturbed = a.original_image.copy()  # is updated in every iteration
 
-        image_original = perturbed.copy()  # is not updated, but kept as a copy
+        image_original = a.original_image.copy()  # is not updated,
+        # but kept as a copy
 
         color_axis = a.channel_axis(batch=False)  # get color axis
         assert color_axis in [0, 2]
@@ -353,7 +264,6 @@ class ADefAttack(Attack):
               if i != color_axis]
         h, w = hw
 
-        min_, max_ = a.bounds()
         logits, grad, is_adv = a.predictions_and_gradient(perturbed)
 
         logits = np.expand_dims(logits, axis=0)
@@ -367,7 +277,7 @@ class ADefAttack(Attack):
         fx = (logits.transpose() - logits[0, original_label]).transpose()
 
         norm_full = 0  # norm of the vector field
-        tau_full = np.zeros((h, w, 2))  # the vector field
+        vec_field_full = np.zeros((h, w, 2))  # the vector field
 
         current_label = original_label
         vprint('Iterations finished: 0')
@@ -378,25 +288,15 @@ class ADefAttack(Attack):
             logits, grad, is_adv = a.predictions_and_gradient(perturbed)
             if is_adv:
                 a.predictions(perturbed)
-                self.vector_field = tau_full
+                self.vector_field = vec_field_full
                 return
 
-            # Calculate the difference map for the image
-            # get_preprocessed, because: the image has to be preprocessed
-            # in a special way for PyTorch. In FoolBox, this is an
-            # internal private method that is only used when e.g.
-            # the gradients w.r.t. the image are
-            # calculated. Here, we need this preprocessed image explicitly
-            # to calculate the difference map.
-            d1x, d2x = _difference_map(
-                _preprocess_image(perturbed, preprocessing, color_axis),
-                color_axis)
+            d1x, d2x = _difference_map(perturbed, color_axis)
 
             logits_for_grad = np.zeros_like(logits)
             logits_for_grad[original_label[0]] = 1
-            grad_original = _deprocess_gradient(
-                a.backward(logits_for_grad, perturbed),
-                preprocessing, color_axis)
+
+            grad_original = a.backward(logits_for_grad, perturbed)
 
             # Find vector fields for the image and each candidate label.
             # Keep the smallest vector field for each image.
@@ -408,10 +308,9 @@ class ADefAttack(Attack):
                 target_labels = candidates[0, target_no]
                 logits_for_grad = np.zeros_like(logits)
                 logits_for_grad[target_labels] = 1
+
                 # gradient of the target label w.r.t. image
-                grad_target = _deprocess_gradient(
-                    a.backward(logits_for_grad, perturbed),
-                    preprocessing, color_axis)
+                grad_target = a.backward(logits_for_grad, perturbed)
 
                 # Derivative of the binary classifier 'F_lab - F_orig'
                 dfx = grad_target - grad_original
@@ -419,36 +318,28 @@ class ADefAttack(Attack):
                 f_im = fx[0, candidates[0, target_no]]
 
                 # create the vector field
-                tau_target = _create_tau(
+                vec_field_target = _create_vec_field(
                     f_im, dfx, d1x, d2x, color_axis, smooth
                 )
 
-                tau_target += tau_full
+                vec_field_target += vec_field_full
 
                 # l2 norm of vector field.
-                norm_target = np.linalg.norm(tau_target.ravel())
+                norm_target = np.linalg.norm(vec_field_target.ravel())
 
                 # choose the vector field with the smallest norm
                 if norm_target < norm_min:
                     norm_min = norm_target
-                    tau_min = tau_target
+                    vec_field_min = vec_field_target
 
             # Update the image by applying the vector field,
             # the vector field is always applied to the original image,
             # since the current vector field is added to all prior
-            # vector fields via tau_target += tau_full
-            perturbed_processed = _compose(
-                _preprocess_image(
-                    image_original.copy(),
-                    preprocessing,
-                    color_axis),
-                tau_min,
-                color_axis
-            )
-            perturbed = _deprocess_image(
-                perturbed_processed, preprocessing, color_axis
-            )
-            tau_full = tau_min
+            # vector fields via vec_field_target += vec_field_full
+            perturbed = _compose(image_original.copy(), vec_field_min,
+                                 color_axis)
+
+            vec_field_full = vec_field_min
             norm_full = norm_min
 
             # getting the current label after applying the vector field
@@ -467,7 +358,7 @@ class ADefAttack(Attack):
                        (original_label, current_label))
             vprint('Iterations finished: %d' % n)
             vprint('\tCurrent label: ' + str(current_label))
-            vprint('\tnorm(tau) = ' + str(norm_full))
+            vprint('\tnorm(vec_field) = ' + str(norm_full))
             # vprint('\t(' + str(0) + ')\t' + str( fx[ 0, candidates ] ) )
         # Overshooting
         try_overshoot = False
@@ -491,20 +382,12 @@ class ADefAttack(Attack):
 
         if try_overshoot:
             os = min(overshoot, max_norm / norm_full)
-            vprint('\tOvershooting: tau -> %.3f*tau' % os)
+            vprint('\tOvershooting: vec_field -> %.3f*vec_field' % os)
 
-            tau_full = os * tau_full
-            norm_full = os * norm_full
-            perturbed_processed = _compose(
-                _preprocess_image(
-                    image_original.copy(),
-                    preprocessing,
-                    color_axis),
-                tau_full,
-                color_axis
-            )
-            perturbed = _deprocess_image(
-                perturbed_processed, preprocessing, color_axis)
+            vec_field_full = os * vec_field_full
+
+            perturbed = _compose(image_original.copy(), vec_field_full,
+                                 color_axis)
 
         fx, _ = a.predictions(perturbed)
         fx = np.expand_dims(fx, axis=0)
@@ -513,5 +396,5 @@ class ADefAttack(Attack):
 
         a.predictions(perturbed)
 
-        self.vector_field = tau_full
+        self.vector_field = vec_field_full
         return
