@@ -90,7 +90,7 @@ class MXNetModel(DifferentiableModel):
 
     def batch_predictions(self, images):
         import mxnet as mx
-        images = self._process_input(images)
+        images, _ = self._process_input(images)
         data_array = mx.nd.array(images, ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
         model = self._batch_logits_sym.bind(
@@ -104,7 +104,7 @@ class MXNetModel(DifferentiableModel):
     def predictions_and_gradient(self, image, label):
         import mxnet as mx
         label = np.asarray(label)
-        image = self._process_input(image)
+        image, dpdx = self._process_input(image)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         label_array = mx.nd.array(label[np.newaxis], ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
@@ -128,12 +128,12 @@ class MXNetModel(DifferentiableModel):
         ])
         logits = logits_array.asnumpy()
         gradient = grad_array.asnumpy()
-        gradient = self._process_gradient(gradient)
+        gradient = self._process_gradient(dpdx, gradient)
         return np.squeeze(logits, axis=0), np.squeeze(gradient, axis=0)
 
     def _loss_fn(self, image, label):
         import mxnet as mx
-        image = self._process_input(image)
+        image, _ = self._process_input(image)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         label_array = mx.nd.array(np.array([label]), ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
@@ -151,7 +151,7 @@ class MXNetModel(DifferentiableModel):
 
         assert gradient.ndim == 1
 
-        image = self._process_input(image)
+        image, dpdx = self._process_input(image)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
 
@@ -172,5 +172,6 @@ class MXNetModel(DifferentiableModel):
         logits.backward(gradient_pre_array)
 
         gradient = grad_array.asnumpy()
-        gradient = self._process_gradient(gradient)
-        return np.squeeze(gradient, axis=0)
+        gradient = np.squeeze(gradient, axis=0)
+        gradient = self._process_gradient(dpdx, gradient)
+        return gradient
