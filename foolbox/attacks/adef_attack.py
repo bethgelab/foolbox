@@ -146,7 +146,7 @@ def _compose(image, vec_field, color_axis):
     Calculate the composition of the function image with the vector
     field vec_field by interpolation.
 
-    new_func = compose(  image, vec_field )
+    new_func = compose(image, vec_field)
 
     In:
     image: numpy.ndarray
@@ -191,7 +191,7 @@ def _compose(image, vec_field, color_axis):
 
 def _create_tau(fval, gradf, d1x, d2x, color_axis, smooth=0):
     """
-    tau = create_tau( fval, gradf, d1x, d2x )
+    Calculate the deformation vector field
 
     In:
     fval: float
@@ -280,6 +280,7 @@ class ADefAttack(Attack):
     verbose: bool
         verbose = True (default) to print progress,
         verbose = False for silence.
+    preprocessing: tuple  ToDo do we need preprocessing?
 
     Out:
 
