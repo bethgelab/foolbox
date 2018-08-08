@@ -1,3 +1,5 @@
+import logging
+
 from scipy.interpolate import RectBivariateSpline
 from scipy.ndimage.filters import gaussian_filter
 import numpy as np
@@ -215,9 +217,6 @@ class ADefAttack(Attack):
     targeting : bool
         targeting = False (default) to stop as soon as model misclassifies
         input targeting = True to stop only once a candidate label is achieved.
-    verbose : bool
-        verbose = True (default) to print progress,
-        verbose = False for silence.
 
     """
 
@@ -228,9 +227,8 @@ class ADefAttack(Attack):
     @call_decorator
     def __call__(self, input_or_adv, ind_of_candidates=1, unpack=True,
                  max_iter=100, max_norm=np.inf, label=None,
-                 overshoot=1.1, smooth=1.0, targeting=False, verbose=False):
+                 overshoot=1.1, smooth=1.0, targeting=False):
 
-        vprint = print if verbose else lambda *a, **k: None
         a = input_or_adv
         del input_or_adv
         del label
@@ -280,8 +278,8 @@ class ADefAttack(Attack):
         vec_field_full = np.zeros((h, w, 2))  # the vector field
 
         current_label = original_label
-        vprint('Iterations finished: 0')
-        vprint('\tCurrent labels: ' + str(current_label))
+        logging.info('Iterations finished: 0')
+        logging.info('Current labels: {} '.format(current_label))
 
         for step in range(max_iter):
             n += 1
@@ -350,26 +348,26 @@ class ADefAttack(Attack):
 
             # See if we have been successful.
             if targeting and (current_label in candidates[0, 1:]):
-                vprint('Image successfully deformed from %d to %d.' %
-                       (original_label, current_label))
+                logging.info(
+                    'Image successfully deformed from {} to {}'.format(
+                        original_label, current_label))
                 continue
             elif (not targeting) and current_label != original_label:
-                vprint('Image successfully deformed from %d to %d.' %
-                       (original_label, current_label))
-            vprint('Iterations finished: %d' % n)
-            vprint('\tCurrent label: ' + str(current_label))
-            vprint('\tnorm(vec_field) = ' + str(norm_full))
-            # vprint('\t(' + str(0) + ')\t' + str( fx[ 0, candidates ] ) )
+                logging.info(
+                    'Image successfully deformed from {} to {}'.format(
+                        original_label, current_label))
+            logging.info('Iterations finished: {} '.format(n))
+            logging.info('Current labels: {} '.format(current_label))
+            logging.info('Norm vector field: {} '.format(norm_full))
+
         # Overshooting
         try_overshoot = False
         have_highest_confidence = (fx == 0)
         predicted_labels = np.where(have_highest_confidence)[0]
 
         if len(predicted_labels) > 1:
-            vprint(
-                '\tDeformed image lies on the decision boundary of labels: ' +
-                str(predicted_labels)
-            )
+            logging.info('Deformed image lies on the decision '
+                         'boundary of labels: {} '.format(predicted_labels))
             try_overshoot = True
 
         # Overshoot if deformed image is still correctly classified,
@@ -382,7 +380,7 @@ class ADefAttack(Attack):
 
         if try_overshoot:
             os = min(overshoot, max_norm / norm_full)
-            vprint('\tOvershooting: vec_field -> %.3f*vec_field' % os)
+            logging.info('Overshooting: vec_field -> {}*vec_field '.format(os))
 
             vec_field_full = os * vec_field_full
 
@@ -392,7 +390,7 @@ class ADefAttack(Attack):
         fx, _ = a.predictions(perturbed)
         fx = np.expand_dims(fx, axis=0)
         current_label = np.argmax(fx, axis=1)
-        vprint('\t\t%d -> %d' % (original_label, current_label))
+        logging.info('{} -> {}'.format(original_label, current_label))
 
         a.predictions(perturbed)
 
