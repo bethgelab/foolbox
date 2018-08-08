@@ -2,6 +2,7 @@ import numpy as np
 
 from foolbox.attacks import NewtonFoolAttack as Attack
 
+
 def test_attack(bn_adversarial):
     adv = bn_adversarial
     attack = Attack()

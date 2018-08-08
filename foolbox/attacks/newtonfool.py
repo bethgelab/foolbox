@@ -14,8 +14,9 @@ class NewtonFoolAttack(Attack):
 
     References
     ----------
-    .. [1] Uyeong Jang et al., "Objective Metrics and Gradient Descent Algorithms for
-           Adversarial Examples in Machine Learning", https://dl.acm.org/citation.cfm?id=3134635
+    .. [1] Uyeong Jang et al., "Objective Metrics and Gradient Descent
+           Algorithms for Adversarial Examples in Machine Learning",
+           https://dl.acm.org/citation.cfm?id=3134635
    """
 
     @call_decorator
@@ -61,7 +62,8 @@ class NewtonFoolAttack(Attack):
         for i in range(max_iter):
 
             # (1) get the score and gradients
-            logits, gradients, is_adversarial = a.predictions_and_gradient(perturbed_image)
+            logits, gradients, is_adversarial = \
+                a.predictions_and_gradient(perturbed_image)
 
             if is_adversarial:
                 return
@@ -71,19 +73,23 @@ class NewtonFoolAttack(Attack):
             # we use a numerically stable implementation of the cross-entropy
             # and expect that the deep learning frameworks also use such a
             # stable implemenation to calculate the gradient
-            # grad is calculated from CE but we want softmax -> revert chain rule
+            # grad is calculated from CE but we want softmax
+            # -> revert chain rule
             gradients = - gradients / score
 
             # (2) calculate gradient norm
             gradient_l2_norm = np.linalg.norm(np.reshape(gradients, [-1]))
 
             # (3) calculate delta
-            delta = self._delta(eta, l2_norm, score, gradient_l2_norm, a.num_classes())
+            delta = self._delta(eta, l2_norm, score,
+                                gradient_l2_norm, a.num_classes())
 
             # delta = 0.01
 
             # (4) calculate & apply current pertubation
-            current_pertubation = self._perturbation(delta, gradients, gradient_l2_norm)
+            current_pertubation = self._perturbation(delta,
+                                                     gradients,
+                                                     gradient_l2_norm)
 
             perturbed_image += current_pertubation
             perturbed_image = np.clip(perturbed_image, min_, max_)
