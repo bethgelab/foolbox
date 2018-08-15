@@ -25,7 +25,6 @@ class PyTorchModel(DifferentiableModel):
         Elementwises preprocessing of input; we first subtract the first
         element of preprocessing from the input and then divide the input by
         the second element.
-
     """
 
     def __init__(
@@ -45,11 +44,11 @@ class PyTorchModel(DifferentiableModel):
                                            preprocessing=preprocessing)
 
         self._num_classes = num_classes
-        self._model = model
 
         if device is None:
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.device = device
+        self._model = model.to(self.device)
 
         if model.training:
             warnings.warn(
@@ -72,8 +71,7 @@ class PyTorchModel(DifferentiableModel):
 
         images, _ = self._process_input(images)
         n = len(images)
-        images = torch.from_numpy(images)
-        images = images.to(self.device)
+        images = torch.from_numpy(images).to(self.device)
 
         if self._old_pytorch():  # pragma: no cover
             images = Variable(images, volatile=True)
@@ -86,7 +84,8 @@ class PyTorchModel(DifferentiableModel):
             # for inference
             # with torch.no_grad():
             #     predictions = self._model(images)        
-        predictions = predictions.to(self.device)
+        if self.device != "cpu":
+            predictions = predictions.to("cpu")
         if not self._old_pytorch():
             predictions = predictions.detach()
         predictions = predictions.numpy()
@@ -107,12 +106,10 @@ class PyTorchModel(DifferentiableModel):
         input_shape = image.shape
         image, dpdx = self._process_input(image)
         target = np.array([label])
-        target = torch.from_numpy(target)
-        target = target.to(self.device)
+        target = torch.from_numpy(target).to(self.device)
 
         images = image[np.newaxis]
-        images = torch.from_numpy(images)
-        images = images.to(self.device)
+        images = torch.from_numpy(images).to(self.device)
 
         if self._old_pytorch():  # pragma: no cover
             target = Variable(target)
@@ -128,7 +125,8 @@ class PyTorchModel(DifferentiableModel):
 
         if self._old_pytorch():  # pragma: no cover
             predictions = predictions.data
-        predictions = predictions.to(self.device)
+        if self.device != "cpu":
+            predictions = predictions.to("cpu")
 
         if not self._old_pytorch():
             predictions = predictions.detach()
@@ -159,13 +157,11 @@ class PyTorchModel(DifferentiableModel):
 
         image, _ = self._process_input(image)
         target = np.array([label])
-        target = torch.from_numpy(target)
-        target = target.to(self.device)
+        target = torch.from_numpy(target).to(self.device)
         if self._old_pytorch():  # pragma: no cover
             target = Variable(target)
 
-        images = torch.from_numpy(image[None])
-        images = images.to(self.device)
+        images = torch.from_numpy(image[None]).to(self.device)
         if self._old_pytorch():  # pragma: no cover
             images = Variable(images, volatile=True)
         predictions = self._model(images)
@@ -186,16 +182,14 @@ class PyTorchModel(DifferentiableModel):
 
         assert gradient.ndim == 1
 
-        gradient = torch.from_numpy(gradient)
-        gradient = gradient.to(self.device)
+        gradient = torch.from_numpy(gradient).to(self.device)
         if self._old_pytorch():  # pragma: no cover
             gradient = Variable(gradient)
 
         input_shape = image.shape
         image, dpdx = self._process_input(image)
         images = image[np.newaxis]
-        images = torch.from_numpy(images)
-        images = images.to(self.device)
+        images = torch.from_numpy(images).to(self.device)
         if self._old_pytorch():  # pragma: no cover
             images = Variable(images, requires_grad=True)
         else:
