@@ -11,6 +11,14 @@ def test_attack_pytorch(bn_adversarial_pytorch):
     assert adv.distance.value < np.inf
 
 
+def test_targeted_attack_pytorch(bn_targeted_adversarial_pytorch):
+    adv = bn_targeted_adversarial_pytorch
+    attack = Attack()
+    attack(adv)
+    assert adv.image is None
+    assert adv.distance.value == np.inf
+
+
 def test_attack(bn_adversarial):
     adv = bn_adversarial
     attack = Attack()
