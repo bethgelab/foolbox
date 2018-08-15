@@ -139,7 +139,7 @@ class PyTorchModel(DifferentiableModel):
 
         if self._old_pytorch():  # pragma: no cover
             grad = grad.data
-        if self.device != "cpu"
+        if self.device != "cpu":
             grad = grad.to("cpu")
         if not self._old_pytorch():
             grad = grad.detach()
@@ -173,7 +173,7 @@ class PyTorchModel(DifferentiableModel):
         loss = ce(predictions, target)
         if self._old_pytorch():  # pragma: no cover
             loss = loss.data
-        if self.device != "cpu"
+        if self.device != "cpu":
             loss = loss.to("cpu")
         loss = loss.numpy()
         return loss
@@ -216,7 +216,7 @@ class PyTorchModel(DifferentiableModel):
 
         if self._old_pytorch():  # pragma: no cover
             grad = grad.data
-        if self.device != "cpu"
+        if self.device != "cpu":
             grad = grad.to("cpu")
         if not self._old_pytorch():
             grad = grad.detach()
