@@ -33,7 +33,7 @@ def _difference_map(image, color_axis):
         of shape C x h x w or h x w x C, with C = 1 or C = 3
         (color channels), h, w >= 3, and [type] is 'Float' or
         'Double'. Contains the values of functions f_b:
-        R ^ 2 -> R ^ C, b = 1, ..., B, on the grid 
+        R ^ 2 -> R ^ C, b = 1, ..., B, on the grid
         {0, ..., h - 1} x {0, ..., w - 1}.
 
     Out:
@@ -386,7 +386,8 @@ class ADefAttack(Attack):
 
         if try_overshoot:
             os = min(overshoot, max_norm / norm_full)
-            logging.info('Overshooting: vec_field -> {} * vec_field '.format(os))
+            logging.info('Overshooting: vec_field ->'
+                         ' {} * vec_field '.format(os))
 
             vec_field_full = os * vec_field_full
 
