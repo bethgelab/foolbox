@@ -11,41 +11,46 @@ from ..criteria import Misclassification
 
 def _transpose_image(image):
     # transpose the image so the color axis
-    # is at the front: image.shape is then cxhxw:
+    # is at the front: image.shape is then c x h x w:
     return np.transpose(image, (2, 0, 1))
 
 
 def _re_transpose_image(image):
     # transpose the image back so the color axis
-    # is at the end: image.shape is then hxwxc:
+    # is at the end: image.shape is then h x w x c:
     return np.transpose(image, (1, 2, 0))
 
 
 def _difference_map(image, color_axis):
     """Difference map of the image.
-    Approximate derivatives of the function image[c,:,:]
-    (e.g. PyTorch) or image[:,:,c] (e.g. Keras).
+    Approximate derivatives of the function image[c, :, :]
+    (e.g. PyTorch) or image[:, :, c] (e.g. Keras).
 
     dfdx, dfdy = difference_map(image)
 
     In:
     image: numpy.ndarray
-        of shape Cxhxw or hxwxC, with C = 1 or C = 3 (color channels),
-        h,w >= 3, and [type] is 'Float' or 'Double'.
-        Contains the values of functions f_b: R^2 -> R^C, b=1,...,B,
-        on the grid {0,...,h-1}x{0,...,w-1}.
+        of shape C x h x w or h x w x C, with C = 1 or C = 3
+        (color channels), h, w >= 3, and [type] is 'Float' or
+        'Double'. Contains the values of functions f_b:
+        R ^ 2 -> R ^ C, b = 1, ..., B, on the grid 
+        {0, ..., h - 1} x {0, ..., w - 1}.
 
     Out:
     dfdx: numpy.ndarray
     dfdy: numpy.ndarray
-        of shape Cxhxw or hxwxC contain the x and y derivatives of f
-        at the points on the grid, approximated by central differences
-        (except on boundaries):
-        For c=0,...,C, i=1,...,h-2, j=1,...,w-2
+        of shape C x h x w or h x w x C contain the x and
+        y derivatives of f at the points on the grid,
+        approximated by central differences (except on
+        boundaries):
+        For c = 0, ... , C, i = 1, ..., h - 2,
+        j = 1, ..., w - 2.
 
-        e.g. for shape = cxhxw:
-        dfdx[c,i,j] = (image[c,i,j+1] - image[c,i,j-1])/2
-        dfdx[c,i,j] = (image[c,i+1,j] - image[c,i-1,j])/2
+        e.g. for shape = c x h x w:
+        dfdx[c, i, j] = (image[c, i, j + 1] -
+            image[c, i, j - 1]) / 2
+        dfdx[c, i, j] = (image[c, i + 1, j] -
+            image[c, i - 1, j]) / 2
 
     positive x-direction is along rows from left to right.
     positive y-direction is along columns from above to below.
@@ -83,15 +88,15 @@ def _compose(image, vec_field, color_axis):
 
     In:
     image: numpy.ndarray
-        of shape Cxhxw with C=3 or C=1 (color channels), h,w >= 2,
-        and [type] = 'Float' or 'Double'.
-        Contains the values of a function f:R^2 -> R^C
-        on the grid {0,...,h-1}x{0,...,w-1}.
+        of shape C x h x w with C = 3 or C = 1 (color channels),
+        h, w >= 2, and [type] = 'Float' or 'Double'.
+        Contains the values of a function f: R ^ 2 -> R ^ C
+        on the grid {0, ..., h - 1} x {0, ..., w - 1}.
     vec_field: numpy.array
-        of shape (h,w,2)
+        of shape (h, w, 2)
 
-    vec_field[y,x,0] is the x-coordinate of the vector vec_field[y,x]
-    vec_field[y,x,1] is the y-coordinate of the vector vec_field[y,x]
+    vec_field[y, x, 0] is the x-coordinate of the vector vec_field[y, x]
+    vec_field[y, x, 1] is the y-coordinate of the vector vec_field[y, x]
 
     positive x-direction is along rows from left to right
     positive y-direction is along columns from above to below
@@ -116,7 +121,7 @@ def _compose(image, vec_field, color_axis):
         interpolation = RectBivariateSpline(hrange, wrange, image[channel],
                                             kx=1, ky=1)
 
-        # grid=False since the deformed grid is irregular
+        # grid = False since the deformed grid is irregular
         new_image[channel] = interpolation(defMGy, defMGx, grid=False)
     if color_axis == 2:
         return _re_transpose_image(new_image)
@@ -130,18 +135,19 @@ def _create_vec_field(fval, gradf, d1x, d2x, color_axis, smooth=0):
     In:
     fval: float
     gradf: numpy.ndarray
-        of shape Cxhxw with C=3 or C=1 (color channels), h,w >= 1.
+        of shape C x h x w with C = 3 or C = 1
+        (color channels), h, w >= 1.
     d1x: numpy.ndarray
-        of shape Cxhxw and [type] = 'Float' or 'Double'.
+        of shape C x h x w and [type] = 'Float' or 'Double'.
     d2x: numpy.ndarray
-        of shape Cxhxw and [type] = 'Float' or 'Double'.
+        of shape C x h x w and [type] = 'Float' or 'Double'.
     smooth: float
         Width of the Gaussian kernel used for smoothing
         (default is 0 for no smoothing).
 
     Out:
     vec_field: numpy.ndarray
-        of shape (2,h,w).
+        of shape (2, h, w).
 
     """
 
@@ -203,7 +209,7 @@ class ADefAttack(Attack):
         The indices of labels to target in the ordering of descending
         confidence.
         For example:
-        - ind_of_candidates = [1,2,3] to target the top three labels.
+        - ind_of_candidates = [1, 2, 3] to target the top three labels.
         - ind_of_candidates = 5 to to target the fifth best label.
     max_norm : float
         Maximum l2 norm of vector field (default max_norm = numpy.inf).
@@ -243,7 +249,7 @@ class ADefAttack(Attack):
         # Remove negative entries.
         ind_of_candidates = ind_of_candidates[ind_of_candidates >= 0]
 
-        # Number of classes to target + 1 (>=2).
+        # Number of classes to target + 1 ( >= 2).
         # Example 1: num_classes = 10 for MNIST
         # Example 2: If ind_of_candidates == 1,
         # then only the second highest label is targeted
@@ -380,7 +386,7 @@ class ADefAttack(Attack):
 
         if try_overshoot:
             os = min(overshoot, max_norm / norm_full)
-            logging.info('Overshooting: vec_field -> {}*vec_field '.format(os))
+            logging.info('Overshooting: vec_field -> {} * vec_field '.format(os))
 
             vec_field_full = os * vec_field_full
 
