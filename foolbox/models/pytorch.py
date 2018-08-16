@@ -84,8 +84,7 @@ class PyTorchModel(DifferentiableModel):
             # for inference
             # with torch.no_grad():
             #     predictions = self._model(images)        
-        if self.device != "cpu":
-            predictions = predictions.to("cpu")
+        predictions = predictions.to("cpu")
         if not self._old_pytorch():
             predictions = predictions.detach()
         predictions = predictions.numpy()
@@ -125,8 +124,7 @@ class PyTorchModel(DifferentiableModel):
 
         if self._old_pytorch():  # pragma: no cover
             predictions = predictions.data
-        if self.device != "cpu":
-            predictions = predictions.to("cpu")
+        predictions = predictions.to("cpu")
 
         if not self._old_pytorch():
             predictions = predictions.detach()
@@ -137,8 +135,7 @@ class PyTorchModel(DifferentiableModel):
 
         if self._old_pytorch():  # pragma: no cover
             grad = grad.data
-        if self.device != "cpu":
-            grad = grad.to("cpu")
+        grad = grad.to("cpu")
         if not self._old_pytorch():
             grad = grad.detach()
         grad = grad.numpy()
@@ -169,8 +166,7 @@ class PyTorchModel(DifferentiableModel):
         loss = ce(predictions, target)
         if self._old_pytorch():  # pragma: no cover
             loss = loss.data
-        if self.device != "cpu":
-            loss = loss.to("cpu")
+        loss = loss.to("cpu")
         loss = loss.numpy()
         return loss
 
@@ -210,8 +206,7 @@ class PyTorchModel(DifferentiableModel):
 
         if self._old_pytorch():  # pragma: no cover
             grad = grad.data
-        if self.device != "cpu":
-            grad = grad.to("cpu")
+        grad = grad.to("cpu")
         if not self._old_pytorch():
             grad = grad.detach()
         grad = grad.numpy()
