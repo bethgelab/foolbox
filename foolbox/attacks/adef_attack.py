@@ -205,20 +205,11 @@ class ADefAttack(Attack):
         the Adversarial object.
     max_iter : int > 0
         Maximum number of iterations (default max_iter = 100).
-    ind_of_candidates : int > 0, or array_like of int values > 0
-        The indices of labels to target in the ordering of descending
-        confidence.
-        For example:
-        - ind_of_candidates = [1, 2, 3] to target the top three labels.
-        - ind_of_candidates = 5 to to target the fifth best label.
     max_norm : float
         Maximum l2 norm of vector field (default max_norm = numpy.inf).
     smooth : float >= 0
         Width of the Gaussian kernel used for smoothing.
         (default is smooth = 0 for no smoothing).
-    targeting : bool
-        targeting = False (default) to stop as soon as model misclassifies
-        input targeting = True to stop only once a candidate label is achieved.
 
     """
 
@@ -227,9 +218,8 @@ class ADefAttack(Attack):
         self.vector_field = None
 
     @call_decorator
-    def __call__(self, input_or_adv, ind_of_candidates=1, unpack=True,
-                 max_iter=100, max_norm=np.inf, label=None,
-                 smooth=1.0, targeting=False):
+    def __call__(self, input_or_adv, unpack=True, max_iter=100,
+                 max_norm=np.inf, label=None, smooth=1.0):
 
         a = input_or_adv
         del input_or_adv
@@ -239,6 +229,31 @@ class ADefAttack(Attack):
         if not a.has_gradient():
             return
 
+        perturbed = a.original_image.copy()  # is updated in every iteration
+
+        # image_original is not updated, but kept as a copy
+        image_original = a.original_image.copy()
+        target_class = a.target_class()
+        targeted = target_class is not None
+        original_label = a.original_class
+
+        # If the attack is untargeted, we will take the label with the second
+        # highest probability as a target. The current code also supports
+        # multiple targets and once we have a criterion for this, we could
+        # easily incorporate this case here. ADef targets classes according
+        # to their prediction score. That means that the correct label will
+        # have the index = 0. For an untargeted attack, the label with the
+        # second highest probability will be targeted. For a targeted attack,
+        # it is necessary to find the probability of this class and pass
+        # this index as the candidate (not the actual target).
+        if targeted is False:
+            ind_of_candidates = 1
+        else:
+            pred, _ = a.predictions(perturbed)
+            pred_sorted = (-pred).argsort()
+            index_of_target_class, = np.where(pred_sorted == target_class)
+            ind_of_candidates = index_of_target_class
+
         # Include the correct label (index 0) in the list of targets.
         # Remove duplicates and sort the label indices.
         ind_of_candidates = np.unique(np.append(ind_of_candidates, 0))
@@ -246,17 +261,9 @@ class ADefAttack(Attack):
         ind_of_candidates = ind_of_candidates[ind_of_candidates >= 0]
 
         # Number of classes to target + 1 ( >= 2).
-        # Example 1: num_classes = 10 for MNIST
-        # Example 2: If ind_of_candidates == 1,
-        # then only the second highest label is targeted
         num_classes = ind_of_candidates.size
 
         n = 0  # iteration number
-
-        perturbed = a.original_image.copy()  # is updated in every iteration
-
-        # is not updated, but kept as a copy
-        image_original = a.original_image.copy()
 
         color_axis = a.channel_axis(batch=False)  # get color axis
         assert color_axis in [0, 2]
@@ -264,37 +271,38 @@ class ADefAttack(Attack):
               if i != color_axis]
         h, w = hw
 
-        logits, grad, is_adv = a.predictions_and_gradient(perturbed)
-
-        logits = np.expand_dims(logits, axis=0)
+        logits, is_adv = a.predictions(perturbed)
 
         # Indices of the 'num_classes' highest values in descending order:
-        candidates = np.argsort(-logits)[:, ind_of_candidates]
-        original_label = candidates[:, 0]
+        candidates = np.argsort(-logits)[ind_of_candidates]
+        original_label = candidates[0]
 
         # fx[lab] is negative if the model prefers the original label
         # for x over the label 'lab'.
-        fx = (logits.transpose() - logits[0, original_label]).transpose()
+        fx = logits - logits[original_label]
 
         norm_full = 0  # norm of the vector field
         vec_field_full = np.zeros((h, w, 2))  # the vector field
 
         current_label = original_label
         logging.info('Iterations finished: 0')
-        logging.info('Current labels: {} '.format(current_label))
+        logging.info('Current label: {} '.format(current_label))
 
         for step in range(max_iter):
             n += 1
-            logits, grad, is_adv = a.predictions_and_gradient(perturbed)
+            _, is_adv = a.predictions(perturbed)
             if is_adv:
                 a.predictions(perturbed)
+                logging.info(
+                    'Image successfully deformed from {} to {}'.format(
+                        original_label, current_label))
                 self.vector_field = vec_field_full
                 return
 
             d1x, d2x = _difference_map(perturbed, color_axis)
 
             logits_for_grad = np.zeros_like(logits)
-            logits_for_grad[original_label[0]] = 1
+            logits_for_grad[original_label] = 1
 
             grad_original = a.backward(logits_for_grad, perturbed)
 
@@ -305,17 +313,16 @@ class ADefAttack(Attack):
             # iterate over all candidate classes
             for target_no in range(1, num_classes):
 
-                target_labels = candidates[0, target_no]
+                target_label = candidates[target_no]
                 logits_for_grad = np.zeros_like(logits)
-                logits_for_grad[target_labels] = 1
+                logits_for_grad[target_label] = 1
 
                 # gradient of the target label w.r.t. image
                 grad_target = a.backward(logits_for_grad, perturbed)
 
                 # Derivative of the binary classifier 'F_lab - F_orig'
                 dfx = grad_target - grad_original
-
-                f_im = fx[0, candidates[0, target_no]]
+                f_im = fx[target_label]
 
                 # create the vector field
                 vec_field_target = _create_vec_field(
@@ -343,27 +350,15 @@ class ADefAttack(Attack):
 
             # getting the current label after applying the vector field
             fx, _ = a.predictions(perturbed)
-            fx = np.expand_dims(fx, axis=0)
-            current_label = np.argmax(fx, axis=1)
-            fx = (fx.transpose() - fx[0, current_label]).transpose()
+            current_label = np.argmax(fx)
+            fx = fx - fx[current_label]
 
-            # See if we have been successful.
-            if targeting and (current_label in candidates[0, 1:]):
-                logging.info(
-                    'Image successfully deformed from {} to {}'.format(
-                        original_label, current_label))
-                continue
-            elif (not targeting) and current_label != original_label:
-                logging.info(
-                    'Image successfully deformed from {} to {}'.format(
-                        original_label, current_label))
             logging.info('Iterations finished: {} '.format(n))
-            logging.info('Current labels: {} '.format(current_label))
+            logging.info('Current label: {} '.format(current_label))
             logging.info('Norm vector field: {} '.format(norm_full))
 
         fx, _ = a.predictions(perturbed)
-        fx = np.expand_dims(fx, axis=0)
-        current_label = np.argmax(fx, axis=1)
+        current_label = np.argmax(fx)
         logging.info('{} -> {}'.format(original_label, current_label))
 
         a.predictions(perturbed)
