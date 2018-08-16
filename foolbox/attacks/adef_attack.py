@@ -237,15 +237,14 @@ class ADefAttack(Attack):
         targeted = target_class is not None
         original_label = a.original_class
 
-        # If the attack is untargeted, we will take the label with the second
-        # highest probability as a target. The current code also supports
-        # multiple targets and once we have a criterion for this, we could
-        # easily incorporate this case here. ADef targets classes according
-        # to their prediction score. That means that the correct label will
-        # have the index = 0. For an untargeted attack, the label with the
-        # second highest probability will be targeted. For a targeted attack,
-        # it is necessary to find the probability of this class and pass
-        # this index as the candidate (not the actual target).
+        # ADef targets classes according to their prediction score. That means
+        # that the correct label will have the index = 0 (because it has the
+        # highest score). If the attack is untargeted, ADef will take the label
+        # with the second highest probability as the target_class. The current
+        # code also supports multiple targets and once we have a criterion for
+        # this, we could easily incorporate this case here. For a targeted
+        # attack, it is necessary to find the probability of this class and
+        # pass this index as the candidate (not the actual target).
         if targeted is False:
             ind_of_candidates = 1
         else:
