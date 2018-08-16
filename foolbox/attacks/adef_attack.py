@@ -179,17 +179,17 @@ def _create_vec_field(fval, gradf, d1x, d2x, color_axis, smooth=0):
 
 
 class ADefAttack(Attack):
-    """Adversarial Attack that distorts the image, i.e. changes the locations
-    of pixels. The algorithm is described in [1],
-    A Repository with the original code can be found in [2].
+    """Adversarial attack that distorts the image, i.e. changes the locations
+    of pixels. The algorithm is described in [1]_,
+    A Repository with the original code can be found in [2]_.
 
     References
     ----------
-    .. [1] Rima Alaifari, Giovanni S. Alberti, and Tandri Gauksson1:
-           "ADef: an Iterative Algorithm to Construct Adversarial
-           Deformations", https://arxiv.org/pdf/1804.07729.pdf
+    .. [1]_ Rima Alaifari, Giovanni S. Alberti, and Tandri Gauksson:
+            "ADef: an Iterative Algorithm to Construct Adversarial
+            Deformations", https://arxiv.org/abs/1804.07729
 
-    .. [2] https://gitlab.math.ethz.ch/tandrig/ADef/tree/master
+    .. [2]_ https://gitlab.math.ethz.ch/tandrig/ADef/tree/master
 
     Parameters
     ----------
@@ -213,10 +213,6 @@ class ADefAttack(Attack):
         - ind_of_candidates = 5 to to target the fifth best label.
     max_norm : float
         Maximum l2 norm of vector field (default max_norm = numpy.inf).
-    overshoot : float >= 1
-        Multiply the resulting vector field by this number,
-        if deformed image is still correctly classified
-        (default is overshoot = 1 for no overshooting).
     smooth : float >= 0
         Width of the Gaussian kernel used for smoothing.
         (default is smooth = 0 for no smoothing).
@@ -233,7 +229,7 @@ class ADefAttack(Attack):
     @call_decorator
     def __call__(self, input_or_adv, ind_of_candidates=1, unpack=True,
                  max_iter=100, max_norm=np.inf, label=None,
-                 overshoot=1.1, smooth=1.0, targeting=False):
+                 smooth=1.0, targeting=False):
 
         a = input_or_adv
         del input_or_adv
@@ -259,8 +255,8 @@ class ADefAttack(Attack):
 
         perturbed = a.original_image.copy()  # is updated in every iteration
 
-        image_original = a.original_image.copy()  # is not updated,
-        # but kept as a copy
+        # is not updated, but kept as a copy
+        image_original = a.original_image.copy()
 
         color_axis = a.channel_axis(batch=False)  # get color axis
         assert color_axis in [0, 2]
@@ -323,8 +319,7 @@ class ADefAttack(Attack):
 
                 # create the vector field
                 vec_field_target = _create_vec_field(
-                    f_im, dfx, d1x, d2x, color_axis, smooth
-                )
+                    f_im, dfx, d1x, d2x, color_axis, smooth)
 
                 vec_field_target += vec_field_full
 
@@ -365,34 +360,6 @@ class ADefAttack(Attack):
             logging.info('Iterations finished: {} '.format(n))
             logging.info('Current labels: {} '.format(current_label))
             logging.info('Norm vector field: {} '.format(norm_full))
-
-        # Overshooting
-        try_overshoot = False
-        have_highest_confidence = (fx == 0)
-        predicted_labels = np.where(have_highest_confidence)[0]
-
-        if len(predicted_labels) > 1:
-            logging.info('Deformed image lies on the decision '
-                         'boundary of labels: {} '.format(predicted_labels))
-            try_overshoot = True
-
-        # Overshoot if deformed image is still correctly classified,
-        # lies on a decision boundary or, in case of targeting,
-        # is not classified as a candidate label.
-        try_overshoot = try_overshoot or (original_label in predicted_labels)
-        try_overshoot = try_overshoot or (targeting and not
-                                          (current_label in candidates[0, 1:]))
-        try_overshoot = try_overshoot and (overshoot > 1) and (norm_full > 0)
-
-        if try_overshoot:
-            os = min(overshoot, max_norm / norm_full)
-            logging.info('Overshooting: vec_field ->'
-                         ' {} * vec_field '.format(os))
-
-            vec_field_full = os * vec_field_full
-
-            perturbed = _compose(image_original.copy(), vec_field_full,
-                                 color_axis)
 
         fx, _ = a.predictions(perturbed)
         fx = np.expand_dims(fx, axis=0)
