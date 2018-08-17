@@ -191,26 +191,6 @@ class ADefAttack(Attack):
 
     .. [2]_ https://gitlab.math.ethz.ch/tandrig/ADef/tree/master
 
-    Parameters
-    ----------
-    input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-        The original, unperturbed input as a `numpy.ndarray` or
-        an :class:`Adversarial` instance.
-    label : int
-        The reference label of the original input. Must be passed
-        if `a` is a `numpy.ndarray`, must not be passed if `a` is
-        an :class:`Adversarial` instance.
-    unpack : bool
-        If true, returns the adversarial input, otherwise returns
-        the Adversarial object.
-    max_iter : int > 0
-        Maximum number of iterations (default max_iter = 100).
-    max_norm : float
-        Maximum l2 norm of vector field (default max_norm = numpy.inf).
-    smooth : float >= 0
-        Width of the Gaussian kernel used for smoothing.
-        (default is smooth = 0 for no smoothing).
-
     """
 
     def __init__(self, model=None, criterion=Misclassification()):
@@ -219,8 +199,33 @@ class ADefAttack(Attack):
 
     @call_decorator
     def __call__(self, input_or_adv, unpack=True, max_iter=100,
-                 max_norm=np.inf, label=None, smooth=1.0):
+                 max_norm=np.inf, label=None, smooth=1.0, subsample=10):
 
+        """Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial input, otherwise returns
+            the Adversarial object.
+        max_iter : int > 0
+            Maximum number of iterations (default max_iter = 100).
+        max_norm : float
+            Maximum l2 norm of vector field (default max_norm = numpy.inf).
+        smooth : float >= 0
+            Width of the Gaussian kernel used for smoothing.
+            (default is smooth = 0 for no smoothing).
+        subsample : int
+            Limit on the number of the most likely classes that should
+            be considered. A small value is usually sufficient and much
+            faster.
+
+        """
         a = input_or_adv
         del input_or_adv
         del label
@@ -245,17 +250,23 @@ class ADefAttack(Attack):
         # this, we could easily incorporate this case here. For a targeted
         # attack, it is necessary to find the probability of this class and
         # pass this index as the candidate (not the actual target).
+        pred, _ = a.predictions(perturbed)
+        pred_sorted = (-pred).argsort()
         if targeted is False:
-            ind_of_candidates = 1
+            # choose the top-k classes
+            logging.info('Only testing the top-{} classes'.format(subsample))
+            assert isinstance(subsample, int)
+            index_of_target_class, = pred_sorted[:subsample]
+            ind_of_candidates = index_of_target_class
+            # Include the correct label (index 0) in the list of targets.
+            # Remove duplicates and sort the label indices.
+            ind_of_candidates = np.unique(np.append(ind_of_candidates, 0))
         else:
-            pred, _ = a.predictions(perturbed)
-            pred_sorted = (-pred).argsort()
             index_of_target_class, = np.where(pred_sorted == target_class)
             ind_of_candidates = index_of_target_class
+            ind_of_candidates = np.unique(
+                np.append(ind_of_candidates, original_label))
 
-        # Include the correct label (index 0) in the list of targets.
-        # Remove duplicates and sort the label indices.
-        ind_of_candidates = np.unique(np.append(ind_of_candidates, 0))
         # Remove negative entries.
         ind_of_candidates = ind_of_candidates[ind_of_candidates >= 0]
 
