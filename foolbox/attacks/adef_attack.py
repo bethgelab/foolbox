@@ -242,14 +242,12 @@ class ADefAttack(Attack):
         targeted = target_class is not None
         original_label = a.original_class
 
-        # ADef targets classes according to their prediction score. That means
-        # that the correct label will have the index = 0 (because it has the
-        # highest score). If the attack is untargeted, ADef will take the label
-        # with the second highest probability as the target_class. The current
-        # code also supports multiple targets and once we have a criterion for
-        # this, we could easily incorporate this case here. For a targeted
-        # attack, it is necessary to find the probability of this class and
-        # pass this index as the candidate (not the actual target).
+        # ADef targets classes according to their prediction score. If the
+        # attack is untargeted, ADef will take the labels of the top
+        # 'subsample' classes. This is faster than taking all the remaining
+        # 999 classes of ImageNet into account. For a targeted attack,
+        # it is necessary to find the probability of this class and pass
+        # this index to ind_of_candidates (not the actual target).
         if targeted is False:
             # choose the top-k classes
             # Include the original label in the list of targets (index 0).
