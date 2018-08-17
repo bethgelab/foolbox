@@ -252,15 +252,16 @@ class ADefAttack(Attack):
         # pass this index as the candidate (not the actual target).
         if targeted is False:
             # choose the top-k classes
+            # Include the original label in the list of targets (index 0).
             logging.info('Only testing the top-{} classes'.format(subsample))
             assert isinstance(subsample, int)
-            ind_of_candidates = np.arange(1, subsample)
+            ind_of_candidates = np.arange(subsample)
         else:
             logits, _ = a.predictions(perturbed)
             pred_sorted = (-logits).argsort()
             index_of_target_class, = np.where(pred_sorted == target_class)
             ind_of_candidates = index_of_target_class
-            # Include the correct label (index 0) in the list of targets.
+            # Include the original label in the list of targets (index 0).
             ind_of_candidates = np.unique(np.append(ind_of_candidates, 0))
 
         # Remove negative entries.
