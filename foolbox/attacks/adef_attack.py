@@ -256,8 +256,8 @@ class ADefAttack(Attack):
             assert isinstance(subsample, int)
             ind_of_candidates = np.arange(1, subsample)
         else:
-            pred, _ = a.predictions(perturbed)
-            pred_sorted = (-pred).argsort()
+            logits, _ = a.predictions(perturbed)
+            pred_sorted = (-logits).argsort()
             index_of_target_class, = np.where(pred_sorted == target_class)
             ind_of_candidates = index_of_target_class
             # Include the correct label (index 0) in the list of targets.
@@ -355,16 +355,16 @@ class ADefAttack(Attack):
             norm_full = norm_min
 
             # getting the current label after applying the vector field
-            fx, _ = a.predictions(perturbed)
-            current_label = np.argmax(fx)
-            fx = fx - fx[current_label]
+            logits, _ = a.predictions(perturbed)
+            current_label = np.argmax(logits)
+            fx = logits - logits[current_label]
 
             logging.info('Iterations finished: {} '.format(n))
             logging.info('Current label: {} '.format(current_label))
             logging.info('Norm vector field: {} '.format(norm_full))
 
-        fx, _ = a.predictions(perturbed)
-        current_label = np.argmax(fx)
+        logits, _ = a.predictions(perturbed)
+        current_label = np.argmax(logits)
         logging.info('{} -> {}'.format(original_label, current_label))
 
         a.predictions(perturbed)
