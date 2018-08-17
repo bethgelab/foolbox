@@ -250,22 +250,18 @@ class ADefAttack(Attack):
         # this, we could easily incorporate this case here. For a targeted
         # attack, it is necessary to find the probability of this class and
         # pass this index as the candidate (not the actual target).
-        pred, _ = a.predictions(perturbed)
-        pred_sorted = (-pred).argsort()
         if targeted is False:
             # choose the top-k classes
             logging.info('Only testing the top-{} classes'.format(subsample))
             assert isinstance(subsample, int)
-            index_of_target_class, = pred_sorted[:subsample]
-            ind_of_candidates = index_of_target_class
-            # Include the correct label (index 0) in the list of targets.
-            # Remove duplicates and sort the label indices.
-            ind_of_candidates = np.unique(np.append(ind_of_candidates, 0))
+            ind_of_candidates = np.arange(1, subsample)
         else:
+            pred, _ = a.predictions(perturbed)
+            pred_sorted = (-pred).argsort()
             index_of_target_class, = np.where(pred_sorted == target_class)
             ind_of_candidates = index_of_target_class
-            ind_of_candidates = np.unique(
-                np.append(ind_of_candidates, original_label))
+            # Include the correct label (index 0) in the list of targets.
+            ind_of_candidates = np.unique(np.append(ind_of_candidates, 0))
 
         # Remove negative entries.
         ind_of_candidates = ind_of_candidates[ind_of_candidates >= 0]
