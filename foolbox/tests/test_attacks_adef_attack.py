@@ -27,7 +27,7 @@ def test_attack(bn_adversarial):
     assert adv.distance.value < np.inf
 
 
-def test_attack_gl(Attack, gl_bn_adversarial):
+def test_attack_gl(gl_bn_adversarial):
     adv = gl_bn_adversarial
     attack = Attack()
     attack(adv)
