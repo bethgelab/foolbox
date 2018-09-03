@@ -25,9 +25,7 @@ def _difference_map(image, color_axis):
     """Difference map of the image.
     Approximate derivatives of the function image[c, :, :]
     (e.g. PyTorch) or image[:, :, c] (e.g. Keras).
-
     dfdx, dfdy = difference_map(image)
-
     In:
     image: numpy.ndarray
         of shape C x h x w or h x w x C, with C = 1 or C = 3
@@ -35,7 +33,6 @@ def _difference_map(image, color_axis):
         'Double'. Contains the values of functions f_b:
         R ^ 2 -> R ^ C, b = 1, ..., B, on the grid
         {0, ..., h - 1} x {0, ..., w - 1}.
-
     Out:
     dfdx: numpy.ndarray
     dfdy: numpy.ndarray
@@ -45,16 +42,13 @@ def _difference_map(image, color_axis):
         boundaries):
         For c = 0, ... , C, i = 1, ..., h - 2,
         j = 1, ..., w - 2.
-
         e.g. for shape = c x h x w:
         dfdx[c, i, j] = (image[c, i, j + 1] -
             image[c, i, j - 1]) / 2
         dfdx[c, i, j] = (image[c, i + 1, j] -
             image[c, i - 1, j]) / 2
-
     positive x-direction is along rows from left to right.
     positive y-direction is along columns from above to below.
-
     """
 
     if color_axis == 2:
@@ -83,9 +77,7 @@ def _difference_map(image, color_axis):
 def _compose(image, vec_field, color_axis):
     """Calculate the composition of the function image with the vector
     field vec_field by interpolation.
-
     new_func = compose(image, vec_field)
-
     In:
     image: numpy.ndarray
         of shape C x h x w with C = 3 or C = 1 (color channels),
@@ -94,13 +86,10 @@ def _compose(image, vec_field, color_axis):
         on the grid {0, ..., h - 1} x {0, ..., w - 1}.
     vec_field: numpy.array
         of shape (h, w, 2)
-
     vec_field[y, x, 0] is the x-coordinate of the vector vec_field[y, x]
     vec_field[y, x, 1] is the y-coordinate of the vector vec_field[y, x]
-
     positive x-direction is along rows from left to right
     positive y-direction is along columns from above to below
-
     """
 
     if color_axis == 2:
@@ -131,7 +120,6 @@ def _compose(image, vec_field, color_axis):
 
 def _create_vec_field(fval, gradf, d1x, d2x, color_axis, smooth=0):
     """Calculate the deformation vector field
-
     In:
     fval: float
     gradf: numpy.ndarray
@@ -144,11 +132,9 @@ def _create_vec_field(fval, gradf, d1x, d2x, color_axis, smooth=0):
     smooth: float
         Width of the Gaussian kernel used for smoothing
         (default is 0 for no smoothing).
-
     Out:
     vec_field: numpy.ndarray
         of shape (2, h, w).
-
     """
 
     if color_axis == 2:
@@ -182,15 +168,12 @@ class ADefAttack(Attack):
     """Adversarial attack that distorts the image, i.e. changes the locations
     of pixels. The algorithm is described in [1]_,
     a Repository with the original code can be found in [2]_.
-
     References
     ----------
     .. [1]_ Rima Alaifari, Giovanni S. Alberti, and Tandri Gauksson:
             "ADef: an Iterative Algorithm to Construct Adversarial
             Deformations", https://arxiv.org/abs/1804.07729
-
     .. [2]_ https://gitlab.math.ethz.ch/tandrig/ADef/tree/master
-
     """
 
     def __init__(self, model=None, criterion=Misclassification()):
@@ -220,11 +203,10 @@ class ADefAttack(Attack):
         smooth : float >= 0
             Width of the Gaussian kernel used for smoothing.
             (default is smooth = 0 for no smoothing).
-        subsample : int
+        subsample : int >= 2
             Limit on the number of the most likely classes that should
             be considered. A small value is usually sufficient and much
-            faster.
-
+            faster. (default subsample = 10)
         """
         a = input_or_adv
         del input_or_adv
@@ -244,24 +226,26 @@ class ADefAttack(Attack):
 
         # ADef targets classes according to their prediction score. If the
         # attack is untargeted, ADef will take the labels of the top
-        # 'subsample' classes. This is faster than taking all the remaining
-        # 999 classes of ImageNet into account. For a targeted attack,
-        # it is necessary to find the probability of this class and pass
-        # this index to ind_of_candidates (not the actual target).
+        # 'subsample' classes without the top class. The top class is
+        # the class with the highest probability and not among the targets.
+        # Using a 'subsample' of classes is faster than taking all the
+        # remaining 999 classes of ImageNet into account. For a targeted
+        # attack, it is necessary to find the probability of the target
+        # class and pass this index to ind_of_candidates (not the actual
+        # target).
         if targeted:
             logits, _ = a.predictions(perturbed)
             pred_sorted = (-logits).argsort()
             index_of_target_class, = np.where(pred_sorted == target_class)
             ind_of_candidates = index_of_target_class
-            # Include the label with the highest probability (index 0).
-            ind_of_candidates = np.unique(np.append(ind_of_candidates, 0))
         else:
             # choose the top-k classes
             logging.info('Only testing the top-{} classes'.format(subsample))
             assert isinstance(subsample, int)
-            ind_of_candidates = np.arange(subsample)
+            assert subsample >= 2
+            ind_of_candidates = np.arange(1,subsample)
 
-        # Number of classes to target + 1 ( >= 2).
+        # Number of classes to target
         num_classes = ind_of_candidates.size
 
         n = 0  # iteration number
@@ -311,7 +295,7 @@ class ADefAttack(Attack):
             norm_min = np.inf
 
             # iterate over all candidate classes
-            for target_no in range(1, num_classes):
+            for target_no in range(num_classes):
 
                 target_label = candidates[target_no]
                 logits_for_grad = np.zeros_like(logits)
