@@ -181,7 +181,7 @@ def _create_vec_field(fval, gradf, d1x, d2x, color_axis, smooth=0):
 class ADefAttack(Attack):
     """Adversarial attack that distorts the image, i.e. changes the locations
     of pixels. The algorithm is described in [1]_,
-    A Repository with the original code can be found in [2]_.
+    a Repository with the original code can be found in [2]_.
 
     References
     ----------
@@ -248,22 +248,18 @@ class ADefAttack(Attack):
         # 999 classes of ImageNet into account. For a targeted attack,
         # it is necessary to find the probability of this class and pass
         # this index to ind_of_candidates (not the actual target).
-        if targeted is False:
-            # choose the top-k classes
-            # Include the original label in the list of targets (index 0).
-            logging.info('Only testing the top-{} classes'.format(subsample))
-            assert isinstance(subsample, int)
-            ind_of_candidates = np.arange(subsample)
-        else:
+        if targeted:
             logits, _ = a.predictions(perturbed)
             pred_sorted = (-logits).argsort()
             index_of_target_class, = np.where(pred_sorted == target_class)
             ind_of_candidates = index_of_target_class
-            # Include the original label in the list of targets (index 0).
+            # Include the label with the highest probability (index 0).
             ind_of_candidates = np.unique(np.append(ind_of_candidates, 0))
-
-        # Remove negative entries.
-        ind_of_candidates = ind_of_candidates[ind_of_candidates >= 0]
+        else:
+            # choose the top-k classes
+            logging.info('Only testing the top-{} classes'.format(subsample))
+            assert isinstance(subsample, int)
+            ind_of_candidates = np.arange(subsample)
 
         # Number of classes to target + 1 ( >= 2).
         num_classes = ind_of_candidates.size
