@@ -243,7 +243,7 @@ class ADefAttack(Attack):
             logging.info('Only testing the top-{} classes'.format(subsample))
             assert isinstance(subsample, int)
             assert subsample >= 2
-            ind_of_candidates = np.arange(1,subsample)
+            ind_of_candidates = np.arange(1, subsample)
 
         # Number of classes to target
         num_classes = ind_of_candidates.size
