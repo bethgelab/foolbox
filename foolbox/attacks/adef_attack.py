@@ -276,7 +276,6 @@ class ADefAttack(Attack):
 
         # Indices of the 'num_classes' highest values in descending order:
         candidates = np.argsort(-logits)[ind_of_candidates]
-        original_label = candidates[0]
 
         # fx[lab] is negative if the model prefers the original label
         # for x over the label 'lab'.
