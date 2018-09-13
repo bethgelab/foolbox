@@ -47,7 +47,7 @@ class PyTorchModel(DifferentiableModel):
 
         if device is None:
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        elif isinstance(device, str)
+        elif isinstance(device, str):
             self.device = torch.device(device)
         self._model = model.to(self.device)
 
