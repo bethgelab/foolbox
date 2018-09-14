@@ -79,6 +79,10 @@ Gradient-based attacks
    :members:
    :special-members:
 
+.. autoclass:: ADefAttack
+   :members:
+   :special-members:
+
 .. autoclass:: SLSQPAttack
    :members:
    :special-members:

@@ -17,6 +17,7 @@ from .precomputed import PrecomputedImagesAttack
 from .boundary_attack import BoundaryAttack
 from .pointwise import PointwiseAttack
 from .binarization import BinarizationRefinementAttack
+from .adef_attack import ADefAttack
 
 from .iterative_projected_gradient import LinfinityBasicIterativeAttack, BasicIterativeMethod, BIM
 from .iterative_projected_gradient import L1BasicIterativeAttack
