@@ -46,9 +46,11 @@ class PyTorchModel(DifferentiableModel):
         self._num_classes = num_classes
 
         if device is None:
-            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         elif isinstance(device, str):
             self.device = torch.device(device)
+        else:
+            self.device = device
         self._model = model.to(self.device)
 
         if model.training:
