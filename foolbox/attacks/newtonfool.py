@@ -54,8 +54,7 @@ class NewtonFoolAttack(Attack):
             logging.fatal('NewtonFool is an untargeted adversarial attack.')
             return
 
-        reshape = np.reshape(a.original_image, [-1])
-        l2_norm = np.linalg.norm(reshape)
+        l2_norm = np.linalg.norm(a.original_shape)
         min_, max_ = a.bounds()
         perturbed_image = a.original_image.copy()
 
@@ -75,10 +74,10 @@ class NewtonFoolAttack(Attack):
             # stable implemenation to calculate the gradient
             # grad is calculated from CE but we want softmax
             # -> revert chain rule
-            gradients = - gradients / score
+            gradients = -gradients / score
 
             # (2) calculate gradient norm
-            gradient_l2_norm = np.linalg.norm(np.reshape(gradients, [-1]))
+            gradient_l2_norm = np.linalg.norm(gradients)
 
             # (3) calculate delta
             delta = self._delta(eta, l2_norm, score,
@@ -102,7 +101,5 @@ class NewtonFoolAttack(Attack):
 
     @staticmethod
     def _perturbation(delta, gradients, gradient_norm):
-        a = delta * gradients
-        b = float(gradient_norm ** 2)
-        direction = -(a / b)
+        direction = (delta / (gradient_norm ** 2)) * gradients
         return direction
