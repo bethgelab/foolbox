@@ -99,10 +99,17 @@ class GradientAttack(SingleStepGradientBaseAttack):
 
 class GradientSignAttack(SingleStepGradientBaseAttack):
     """Adds the sign of the gradient to the image, gradually increasing
-    the magnitude until the image is misclassified.
+    the magnitude until the image is misclassified. This attack is
+    often referred to as Fast Gradient Sign Method and was introduced
+    in [1]_.
 
     Does not do anything if the model does not have a gradient.
 
+    References
+    ----------
+    .. [1] Ian J. Goodfellow, Jonathon Shlens, Christian Szegedy,
+           "Explaining and Harnessing Adversarial Examples",
+           https://arxiv.org/abs/1412.6572
     """
 
     @call_decorator

@@ -37,6 +37,7 @@
    NewtonFoolAttack
    DeepFoolL2Attack
    DeepFoolLinfinityAttack
+   ADefAttack
    SLSQPAttack
    SaliencyMapAttack
    IterativeGradientAttack

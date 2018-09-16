@@ -105,13 +105,13 @@ class PyTorchModel(DifferentiableModel):
         if self._old_pytorch():  # pragma: no cover
             from torch.autograd import Variable
 
+        input_shape = image.shape
         image, dpdx = self._process_input(image)
         target = np.array([label])
         target = torch.from_numpy(target)
         if self.cuda:  # pragma: no cover
             target = target.cuda()
 
-        assert image.ndim == 3
         images = image[np.newaxis]
         images = torch.from_numpy(images)
         if self.cuda:  # pragma: no cover
@@ -150,7 +150,7 @@ class PyTorchModel(DifferentiableModel):
         grad = grad.numpy()
         grad = np.squeeze(grad, axis=0)
         grad = self._process_gradient(dpdx, grad)
-        assert grad.shape == image.shape
+        assert grad.shape == input_shape
 
         return predictions, grad
 
@@ -198,8 +198,8 @@ class PyTorchModel(DifferentiableModel):
         if self._old_pytorch():  # pragma: no cover
             gradient = Variable(gradient)
 
+        input_shape = image.shape
         image, dpdx = self._process_input(image)
-        assert image.ndim == 3
         images = image[np.newaxis]
         images = torch.from_numpy(images)
         if self.cuda:  # pragma: no cover
@@ -210,7 +210,6 @@ class PyTorchModel(DifferentiableModel):
             images.requires_grad_()
         predictions = self._model(images)
 
-        print(predictions.size())
         predictions = predictions[0]
 
         assert gradient.dim() == 1
@@ -232,6 +231,6 @@ class PyTorchModel(DifferentiableModel):
         grad = grad.numpy()
         grad = np.squeeze(grad, axis=0)
         grad = self._process_gradient(dpdx, grad)
-        assert grad.shape == image.shape
+        assert grad.shape == input_shape
 
         return grad

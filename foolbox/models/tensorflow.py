@@ -124,6 +124,7 @@ class TensorFlowModel(DifferentiableModel):
 
     def backward(self, gradient, image):
         assert gradient.ndim == 1
+        input_shape = image.shape
         image, dpdx = self._process_input(image)
         g = self._session.run(
             self._bw_gradient,
@@ -131,5 +132,5 @@ class TensorFlowModel(DifferentiableModel):
                 self._images: image[np.newaxis],
                 self._bw_gradient_pre: gradient})
         g = self._process_gradient(dpdx, g)
-        assert g.shape == image.shape
+        assert g.shape == input_shape
         return g
