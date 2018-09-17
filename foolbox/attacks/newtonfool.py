@@ -101,5 +101,5 @@ class NewtonFoolAttack(Attack):
 
     @staticmethod
     def _perturbation(delta, gradients, gradient_norm):
-        direction = (delta / (gradient_norm ** 2)) * gradients
+        direction = -((delta / (gradient_norm ** 2)) * gradients)
         return direction
