@@ -2,6 +2,7 @@ worktrees/
 .mypy_cache
 Makefile
 wip/
+.pytest_cache/
 
 # Created by https://www.gitignore.io/api/osx,vim,linux,python
 
@@ -159,5 +160,8 @@ Session.vim
 .netrwhist
 # auto-generated tag files
 tags
+
+# PyCharm
+.idea/
 
 # End of https://www.gitignore.io/api/osx,vim,linux,python

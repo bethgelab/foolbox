@@ -34,6 +34,7 @@
    MomentumIterativeMethod
    LBFGSAttack
    DeepFoolAttack
+   NewtonFoolAttack
    DeepFoolL2Attack
    DeepFoolLinfinityAttack
    ADefAttack
