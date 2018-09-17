@@ -54,7 +54,7 @@ class NewtonFoolAttack(Attack):
             logging.fatal('NewtonFool is an untargeted adversarial attack.')
             return
 
-        l2_norm = np.linalg.norm(a.original_shape)
+        l2_norm = np.linalg.norm(a.original_image)
         min_, max_ = a.bounds()
         perturbed_image = a.original_image.copy()
 
