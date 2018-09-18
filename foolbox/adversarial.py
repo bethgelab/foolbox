@@ -50,6 +50,7 @@ class Adversarial(object):
 
         self.__best_adversarial = None
         self.__best_distance = distance(value=np.inf)
+        self.__best_adversarial_output = None
 
         self._total_prediction_calls = 0
         self._total_gradient_calls = 0
@@ -63,6 +64,7 @@ class Adversarial(object):
     def _reset(self):
         self.__best_adversarial = None
         self.__best_distance = self.__distance(value=np.inf)
+        self.__best_adversarial_output = None
 
         self._best_prediction_calls = 0
         self._best_gradient_calls = 0
@@ -71,18 +73,40 @@ class Adversarial(object):
 
     @property
     def image(self):
+        """The best adversarial found so far."""
         return self.__best_adversarial
 
     @property
+    def output(self):
+        """The model predictions for the best adversarial found so far.
+
+        None if no adversarial has been found.
+        """
+        return self.__best_adversarial_output
+
+    @property
+    def adversarial_class(self):
+        """The argmax of the model predictions for the best adversarial found so far.
+
+        None if no adversarial has been found.
+        """
+        if self.output is None:
+            return None
+        return np.argmax(self.output)
+
+    @property
     def distance(self):
+        """The distance of the adversarial input to the original input."""
         return self.__best_distance
 
     @property
     def original_image(self):
+        """The original input."""
         return self.__original_image
 
     @property
     def original_class(self):
+        """The class of the original input (ground-truth, not model prediction)."""  # noqa: E501
         return self.__original_class
 
     @property
@@ -128,8 +152,8 @@ class Adversarial(object):
             image,
             bounds=self.bounds())
 
-    def __new_adversarial(self, image, in_bounds):
-        image = image.copy()  # to prevent inplace changes
+    def __new_adversarial(self, image, predictions, in_bounds):
+        image = image.copy()  # to prevent accidental inplace changes
         distance = self.normalized_distance(image)
         if in_bounds and self.__best_distance > distance:
             # new best adversarial
@@ -138,6 +162,7 @@ class Adversarial(object):
 
             self.__best_adversarial = image
             self.__best_distance = distance
+            self.__best_adversarial_output = predictions
 
             self._best_prediction_calls = self._total_prediction_calls
             self._best_gradient_calls = self._total_gradient_calls
@@ -159,13 +184,14 @@ class Adversarial(object):
         """
         is_adversarial = self.__criterion.is_adversarial(
             predictions, self.__original_class)
+        assert isinstance(is_adversarial, bool) or \
+            isinstance(is_adversarial, np.bool_)
         if is_adversarial:
-            is_best, distance = self.__new_adversarial(image, in_bounds)
+            is_best, distance = self.__new_adversarial(
+                image, predictions, in_bounds)
         else:
             is_best = False
             distance = None
-        assert isinstance(is_adversarial, bool) or \
-            isinstance(is_adversarial, np.bool_)
         return is_adversarial, is_best, distance
 
     def target_class(self):

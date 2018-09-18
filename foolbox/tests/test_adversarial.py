@@ -1,15 +1,15 @@
+import numpy as np
+
+from foolbox import Adversarial
+from foolbox.distances import MSE
+import foolbox
+
 import sys
 if sys.version_info > (3, 2):
     from unittest.mock import Mock
 else:
     # for Python2.7 compatibility
     from mock import Mock
-
-import numpy as np
-
-from foolbox import Adversarial
-from foolbox.distances import MSE
-import foolbox
 
 
 # def test_adversarial(bn_model, bn_criterion, bn_image, bn_label):
@@ -24,6 +24,8 @@ def test_adversarial(model, criterion, image, label):
     assert not adversarial.predictions(image)[1]
 
     assert adversarial.image is None
+    assert adversarial.output is None
+    assert adversarial.adversarial_class is None
     assert adversarial.distance == MSE(value=np.inf)
     assert adversarial.original_image is image
     assert adversarial.original_class == label
@@ -48,10 +50,14 @@ def test_adversarial(model, criterion, image, label):
     adversarial.reset_distance_dtype()
     assert adversarial.normalized_distance(perturbed).value == d1
 
+    true_label = label
     label = 22  # wrong label
     adversarial = Adversarial(model, criterion, image, label, verbose=True)
 
     assert adversarial.image is not None
+    assert adversarial.output is not None
+    assert adversarial.adversarial_class == true_label
+    assert adversarial.adversarial_class == np.argmax(adversarial.output)
     assert adversarial.distance == MSE(value=0)
     assert adversarial.original_image is image
     assert adversarial.original_class == label
