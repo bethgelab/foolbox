@@ -39,7 +39,7 @@ class PointwiseAttack(Attack):
             for targeted attacks.
         initialization_attack : :class:`Attack`
             Attack to use to find a starting point. Defaults to
-            BlendedUniformNoiseAttack.
+            SaltAndPepperNoiseAttack.
 
         """
 
