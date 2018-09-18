@@ -36,6 +36,7 @@ You might want to have a look at our recently announced `Robust Vision Benchmark
    user/examples
    user/adversarial
    user/development
+   user/faq
 
 .. toctree::
    :maxdepth: 2
