@@ -19,8 +19,9 @@ class PyTorchModel(DifferentiableModel):
     channel_axis : int
         The index of the axis that represents color channels.
     device : string
-        A string specifying the device to do computation on. 
-        If None, will default to "cuda:0" if torch.cuda.is_available() else "cpu"
+        A string specifying the device to do computation on.
+        If None, will default to "cuda:0" if torch.cuda.is_available()
+        or "cpu" if not.
     preprocessing: 2-element tuple with floats or numpy arrays
         Elementwises preprocessing of input; we first subtract the first
         element of preprocessing from the input and then divide the input by
@@ -46,7 +47,8 @@ class PyTorchModel(DifferentiableModel):
         self._num_classes = num_classes
 
         if device is None:
-            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            self.device = torch.device(
+                "cuda:0" if torch.cuda.is_available() else "cpu")
         elif isinstance(device, str):
             self.device = torch.device(device)
         else:
@@ -86,7 +88,7 @@ class PyTorchModel(DifferentiableModel):
             # for models that require grads internally
             # for inference
             # with torch.no_grad():
-            #     predictions = self._model(images)        
+            #     predictions = self._model(images)
         predictions = predictions.to("cpu")
         if not self._old_pytorch():
             predictions = predictions.detach()
