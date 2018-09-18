@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import torch
 
 from foolbox.models import PyTorchModel
 
@@ -265,3 +266,18 @@ def test_pytorch_model_preprocessing_shape_change():
     g2 = model2.gradient(test_images_nhwc[0], 3)
 
     np.testing.assert_array_almost_equal(g1, g2)
+
+
+def test_pytorch_device(bn_model_pytorch):
+    m = bn_model_pytorch
+    model1 = PyTorchModel(
+        m._model,
+        bounds=m.bounds(),
+        num_classes=m.num_classes(),
+        device='cpu')
+    model2 = PyTorchModel(
+        m._model,
+        bounds=m.bounds(),
+        num_classes=m.num_classes(),
+        device=torch.device('cpu'))
+    assert model1.device == model2.device

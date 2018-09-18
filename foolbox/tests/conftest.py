@@ -134,7 +134,7 @@ def bn_model_pytorch():
         model,
         bounds=bounds,
         num_classes=num_classes,
-        cuda=False)
+        device='cpu')
     return model
 
 
