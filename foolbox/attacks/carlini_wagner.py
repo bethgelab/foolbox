@@ -109,7 +109,7 @@ class CarliniWagnerAttack(Attack):
                 is_attack = is_attack or last_attack_success
 
                 if last_attack_success:
-                    break
+                    break  # pragma: no cover
                 else:
 
                     target_one_hot = np.zeros(a.num_classes())
@@ -132,14 +132,14 @@ class CarliniWagnerAttack(Attack):
 
             # find new const by using binary search
             if is_attack:
-                const = (const_lower_bound + const) / 2
+                const = (const_lower_bound + const) / 2  # pragma: no cover
             else:
                 const_old = const
                 const = 2 * const
                 const_lower_bound = const_old
 
             if const > const_upper_bound:
-                break
+                break  # pragma: no cover
 
     @staticmethod
     def loss(a, original_image, adversarial_image, target, const, confidence):
