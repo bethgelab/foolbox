@@ -120,15 +120,8 @@ def call_decorator(call_fn):
                                      ' with a model and a criterion or it'
                                      ' needs to be called with an Adversarial'
                                      ' instance.')
-                try:
-                    a = Adversarial(model, criterion, input_or_adv, label,
-                                    distance=distance, threshold=threshold)
-                except StopAttack:
-                    # during initialization, the original input is checked;
-                    # if a threshold is specified and the original input is
-                    # misclassified, this can already cause a StopAttack
-                    # exception
-                    assert a.distance.value == 0.
+                a = Adversarial(model, criterion, input_or_adv, label,
+                                distance=distance, threshold=threshold)
 
         assert a is not None
 

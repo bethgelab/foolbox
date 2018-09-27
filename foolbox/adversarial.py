@@ -83,7 +83,13 @@ class Adversarial(object):
         self._best_gradient_calls = 0
 
         # check if the original image is already adversarial
-        self.predictions(original_image)
+        try:
+            self.predictions(original_image)
+        except StopAttack:
+            # if a threshold is specified and the original input is
+            # misclassified, this can already cause a StopAttack
+            # exception
+            assert self.distance.value == 0.
 
     def _reset(self):
         self.__best_adversarial = None
