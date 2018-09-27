@@ -6,7 +6,6 @@ import numpy as np
 
 from .base import Attack
 from .base import call_decorator
-from ..criteria import Misclassification
 
 
 def _transpose_image(image):
@@ -176,8 +175,7 @@ class ADefAttack(Attack):
     .. [2]_ https://gitlab.math.ethz.ch/tandrig/ADef/tree/master
     """
 
-    def __init__(self, model=None, criterion=Misclassification()):
-        super(ADefAttack, self).__init__(model=model, criterion=criterion)
+    def _initialize(self):
         self.vector_field = None
 
     @call_decorator
