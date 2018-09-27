@@ -1,4 +1,5 @@
 import warnings
+import logging
 import functools
 import sys
 import abc
@@ -10,6 +11,7 @@ else:  # pragma: no cover
     ABC = abc.ABCMeta('ABC', (), {})
 
 from ..adversarial import Adversarial
+from ..adversarial import StopAttack
 from ..criteria import Misclassification
 
 
@@ -85,7 +87,14 @@ def call_decorator(call_fn):
                                      ' with a model and a criterion or it'
                                      ' needs to be called with an Adversarial'
                                      ' instance.')
-                a = Adversarial(model, criterion, input_or_adv, label)
+                try:
+                    a = Adversarial(model, criterion, input_or_adv, label)
+                except StopAttack:
+                    # during initialization, the original input is checked;
+                    # if a threshold is specified and the original input is
+                    # misclassified, this can already cause a StopAttack
+                    # exception
+                    assert a.distance.value == 0.
 
         assert a is not None
 
@@ -93,9 +102,18 @@ def call_decorator(call_fn):
             warnings.warn('Not running the attack because the original input'
                           ' is already misclassified and the adversarial thus'
                           ' has a distance of 0.')
+        elif a.reached_threshold():
+            warnings.warn('Not running the attack because the given treshold'
+                          ' is already reached')
         else:
-            _ = call_fn(self, a, label=None, unpack=None, **kwargs)
-            assert _ is None, 'decorated __call__ method must return None'
+            try:
+                _ = call_fn(self, a, label=None, unpack=None, **kwargs)
+                assert _ is None, 'decorated __call__ method must return None'
+            except StopAttack:
+                # if a threshold is specified, StopAttack will be thrown
+                # when the treshold is reached; thus we can do early
+                # stopping of the attack
+                logging.info('threshold reached, stopping attack')
 
         if a.image is None:
             warnings.warn('{} did not find an adversarial, maybe the model'
