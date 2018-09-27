@@ -42,7 +42,11 @@ class Adversarial(object):
         an instance of the :class:`Distance` class passed to the distance
         argument, or a float assumed to have the same unit as the
         the given distance. If None, the attack will simply minimize
-        the distance as good as possible.
+        the distance as good as possible. Note that the threshold only
+        influences early stopping of the attack; the returned adversarial
+        does not necessarily have smaller perturbation size than this
+        threshold; the `reached_threshold()` method can be used to check
+        if the threshold has been reached.
 
     """
     def __init__(
