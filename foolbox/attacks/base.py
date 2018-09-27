@@ -13,6 +13,7 @@ else:  # pragma: no cover
 from ..adversarial import Adversarial
 from ..adversarial import StopAttack
 from ..criteria import Misclassification
+from ..distances import MSE
 
 
 class Attack(ABC):
@@ -24,12 +25,27 @@ class Attack(ABC):
 
     Parameters
     ----------
-    model : :class:`adversarial.Model`
-        The default model to which the attack is applied if it is not called
-        with an :class:`Adversarial` instance.
-    criterion : :class:`adversarial.Criterion`
-        The default criterion that defines what is adversarial if the attack
-        is not called with an :class:`Adversarial` instance.
+    model : a :class:`Model` instance
+        The model that should be fooled by the adversarial.
+        Ignored if the attack is called with an :class:`Adversarial` instance.
+    criterion : a :class:`Criterion` instance
+        The criterion that determines which images are adversarial.
+        Ignored if the attack is called with an :class:`Adversarial` instance.
+    distance : a :class:`Distance` class
+        The measure used to quantify similarity between images.
+        Ignored if the attack is called with an :class:`Adversarial` instance.
+    threshold : float or :class:`Distance`
+        If not None, the attack will stop as soon as the adversarial
+        perturbation has a size smaller than this threshold. Can be
+        an instance of the :class:`Distance` class passed to the distance
+        argument, or a float assumed to have the same unit as the
+        the given distance. If None, the attack will simply minimize
+        the distance as good as possible. Note that the threshold only
+        influences early stopping of the attack; the returned adversarial
+        does not necessarily have smaller perturbation size than this
+        threshold; the `reached_threshold()` method can be used to check
+        if the threshold has been reached.
+        Ignored if the attack is called with an :class:`Adversarial` instance.
 
     Notes
     -----
@@ -38,9 +54,24 @@ class Attack(ABC):
 
     """
 
-    def __init__(self, model=None, criterion=Misclassification()):
+    def __init__(self,
+                 model=None, criterion=Misclassification(),
+                 distance=MSE, threshold=None):
         self._default_model = model
         self._default_criterion = criterion
+        self._default_distance = distance
+        self._default_threshold = threshold
+
+        # to customize the initialization in subclasses, please
+        # try to overwrite _initialize instead of __init__ if
+        # possible
+        self._initialize()
+
+    def _initialize(self):
+        """Additional initializer that can be overwritten by
+        subclasses without redefining the full __init__ method
+        including all arguments and documentation."""
+        pass
 
     @abstractmethod
     def __call__(self, input_or_adv, label=None, unpack=True, **kwargs):
@@ -82,13 +113,16 @@ def call_decorator(call_fn):
             else:
                 model = self._default_model
                 criterion = self._default_criterion
+                distance = self._default_distance
+                threshold = self._default_threshold
                 if model is None or criterion is None:
                     raise ValueError('The attack needs to be initialized'
                                      ' with a model and a criterion or it'
                                      ' needs to be called with an Adversarial'
                                      ' instance.')
                 try:
-                    a = Adversarial(model, criterion, input_or_adv, label)
+                    a = Adversarial(model, criterion, input_or_adv, label,
+                                    distance=distance, threshold=threshold)
                 except StopAttack:
                     # during initialization, the original input is checked;
                     # if a threshold is specified and the original input is
