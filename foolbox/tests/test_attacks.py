@@ -59,17 +59,21 @@ def test_base_attack(model, criterion, image, label):
         attack(image, label=wrong_label)
 
 
-def test_early_stopping(model, criterion, image, label):
+def test_early_stopping(bn_model, bn_criterion, bn_image, bn_label):
     attack = attacks.FGSM()
 
-    adv = Adversarial(model, criterion, image, label)
+    model = bn_model
+    criterion = bn_criterion
+    image = bn_image
+    label = bn_label
+
+    wrong_label = label + 1
+    adv = Adversarial(model, criterion, image, wrong_label)
     attack(adv)
     assert adv.distance.value == 0
     assert not adv.reached_threshold()  # because no threshold specified
 
-    wrong_label = label + 1
-
-    adv = Adversarial(model, criterion, image, wrong_label)
+    adv = Adversarial(model, criterion, image, label)
     attack(adv)
     assert adv.distance.value > 0
     assert not adv.reached_threshold()  # because no threshold specified
@@ -79,21 +83,21 @@ def test_early_stopping(model, criterion, image, label):
     large_d = 10 * d
     small_d = d / 2
 
-    adv = Adversarial(model, criterion, image, wrong_label,
+    adv = Adversarial(model, criterion, image, label,
                       threshold=adv._distance(value=large_d))
     attack(adv)
     assert 0 < adv.distance.value <= large_d
     assert adv.reached_threshold()
     assert adv._total_prediction_calls < c
 
-    adv = Adversarial(model, criterion, image, wrong_label,
+    adv = Adversarial(model, criterion, image, label,
                       threshold=large_d)
     attack(adv)
     assert 0 < adv.distance.value <= large_d
     assert adv.reached_threshold()
     assert adv._total_prediction_calls < c
 
-    adv = Adversarial(model, criterion, image, wrong_label,
+    adv = Adversarial(model, criterion, image, label,
                       threshold=small_d)
     attack(adv)
     assert small_d < adv.distance.value <= large_d
@@ -101,7 +105,7 @@ def test_early_stopping(model, criterion, image, label):
     assert adv._total_prediction_calls == c
     assert adv.distance.value == d
 
-    adv = Adversarial(model, criterion, image, wrong_label,
+    adv = Adversarial(model, criterion, image, label,
                       threshold=adv._distance(value=large_d))
     attack(adv)
     assert adv.reached_threshold()
