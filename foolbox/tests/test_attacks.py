@@ -73,6 +73,11 @@ def test_early_stopping(bn_model, bn_criterion, bn_image, bn_label):
     assert adv.distance.value == 0
     assert not adv.reached_threshold()  # because no threshold specified
 
+    adv = Adversarial(model, criterion, image, wrong_label, threshold=1e10)
+    attack(adv)
+    assert adv.distance.value == 0
+    assert adv.reached_threshold()
+
     adv = Adversarial(model, criterion, image, label)
     attack(adv)
     assert adv.distance.value > 0
