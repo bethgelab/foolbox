@@ -25,8 +25,9 @@ before_install:
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install -r requirements-dev-py3.txt; fi
     - travis_wait travis_retry pip install -r requirements-dev.txt
 
-    - travis_wait travis_retry pip install --upgrade tensorflow
+    - travis_wait travis_retry pip install --upgrade "tensorflow>=1.11.0"
     - python -c 'import tensorflow; print(tensorflow.__version__)'
+    - python -c 'import tensorflow; print(tensorflow.executing_eagerly())'
     - travis_wait travis_retry pip install --upgrade theano
     - python -c 'import theano; print(theano.__version__)'
     - travis_wait travis_retry pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
