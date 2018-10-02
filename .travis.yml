@@ -65,8 +65,10 @@ install:
 script:
     - pytest --collect-only
       # tf eager cannot be run in the same process as standard tf
+    - python -c 'import tensorflow; import torch; print(tensorflow.__version__); print(torch.__version__)'
     - pytest --ignore=foolbox/tests/test_models_tensorflow_eager.py
-    - pytest foolbox/tests/test_models_tensorflow_eager.py
+    - python -c 'import tensorflow; import torch; print(tensorflow.__version__); print(torch.__version__)'
+    - pytest -v foolbox/tests/test_models_tensorflow_eager.py
     - flake8 --ignore E402,E741 .
 after_success:
     - coveralls
