@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import tensorflow as tf
+tf.enable_eager_execution()
 
 from foolbox.models import TensorFlowEagerModel
 
@@ -14,14 +15,12 @@ def test_eager_model(num_classes):
         logits = tf.reduce_mean(images, axis=(1, 2))
         return logits
 
-    tf.enable_eager_execution()
-
     model = TensorFlowEagerModel(
         mean_brightness_net,
         bounds=bounds,
         num_classes=num_classes)
 
-    test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
+    test_images = np.random.rand(2, 5, 5, channels).astype(np.float32)
     test_label = 7
 
     assert model.batch_predictions(test_images).shape \
@@ -74,7 +73,7 @@ def test_eager_model_preprocessing():
         num_classes=num_classes)
 
     np.random.seed(22)
-    test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
+    test_images = np.random.rand(2, 5, 5, channels).astype(np.float32)
     test_images_copy = test_images.copy()
 
     p1 = model1.batch_predictions(test_images)
@@ -117,7 +116,7 @@ def test_eager_model_gradient():
     epsilon = 1e-2
 
     np.random.seed(23)
-    test_image = np.random.rand(channels, 5, 5).astype(np.float32)
+    test_image = np.random.rand(5, 5, channels).astype(np.float32)
     test_label = 7
 
     _, g1 = model.predictions_and_gradient(test_image, test_label)
@@ -149,15 +148,15 @@ def test_eager_backward(num_classes):
         bounds=bounds,
         num_classes=num_classes)
 
-    test_image = np.random.rand(channels, 5, 5).astype(np.float32)
+    test_image = np.random.rand(5, 5, channels).astype(np.float32)
     test_grad_pre = np.random.rand(num_classes).astype(np.float32)
 
     test_grad = model.backward(test_grad_pre, test_image)
     assert test_grad.shape == test_image.shape
 
     manual_grad = np.repeat(np.repeat(
-        (test_grad_pre / 25.).reshape((-1, 1, 1)),
-        5, axis=1), 5, axis=2)
+        (test_grad_pre / 25.).reshape((1, 1, -1)),
+        5, axis=0), 5, axis=1)
 
     np.testing.assert_almost_equal(
         test_grad,
