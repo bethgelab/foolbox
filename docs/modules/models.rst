@@ -31,6 +31,14 @@ Wrappers
    ModelWithEstimatedGradients
    CompositeModel
 
+Model Zoo
+---------
+
+.. autosummary::
+   :nosignatures:
+
+   from_git
+
 Detailed description
 --------------------
 
@@ -75,3 +83,5 @@ Detailed description
 
 .. autoclass:: CompositeModel
    :members:
+
+.. autofunction:: from_git
