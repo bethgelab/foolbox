@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from .base import Model
 from .base import DifferentiableModel
 

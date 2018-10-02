@@ -37,7 +37,6 @@ class TensorFlowEagerModel(DifferentiableModel):
 
         # delay import until class is instantiated
         import tensorflow as tf
-        print(tf.__version__)
         assert tf.executing_eagerly()
 
         super(TensorFlowEagerModel, self).__init__(
