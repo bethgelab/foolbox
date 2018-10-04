@@ -14,7 +14,7 @@ def test_untargeted_attack(bn_adversarial):
 def test_targeted_attack(bn_targeted_adversarial):
     adv = bn_targeted_adversarial
     attack = Attack()
-    attack(adv, max_iterations=100)
+    attack(adv, max_iterations=100, binary_search_steps=20)
     assert adv.image is not None
     assert adv.distance.value < np.inf
 
