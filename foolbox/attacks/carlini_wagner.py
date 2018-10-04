@@ -1,6 +1,7 @@
 from __future__ import division
 
 import numpy as np
+import logging
 
 from .base import Attack
 from .base import call_decorator
@@ -56,6 +57,11 @@ class CarliniWagnerL2Attack(Attack):
         del input_or_adv
         del label
         del unpack
+
+        if not a.has_gradient():
+            logging.fatal('Applied gradient-based attack to model that '
+                          'does not provide gradients.')
+            return
 
         min_, max_ = a.bounds()
 
