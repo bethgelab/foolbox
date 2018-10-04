@@ -112,6 +112,8 @@ class CarliniWagnerL2Attack(Attack):
                 # TODO: find out why... it's not obvious why this is useful
                 const = upper_bound
 
+            logging.info('starting optimization with const = {}'.format(const))
+
             att_perturbation = np.zeros_like(att_original)
 
             # create a new optimizer to minimize the perturbation
@@ -143,15 +145,19 @@ class CarliniWagnerL2Attack(Attack):
                     # but optimization continues to minimize perturbation size
                     found_adv = True
 
-                if abort_early and iteration % (max_iterations // 10) == 0:
+                if abort_early and \
+                        iteration % (np.ceil(max_iterations / 10)) == 0:
                     # after each tenth of the iterations, check progress
                     if not (loss <= .9999 * loss_at_previous_check):
                         break  # stop Adam if there has not been progress
                     loss_at_previous_check = loss
 
             if found_adv:
+                logging.info('found adversarial with const = {}'.format(const))
                 upper_bound = const
             else:
+                logging.info('failed to find adversarial '
+                             'with const = {}'.format(const))
                 lower_bound = const
 
             if upper_bound == np.inf:
