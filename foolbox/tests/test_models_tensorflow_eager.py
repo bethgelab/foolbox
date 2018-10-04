@@ -161,3 +161,43 @@ def test_eager_backward(num_classes):
     np.testing.assert_almost_equal(
         test_grad,
         manual_grad)
+
+
+@pytest.mark.parametrize('num_classes', [10, 1000])
+def test_eager_auto_classes(num_classes):
+    """tests whether num_classes can be detected automatically"""
+    bounds = (0, 255)
+
+    def create_model():
+        data_format = 'channels_first'
+        input_shape = [1, 28, 28]
+        l = tf.keras.layers  # noqa: E741
+        max_pool = l.MaxPooling2D(
+            (2, 2), (2, 2), padding='same', data_format=data_format)
+        return tf.keras.Sequential(
+            [
+                l.Reshape(
+                    target_shape=input_shape,
+                    input_shape=(28 * 28,)),
+                l.Conv2D(
+                    32,
+                    5,
+                    padding='same',
+                    data_format=data_format,
+                    activation=tf.nn.relu),
+                max_pool,
+                l.Conv2D(
+                    64,
+                    5,
+                    padding='same',
+                    data_format=data_format,
+                    activation=tf.nn.relu),
+                max_pool,
+                l.Flatten(),
+                l.Dense(1024, activation=tf.nn.relu),
+                l.Dropout(0.4),
+                l.Dense(num_classes)
+            ])
+    model = create_model()
+    fmodel = TensorFlowEagerModel(model, bounds=bounds)
+    assert fmodel.num_classes() == num_classes
