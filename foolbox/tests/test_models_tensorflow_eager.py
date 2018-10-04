@@ -201,3 +201,16 @@ def test_eager_auto_classes(num_classes):
     model = create_model()
     fmodel = TensorFlowEagerModel(model, bounds=bounds)
     assert fmodel.num_classes() == num_classes
+
+
+@pytest.mark.parametrize('num_classes', [10, 1000])
+def test_eager_auto_classes_fail(num_classes):
+    bounds = (0, 255)
+
+    def mean_brightness_net(images):
+        logits = tf.reduce_mean(images, axis=(1, 2))
+        return logits
+
+    model = mean_brightness_net
+    with pytest.raises(ValueError):
+        TensorFlowEagerModel(model, bounds=bounds)
