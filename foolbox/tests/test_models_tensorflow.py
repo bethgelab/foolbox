@@ -234,3 +234,42 @@ def test_tensorflow_model_non_diff(num_classes):
 
         test_gradient = model.gradient(test_images, test_label)
         assert (test_gradient == 0).all()
+
+
+def test_tf_keras_constructor():
+    bounds = (0, 255)
+
+    def create_model():
+        data_format = 'channels_first'
+        input_shape = [1, 28, 28]
+        l = tf.keras.layers  # noqa: E741
+        max_pool = l.MaxPooling2D(
+            (2, 2), (2, 2), padding='same', data_format=data_format)
+        return tf.keras.Sequential(
+            [
+                l.Reshape(
+                    target_shape=input_shape,
+                    input_shape=(28 * 28,)),
+                l.Conv2D(
+                    32,
+                    5,
+                    padding='same',
+                    data_format=data_format,
+                    activation=tf.nn.relu),
+                max_pool,
+                l.Conv2D(
+                    64,
+                    5,
+                    padding='same',
+                    data_format=data_format,
+                    activation=tf.nn.relu),
+                max_pool,
+                l.Flatten(),
+                l.Dense(1024, activation=tf.nn.relu),
+                l.Dropout(0.4),
+                l.Dense(10)
+            ])
+    model = create_model()
+    fmodel = TensorFlowModel.from_keras(model, (1, 28, 28),
+                                        bounds=bounds, channel_axis=1)
+    assert fmodel.num_classes() == 10

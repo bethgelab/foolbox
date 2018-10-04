@@ -73,6 +73,36 @@ class TensorFlowModel(DifferentiableModel):
                 bw_gradients[0] = tf.zeros_like(images)
             self._bw_gradient = tf.squeeze(bw_gradients[0], axis=0)
 
+    @classmethod
+    def from_keras(cls, model, shape, bounds,
+                   channel_axis=3, preprocessing=(0, 1)):
+        """Alternative constructor for a TensorFlowModel that
+        accepts a `tf.keras.Model` instance.
+
+        Parameters
+        ----------
+        model : `tensorflow.keras.Model`
+            A `tensorflow.keras.Model` that accepts a single input tensor
+            and returns a single output tensor representing logits.
+        shape : tuple
+            The shape of a single input, e.g. (28, 28, 1) for MNIST
+        bounds : tuple
+            Tuple of lower and upper bound for the pixel values, usually
+            (0, 1) or (0, 255).
+        channel_axis : int
+            The index of the axis that represents color channels.
+        preprocessing: 2-element tuple with floats or numpy arrays
+            Elementwises preprocessing of input; we first subtract the first
+            element of preprocessing from the input and then divide the input
+            by the second element.
+
+        """
+        import tensorflow as tf
+        inputs = tf.placeholder(tf.float32, (None,) + shape)
+        logits = model(inputs)
+        return cls(inputs, logits, bounds=bounds,
+                   channel_axis=channel_axis, preprocessing=preprocessing)
+
     def __exit__(self, exc_type, exc_value, traceback):
         if self._created_session:
             self._session.close()
