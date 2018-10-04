@@ -247,14 +247,12 @@ def test_tf_keras_constructor():
             (2, 2), (2, 2), padding='same', data_format=data_format)
         return tf.keras.Sequential(
             [
-                l.Reshape(
-                    target_shape=input_shape,
-                    input_shape=(28 * 28,)),
                 l.Conv2D(
                     32,
                     5,
                     padding='same',
                     data_format=data_format,
+                    input_shape=input_shape,
                     activation=tf.nn.relu),
                 max_pool,
                 l.Conv2D(
@@ -270,6 +268,8 @@ def test_tf_keras_constructor():
                 l.Dense(10)
             ])
     model = create_model()
-    fmodel = TensorFlowModel.from_keras(model, (1, 28, 28),
-                                        bounds=bounds, channel_axis=1)
+    fmodel = TensorFlowModel.from_keras(model, bounds=bounds, channel_axis=1)
     assert fmodel.num_classes() == 10
+
+    test_images = np.random.rand(2, 1, 28, 28).astype(np.float32)
+    assert model.batch_predictions(test_images).shape == (2, 10)
