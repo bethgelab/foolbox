@@ -240,8 +240,8 @@ def test_tf_keras_constructor():
     bounds = (0, 255)
 
     def create_model():
-        data_format = 'channels_first'
-        input_shape = [1, 28, 28]
+        data_format = 'channels_last'
+        input_shape = [28, 28, 1]
         l = tf.keras.layers  # noqa: E741
         max_pool = l.MaxPooling2D(
             (2, 2), (2, 2), padding='same', data_format=data_format)
@@ -271,5 +271,5 @@ def test_tf_keras_constructor():
     fmodel = TensorFlowModel.from_keras(model, bounds=bounds, channel_axis=1)
     assert fmodel.num_classes() == 10
 
-    test_images = np.random.rand(2, 1, 28, 28).astype(np.float32)
+    test_images = np.random.rand(2, 28, 28, 1).astype(np.float32)
     assert fmodel.batch_predictions(test_images).shape == (2, 10)
