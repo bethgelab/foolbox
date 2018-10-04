@@ -163,7 +163,7 @@ class CarliniWagnerL2Attack(Attack):
         def logit_grad(class_, x=x, logits=logits):
             """Returns the gradient of logits[class_] w.r.t. x,
             assuming that logits = model(x)."""
-            onehot_class = np.onehot_like(logits, class_)
+            onehot_class = onehot_like(logits, class_)
             return a.backward(onehot_class, x)
 
         targeted = a.target_class() is not None
