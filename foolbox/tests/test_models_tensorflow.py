@@ -272,4 +272,4 @@ def test_tf_keras_constructor():
     assert fmodel.num_classes() == 10
 
     test_images = np.random.rand(2, 1, 28, 28).astype(np.float32)
-    assert model.batch_predictions(test_images).shape == (2, 10)
+    assert fmodel.batch_predictions(test_images).shape == (2, 10)
