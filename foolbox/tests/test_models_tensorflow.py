@@ -271,5 +271,7 @@ def test_tf_keras_constructor():
     fmodel = TensorFlowModel.from_keras(model, bounds=bounds, channel_axis=1)
     assert fmodel.num_classes() == 10
 
+    fmodel.session.run(tf.global_variables_initializer())
+
     test_images = np.random.rand(2, 28, 28, 1).astype(np.float32)
     assert fmodel.batch_predictions(test_images).shape == (2, 10)
