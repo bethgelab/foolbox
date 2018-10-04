@@ -8,13 +8,14 @@ from .base import call_decorator
 
 class CarliniWagnerAttack(Attack):
     """Implements Carlini & Wagner attack introduced in [1]_.
-       Implements the l-2 norm version of the attack only,
-       not the l0- oder l-infinity norms versions.
+       Implements the L2 norm version of the attack only,
+       not the L0 oder L-infinity norms versions.
+
     References
     ----------
     .. [1] Nicholas Carlini & David Wagner,
-            "Towards Evaluating the Robustness of Neural Networks",
-            https://arxiv.org/abs/1608.04644
+           "Towards Evaluating the Robustness of Neural Networks",
+           https://arxiv.org/abs/1608.04644
     """
 
     @call_decorator
@@ -22,8 +23,8 @@ class CarliniWagnerAttack(Attack):
                  confidence=5.0, learning_rate=1e-2, binary_search_steps=25,
                  max_iter=1000, initial_const=1e-3, decay=0.):
 
-        """Simple and close to optimal gradient-based
-        adversarial attack.
+        """Simple and close to optimal gradient-based adversarial attack.
+
         Parameters
         ----------
         input_or_adv : `numpy.ndarray` or :class:`Adversarial`
@@ -37,22 +38,23 @@ class CarliniWagnerAttack(Attack):
             If true, returns the adversarial input, otherwise returns
             the Adversarial object.
         confidence : int or float
-            Confidence of adversarial examples: higher produces examples
-            that are farther away, but more strongly classified as adversarial.
+            Confidence of adversarial examples: a higher value produces
+            adversarials that are further away, but more strongly classified
+            as adversarial.
         learning_rate : float
             The learning rate for the attack algorithm. Smaller values
-            produce better results but are slower to converge.
+            produce better results but take longer to converge.
         binary_search_steps : int
-            The number of times we perform binary search to
+            The number of steps for the binary search used to
             find the optimal tradeoff-constant between distance and confidence.
         max_iter : int
             The maximum number of iterations. Larger values are more
-            accurate; setting too small will require a large learning rate and
-            will produce poor results.
+            accurate; setting it too small will require a large learning rate
+            and will produce poor results.
         initial_const : float
             The initial tradeoff-constant to use to tune the relative
-            importance of distance and confidence. If binary_search_steps is
-            large, the initial constant is not important.
+            importance of distance and confidence. If `binary_search_steps`
+            is large, the initial constant is not important.
         decay : float
             Coefficient for learning rate decay.
         """
@@ -68,8 +70,8 @@ class CarliniWagnerAttack(Attack):
             return
 
         if a.target_class() is None:
-            logging.fatal('Carlini and Wagner is a targeted '
-                          'adversarial attack.')
+            logging.fatal('Applied targeted attack without specifying '
+                          'a criterion that provides a target class.')
             return
 
         clip_min, clip_max = a.bounds()
@@ -158,8 +160,8 @@ class CarliniWagnerAttack(Attack):
 
 class AdamOptimizer:
     """Using the ADAM optimizer, as it is the most effective at quickly
-    finding adversarial examples according to the paper [1]_.
-    """
+    finding adversarial examples according to [1]_."""
+
     def __init__(self, shape):
         """
         shape: (int, int)
