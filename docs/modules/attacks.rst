@@ -17,6 +17,7 @@
 .. autosummary::
    :nosignatures:
 
+   CarliniWagnerL2Attack
    GradientAttack
    GradientSignAttack
    FGSM
@@ -27,6 +28,7 @@
    L2BasicIterativeAttack
    ProjectedGradientDescentAttack
    ProjectedGradientDescent
+   PGD
    RandomStartProjectedGradientDescentAttack
    RandomProjectedGradientDescent
    RandomPGD

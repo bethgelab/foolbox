@@ -8,3 +8,4 @@
 .. autofunction:: batch_crossentropy
 .. autofunction:: binarize
 .. autofunction:: imagenet_example
+.. autofunction:: onehot_like

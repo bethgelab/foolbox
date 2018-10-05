@@ -268,10 +268,24 @@ def test_tf_keras_constructor():
                 l.Dense(10)
             ])
     model = create_model()
-    fmodel = TensorFlowModel.from_keras(model, bounds=bounds, channel_axis=1)
+    fmodel = TensorFlowModel.from_keras(model, bounds=bounds)
     assert fmodel.num_classes() == 10
 
     fmodel.session.run(tf.global_variables_initializer())
 
     test_images = np.random.rand(2, 28, 28, 1).astype(np.float32)
     assert fmodel.batch_predictions(test_images).shape == (2, 10)
+
+
+def test_tf_keras_exception():
+    bounds = (0, 255)
+
+    def mean_brightness_net(images):
+        logits = tf.reduce_mean(images, axis=(1, 2))
+        return logits
+
+    model = mean_brightness_net
+    with pytest.raises(ValueError):
+        TensorFlowModel.from_keras(model, bounds=bounds)
+
+    TensorFlowModel.from_keras(model, bounds=bounds, input_shape=(5, 5, 3))
