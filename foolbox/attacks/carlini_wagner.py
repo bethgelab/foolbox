@@ -10,6 +10,20 @@ from ..utils import onehot_like
 
 
 class CarliniWagnerL2Attack(Attack):
+    """The L2 version of the Carlini & Wagner attack.
+
+    This attack is described in [1]_. This implementation
+    is based on the reference implementation by Carlini [2]_.
+    For bounds ≠ (0, 1), it differs from [2]_ because we
+    normalize the squared L2 loss with the bounds.
+
+    References
+    ----------
+    .. [1] Nicholas Carlini, David Wagner: "Towards Evaluating the
+           Robustness of Neural Networks", https://arxiv.org/abs/1608.04644
+    .. [2] https://github.com/carlini/nn_robust_attacks
+
+    """
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
@@ -18,11 +32,6 @@ class CarliniWagnerL2Attack(Attack):
                  initial_const=1e-2, abort_early=True):
 
         """The L2 version of the Carlini & Wagner attack.
-
-        This attack is described in [1]_. This implementation
-        is based on the reference implementation by Carlini [2]_.
-        For bounds ≠ (0, 1), it differs from [2]_ because we
-        normalize the squared L2 loss with the bounds.
 
         Parameters
         ----------
@@ -57,12 +66,6 @@ class CarliniWagnerL2Attack(Attack):
         abort_early : bool
             If True, Adam will be aborted if the loss hasn't decreased
             for some time (a tenth of max_iterations).
-
-        References
-        ----------
-        .. [1] Nicholas Carlini, David Wagner: "Towards Evaluating the
-               Robustness of Neural Networks", https://arxiv.org/abs/1608.04644
-        .. [2] https://github.com/carlini/nn_robust_attacks
 
         """
 

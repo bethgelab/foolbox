@@ -17,7 +17,6 @@
 .. autosummary::
    :nosignatures:
 
-   CarliniWagnerL2Attack
    GradientAttack
    GradientSignAttack
    FGSM
@@ -44,6 +43,7 @@
    SaliencyMapAttack
    IterativeGradientAttack
    IterativeGradientSignAttack
+   CarliniWagnerL2Attack
 
 
 .. rubric:: :doc:`attacks/score`
