@@ -99,6 +99,9 @@ class CarliniWagnerL2Attack(Attack):
         # prefixed with att_
         att_original = to_attack_space(a.original_image)
 
+        # will be close but not identical to a.original_image
+        reconstructed_original, _ = to_model_space(att_original)
+
         # the binary search finds the smallest const for which we
         # find an adversarial
         const = initial_const
@@ -126,7 +129,8 @@ class CarliniWagnerL2Attack(Attack):
                 x, dxdp = to_model_space(att_original + att_perturbation)
                 logits, is_adv = a.predictions(x)
                 loss, dldx = self.loss_function(
-                    const, a, x, logits, confidence, min_, max_)
+                    const, a, x, logits, reconstructed_original,
+                    confidence, min_, max_)
 
                 logging.info('modifier norm = {}'.format(
                     np.linalg.norm(att_perturbation)))
@@ -172,7 +176,8 @@ class CarliniWagnerL2Attack(Attack):
                 const = (lower_bound + upper_bound) / 2
 
     @classmethod
-    def loss_function(cls, const, a, x, logits, confidence, min_, max_):
+    def loss_function(cls, const, a, x, logits, reconstructed_original,
+                      confidence, min_, max_):
         """Returns the loss and the gradient of the loss w.r.t. x,
         assuming that logits = model(x)."""
 
@@ -198,7 +203,7 @@ class CarliniWagnerL2Attack(Attack):
         is_adv_loss = max(0, is_adv_loss)
 
         s = max_ - min_
-        squared_l2_distance = np.sum((x - a.original_image)**2) / s**2
+        squared_l2_distance = np.sum((x - reconstructed_original)**2) / s**2
         total_loss = squared_l2_distance + const * is_adv_loss
 
         # calculate the gradient of total_loss w.r.t. x
@@ -207,7 +212,7 @@ class CarliniWagnerL2Attack(Attack):
         if is_adv_loss == 0:
             is_adv_loss_grad = 0
 
-        squared_l2_distance_grad = (2 / s**2) * (x - a.original_image)
+        squared_l2_distance_grad = (2 / s**2) * (x - reconstructed_original)
 
         total_loss_grad = squared_l2_distance_grad + const * is_adv_loss_grad
         return total_loss, total_loss_grad
