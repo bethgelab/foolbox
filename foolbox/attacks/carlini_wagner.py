@@ -181,12 +181,6 @@ class CarliniWagnerL2Attack(Attack):
         """Returns the loss and the gradient of the loss w.r.t. x,
         assuming that logits = model(x)."""
 
-        def logit_grad(class_, x=x, logits=logits):
-            """Returns the gradient of logits[class_] w.r.t. x,
-            assuming that logits = model(x)."""
-            onehot_class = onehot_like(logits, class_)
-            return a.backward(onehot_class, x)
-
         targeted = a.target_class() is not None
         if targeted:
             c_minimize = cls.best_other_class(logits, a.target_class())
@@ -207,7 +201,10 @@ class CarliniWagnerL2Attack(Attack):
         total_loss = squared_l2_distance + const * is_adv_loss
 
         # calculate the gradient of total_loss w.r.t. x
-        is_adv_loss_grad = logit_grad(c_minimize) - logit_grad(c_maximize)
+        logits_diff_grad = np.zeros_like(logits)
+        logits_diff_grad[c_minimize] = 1
+        logits_diff_grad[c_maximize] = -1
+        is_adv_loss_grad = a.backward(logits_diff_grad, x)
         assert is_adv_loss >= 0
         if is_adv_loss == 0:
             is_adv_loss_grad = 0
