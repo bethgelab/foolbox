@@ -132,9 +132,8 @@ class CarliniWagnerL2Attack(Attack):
                     const, a, x, logits, reconstructed_original,
                     confidence, min_, max_)
 
-                logging.info('modifier norm = {}'.format(
-                    np.linalg.norm(att_perturbation)))
-                logging.info('loss = {}'.format(loss))
+                logging.info('loss: {}; best overall distance: {}'.format(
+                    loss, a.distance))
 
                 # backprop the gradient of the loss w.r.t. x further
                 # to get the gradient of the loss w.r.t. att_perturbation
