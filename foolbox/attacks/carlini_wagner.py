@@ -12,11 +12,16 @@ class CarliniWagnerL2Attack(Attack):
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
-                 binary_search_steps=9, max_iterations=10000,
-                 confidence=0, learning_rate=1e-2,
-                 initial_const=1e-3, abort_early=True):
+                 binary_search_steps=5, max_iterations=1000,
+                 confidence=0, learning_rate=5e-3,
+                 initial_const=1e-2, abort_early=True):
 
         """The L2 version of the Carlini & Wagner attack.
+
+        This attack is described in [1]_. This implementation
+        is based on the reference implementation by Carlini [2]_.
+        For bounds ≠ (0, 1), it differs from [2]_ because we
+        normalize the squared L2 loss with the bounds.
 
         Parameters
         ----------
@@ -51,6 +56,13 @@ class CarliniWagnerL2Attack(Attack):
         abort_early : bool
             If True, Adam will be aborted if the loss hasn't decreased
             for some time (a tenth of max_iterations).
+
+        References
+        ----------
+        .. [1] Nicholas Carlini, David Wagner: "Towards Evaluating the
+               Robustness of Neural Networks", https://arxiv.org/abs/1608.04644
+        .. [2] https://github.com/carlini/nn_robust_attacks
+
         """
 
         a = input_or_adv
