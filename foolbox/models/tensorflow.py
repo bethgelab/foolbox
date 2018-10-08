@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import numpy as np
+import logging
 
 from .base import DifferentiableModel
 
@@ -43,6 +44,8 @@ class TensorFlowModel(DifferentiableModel):
 
         session = tf.get_default_session()
         if session is None:
+            logging.warning('No default session. Created a new tf.Session. '
+                            'Please restore variables using this session.')
             session = tf.Session(graph=images.graph)
             self._created_session = True
         else:
@@ -107,10 +110,11 @@ class TensorFlowModel(DifferentiableModel):
                 raise ValueError(
                     'Please specify input_shape manually or '
                     'provide a model with an input_shape attribute')
-        inputs = tf.placeholder(tf.float32, (None,) + input_shape)
-        logits = model(inputs)
-        return cls(inputs, logits, bounds=bounds,
-                   channel_axis=channel_axis, preprocessing=preprocessing)
+        with tf.keras.backend.get_session().as_default():
+            inputs = tf.placeholder(tf.float32, (None,) + input_shape)
+            logits = model(inputs)
+            return cls(inputs, logits, bounds=bounds,
+                       channel_axis=channel_axis, preprocessing=preprocessing)
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self._created_session:
