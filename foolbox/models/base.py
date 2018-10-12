@@ -246,7 +246,7 @@ class DifferentiableModel(Model):
         _, gradient = self.predictions_and_gradient(image, label)
         return gradient
 
-    # TODO: make this an abstract method once support is added to all models
+    @abstractmethod
     def backward(self, gradient, image):
         """Backpropagates the gradient of some loss w.r.t. the logits
         through the network and returns the gradient of that loss w.r.t

@@ -154,6 +154,9 @@ class CompositeModel(DifferentiableModel):
     def gradient(self, image, label):
         return self.backward_model.gradient(image, label)
 
+    def backward(self, gradient, image):
+        return self.backward_model.backward(gradient, image)
+
     def __enter__(self):
         assert self.forward_model.__enter__() == self.forward_model
         assert self.backward_model.__enter__() == self.backward_model
