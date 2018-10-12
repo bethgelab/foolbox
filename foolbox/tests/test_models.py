@@ -44,6 +44,9 @@ def test_differentiable_base_model():
         def predictions_and_gradient(self, image, label):
             return 'predictions', 'gradient'
 
+        def backward(self, gradient, image):
+            return image
+
     model = TestModel(bounds=(0, 1), channel_axis=1)
 
     image = np.ones((28, 28, 1), dtype=np.float32)
