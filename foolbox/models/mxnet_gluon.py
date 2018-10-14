@@ -65,7 +65,7 @@ class MXNetGluonModel(DifferentiableModel):
     def predictions_and_gradient(self, image, label):
         import mxnet as mx
         image, dpdx = self._process_input(image)
-        label = mx.nd.array([label])
+        label = mx.nd.array([label], ctx=self._device)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
@@ -80,7 +80,7 @@ class MXNetGluonModel(DifferentiableModel):
     def _loss_fn(self, image, label):
         import mxnet as mx
         image, _ = self._process_input(image)
-        label = mx.nd.array([label])
+        label = mx.nd.array([label], ctx=self._device)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
