@@ -71,7 +71,7 @@ class MXNetGluonModel(DifferentiableModel):
         with mx.autograd.record(train_mode=False):
             logits = self._block(data_array)
             loss = mx.nd.softmax_cross_entropy(logits, label)
-            loss.backward()
+        loss.backward()
         predictions = np.squeeze(logits.asnumpy(), axis=0)
         gradient = np.squeeze(data_array.grad.asnumpy(), axis=0)
         gradient = self._process_gradient(dpdx, gradient)
@@ -86,7 +86,7 @@ class MXNetGluonModel(DifferentiableModel):
         with mx.autograd.record(train_mode=False):
             logits = self._block(data_array)
             loss = mx.nd.softmax_cross_entropy(logits, label)
-            loss.backward()
+        loss.backward()
         return loss.asnumpy()
 
     def backward(self, gradient, image):  # pragma: no cover
