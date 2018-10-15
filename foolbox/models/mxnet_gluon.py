@@ -96,7 +96,7 @@ class MXNetGluonModel(DifferentiableModel):
         assert gradient.ndim == 1
         image, dpdx = self._process_input(image)
         gradient_pre_array = mx.nd.array(
-            gradient[np.newaxis],ctx=self._device)
+            gradient[np.newaxis], ctx=self._device)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
