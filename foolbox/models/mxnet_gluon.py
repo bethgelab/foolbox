@@ -90,6 +90,21 @@ class MXNetGluonModel(DifferentiableModel):
         return loss.asnumpy()
 
     def backward(self, gradient, image):  # pragma: no cover
-        # TODO: backward functionality has not yet been implemented
-        # for MXNetGluonModel
-        raise NotImplementedError
+        # lazy import
+        import mxnet as mx
+
+        assert gradient.ndim == 1
+        image, dpdx = self._process_input(image)
+        gradient_pre_array = mx.nd.array(gradient[np.newaxis], ctx=self._device)
+        data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
+        data_array.attach_grad()
+        with mx.autograd.record(train_mode=False):
+            logits = self._block(data_array)
+        assert gradient_pre_array.shape == logits.shape
+        logits.backward(gradient_pre_array)
+        
+        gradient_array = data_array.grad
+        gradient = np.squeeze(gradient_array.asnumpy(), axis=0)
+        gradient = self._process_gradient(dpdx, gradient)
+
+        return gradient
