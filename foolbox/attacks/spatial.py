@@ -93,18 +93,19 @@ class SpatialAttack(Attack):
             slices = tuple(map(slice, start, end))
             return img[slices]
 
-        x_shifts  = get_samples(x_shift_limits, granularity, do_translations)
-        y_shifts  = get_samples(y_shift_limits, granularity, do_translations)
+        x_shifts = get_samples(x_shift_limits, granularity, do_translations)
+        y_shifts = get_samples(y_shift_limits, granularity, do_translations)
         rotations = get_samples(angular_limits, granularity, do_rotations)
 
         transformations = product(x_shifts, y_shifts, rotations)
 
-        for x_shift, y_shift, angle in tqdm(transformations, total=granularity**3):
+        for x_shift, y_shift, angle in transformations:
             # translate & rotate image
             axes = [0, 1] if a.channel_axis(batch=False) == 2 else [1, 2]
-            xy_shift = [0, x_shift, y_shift] if a.channel_axis(batch=False) == 0 
+            channel_axis = a.channel_axis(batch=False)
+            xy_shift = [0, x_shift, y_shift] if channel_axis == 0 \
                                              else [x_shift, y_shift, 0]
-        
+
             # rotate image (increases size)
             x = a.original_image
             x = rotate(x, angle=angle, axes=axes, reshape=True, order=1)
