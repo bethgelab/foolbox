@@ -77,9 +77,9 @@ class SpatialAttack(Attack):
             # get regularly spaced or random samples within limits
             lb, up = [-limits, limits] if type(limits) == int else limits
 
-            if not do_flag:
+            if not do_flag:  # pragma: no cover
                 return [0]
-            elif random_sampling:
+            elif random_sampling:  # pragma: no cover
                 return np.random.uniform(lb, up, num)
             else:
                 return np.linspace(lb, up, num)
@@ -104,7 +104,7 @@ class SpatialAttack(Attack):
 
             if a.channel_axis(batch=False) == 0:
                 xy_shift = [0, x_shift, y_shift]
-            else:
+            else:  # pragma: no cover
                 xy_shift = [x_shift, y_shift, 0]
 
             # rotate image (increases size)
