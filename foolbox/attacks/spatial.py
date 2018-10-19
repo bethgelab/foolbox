@@ -102,7 +102,7 @@ class SpatialAttack(Attack):
             # translate & rotate image
             axes = [0, 1] if a.channel_axis(batch=False) == 2 else [1, 2]
 
-            if a.channel_axis(batch=False) == 0:
+            if a.channel_axis(batch=False) == 0:  # pragma: no cover
                 xy_shift = [0, x_shift, y_shift]
             else:  # pragma: no cover
                 xy_shift = [x_shift, y_shift, 0]
