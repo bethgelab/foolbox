@@ -16,4 +16,4 @@ def test_attack_gl(gl_bn_adversarial):
     attack = Attack()
     attack(adv)
     assert adv.image is not None
-    assert adv.distance.value == np.inf
+    assert adv.distance.value < np.inf
