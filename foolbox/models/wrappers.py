@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from .base import Model
 from .base import DifferentiableModel
 
@@ -151,6 +153,9 @@ class CompositeModel(DifferentiableModel):
 
     def gradient(self, image, label):
         return self.backward_model.gradient(image, label)
+
+    def backward(self, gradient, image):
+        return self.backward_model.backward(gradient, image)
 
     def __enter__(self):
         assert self.forward_model.__enter__() == self.forward_model

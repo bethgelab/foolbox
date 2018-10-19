@@ -63,7 +63,9 @@ install:
     - pip install -e .
 script:
     - pytest --collect-only
-    - pytest
+      # tf eager cannot be run in the same process as standard tf
+    - pytest --ignore=foolbox/tests/test_models_tensorflow_eager.py
+    - pytest --cov-append foolbox/tests/test_models_tensorflow_eager.py
     - flake8 --ignore E402,E741 .
 after_success:
     - coveralls

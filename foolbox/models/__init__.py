@@ -14,6 +14,7 @@ from .wrappers import ModelWithEstimatedGradients  # noqa: F401
 from .wrappers import CompositeModel  # noqa: F401
 
 from .tensorflow import TensorFlowModel  # noqa: F401
+from .tensorflow_eager import TensorFlowEagerModel  # noqa: F401
 from .pytorch import PyTorchModel  # noqa: F401
 from .keras import KerasModel  # noqa: F401
 from .theano import TheanoModel  # noqa: F401

@@ -39,6 +39,8 @@ def test_diff_wrapper(bn_model, bn_image, bn_label):
 
 
 def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):
+    num_classes = 10
+    test_grad = np.random.rand(num_classes).astype(np.float32)
     model = CompositeModel(gl_bn_model, bn_model)
     with model:
         assert gl_bn_model.num_classes() == model.num_classes()
@@ -48,6 +50,9 @@ def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):
         assert np.all(
             bn_model.gradient(bn_image, bn_label) ==
             model.gradient(bn_image, bn_label))
+        assert np.all(
+            bn_model.backward(test_grad, bn_image) ==
+            model.backward(test_grad, bn_image))
         assert np.all(
             gl_bn_model.predictions(bn_image) ==
             model.predictions_and_gradient(bn_image, bn_label)[0])
