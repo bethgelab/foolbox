@@ -101,9 +101,11 @@ class SpatialAttack(Attack):
         for x_shift, y_shift, angle in transformations:
             # translate & rotate image
             axes = [0, 1] if a.channel_axis(batch=False) == 2 else [1, 2]
-            channel_axis = a.channel_axis(batch=False)
-            xy_shift = [0, x_shift, y_shift] if channel_axis == 0 \
-                        else [x_shift, y_shift, 0]
+
+            if a.channel_axis(batch=False) == 0:
+                xy_shift = [0, x_shift, y_shift]
+            else:
+                xy_shift = [x_shift, y_shift, 0]
 
             # rotate image (increases size)
             x = a.original_image
