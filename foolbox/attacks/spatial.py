@@ -5,7 +5,6 @@ import numpy as np
 from itertools import product
 from scipy.ndimage import rotate, shift
 import operator
-from tqdm import tqdm
 
 from foolbox.attacks.base import Attack
 from foolbox.attacks.base import call_decorator
@@ -104,7 +103,7 @@ class SpatialAttack(Attack):
             axes = [0, 1] if a.channel_axis(batch=False) == 2 else [1, 2]
             channel_axis = a.channel_axis(batch=False)
             xy_shift = [0, x_shift, y_shift] if channel_axis == 0 \
-                                             else [x_shift, y_shift, 0]
+                        else [x_shift, y_shift, 0]
 
             # rotate image (increases size)
             x = a.original_image
