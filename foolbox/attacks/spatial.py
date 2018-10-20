@@ -6,8 +6,8 @@ from itertools import product
 from scipy.ndimage import rotate, shift
 import operator
 
-from foolbox.attacks.base import Attack
-from foolbox.attacks.base import call_decorator
+from .base import Attack
+from .base import call_decorator
 
 
 class SpatialAttack(Attack):
@@ -26,8 +26,8 @@ class SpatialAttack(Attack):
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  do_rotations=True, do_translations=True,
-                 x_shift_limits=[-5, 5], y_shift_limits=[-5, 5],
-                 angular_limits=[-5, 5], granularity=10,
+                 x_shift_limits=(-5, 5), y_shift_limits=(-5, 5),
+                 angular_limits=(-5, 5), granularity=10,
                  random_sampling=False, abort_early=True):
 
         """Adversarially chosen rotations and translations.
@@ -48,15 +48,15 @@ class SpatialAttack(Attack):
             If False no rotations will be applied to the image.
         do_translations : bool
             If False no translations will be applied to the image.
-        x_shift_limits : int or [int, int]
+        x_shift_limits : int or (int, int)
             Limits for horizontal translations in pixels. If one integer is
-            provided the limits will be [-dx_limits, dx_limits].
-        y_shift_limits : int or [int, int]
+            provided the limits will be (-x_shift_limits, x_shift_limits).
+        y_shift_limits : int or (int, int)
             Limits for vertical translations in pixels. If one integer is
-            provided the limits will be [-dy_limits, dy_limits].
-        angular_limits : int or [int, int]
+            provided the limits will be (-y_shift_limits, y_shift_limits).
+        angular_limits : int or (int, int)
             Limits for rotations in degrees. If one integer is
-            provided the limits will be [-drot_limits, drot_limits].
+            provided the limits will be [-angular_limits, angular_limits].
         granularity : int
             Density of sampling within limits for each dimension.
         random_sampling : bool
@@ -72,10 +72,11 @@ class SpatialAttack(Attack):
         del unpack
 
         min_, max_ = a.bounds()
+        channel_axis = a.channel_axis(batch=False)
 
         def get_samples(limits, num, do_flag):
             # get regularly spaced or random samples within limits
-            lb, up = [-limits, limits] if type(limits) == int else limits
+            lb, up = (-limits, limits) if isinstance(limits, int) else limits
 
             if not do_flag:  # pragma: no cover
                 return [0]
@@ -86,7 +87,7 @@ class SpatialAttack(Attack):
 
         def crop_center(img):
             # crop center of the image (of the size of the original image)
-            start = tuple(map(lambda a, da: a // 2 - da // 2, img.shape,
+            start = tuple(map(lambda a, da: (a - da) // 2, img.shape,
                               a.original_image.shape))
             end = tuple(map(operator.add, start, a.original_image.shape))
             slices = tuple(map(slice, start, end))
@@ -99,13 +100,15 @@ class SpatialAttack(Attack):
         transformations = product(x_shifts, y_shifts, rotations)
 
         for x_shift, y_shift, angle in transformations:
-            # translate & rotate image
-            axes = [0, 1] if a.channel_axis(batch=False) == 2 else [1, 2]
-
-            if a.channel_axis(batch=False) == 0:  # pragma: no cover
-                xy_shift = [0, x_shift, y_shift]
-            else:  # pragma: no cover
-                xy_shift = [x_shift, y_shift, 0]
+            if channel_axis == 0:  # pragma: no cover
+                xy_shift = (0, x_shift, y_shift)
+                axes = (1, 2)
+            elif channel_axis == 2:  # pragma: no cover
+                xy_shift = (x_shift, y_shift, 0)
+                axes = (0, 1)
+            else:
+                raise ValueError('SpatialAttack only supports models '
+                                 'and inputs with NCHW or NHWC format')
 
             # rotate image (increases size)
             x = a.original_image
