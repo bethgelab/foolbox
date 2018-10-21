@@ -10,7 +10,7 @@ def test_attack_pytorch(bn_adversarial_pytorch):
     assert adv.image is not None
     assert adv.distance.value < np.inf
 
-    
+
 def test_attack(bn_adversarial):
     adv = bn_adversarial
     attack = Attack()
@@ -48,7 +48,7 @@ def test_attack_notrans_norot(bn_adversarial):
     attack = Attack()
     attack(adv, do_translations=False, do_rotations=False)
     assert adv.image is None
-    assert adv.distance.value == np.inf  
+    assert adv.distance.value == np.inf
 
 
 def test_attack_gl(gl_bn_adversarial):
