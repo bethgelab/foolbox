@@ -121,7 +121,7 @@ class SpatialAttack(Attack):
             x = crop_center(x)
 
             # ensure values are in range
-            x = np.clip(x, min_ + 1e-8, max_ - 1e-8)
+            x = np.clip(x, min_, max_)
 
             # test image
             _, is_adv = a.predictions(x)
