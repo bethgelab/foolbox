@@ -78,9 +78,9 @@ class SpatialAttack(Attack):
             # get regularly spaced or random samples within limits
             lb, up = (-limits, limits) if isinstance(limits, int) else limits
 
-            if not do_flag:  # pragma: no cover
+            if not do_flag:
                 return [0]
-            elif random_sampling:  # pragma: no cover
+            elif random_sampling:
                 return np.random.uniform(lb, up, num)
             else:
                 return np.linspace(lb, up, num)
@@ -100,10 +100,10 @@ class SpatialAttack(Attack):
         transformations = product(x_shifts, y_shifts, rotations)
 
         for x_shift, y_shift, angle in transformations:
-            if channel_axis == 0:  # pragma: no cover
+            if channel_axis == 0:
                 xy_shift = (0, x_shift, y_shift)
                 axes = (1, 2)
-            elif channel_axis == 2:  # pragma: no cover
+            elif channel_axis == 2:
                 xy_shift = (x_shift, y_shift, 0)
                 axes = (0, 1)
             else:
