@@ -106,7 +106,7 @@ class SpatialAttack(Attack):
             elif channel_axis == 2:
                 xy_shift = (x_shift, y_shift, 0)
                 axes = (0, 1)
-            else:
+            else:  # pragma: no cover
                 raise ValueError('SpatialAttack only supports models '
                                  'and inputs with NCHW or NHWC format')
 
