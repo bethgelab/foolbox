@@ -1,11 +1,11 @@
 import logging
-import random
 
 import numpy as np
 
 from .base import Attack
 from .base import call_decorator
 from .gradient import GradientAttack
+from .. import rng
 
 
 class SaliencyMapAttack(Attack):
@@ -93,7 +93,7 @@ class SaliencyMapAttack(Attack):
                 # remove original class from samples
                 # should be more efficient than other approaches, see
                 # https://github.com/numpy/numpy/issues/2764
-                target_classes = random.sample(
+                target_classes = rng.sample(
                     range(num_classes), num_random_targets + 1)
                 target_classes = [t for t in target_classes if t != original_class]  # noqa: E501
                 target_classes = target_classes[:num_random_targets]

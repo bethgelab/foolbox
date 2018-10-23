@@ -5,6 +5,7 @@ import numpy as np
 
 from .base import Attack
 from .base import call_decorator
+from .. import nprng
 
 
 class AdditiveNoiseAttack(Attack):
@@ -70,7 +71,7 @@ class AdditiveUniformNoiseAttack(AdditiveNoiseAttack):
     def _sample_noise(self, epsilon, image, bounds):
         min_, max_ = bounds
         w = epsilon * (max_ - min_)
-        noise = np.random.uniform(-w, w, size=image.shape)
+        noise = nprng.uniform(-w, w, size=image.shape)
         noise = noise.astype(image.dtype)
         return noise
 
@@ -84,6 +85,6 @@ class AdditiveGaussianNoiseAttack(AdditiveNoiseAttack):
     def _sample_noise(self, epsilon, image, bounds):
         min_, max_ = bounds
         std = epsilon / np.sqrt(3) * (max_ - min_)
-        noise = np.random.normal(scale=std, size=image.shape)
+        noise = nprng.normal(scale=std, size=image.shape)
         noise = noise.astype(image.dtype)
         return noise

@@ -9,5 +9,7 @@ from . import distances  # noqa: F401
 from . import attacks  # noqa: F401
 from . import utils  # noqa: F401
 from . import gradient_estimators  # noqa: F401
+from .rngs import rng  # noqa: F401
+from .rngs import nprng  # noqa: F401
 
 from .adversarial import Adversarial  # noqa: F401

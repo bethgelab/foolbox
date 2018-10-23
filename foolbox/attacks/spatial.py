@@ -8,6 +8,7 @@ import operator
 
 from .base import Attack
 from .base import call_decorator
+from .. import nprng
 
 
 class SpatialAttack(Attack):
@@ -82,7 +83,7 @@ class SpatialAttack(Attack):
             if not do_flag:
                 return [0]
             elif random_sampling:
-                return np.random.uniform(lb, up, num)
+                return nprng.uniform(lb, up, num)
             else:
                 return np.linspace(lb, up, num)
 
