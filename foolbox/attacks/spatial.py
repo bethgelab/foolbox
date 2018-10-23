@@ -11,9 +11,10 @@ from .base import call_decorator
 
 
 class SpatialAttack(Attack):
-    """Adversarially chosen rotations and translations [1]. This implementation
-    is based on the reference implementation by Madry et al.
-    https://github.com/MadryLab/adversarial_spatial
+    """Adversarially chosen rotations and translations [1].
+
+    This implementation is based on the reference implementation by
+    Madry et al.: https://github.com/MadryLab/adversarial_spatial
 
     References
     ----------
