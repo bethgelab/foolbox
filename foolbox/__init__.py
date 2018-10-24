@@ -5,6 +5,7 @@ with open(join(dirname(__file__), 'VERSION')) as f:
 
 from .rngs import rng  # noqa: F401
 from .rngs import nprng  # noqa: F401
+from .rngs import set_seeds  # noqa: F401
 
 from . import models  # noqa: F401
 from . import criteria  # noqa: F401
