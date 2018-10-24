@@ -4,6 +4,7 @@ import numpy as np
 from .base import Attack
 from .base import call_decorator
 from ..utils import softmax
+from .. import nprng
 
 
 class SinglePixelAttack(Attack):
@@ -47,7 +48,7 @@ class SinglePixelAttack(Attack):
 
         min_, max_ = a.bounds()
 
-        pixels = np.random.permutation(h * w)
+        pixels = nprng.permutation(h * w)
         pixels = pixels[:max_pixels]
         for i, pixel in enumerate(pixels):
             x = pixel % w
@@ -159,7 +160,7 @@ class LocalSearchAttack(Attack):
         def random_locations():
             n = int(0.1 * h * w)
             n = min(n, 128)
-            locations = np.random.permutation(h * w)[:n]
+            locations = nprng.permutation(h * w)[:n]
             p_x = locations % w
             p_y = locations // w
             pxy = list(zip(p_x, p_y))
@@ -189,7 +190,7 @@ class LocalSearchAttack(Attack):
         for _ in range(R):
             # Computing the function g using the neighborhood
             # IMPORTANT: random subset for efficiency
-            PxPy = PxPy[np.random.permutation(len(PxPy))[:128]]
+            PxPy = PxPy[nprng.permutation(len(PxPy))[:128]]
             L = [pert(Ii, p, x, y) for x, y in PxPy]
 
             def score(Its):

@@ -6,6 +6,7 @@ import numpy as np
 
 from .base import Attack
 from .base import call_decorator
+from .. import nprng
 
 
 class BlendedUniformNoiseAttack(Attack):
@@ -57,7 +58,7 @@ class BlendedUniformNoiseAttack(Attack):
             # random noise images tend to be classified into the same class,
             # so we might need to make very many draws if the original class
             # is that one
-            random_image = np.random.uniform(
+            random_image = nprng.uniform(
                 min_, max_, size=image.shape).astype(image.dtype)
             _, is_adversarial = a.predictions(random_image)
             if is_adversarial:

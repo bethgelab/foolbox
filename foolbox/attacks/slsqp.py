@@ -1,8 +1,8 @@
-import numpy as np
 import scipy.optimize as so
 
 from .base import Attack
 from .base import call_decorator
+from .. import nprng
 
 
 class SLSQPAttack(Attack):
@@ -47,8 +47,7 @@ class SLSQPAttack(Attack):
         n = image.size
         image = image.flatten()
 
-        np.random.seed(42)
-        x0 = np.random.uniform(min_, max_, size=image.shape)
+        x0 = nprng.uniform(min_, max_, size=image.shape)
         bounds = [(min_, max_)] * n
         options = {'maxiter': 500}
 
