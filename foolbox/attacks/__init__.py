@@ -19,7 +19,6 @@ from .pointwise import PointwiseAttack
 from .binarization import BinarizationRefinementAttack
 from .newtonfool import NewtonFoolAttack
 from .adef_attack import ADefAttack
-from .carlini_wagner import CarliniWagnerAttack
 
 from .iterative_projected_gradient import LinfinityBasicIterativeAttack, BasicIterativeMethod, BIM
 from .iterative_projected_gradient import L1BasicIterativeAttack

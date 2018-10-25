@@ -42,7 +42,6 @@
    SaliencyMapAttack
    IterativeGradientAttack
    IterativeGradientSignAttack
-   CarliniWagnerAttack
 
 
 .. rubric:: :doc:`attacks/score`

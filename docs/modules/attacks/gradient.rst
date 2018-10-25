@@ -102,7 +102,3 @@ Gradient-based attacks
 .. autoclass:: IterativeGradientSignAttack
    :members:
    :special-members:
-
-.. autoclass:: CarliniWagnerAttack
-   :members:
-   :special-members:
