@@ -21,6 +21,7 @@ install_requires = [
     'numpy',
     'scipy',
     'setuptools',
+    'pytest'
 ]
 
 tests_require = [
