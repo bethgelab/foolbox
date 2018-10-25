@@ -6,6 +6,7 @@ from foolbox.utils import softmax
 from foolbox.utils import crossentropy
 from foolbox.utils import imagenet_example
 from foolbox.utils import binarize
+from foolbox.utils import onehot_like
 
 
 def test_softmax():
@@ -49,3 +50,20 @@ def test_binarize():
     assert np.all(abs(x1) == 2)
     with pytest.raises(ValueError):
         binarize(x, (-2, 2), 0.5, included_in='blabla')
+
+
+def test_onehot_like():
+    a = np.array([0.1, 0.5, 0.7, 0.4])
+    o = onehot_like(a, 2)
+    assert o.shape == a.shape
+    assert o.dtype == a.dtype
+    assert np.all(o[:2] == 0)
+    assert o[2] == 1
+    assert np.all(o[3:] == 0)
+
+    o = onehot_like(a, 3, value=-77.5)
+    assert o.shape == a.shape
+    assert o.dtype == a.dtype
+    assert np.all(o[:3] == 0)
+    assert o[3] == -77.5
+    assert np.all(o[4:] == 0)

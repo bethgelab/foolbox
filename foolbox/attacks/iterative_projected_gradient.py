@@ -8,6 +8,7 @@ from .base import Attack
 from .base import call_decorator
 from .. import distances
 from ..utils import crossentropy
+from .. import nprng
 
 
 class IterativeProjectedGradientBaseAttack(Attack):
@@ -111,7 +112,7 @@ class IterativeProjectedGradientBaseAttack(Attack):
         if random_start:
             # using uniform noise even if the perturbation clipping uses
             # a different norm because cleverhans does it the same way
-            noise = np.random.uniform(
+            noise = nprng.uniform(
                 -epsilon * s, epsilon * s, original.shape).astype(
                     original.dtype)
             x = original + self._clip_perturbation(a, noise, epsilon)

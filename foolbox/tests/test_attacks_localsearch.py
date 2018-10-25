@@ -1,9 +1,11 @@
 import numpy as np
 
+from foolbox import set_seeds
 from foolbox.attacks import LocalSearchAttack as Attack
 
 
 def test_attack(bn_adversarial):
+    set_seeds(22)
     adv = bn_adversarial
     attack = Attack()
     attack(adv, d=1, t=10)
@@ -12,6 +14,7 @@ def test_attack(bn_adversarial):
 
 
 def test_attack_gl(gl_bn_adversarial):
+    set_seeds(22)
     adv = gl_bn_adversarial
     attack = Attack()
     attack(adv, d=1, t=10)
@@ -20,6 +23,7 @@ def test_attack_gl(gl_bn_adversarial):
 
 
 def test_targeted_attack(bn_targeted_adversarial):
+    set_seeds(22)
     adv = bn_targeted_adversarial
     attack = Attack()
     attack(adv, d=1)

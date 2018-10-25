@@ -103,6 +103,6 @@ Gradient-based attacks
    :members:
    :special-members:
 
-.. autoclass:: CarliniWagnerAttack
+.. autoclass:: CarliniWagnerL2Attack
    :members:
    :special-members:

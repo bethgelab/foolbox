@@ -16,7 +16,6 @@ from concurrent.futures import Future
 from .base import Attack
 from .base import call_decorator
 from .blended_noise import BlendedUniformNoiseAttack
-from ..criteria import Misclassification
 
 import numpy as np
 from numpy.linalg import norm
@@ -51,9 +50,6 @@ class BoundaryAttack(Attack):
            https://arxiv.org/abs/1712.04248
 
     """
-
-    def __init__(self, model=None, criterion=Misclassification()):
-        super(BoundaryAttack, self).__init__(model=model, criterion=criterion)
 
     @call_decorator
     def __call__(

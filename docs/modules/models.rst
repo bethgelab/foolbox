@@ -12,6 +12,7 @@ Models
    Model
    DifferentiableModel
    TensorFlowModel
+   TensorFlowEagerModel
    PyTorchModel
    KerasModel
    TheanoModel
@@ -41,6 +42,9 @@ Detailed description
    :members:
 
 .. autoclass:: TensorFlowModel
+   :members:
+
+.. autoclass:: TensorFlowEagerModel
    :members:
 
 .. autoclass:: PyTorchModel

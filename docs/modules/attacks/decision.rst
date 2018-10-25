@@ -7,6 +7,14 @@ Decision-based attacks
    :members:
    :special-members:
 
+.. autoclass:: SpatialAttack
+   :members:
+   :special-members:
+
+.. autoclass:: PointwiseAttack
+   :members:
+   :special-members:
+
 .. autoclass:: GaussianBlurAttack
    :members:
    :special-members:
@@ -30,9 +38,5 @@ Decision-based attacks
    :special-members:
 
 .. autoclass:: BlendedUniformNoiseAttack
-   :members:
-   :special-members:
-
-.. autoclass:: PointwiseAttack
    :members:
    :special-members:

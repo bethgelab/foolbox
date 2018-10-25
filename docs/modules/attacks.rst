@@ -27,6 +27,7 @@
    L2BasicIterativeAttack
    ProjectedGradientDescentAttack
    ProjectedGradientDescent
+   PGD
    RandomStartProjectedGradientDescentAttack
    RandomProjectedGradientDescent
    RandomPGD
@@ -42,7 +43,7 @@
    SaliencyMapAttack
    IterativeGradientAttack
    IterativeGradientSignAttack
-   CarliniWagnerAttack
+   CarliniWagnerL2Attack
 
 
 .. rubric:: :doc:`attacks/score`
@@ -61,13 +62,14 @@
    :nosignatures:
 
    BoundaryAttack
+   SpatialAttack
+   PointwiseAttack
    GaussianBlurAttack
    ContrastReductionAttack
    AdditiveUniformNoiseAttack
    AdditiveGaussianNoiseAttack
    SaltAndPepperNoiseAttack
    BlendedUniformNoiseAttack
-   PointwiseAttack
 
 
 .. rubric:: :doc:`attacks/other`
