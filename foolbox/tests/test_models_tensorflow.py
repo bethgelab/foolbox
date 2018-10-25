@@ -234,3 +234,58 @@ def test_tensorflow_model_non_diff(num_classes):
 
         test_gradient = model.gradient(test_images, test_label)
         assert (test_gradient == 0).all()
+
+
+def test_tf_keras_constructor():
+    bounds = (0, 255)
+
+    def create_model():
+        data_format = 'channels_last'
+        input_shape = [28, 28, 1]
+        l = tf.keras.layers  # noqa: E741
+        max_pool = l.MaxPooling2D(
+            (2, 2), (2, 2), padding='same', data_format=data_format)
+        return tf.keras.Sequential(
+            [
+                l.Conv2D(
+                    32,
+                    5,
+                    padding='same',
+                    data_format=data_format,
+                    input_shape=input_shape,
+                    activation=tf.nn.relu),
+                max_pool,
+                l.Conv2D(
+                    64,
+                    5,
+                    padding='same',
+                    data_format=data_format,
+                    activation=tf.nn.relu),
+                max_pool,
+                l.Flatten(),
+                l.Dense(1024, activation=tf.nn.relu),
+                l.Dropout(0.4),
+                l.Dense(10)
+            ])
+    model = create_model()
+    fmodel = TensorFlowModel.from_keras(model, bounds=bounds)
+    assert fmodel.num_classes() == 10
+
+    fmodel.session.run(tf.global_variables_initializer())
+
+    test_images = np.random.rand(2, 28, 28, 1).astype(np.float32)
+    assert fmodel.batch_predictions(test_images).shape == (2, 10)
+
+
+def test_tf_keras_exception():
+    bounds = (0, 255)
+
+    def mean_brightness_net(images):
+        logits = tf.reduce_mean(images, axis=(1, 2))
+        return logits
+
+    model = mean_brightness_net
+    with pytest.raises(ValueError):
+        TensorFlowModel.from_keras(model, bounds=bounds)
+
+    TensorFlowModel.from_keras(model, bounds=bounds, input_shape=(5, 5, 3))

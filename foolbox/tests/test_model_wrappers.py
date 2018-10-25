@@ -1,5 +1,6 @@
 import numpy as np
 
+from foolbox import set_seeds
 from foolbox.models import ModelWrapper
 from foolbox.models import DifferentiableModelWrapper
 from foolbox.models import CompositeModel
@@ -39,6 +40,8 @@ def test_diff_wrapper(bn_model, bn_image, bn_label):
 
 
 def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):
+    num_classes = 10
+    test_grad = np.random.rand(num_classes).astype(np.float32)
     model = CompositeModel(gl_bn_model, bn_model)
     with model:
         assert gl_bn_model.num_classes() == model.num_classes()
@@ -49,6 +52,9 @@ def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):
             bn_model.gradient(bn_image, bn_label) ==
             model.gradient(bn_image, bn_label))
         assert np.all(
+            bn_model.backward(test_grad, bn_image) ==
+            model.backward(test_grad, bn_image))
+        assert np.all(
             gl_bn_model.predictions(bn_image) ==
             model.predictions_and_gradient(bn_image, bn_label)[0])
         assert np.all(
@@ -58,9 +64,9 @@ def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):
 
 def test_estimate_gradient_wrapper(eg_bn_adversarial, bn_image):
     p, ia = eg_bn_adversarial.predictions(bn_image)
-    np.random.seed(22)
+    set_seeds(22)
     g = eg_bn_adversarial.gradient(bn_image)
-    np.random.seed(22)
+    set_seeds(22)
     p2, g2, ia2 = eg_bn_adversarial.predictions_and_gradient(bn_image)
     assert np.all(p == p2)
     assert np.all(g == g2)

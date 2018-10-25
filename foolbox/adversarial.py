@@ -6,7 +6,14 @@ Provides a class that represents an adversarial example.
 import numpy as np
 import numbers
 
+from .distances import Distance
 from .distances import MSE
+
+
+class StopAttack(Exception):
+    """Exception thrown to request early stopping of an attack
+    if a given (optional!) threshold is reached."""
+    pass
 
 
 class Adversarial(object):
@@ -29,6 +36,17 @@ class Adversarial(object):
         The ground-truth label of the original image.
     distance : a :class:`Distance` class
         The measure used to quantify similarity between images.
+    threshold : float or :class:`Distance`
+        If not None, the attack will stop as soon as the adversarial
+        perturbation has a size smaller than this threshold. Can be
+        an instance of the :class:`Distance` class passed to the distance
+        argument, or a float assumed to have the same unit as the
+        the given distance. If None, the attack will simply minimize
+        the distance as good as possible. Note that the threshold only
+        influences early stopping of the attack; the returned adversarial
+        does not necessarily have smaller perturbation size than this
+        threshold; the `reached_threshold()` method can be used to check
+        if the threshold has been reached.
 
     """
     def __init__(
@@ -38,6 +56,7 @@ class Adversarial(object):
             original_image,
             original_class,
             distance=MSE,
+            threshold=None,
             verbose=False):
 
         self.__model = model
@@ -46,6 +65,11 @@ class Adversarial(object):
         self.__original_image_for_distance = original_image
         self.__original_class = original_class
         self.__distance = distance
+
+        if threshold is not None and not isinstance(threshold, Distance):
+            threshold = distance(value=threshold)
+        self.__threshold = threshold
+
         self.verbose = verbose
 
         self.__best_adversarial = None
@@ -59,7 +83,13 @@ class Adversarial(object):
         self._best_gradient_calls = 0
 
         # check if the original image is already adversarial
-        self.predictions(original_image)
+        try:
+            self.predictions(original_image)
+        except StopAttack:
+            # if a threshold is specified and the original input is
+            # misclassified, this can already cause a StopAttack
+            # exception
+            assert self.distance.value == 0.
 
     def _reset(self):
         self.__best_adversarial = None
@@ -152,6 +182,12 @@ class Adversarial(object):
             image,
             bounds=self.bounds())
 
+    def reached_threshold(self):
+        """Returns True if a threshold is given and the currently
+        best adversarial distance is smaller than the threshold."""
+        return self.__threshold is not None \
+            and self.__best_distance <= self.__threshold
+
     def __new_adversarial(self, image, predictions, in_bounds):
         image = image.copy()  # to prevent accidental inplace changes
         distance = self.normalized_distance(image)
@@ -166,6 +202,9 @@ class Adversarial(object):
 
             self._best_prediction_calls = self._total_prediction_calls
             self._best_gradient_calls = self._total_gradient_calls
+
+            if self.reached_threshold():
+                raise StopAttack
 
             return True, distance
         return False, distance

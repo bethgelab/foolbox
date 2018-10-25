@@ -7,6 +7,7 @@ import warnings
 import numpy as np
 
 from .utils import batch_crossentropy
+from . import nprng
 
 
 class CoordinateWiseGradientEstimator(object):
@@ -73,7 +74,7 @@ class EvolutionaryStrategiesGradientEstimator(object):
         samples = self._samples
         assert samples % 2 == 0
         shape = (samples // 2,) + shape
-        noise = np.random.normal(size=shape).astype(np.float32)
+        noise = nprng.normal(size=shape).astype(np.float32)
         noise = np.concatenate([noise, -noise])
         return noise
 

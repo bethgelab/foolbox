@@ -1,10 +1,10 @@
 import warnings
-import random
 import logging
 
 from .base import Attack
 from .base import call_decorator
 from .saltandpepper import SaltAndPepperNoiseAttack
+from .. import rng
 
 
 class PointwiseAttack(Attack):
@@ -70,7 +70,7 @@ class PointwiseAttack(Attack):
         while True:
             # draw random shuffling of all indices
             indices = list(range(N))
-            random.shuffle(indices)
+            rng.shuffle(indices)
 
             for index in indices:
                 # change index
@@ -100,7 +100,7 @@ class PointwiseAttack(Attack):
         while True:
             # draw random shuffling of all indices
             indices = list(range(N))
-            random.shuffle(indices)
+            rng.shuffle(indices)
 
             # whether that run through all values made any improvement
             improved = False

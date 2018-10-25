@@ -88,3 +88,8 @@ class MXNetGluonModel(DifferentiableModel):
             loss = mx.nd.softmax_cross_entropy(logits, label)
             loss.backward()
         return loss.asnumpy()
+
+    def backward(self, gradient, image):  # pragma: no cover
+        # TODO: backward functionality has not yet been implemented
+        # for MXNetGluonModel
+        raise NotImplementedError

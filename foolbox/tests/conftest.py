@@ -190,6 +190,15 @@ def bn_label():
 
 
 @pytest.fixture
+def bn_label_pytorch():
+    image = bn_image_pytorch()
+    mean = np.mean(image, axis=(1, 2))
+    assert mean.shape == (10,)
+    label = np.argmax(mean)
+    return label
+
+
+@pytest.fixture
 def bn_criterion():
     return Misclassification()
 
@@ -316,8 +325,11 @@ def bn_adversarial_pytorch():
     model = bn_model_pytorch()
     criterion = bn_criterion()
     image = bn_image_pytorch()
-    label = bn_label()
-    return Adversarial(model, criterion, image, label)
+    label = bn_label_pytorch()
+    adv = Adversarial(model, criterion, image, label)
+    assert adv.image is None
+    assert adv.distance.value == np.inf
+    return adv
 
 
 @pytest.fixture
@@ -325,8 +337,11 @@ def bn_targeted_adversarial_pytorch():
     model = bn_model_pytorch()
     criterion = bn_targeted_criterion()
     image = bn_image_pytorch()
-    label = bn_label()
-    return Adversarial(model, criterion, image, label)
+    label = bn_label_pytorch()
+    adv = Adversarial(model, criterion, image, label)
+    assert adv.image is None
+    assert adv.distance.value == np.inf
+    return adv
 
 
 @pytest.fixture
