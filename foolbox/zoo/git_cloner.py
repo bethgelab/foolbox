@@ -9,7 +9,7 @@ class GitCloneError(RuntimeError):
     pass
 
 
-def clone(git_uri: str):
+def clone(git_uri):
     """
     :param git_uri:
     :return:

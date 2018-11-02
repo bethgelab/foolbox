@@ -65,6 +65,7 @@ def _extract(directory, filename):
         zip_ref.extractall(extracted_folder)
         zip_ref.close()
     else:
-        logging.info(f"Extraced folder already exists: {extracted_folder}")  # pragma: no cover
+        logging.info(f"Extraced folder already exists: "
+                     f"{extracted_folder}")  # pragma: no cover
 
     return extracted_folder
