@@ -14,7 +14,7 @@ class ModelLoader(ABC):
         if key is 'default':
             return DefaultLoader()
         else:
-            raise RuntimeError(f"No model loader for: {key}")
+            raise RuntimeError("No model loader for: %s".format(key))
 
     @staticmethod
     def _import_module(path, module_name='foolbox_model'):

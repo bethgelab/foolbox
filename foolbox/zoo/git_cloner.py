@@ -27,7 +27,7 @@ def clone(git_uri):
 
 
 def _clone_repo(git_uri, local_path):
-    logging.info(f"Cloning repo {git_uri} to {local_path}")
+    logging.info("Cloning repo %s to %s", git_uri, local_path)
     try:
         Repo.clone_from(git_uri, local_path)
     except Exception as e:

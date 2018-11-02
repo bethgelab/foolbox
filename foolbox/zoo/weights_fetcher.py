@@ -11,7 +11,7 @@ FOLDER = '.foolbox_zoo/weights'
 
 def fetch_weights(weights_uri, unzip=False):
     if weights_uri is None:
-        logging.info(f"No weights to be fetched for this model.")
+        logging.info("No weights to be fetched for this model.")
         return
 
     hash_digest = sha256_hash(weights_uri)
@@ -22,7 +22,7 @@ def fetch_weights(weights_uri, unzip=False):
     file_path = os.path.join(local_path, filename)
 
     if exists_locally:
-        logging.info(f"Weights already stored locally.")  # pragma: no cover
+        logging.info("Weights already stored locally.")  # pragma: no cover
     else:
         _download(file_path, weights_uri, local_path)
 
@@ -39,7 +39,7 @@ def _filename_from_uri(url):
 
 
 def _download(file_path, url, directory):
-    logging.info(f"Downloading weights: {url} to {file_path}")
+    logging.info("Downloading weights: %s to %s", url, file_path)
     if not os.path.exists(directory):
         os.makedirs(directory)
     # first check ETag or If-Modified-Since header or similar
@@ -50,7 +50,7 @@ def _download(file_path, url, directory):
             r.raw.decode_content = True
             shutil.copyfileobj(r.raw, f)
     else:
-        raise RuntimeError(f"Failed to fetch weights from {url}")
+        raise RuntimeError("Failed to fetch weights from %s", url)
 
 
 def _extract(directory, filename):
@@ -59,13 +59,13 @@ def _extract(directory, filename):
     extracted_folder = os.path.join(directory, extracted_folder)
 
     if not os.path.exists(extracted_folder):
-        logging.info(f"Extracting weights package to {extracted_folder}")
+        logging.info("Extracting weights package to %s", extracted_folder)
         os.makedirs(extracted_folder)
         zip_ref = zipfile.ZipFile(file_path, 'r')
         zip_ref.extractall(extracted_folder)
         zip_ref.close()
     else:
-        logging.info(f"Extraced folder already exists: "
-                     f"{extracted_folder}")  # pragma: no cover
+        logging.info("Extraced folder already exists: %s",
+                     extracted_folder)  # pragma: no cover
 
     return extracted_folder

@@ -10,3 +10,4 @@ python-coveralls >= 2.9.1
 pillow >= 4.1.1
 randomgen >= 1.14.4
 requests >= 2.18.4
+GitPython >= 2.1.10
