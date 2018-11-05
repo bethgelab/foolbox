@@ -19,8 +19,8 @@ def unload_foolbox_model_module():
 test_data = [
     # private repo won't work on travis
     # ('https://github.com/bethgelab/AnalysisBySynthesis.git', (1, 28, 28)),
-    ('https://github.com/bethgelab/convex_adversarial.git', (1, 28, 28)),
-    ('https://github.com/bethgelab/mnist_challenge.git', 784)
+    # ('https://github.com/bethgelab/convex_adversarial.git', (1, 28, 28)),
+    # ('https://github.com/bethgelab/mnist_challenge.git', 784)
 ]
 
 
