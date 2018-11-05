@@ -50,6 +50,8 @@ class TensorFlowModel(DifferentiableModel):
             self._created_session = True
         else:
             self._created_session = False
+            assert session.graph == images.graph, \
+                'The default session uses the wrong graph'
 
         with session.graph.as_default():
             self._session = session
