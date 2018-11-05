@@ -21,7 +21,8 @@ def clone(git_uri):
     if not exists_locally:
         _clone_repo(git_uri, local_path)
     else:
-        logging.info("Git repository already exists locally.")  # pragma: no cover
+        logging.info(  # pragma: no cover
+            "Git repository already exists locally.")  # pragma: no cover
 
     return local_path
 
