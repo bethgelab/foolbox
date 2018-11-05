@@ -1,6 +1,12 @@
-from abc import ABC, abstractmethod
 import sys
 import importlib
+
+import abc
+abstractmethod = abc.abstractmethod
+if sys.version_info >= (3, 4):
+    ABC = abc.ABC
+else:  # pragma: no cover
+    ABC = abc.ABCMeta('ABC', (), {})
 
 
 class ModelLoader(ABC):
