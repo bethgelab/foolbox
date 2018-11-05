@@ -21,3 +21,4 @@ from .theano import TheanoModel  # noqa: F401
 from .lasagne import LasagneModel  # noqa: F401
 from .mxnet import MXNetModel  # noqa: F401
 from .mxnet_gluon import MXNetGluonModel  # noqa: F401
+from .caffe import CaffeModel  # noqa: F401
