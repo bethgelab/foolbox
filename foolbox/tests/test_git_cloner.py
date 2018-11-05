@@ -8,7 +8,7 @@ from foolbox.zoo.git_cloner import GitCloneError
 
 def test_git_clone():
     # given
-    git_uri = "git@github.com:bethgelab/analysis-by-synthesis-model.git"
+    git_uri = "https://github.com/bethgelab/convex_adversarial.git"
     expected_path = _expected_path(git_uri)
 
     # when
