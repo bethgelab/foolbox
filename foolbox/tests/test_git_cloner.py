@@ -1,5 +1,4 @@
 from foolbox.zoo import git_cloner
-from pathlib import Path
 import os
 import hashlib
 import pytest
@@ -25,7 +24,7 @@ def test_wrong_git_uri():
 
 
 def _expected_path(git_uri):
-    home = str(Path.home())
+    home = os.path.expanduser('~')
     m = hashlib.sha256()
     m.update(git_uri.encode())
     hash = m.hexdigest()

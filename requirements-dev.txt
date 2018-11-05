@@ -12,4 +12,3 @@ randomgen >= 1.14.4
 requests >= 2.18.4
 GitPython >= 2.1.10
 responses >= 0.9.0
-pathlib >= 1.0.1

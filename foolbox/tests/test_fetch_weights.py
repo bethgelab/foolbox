@@ -2,16 +2,12 @@ from foolbox.zoo import fetch_weights
 from foolbox.zoo.common import *
 from foolbox.zoo.weights_fetcher import FOLDER
 
-from mock import patch, Mock, MagicMock
-
 import os
-import gzip
 import pytest
 import shutil
 
 import responses
 import io
-import pathlib
 import zipfile
 
 @responses.activate
