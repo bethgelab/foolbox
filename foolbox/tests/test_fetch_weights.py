@@ -2,7 +2,7 @@ from foolbox.zoo import fetch_weights
 from foolbox.zoo.common import *
 from foolbox.zoo.weights_fetcher import FOLDER
 
-from unittest.mock import patch, Mock, MagicMock
+from mock import patch, Mock, MagicMock
 
 import os
 import gzip
