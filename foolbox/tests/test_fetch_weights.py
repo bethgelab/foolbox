@@ -1,5 +1,5 @@
 from foolbox.zoo import fetch_weights
-from foolbox.zoo.common import *
+from foolbox.zoo.common import path_exists, home_directory_path, sha256_hash
 from foolbox.zoo.weights_fetcher import FOLDER
 
 import os
@@ -10,13 +10,15 @@ import responses
 import io
 import zipfile
 
+
 @responses.activate
 def test_fetch_weights_unzipped():
     weights_uri = 'http://localhost:8080/weights.zip'
     raw_body = _random_body(zipped=False)
 
     # mock server
-    responses.add(responses.GET, weights_uri, body=raw_body, status=200, stream=True)
+    responses.add(responses.GET, weights_uri,
+                  body=raw_body, status=200, stream=True)
 
     expected_path = _expected_path(weights_uri)
 
@@ -30,14 +32,14 @@ def test_fetch_weights_unzipped():
     assert expected_path in file_path
 
 
-
 @responses.activate
 def test_fetch_weights_zipped():
     weights_uri = 'http://localhost:8080/weights.zip'
 
     # mock server
     raw_body = _random_body(zipped=True)
-    responses.add(responses.GET, weights_uri, body=raw_body, status=200, stream=True,
+    responses.add(responses.GET, weights_uri,
+                  body=raw_body, status=200, stream=True,
                   content_type='application/zip',
                   headers={'Accept-Encoding': 'gzip, deflate'})
 
@@ -77,7 +79,7 @@ def _random_body(zipped=False):
     if zipped:
         data = io.BytesIO()
         with zipfile.ZipFile(data, mode='w') as z:
-                z.writestr('test.txt', 'no real weights in here :)')
+            z.writestr('test.txt', 'no real weights in here :)')
         data.seek(0)
         return data.getvalue()
     else:

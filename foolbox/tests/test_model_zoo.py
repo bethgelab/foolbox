@@ -6,6 +6,7 @@ import pytest
 from foolbox.zoo.model_loader import ModelLoader
 from os.path import join, dirname
 
+
 @pytest.fixture(autouse=True)
 def unload_foolbox_model_module():
     # reload foolbox_model from scratch for every run
@@ -23,6 +24,7 @@ test_data = [
     # ('https://github.com/bethgelab/mnist_challenge.git', 784)
     (join('file://', dirname(__file__), 'data/model_repo'), (3, 224, 224))
 ]
+
 
 @pytest.mark.parametrize("url, dim", test_data)
 def test_loading_model(url, dim):

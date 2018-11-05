@@ -1,6 +1,7 @@
 import hashlib
 import os
 
+
 def sha256_hash(git_uri):
     m = hashlib.sha256()
     m.update(git_uri.encode())
