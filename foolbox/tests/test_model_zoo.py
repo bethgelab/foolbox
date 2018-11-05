@@ -4,7 +4,7 @@ import foolbox
 import sys
 import pytest
 from foolbox.zoo.model_loader import ModelLoader
-
+from os.path import join, dirname
 
 @pytest.fixture(autouse=True)
 def unload_foolbox_model_module():
@@ -21,8 +21,8 @@ test_data = [
     # ('https://github.com/bethgelab/AnalysisBySynthesis.git', (1, 28, 28)),
     # ('https://github.com/bethgelab/convex_adversarial.git', (1, 28, 28)),
     # ('https://github.com/bethgelab/mnist_challenge.git', 784)
+    (join('file://', dirname(__file__), 'data/model_repo'), (3, 224, 224))
 ]
-
 
 @pytest.mark.parametrize("url, dim", test_data)
 def test_loading_model(url, dim):
@@ -41,6 +41,8 @@ def test_loading_model(url, dim):
     # sanity check
     assert predicted_class >= 0
     assert np.sum(probabilities) >= 0.9999
+
+    # TODO: delete fmodel
 
 
 def test_non_default_module_throws_error():
