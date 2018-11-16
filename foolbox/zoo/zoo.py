@@ -1,12 +1,6 @@
 from .git_cloner import clone
 from .model_loader import ModelLoader
 
-"""
-
-
-"""
-
-
 def get_model(url):
     """
 
@@ -19,7 +13,9 @@ def get_model(url):
     Instantiate a model:
 
     >>> from foolbox import zoo
-    >>> model = zoo.get_model(url="https://github.com/bveliqi/foolbox-zoo-dummy.git")  # noqa: E501
+    >>> url = "https://github.com/bveliqi/foolbox-zoo-dummy.git"
+    >>> model = zoo.get_model(url)
+    [<doctest_unpredictable.foolbox_model.MockModel object at 0x111afcdd8>]
 
 
     Only works with a foolbox-zoo compatible repository.

@@ -17,8 +17,9 @@ and run a `FGSM (GradienSignAttack)` against it.
     # download the model
     model = zoo.get_model(url="https://github.com/bethgelab/cifar10_challenge.git")
 
-    # get source image and label
-    image, label = foolbox.utils.imagenet_example(shape=(28,28))
+    # read image and label
+    image = ...
+    label = ...
 
     # apply attack on source image
     attack  = foolbox.attacks.FGSM(model)
