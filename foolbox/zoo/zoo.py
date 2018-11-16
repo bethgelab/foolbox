@@ -19,9 +19,7 @@ def get_model(url):
     Instantiate a model:
 
     >>> from foolbox import zoo
-    >>> model = zoo.get_model(
-    >>>     url="https://github.com/bveliqi/foolbox-zoo-dummy.git"
-    >>> )
+    >>> model = zoo.get_model(url="https://github.com/bveliqi/foolbox-zoo-dummy.git")  # noqa: E501
 
 
     Only works with a foolbox-zoo compatible repository.
