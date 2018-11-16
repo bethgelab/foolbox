@@ -21,7 +21,8 @@ install_requires = [
     'numpy',
     'scipy',
     'setuptools',
-    'pytest'
+    'requests',
+    'GitPython'
 ]
 
 tests_require = [

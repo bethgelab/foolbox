@@ -13,6 +13,13 @@ class ModelLoader(ABC):
 
     @abstractmethod
     def load(self, path):
+        """
+        Load a model from a local path, to which a git repository
+        has been previously cloned to.
+
+        :param path: the path to the local repository containing the code
+        :return: a foolbox-wrapped model
+        """
         pass  # pragma: no cover
 
     @staticmethod

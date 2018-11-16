@@ -11,8 +11,10 @@ class GitCloneError(RuntimeError):
 
 def clone(git_uri):
     """
-    :param git_uri:
-    :return:
+    Clone a remote git repository to a local path.
+
+    :param git_uri: the URI to the git repository to be cloned
+    :return: the generated local path where the repository has been cloned to
     """
     hash_digest = sha256_hash(git_uri)
     local_path = home_directory_path(FOLDER, hash_digest)

@@ -10,6 +10,28 @@ FOLDER = '.foolbox_zoo/weights'
 
 
 def fetch_weights(weights_uri, unzip=False):
+    """
+
+    Provides utilities to download and extract packages
+    containing model weights when creating foolbox-zoo compatible
+    repositories, if the weights are not part of the repository itself.
+
+    Examples
+    --------
+
+    Download and unzip weights:
+
+    >>> from foolbox import zoo
+    >>> url = 'https://github.com/MadryLab/mnist_challenge_models/'
+    >>>             + 'raw/master/secret.zip'
+    >>> weights_path = zoo.fetch_weights(url, unzip=True)
+
+    :param weights_uri: the URI to fetch the weights from
+    :param unzip: should be `True` if the file to be downloaded is
+           a zipped package
+    :return: local path where the weights have been downloaded
+             and potentially unzipped to
+    """
     if weights_uri is None:
         logging.info("No weights to be fetched for this model.")
         return
@@ -33,8 +55,10 @@ def fetch_weights(weights_uri, unzip=False):
 
 
 def _filename_from_uri(url):
-    filename = url.rsplit('/', 1)[-1]
-    filename = filename.rsplit('?', 1)[0]
+    # get last part of the URI, i.e. file-name
+    filename = url.split('/')[-1]
+    # remove query params if exist
+    filename = filename.split('?')[0]
     return filename
 
 
