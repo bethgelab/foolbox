@@ -35,6 +35,7 @@ You might want to have a look at our recently announced `Robust Vision Benchmark
    user/tutorial
    user/examples
    user/adversarial
+   user/zoo
    user/development
    user/faq
 
@@ -44,6 +45,7 @@ You might want to have a look at our recently announced `Robust Vision Benchmark
 
    modules/models
    modules/criteria
+   modules/zoo
    modules/distances
    modules/attacks
    modules/adversarial
