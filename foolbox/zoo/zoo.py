@@ -15,7 +15,7 @@ def get_model(url):
 
     >>> from foolbox import zoo
     >>> url = "https://github.com/bveliqi/foolbox-zoo-dummy.git"
-    >>> model = zoo.get_model(url)  # doctest: +ELLIPSIS
+    >>> model = zoo.get_model(url)  # doctest: +SKIP
 
     Only works with a foolbox-zoo compatible repository.
     I.e. models need to have a `foolbox_model.py` file
