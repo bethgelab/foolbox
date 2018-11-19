@@ -36,6 +36,7 @@ from foolbox.criteria import TargetClass
 from foolbox.criteria import OriginalClassProbability
 from foolbox.models import TensorFlowModel
 from foolbox.models import PyTorchModel
+from foolbox.models import CaffeModel
 from foolbox.models import ModelWithoutGradients
 from foolbox.models import ModelWithEstimatedGradients
 from foolbox import Adversarial
@@ -135,6 +136,35 @@ def bn_model_pytorch():
         bounds=bounds,
         num_classes=num_classes,
         device='cpu')
+    return model
+
+
+@pytest.fixture
+def bn_model_caffe(request, tmpdir):
+    """Same as bn_model but with Caffe."""
+
+    import caffe
+    from caffe import layers as L
+
+    bounds = (0, 1)
+    num_classes = channels = getattr(request, "param", 1000)
+
+    net_spec = caffe.NetSpec()
+    net_spec.data = L.Input(name="data",
+                            shape=dict(dim=[1, channels, 5, 5]))
+    net_spec.reduce_1 = L.Reduction(net_spec.data,
+                                    reduction_param={"operation": 4,
+                                                     "axis": 3})
+    net_spec.output = L.Reduction(net_spec.reduce_1,
+                                  reduction_param={"operation": 4,
+                                                   "axis": 2})
+    net_spec.label = L.Input(name="label", shape=dict(dim=[1]))
+    net_spec.loss = L.SoftmaxWithLoss(net_spec.output, net_spec.label)
+    wf = tmpdir.mkdir("test_models_caffe_fixture")\
+               .join("test_caffe_{}.prototxt".format(num_classes))
+    wf.write("force_backward: true\n" + str(net_spec.to_proto()))
+    net = caffe.Net(str(wf), caffe.TEST)
+    model = CaffeModel(net, bounds=bounds)
     return model
 
 
