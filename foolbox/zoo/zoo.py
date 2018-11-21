@@ -23,6 +23,7 @@ def get_model(url):
 
     Example repositories:
 
+        - https://github.com/bethgelab/AnalysisBySynthesis
         - https://github.com/bethgelab/mnist_challenge
         - https://github.com/bethgelab/cifar10_challenge
         - https://github.com/bethgelab/convex_adversarial
