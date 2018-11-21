@@ -7,7 +7,7 @@ This tutorial will show you how the model zoo can be used to run your attack aga
 Downloading a model
 ===================
 
-For this tutorial, we will download the `Madry et al. CIFAR10 challenge` robust model implemented in `TensorFlow`
+For this tutorial, we will download the `Analysis by Synthesis` model implemented in `PyTorch`
 and run a `FGSM (GradienSignAttack)` against it.
 
 .. code-block:: python3
@@ -15,7 +15,7 @@ and run a `FGSM (GradienSignAttack)` against it.
     from foolbox import zoo
 
     # download the model
-    model = zoo.get_model(url="https://github.com/bethgelab/cifar10_challenge.git")
+    model = zoo.get_model(url="https://github.com/bethgelab/AnalysisBySynthesis")
 
     # read image and label
     image = ...
