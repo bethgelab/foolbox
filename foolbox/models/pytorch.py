@@ -112,7 +112,7 @@ class PyTorchModel(DifferentiableModel):
         input_shape = image.shape
         image, dpdx = self._process_input(image)
         target = np.array([label])
-        target = torch.from_numpy(target).to(self.device)
+        target = torch.from_numpy(target).long().to(self.device)
 
         images = image[np.newaxis]
         images = torch.from_numpy(images).to(self.device)
@@ -161,7 +161,7 @@ class PyTorchModel(DifferentiableModel):
 
         image, _ = self._process_input(image)
         target = np.array([label])
-        target = torch.from_numpy(target).to(self.device)
+        target = torch.from_numpy(target).long().to(self.device)
         if self._old_pytorch():  # pragma: no cover
             target = Variable(target)
 
