@@ -189,7 +189,7 @@ def samples(dataset='imagenet', index=0, batchsize=1, shape=(224, 224),
 
     for idx in range(index, index + batchsize):
         i = idx % 20
-        
+
         # get filename and label
         file = [n for n in files if '{}_{:02d}_'.format(dataset, i) in n][0]
         label = int(file.split('.')[0].split('_')[-1])
