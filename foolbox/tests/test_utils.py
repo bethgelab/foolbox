@@ -50,7 +50,7 @@ def test_samples_imagenet():
                              batchsize=5)
     assert 0 <= labels[0] < 1000
     assert images.shape[0] == 5
-    assert isinstance(labels[0], int)
+    assert isinstance(labels[0], np.integer)
     assert images.shape == (5, 224, 224, 3)
     assert images.dtype == np.float32
 
@@ -61,7 +61,7 @@ def test_samples_imagenet_channels_first():
                              data_format='channels_first')
     assert 0 <= labels[0] < 1000
     assert images.shape[0] == 5
-    assert isinstance(labels[0], int)
+    assert isinstance(labels[0], np.integer)
     assert images.shape == (5, 3, 224, 224)
     assert images.dtype == np.float32
 
@@ -70,7 +70,7 @@ def test_samples_mnist():
     images, labels = samples(dataset='mnist', batchsize=5)
     assert 0 <= labels[0] < 10
     assert images.shape[0] == 5
-    assert isinstance(labels[0], int)
+    assert isinstance(labels[0], np.integer)
     assert images.shape == (5, 28, 28)
     assert images.dtype == np.float32
 
@@ -79,7 +79,7 @@ def test_samples_cifar10():
     images, labels = samples(dataset='cifar10', batchsize=5)
     assert 0 <= labels[0] < 10
     assert images.shape[0] == 5
-    assert isinstance(labels[0], int)
+    assert isinstance(labels[0], np.integer)
     assert images.shape == (5, 32, 32, 3)
     assert images.dtype == np.float32
 
@@ -88,7 +88,7 @@ def test_samples_cifar100():
     images, labels = samples(dataset='cifar100', batchsize=5)
     assert 0 <= labels[0] < 100
     assert images.shape[0] == 5
-    assert isinstance(labels[0], int)
+    assert isinstance(labels[0], np.integer)
     assert images.shape == (5, 32, 32, 3)
     assert images.dtype == np.float32
 
@@ -97,7 +97,7 @@ def test_samples_fashionMNIST():
     images, labels = samples(dataset='fashionMNIST', batchsize=5)
     assert 0 <= labels[0] < 10
     assert images.shape[0] == 5
-    assert isinstance(labels[0], int)
+    assert isinstance(labels[0], np.integer)
     assert images.shape == (5, 28, 28)
     assert images.dtype == np.float32
 
