@@ -1,2 +1,3 @@
 include foolbox/VERSION
+include foolbox/example.jpg
 include foolbox/data/*.jpg

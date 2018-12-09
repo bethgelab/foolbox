@@ -187,9 +187,11 @@ def samples(dataset='imagenet', index=0, batchsize=1, shape=(224, 224),
     samplepath = os.path.join(basepath, 'data')
     files = os.listdir(samplepath)
 
-    for idx in range(index, index+batchsize):
+    for idx in range(index, index + batchsize):
+        i = idx % 20
+        
         # get filename and label
-        file = [n for n in files if '{}_{:02d}_'.format(dataset, idx) in n][0]
+        file = [n for n in files if '{}_{:02d}_'.format(dataset, i) in n][0]
         label = int(file.split('.')[0].split('_')[-1])
 
         # open file

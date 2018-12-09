@@ -98,7 +98,7 @@ def test_samples_fashionMNIST():
     assert 0 <= labels[0] < 10
     assert images.shape[0] == 5
     assert isinstance(labels[0], int)
-    assert images.shape == (5, 32, 32)
+    assert images.shape == (5, 28, 28)
     assert images.dtype == np.float32
 
 
