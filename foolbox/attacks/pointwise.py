@@ -12,6 +12,12 @@ class PointwiseAttack(Attack):
     the adversarial and the original for each dimension of the input
     individually.
 
+    References
+    ----------
+    .. [1] L. Schott, J. Rauber, M. Bethge, W. Brendel: "Towards the first 
+           adversarially robust neural network model on MNIST", ICLR (2019)
+           https://arxiv.org/abs/1805.09190
+
     """
 
     @call_decorator
@@ -20,7 +26,7 @@ class PointwiseAttack(Attack):
 
         """Starts with an adversarial and performs a binary search between
         the adversarial and the original for each dimension of the input
-        individually.
+        individually (optimizing L0).
 
         Parameters
         ----------
