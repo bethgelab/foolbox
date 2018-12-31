@@ -26,7 +26,7 @@ class PointwiseAttack(Attack):
 
         """Starts with an adversarial and performs a binary search between
         the adversarial and the original for each dimension of the input
-        individually (optimizing L0).
+        individually.
 
         Parameters
         ----------
