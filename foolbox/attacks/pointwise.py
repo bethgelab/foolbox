@@ -14,7 +14,7 @@ class PointwiseAttack(Attack):
 
     References
     ----------
-    .. [1] L. Schott, J. Rauber, M. Bethge, W. Brendel: "Towards the first 
+    .. [1] L. Schott, J. Rauber, M. Bethge, W. Brendel: "Towards the first
            adversarially robust neural network model on MNIST", ICLR (2019)
            https://arxiv.org/abs/1805.09190
 
