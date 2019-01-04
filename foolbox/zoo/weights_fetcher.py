@@ -1,6 +1,7 @@
 import requests
 import shutil
 import zipfile
+import tarfile
 import os
 import logging
 
@@ -41,7 +42,7 @@ def fetch_weights(weights_uri, unzip=False):
 
     filename = _filename_from_uri(weights_uri)
     file_path = os.path.join(local_path, filename)
-
+    
     if exists_locally:
         logging.info("Weights already stored locally.")  # pragma: no cover
     else:
@@ -84,9 +85,14 @@ def _extract(directory, filename):
     if not os.path.exists(extracted_folder):
         logging.info("Extracting weights package to %s", extracted_folder)
         os.makedirs(extracted_folder)
-        zip_ref = zipfile.ZipFile(file_path, 'r')
-        zip_ref.extractall(extracted_folder)
-        zip_ref.close()
+        if '.zip' in file_path:
+            zip_ref = zipfile.ZipFile(file_path, 'r')
+            zip_ref.extractall(extracted_folder)
+            zip_ref.close()
+        elif '.tar.gz' in file_path:
+            tar_ref = tarfile.TarFile.open(file_path, 'r')
+            tar_ref.extractall(extracted_folder)
+            tar_ref.close()
     else:
         logging.info("Extraced folder already exists: %s",
                      extracted_folder)  # pragma: no cover
