@@ -42,7 +42,7 @@ def fetch_weights(weights_uri, unzip=False):
 
     filename = _filename_from_uri(weights_uri)
     file_path = os.path.join(local_path, filename)
-    
+
     if exists_locally:
         logging.info("Weights already stored locally.")  # pragma: no cover
     else:
