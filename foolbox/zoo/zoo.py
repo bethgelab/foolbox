@@ -27,6 +27,7 @@ def get_model(url):
         - https://github.com/bethgelab/mnist_challenge
         - https://github.com/bethgelab/cifar10_challenge
         - https://github.com/bethgelab/convex_adversarial
+        - https://github.com/wielandbrendel/logit-pairing-foolbox.git
 
     :param url: URL to the git repository
     :return: a foolbox-wrapped model instance
