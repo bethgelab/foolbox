@@ -2,7 +2,7 @@ from .git_cloner import clone
 from .model_loader import ModelLoader
 
 
-def get_model(url):
+def get_model(url, module_name='foolbox_model'):
     """
 
     Provides utilities to download foolbox-compatible robust models
@@ -21,6 +21,10 @@ def get_model(url):
     I.e. models need to have a `foolbox_model.py` file
     with a `create()`-function, which returns a foolbox-wrapped model.
 
+    Using the module_name parameter it can be specified which module
+    should be loaded. This is useful when multiple models are stored
+    in the same repository.
+
     Example repositories:
 
         - https://github.com/bethgelab/AnalysisBySynthesis
@@ -31,10 +35,11 @@ def get_model(url):
         - https://github.com/bethgelab/defensive-distillation.git
 
     :param url: URL to the git repository
+    :param module_name: Name of the module to be loaded
     :return: a foolbox-wrapped model instance
     """
     repo_path = clone(url)
     loader = ModelLoader.get()
-    model = loader.load(repo_path)
+    model = loader.load(repo_path, module_name)
 
     return model
