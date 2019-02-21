@@ -2,7 +2,7 @@ from .git_cloner import clone
 from .model_loader import ModelLoader
 
 
-def get_model(url, module_name='foolbox_model'):
+def get_model(url, **kwargs):
     """
 
     Provides utilities to download foolbox-compatible robust models
@@ -21,9 +21,9 @@ def get_model(url, module_name='foolbox_model'):
     I.e. models need to have a `foolbox_model.py` file
     with a `create()`-function, which returns a foolbox-wrapped model.
 
-    Using the module_name parameter it can be specified which module
-    should be loaded. This is useful when multiple models are stored
-    in the same repository.
+    Using the kwargs parameter it is possible to input an arbitrary number
+    of parameters to this methods call. These parameters are forwarded to
+    the instantiated model.
 
     Example repositories:
 
@@ -35,11 +35,12 @@ def get_model(url, module_name='foolbox_model'):
         - https://github.com/bethgelab/defensive-distillation.git
 
     :param url: URL to the git repository
-    :param module_name: Name of the module to be loaded
+    :param kwargs: Optional set of parameters that will be used by the
+        to be instantiated model.
     :return: a foolbox-wrapped model instance
     """
     repo_path = clone(url)
     loader = ModelLoader.get()
-    model = loader.load(repo_path, module_name)
+    model = loader.load(repo_path, kwargs)
 
     return model
