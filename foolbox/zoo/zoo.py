@@ -41,6 +41,6 @@ def get_model(url, **kwargs):
     """
     repo_path = clone(url)
     loader = ModelLoader.get()
-    model = loader.load(repo_path, kwargs)
+    model = loader.load(repo_path, **kwargs)
 
     return model

@@ -12,12 +12,13 @@ else:  # pragma: no cover
 class ModelLoader(ABC):
 
     @abstractmethod
-    def load(self, path):
+    def load(self, path, **kwargs):
         """
         Load a model from a local path, to which a git repository
         has been previously cloned to.
 
         :param path: the path to the local repository containing the code
+        :param kwargs: parameters for the to be loaded model
         :return: a foolbox-wrapped model
         """
         pass  # pragma: no cover
@@ -41,5 +42,8 @@ class DefaultLoader(ModelLoader):
 
     def load(self, path, **kwargs):
         module = ModelLoader._import_module(path)
-        model = module.create(kwargs)
+        if kwargs:  # Empty dictionaries evaluate fo false
+            model = module.create(**kwargs)
+        else:  # For backwards compatibility
+            model = module.create()
         return model
