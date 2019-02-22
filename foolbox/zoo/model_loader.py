@@ -42,8 +42,5 @@ class DefaultLoader(ModelLoader):
 
     def load(self, path, **kwargs):
         module = ModelLoader._import_module(path)
-        if kwargs:  # Empty dictionaries evaluate fo false
-            model = module.create(**kwargs)
-        else:  # For backwards compatibility
-            model = module.create()
+        model = module.create(**kwargs)
         return model
