@@ -64,7 +64,6 @@ before_install:
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then docker pull bvlc/caffe:cpu; fi
 
     - travis_wait travis_retry pip install --upgrade numpy
-    - travis_wait travis_retry pip install --upgrade scikit-image
 install:
     - pip install -e .
 script:
