@@ -62,6 +62,8 @@ before_install:
 
     - pip install pytest-faulthandler
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then docker pull bvlc/caffe:cpu; fi
+
+    - travis_wait travis_retry pip install --upgrade numpy
 install:
     - pip install -e .
 script:
