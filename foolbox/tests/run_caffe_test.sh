@@ -4,6 +4,8 @@
 
 pip install -r requirements-dev.txt
 pip install mock
+pip install --upgrade "numpy<1.16"
+# pip install --upgrade scikit-image
 pip install -e .
 mkdir /mock
 cat >>/mock/tensorflow.py<<EOF
