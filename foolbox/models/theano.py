@@ -78,6 +78,7 @@ class TheanoModel(DifferentiableModel):
         label = np.array(label, dtype=np.int32)
         predictions, gradient = self._predictions_and_gradient_fn(
             image[np.newaxis], label[np.newaxis])
+        gradient = gradient.astype(image.dtype)
         predictions = np.squeeze(predictions, axis=0)
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
@@ -91,6 +92,7 @@ class TheanoModel(DifferentiableModel):
         image, dpdx = self._process_input(image)
         label = np.array(label, dtype=np.int32)
         gradient = self._gradient_fn(image[np.newaxis], label[np.newaxis])
+        gradient = gradient.astype(image.dtype)
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
         assert gradient.shape == input_shape
@@ -106,6 +108,7 @@ class TheanoModel(DifferentiableModel):
         image, dpdx = self._process_input(image)
         gradient = self._bw_gradient_fn(
             gradient[np.newaxis], image[np.newaxis])
+        gradient = gradient.astype(image.dtype)
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
         assert gradient.shape == input_shape
