@@ -24,8 +24,8 @@ class ModelLoader(ABC):
         pass  # pragma: no cover
 
     @staticmethod
-    def get(key='default'):
-        if key is 'default':
+    def get(key=None):
+        if key is None:
             return DefaultLoader()
         else:
             raise RuntimeError("No model loader for: %s".format(key))
