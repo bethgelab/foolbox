@@ -2,7 +2,7 @@ from .git_cloner import clone
 from .model_loader import ModelLoader
 
 
-def get_model(url, **kwargs):
+def get_model(url, module_name='foolbox_model', **kwargs):
     """
 
     Provides utilities to download foolbox-compatible robust models
@@ -35,12 +35,12 @@ def get_model(url, **kwargs):
         - https://github.com/bethgelab/defensive-distillation.git
 
     :param url: URL to the git repository
+    :param module_name: the name of the module to import
     :param kwargs: Optional set of parameters that will be used by the
         to be instantiated model.
     :return: a foolbox-wrapped model instance
     """
     repo_path = clone(url)
     loader = ModelLoader.get()
-    model = loader.load(repo_path, **kwargs)
-
+    model = loader.load(repo_path, module_name=module_name, **kwargs)
     return model
