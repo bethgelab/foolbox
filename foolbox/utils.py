@@ -203,7 +203,7 @@ def samples(dataset='imagenet', index=0, batchsize=1, shape=(224, 224),
 
         image = np.asarray(image, dtype=np.float32)
 
-        if dataset is not 'mnist' and data_format == 'channels_first':
+        if dataset != 'mnist' and data_format == 'channels_first':
             image = np.transpose(image, (2, 0, 1))
 
         images.append(image)
