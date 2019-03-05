@@ -89,7 +89,7 @@ def _extract(directory, filename):
             zip_ref = zipfile.ZipFile(file_path, 'r')
             zip_ref.extractall(extracted_folder)
             zip_ref.close()
-        elif '.tar.gz' in file_path:
+        elif '.tar.gz' in file_path:  # pragma: no cover
             tar_ref = tarfile.TarFile.open(file_path, 'r')
             tar_ref.extractall(extracted_folder)
             tar_ref.close()
