@@ -12,7 +12,7 @@ env:
         - THEANO_FLAGS='floatX=float32'
     matrix:
         - KERAS_BACKEND=tensorflow
-          # - KERAS_BACKEND=theano
+        - KERAS_BACKEND=theano
 matrix:
     exclude:
         - python: 3.6
