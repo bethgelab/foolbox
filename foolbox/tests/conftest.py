@@ -47,6 +47,9 @@ from foolbox.gradient_estimators import CoordinateWiseGradientEstimator
 from foolbox.gradient_estimators import EvolutionaryStrategiesGradientEstimator
 from foolbox.utils import binarize
 
+import logging
+logging.getLogger().setLevel(logging.DEBUG)
+
 
 @pytest.fixture
 def image():
