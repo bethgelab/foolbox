@@ -293,7 +293,8 @@ class Adversarial(object):
         Parameters
         ----------
         image : `numpy.ndarray`
-            Image with shape (height, width, channels).
+            Single input with shape as expected by the model
+            (without the batch dimension).
         strict : bool
             Controls if the bounds for the pixel values should be checked.
 
@@ -319,7 +320,7 @@ class Adversarial(object):
         Parameters
         ----------
         images : `numpy.ndarray`
-            Batch of images with shape (batch size, height, width, channels).
+            Batch of inputs with shape as expected by the model.
         greedy : bool
             Whether the first adversarial should be returned.
         strict : bool
@@ -373,7 +374,8 @@ class Adversarial(object):
         Parameters
         ----------
         image : `numpy.ndarray`
-            Image with shape (height, width, channels).
+            Single input with shape as expected by the model
+            (without the batch dimension).
             Defaults to the original image.
         label : int
             Label used to calculate the loss that is differentiated.
@@ -404,7 +406,8 @@ class Adversarial(object):
         Parameters
         ----------
         image : `numpy.ndarray`
-            Image with shape (height, width, channels).
+            Single input with shape as expected by the model
+            (without the batch dimension).
             Defaults to the original image.
         label : int
             Label used to calculate the loss that is differentiated.
@@ -437,6 +440,26 @@ class Adversarial(object):
             return predictions, gradient, is_adversarial
 
     def backward(self, gradient, image=None, strict=True):
+        """Interface to model.backward for attacks.
+
+        Parameters
+        ----------
+        gradient : `numpy.ndarray`
+            Gradient of some loss w.r.t. the logits.
+        image : `numpy.ndarray`
+            Single input with shape as expected by the model
+            (without the batch dimension).
+
+        Returns
+        -------
+        gradient : `numpy.ndarray`
+            The gradient w.r.t the image.
+
+        See Also
+        --------
+        :meth:`gradient`
+
+        """
         assert self.has_gradient()
         assert gradient.ndim == 1
 
