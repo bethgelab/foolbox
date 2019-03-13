@@ -47,7 +47,7 @@ class ContrastReductionAttack(Attack):
 
         for epsilon in epsilons:
             perturbed = (1 - epsilon) * image + epsilon * target
-
+            perturbed = np.clip(perturbed, min_, max_)
             _, is_adversarial = a.predictions(perturbed)
             if is_adversarial:
                 return
