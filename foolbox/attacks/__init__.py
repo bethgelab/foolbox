@@ -8,7 +8,7 @@ from .deepfool import DeepFoolAttack, DeepFoolL2Attack, DeepFoolLinfinityAttack
 from .saliency import SaliencyMapAttack
 from .blur import GaussianBlurAttack
 from .contrast import ContrastReductionAttack
-from .localsearch import SinglePixelAttack, LocalSearchAttack
+from .localsearch import SinglePixelAttack, MultiplePixelsAttack, LocalSearchAttack
 from .slsqp import SLSQPAttack
 from .additive_noise import AdditiveNoiseAttack, AdditiveUniformNoiseAttack, AdditiveGaussianNoiseAttack
 from .blended_noise import BlendedUniformNoiseAttack

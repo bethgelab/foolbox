@@ -7,6 +7,10 @@ Score-based attacks
    :members:
    :special-members:
 
+.. autoclass:: MultiplePixelsAttack
+   :members:
+   :special-members:
+
 .. autoclass:: LocalSearchAttack
    :members:
    :special-members:

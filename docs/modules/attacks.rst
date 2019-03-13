@@ -52,6 +52,7 @@
    :nosignatures:
 
    SinglePixelAttack
+   MultiplePixelsAttack
    LocalSearchAttack
    ApproximateLBFGSAttack
 
