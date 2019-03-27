@@ -75,5 +75,6 @@ class SaltAndPepperNoiseAttack(Attack):
                     # higher epsilon usually means larger perturbation, but
                     # this relationship is not strictly monotonic, so we set
                     # the new limit a bit higher than the best one so far
-                    max_epsilon = epsilon * 1.2
+                    # but not larger than 1
+                    max_epsilon = min(1, epsilon * 1.2)
                     break
