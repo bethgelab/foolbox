@@ -5,7 +5,7 @@ import numpy as np
 import logging
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_call_decorator
 from ..utils import onehot_like
 
 
@@ -25,7 +25,7 @@ class CarliniWagnerL2Attack(Attack):
 
     """
 
-    @call_decorator
+    @generator_call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search_steps=5, max_iterations=1000,
                  confidence=0, learning_rate=5e-3,
@@ -143,8 +143,8 @@ class CarliniWagnerL2Attack(Attack):
 
             for iteration in range(max_iterations):
                 x, dxdp = to_model_space(att_original + att_perturbation)
-                logits, is_adv = a.predictions(x)
-                loss, dldx = self.loss_function(
+                logits, is_adv = yield from a.predictions(x)
+                loss, dldx = yield from self.loss_function(
                     const, a, x, logits, reconstructed_original,
                     confidence, min_, max_)
 
@@ -219,7 +219,7 @@ class CarliniWagnerL2Attack(Attack):
         logits_diff_grad = np.zeros_like(logits)
         logits_diff_grad[c_minimize] = 1
         logits_diff_grad[c_maximize] = -1
-        is_adv_loss_grad = a.backward(logits_diff_grad, x)
+        is_adv_loss_grad = yield from a.backward(logits_diff_grad, x)
         assert is_adv_loss >= 0
         if is_adv_loss == 0:
             is_adv_loss_grad = 0

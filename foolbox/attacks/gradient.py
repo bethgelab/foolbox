@@ -5,7 +5,7 @@ import logging
 import abc
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_call_decorator
 
 
 class SingleStepGradientBaseAttack(Attack):
@@ -22,7 +22,7 @@ class SingleStepGradientBaseAttack(Attack):
         image = a.original_image
         min_, max_ = a.bounds()
 
-        gradient = self._gradient(a)
+        gradient = yield from self._gradient(a)
 
         if not isinstance(epsilons, Iterable):
             epsilons = np.linspace(0, max_epsilon, num=epsilons + 1)[1:]
@@ -35,7 +35,7 @@ class SingleStepGradientBaseAttack(Attack):
                 perturbed = image + gradient * epsilon
                 perturbed = np.clip(perturbed, min_, max_)
 
-                _, is_adversarial = a.predictions(perturbed)
+                _, is_adversarial = yield from a.predictions(perturbed)
                 if is_adversarial:
                     if decrease_if_first and i < 20:
                         logging.info('repeating attack with smaller epsilons')
@@ -54,7 +54,7 @@ class GradientAttack(SingleStepGradientBaseAttack):
 
     """
 
-    @call_decorator
+    @generator_call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  epsilons=1000, max_epsilon=1):
 
@@ -87,11 +87,11 @@ class GradientAttack(SingleStepGradientBaseAttack):
         del label
         del unpack
 
-        return self._run(a, epsilons=epsilons, max_epsilon=max_epsilon)
+        yield from self._run(a, epsilons=epsilons, max_epsilon=max_epsilon)
 
     def _gradient(self, a):
         min_, max_ = a.bounds()
-        gradient = a.gradient()
+        gradient = yield from a.gradient()
         gradient_norm = np.sqrt(np.mean(np.square(gradient)))
         gradient = gradient / (gradient_norm + 1e-8) * (max_ - min_)
         return gradient
@@ -112,7 +112,7 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
            https://arxiv.org/abs/1412.6572
     """
 
-    @call_decorator
+    @generator_call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  epsilons=1000, max_epsilon=1):
 
@@ -145,7 +145,7 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
         del label
         del unpack
 
-        return self._run(a, epsilons=epsilons, max_epsilon=max_epsilon)
+        yield from self._run(a, epsilons=epsilons, max_epsilon=max_epsilon)
 
     def _gradient(self, a):
         min_, max_ = a.bounds()
