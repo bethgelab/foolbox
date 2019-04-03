@@ -7,6 +7,7 @@ from foolbox.utils import crossentropy
 from foolbox.utils import imagenet_example
 from foolbox.utils import binarize
 from foolbox.utils import onehot_like
+from foolbox.utils import samples
 
 
 def test_softmax():
@@ -42,6 +43,63 @@ def test_imagenet_example_channels_first():
 
     for i in range(3):
         assert np.all(image[i] == image2[:, :, i])
+
+
+def test_samples_imagenet():
+    images, labels = samples(dataset='imagenet',
+                             batchsize=5)
+    assert 0 <= labels[0] < 1000
+    assert images.shape[0] == 5
+    assert isinstance(labels[0], np.integer)
+    assert images.shape == (5, 224, 224, 3)
+    assert images.dtype == np.float32
+
+
+def test_samples_imagenet_channels_first():
+    images, labels = samples(dataset='imagenet',
+                             batchsize=5,
+                             data_format='channels_first')
+    assert 0 <= labels[0] < 1000
+    assert images.shape[0] == 5
+    assert isinstance(labels[0], np.integer)
+    assert images.shape == (5, 3, 224, 224)
+    assert images.dtype == np.float32
+
+
+def test_samples_mnist():
+    images, labels = samples(dataset='mnist', batchsize=5)
+    assert 0 <= labels[0] < 10
+    assert images.shape[0] == 5
+    assert isinstance(labels[0], np.integer)
+    assert images.shape == (5, 28, 28)
+    assert images.dtype == np.float32
+
+
+def test_samples_cifar10():
+    images, labels = samples(dataset='cifar10', batchsize=5)
+    assert 0 <= labels[0] < 10
+    assert images.shape[0] == 5
+    assert isinstance(labels[0], np.integer)
+    assert images.shape == (5, 32, 32, 3)
+    assert images.dtype == np.float32
+
+
+def test_samples_cifar100():
+    images, labels = samples(dataset='cifar100', batchsize=5)
+    assert 0 <= labels[0] < 100
+    assert images.shape[0] == 5
+    assert isinstance(labels[0], np.integer)
+    assert images.shape == (5, 32, 32, 3)
+    assert images.dtype == np.float32
+
+
+def test_samples_fashionMNIST():
+    images, labels = samples(dataset='fashionMNIST', batchsize=5)
+    assert 0 <= labels[0] < 10
+    assert images.shape[0] == 5
+    assert isinstance(labels[0], np.integer)
+    assert images.shape == (5, 28, 28)
+    assert images.dtype == np.float32
 
 
 def test_binarize():

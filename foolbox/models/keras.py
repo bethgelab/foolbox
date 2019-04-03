@@ -173,6 +173,7 @@ class KerasModel(DifferentiableModel):
             gradient,
             px[np.newaxis],
         ])
+        gradient = gradient[0]   # output of bw_grad_fn is a list
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
         assert gradient.shape == image.shape

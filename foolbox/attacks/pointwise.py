@@ -1,16 +1,22 @@
 import warnings
-import random
 import logging
 
 from .base import Attack
 from .base import call_decorator
 from .saltandpepper import SaltAndPepperNoiseAttack
+from .. import rng
 
 
 class PointwiseAttack(Attack):
     """Starts with an adversarial and performs a binary search between
     the adversarial and the original for each dimension of the input
     individually.
+
+    References
+    ----------
+    .. [1] L. Schott, J. Rauber, M. Bethge, W. Brendel: "Towards the first
+           adversarially robust neural network model on MNIST", ICLR (2019)
+           https://arxiv.org/abs/1805.09190
 
     """
 
@@ -70,7 +76,7 @@ class PointwiseAttack(Attack):
         while True:
             # draw random shuffling of all indices
             indices = list(range(N))
-            random.shuffle(indices)
+            rng.shuffle(indices)
 
             for index in indices:
                 # change index
@@ -100,7 +106,7 @@ class PointwiseAttack(Attack):
         while True:
             # draw random shuffling of all indices
             indices = list(range(N))
-            random.shuffle(indices)
+            rng.shuffle(indices)
 
             # whether that run through all values made any improvement
             improved = False

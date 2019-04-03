@@ -36,6 +36,7 @@ from foolbox.criteria import TargetClass
 from foolbox.criteria import OriginalClassProbability
 from foolbox.models import TensorFlowModel
 from foolbox.models import PyTorchModel
+from foolbox.models import CaffeModel
 from foolbox.models import ModelWithoutGradients
 from foolbox.models import ModelWithEstimatedGradients
 from foolbox import Adversarial
@@ -45,6 +46,9 @@ from foolbox.distances import MAE
 from foolbox.gradient_estimators import CoordinateWiseGradientEstimator
 from foolbox.gradient_estimators import EvolutionaryStrategiesGradientEstimator
 from foolbox.utils import binarize
+
+import logging
+logging.getLogger().setLevel(logging.DEBUG)
 
 
 @pytest.fixture
@@ -61,13 +65,13 @@ def label():
 
 
 @pytest.fixture
-def model():
+def model(image):
     predictions = np.array([1., 0., 0.5] * 111 + [2.] + [0.3, 0.5, 1.1] * 222)
     model = Mock()
     model.bounds = Mock(return_value=(0, 255))
     model.predictions = Mock(return_value=predictions)
     model.batch_predictions = Mock(return_value=predictions[np.newaxis])
-    gradient = image()
+    gradient = image
     model.predictions_and_gradient = Mock(return_value=(predictions, gradient))  # noqa: E501
     model.gradient = Mock(return_value=gradient)
     model.backward = Mock(return_value=gradient)
@@ -81,7 +85,6 @@ def criterion():
     return Misclassification()
 
 
-@pytest.fixture
 def bn_model():
     """Creates a simple brightness model that does not require training.
 
@@ -107,6 +110,14 @@ def bn_model():
             bounds=bounds,
             channel_axis=channel_axis)
 
+        yield model
+
+
+# bn_model is also needed as a function, so we create the fixture separately
+@pytest.fixture(name='bn_model')
+def bn_model_fixutre():
+    cm_model = contextmanager(bn_model)
+    with cm_model() as model:
         yield model
 
 
@@ -139,6 +150,34 @@ def bn_model_pytorch():
 
 
 @pytest.fixture
+def bn_model_caffe(request, tmpdir):
+    """Same as bn_model but with Caffe."""
+
+    import caffe
+    from caffe import layers as L
+
+    bounds = (0, 1)
+    num_classes = channels = getattr(request, "param", 1000)
+
+    net_spec = caffe.NetSpec()
+    net_spec.data = L.Input(name="data",
+                            shape=dict(dim=[1, channels, 5, 5]))
+    net_spec.reduce_1 = L.Reduction(net_spec.data,
+                                    reduction_param={"operation": 4,
+                                                     "axis": 3})
+    net_spec.output = L.Reduction(net_spec.reduce_1,
+                                  reduction_param={"operation": 4,
+                                                   "axis": 2})
+    net_spec.label = L.Input(name="label", shape=dict(dim=[1]))
+    net_spec.loss = L.SoftmaxWithLoss(net_spec.output, net_spec.label)
+    wf = tmpdir.mkdir("test_models_caffe_fixture")\
+               .join("test_caffe_{}.prototxt".format(num_classes))
+    wf.write("force_backward: true\n" + str(net_spec.to_proto()))
+    net = caffe.Net(str(wf), caffe.TEST)
+    model = CaffeModel(net, bounds=bounds)
+    return model
+
+
 def gl_bn_model():
     """Same as bn_model but without gradient.
 
@@ -149,8 +188,14 @@ def gl_bn_model():
         yield model
 
 
-@pytest.fixture(params=[CoordinateWiseGradientEstimator,
-                        EvolutionaryStrategiesGradientEstimator])
+# gl_bn_model is also needed as a function, so we create the fixture separately
+@pytest.fixture(name='gl_bn_model')
+def gl_bn_model_fixutre():
+    cm_model = contextmanager(gl_bn_model)
+    with cm_model() as model:
+        yield model
+
+
 def eg_bn_model_factory(request):
     """Same as bn_model but with estimated gradient.
 
@@ -164,6 +209,15 @@ def eg_bn_model_factory(request):
             model = ModelWithEstimatedGradients(model, gradient_estimator)
             yield model
     return eg_bn_model
+
+
+# eg_bn_model_factory is also needed as a function, so we create the
+# fixture separately
+@pytest.fixture(name='eg_bn_model_factory',
+                params=[CoordinateWiseGradientEstimator,
+                        EvolutionaryStrategiesGradientEstimator])
+def eg_bn_model_factory_fixture(request):
+    return eg_bn_model_factory(request)
 
 
 @pytest.fixture
@@ -181,9 +235,18 @@ def bn_image_pytorch():
 
 
 @pytest.fixture
-def bn_label():
-    image = bn_image()
+def bn_label(bn_image):
+    image = bn_image
     mean = np.mean(image, axis=(0, 1))
+    assert mean.shape == (10,)
+    label = np.argmax(mean)
+    return label
+
+
+@pytest.fixture
+def bn_label_pytorch(bn_image_pytorch):
+    image = bn_image_pytorch
+    mean = np.mean(image, axis=(1, 2))
     assert mean.shape == (10,)
     label = np.argmax(mean)
     return label
@@ -195,8 +258,8 @@ def bn_criterion():
 
 
 @pytest.fixture
-def bn_targeted_criterion():
-    label = bn_label()
+def bn_targeted_criterion(bn_label):
+    label = bn_label
     assert label in [0, 1]
     return TargetClass(1 - label)
 
@@ -214,10 +277,10 @@ def bn_trivial_criterion():
 
 
 @pytest.fixture
-def bn_adversarial():
-    criterion = bn_criterion()
-    image = bn_image()
-    label = bn_label()
+def bn_adversarial(bn_criterion, bn_image, bn_label):
+    criterion = bn_criterion
+    image = bn_image
+    label = bn_label
 
     cm_model = contextmanager(bn_model)
     with cm_model() as model:
@@ -225,10 +288,10 @@ def bn_adversarial():
 
 
 @pytest.fixture
-def bn_adversarial_linf():
-    criterion = bn_criterion()
-    image = bn_image()
-    label = bn_label()
+def bn_adversarial_linf(bn_criterion, bn_image, bn_label):
+    criterion = bn_criterion
+    image = bn_image
+    label = bn_label
     distance = Linfinity
 
     cm_model = contextmanager(bn_model)
@@ -237,10 +300,10 @@ def bn_adversarial_linf():
 
 
 @pytest.fixture
-def bn_adversarial_mae():
-    criterion = bn_criterion()
-    image = bn_image()
-    label = bn_label()
+def bn_adversarial_mae(bn_criterion, bn_image, bn_label):
+    criterion = bn_criterion
+    image = bn_image
+    label = bn_label
     distance = MAE
 
     cm_model = contextmanager(bn_model)
@@ -249,10 +312,10 @@ def bn_adversarial_mae():
 
 
 @pytest.fixture
-def bn_targeted_adversarial():
-    criterion = bn_targeted_criterion()
-    image = bn_image()
-    label = bn_label()
+def bn_targeted_adversarial(bn_targeted_criterion, bn_image, bn_label):
+    criterion = bn_targeted_criterion
+    image = bn_image
+    label = bn_label
 
     cm_model = contextmanager(bn_model)
     with cm_model() as model:
@@ -260,10 +323,10 @@ def bn_targeted_adversarial():
 
 
 @pytest.fixture
-def gl_bn_adversarial():
-    criterion = bn_criterion()
-    image = bn_image()
-    label = bn_label()
+def gl_bn_adversarial(bn_criterion, bn_image, bn_label):
+    criterion = bn_criterion
+    image = bn_image
+    label = bn_label
 
     cm_model = contextmanager(gl_bn_model)
     with cm_model() as model:
@@ -272,10 +335,10 @@ def gl_bn_adversarial():
 
 @pytest.fixture(params=[CoordinateWiseGradientEstimator,
                         EvolutionaryStrategiesGradientEstimator])
-def eg_bn_adversarial(request):
-    criterion = bn_criterion()
-    image = bn_image()
-    label = bn_label()
+def eg_bn_adversarial(request, bn_criterion, bn_image, bn_label):
+    criterion = bn_criterion
+    image = bn_image
+    label = bn_label
 
     eg_bn_model = eg_bn_model_factory(request)
 
@@ -285,10 +348,10 @@ def eg_bn_adversarial(request):
 
 
 @pytest.fixture
-def bn_impossible():
-    criterion = bn_impossible_criterion()
-    image = bn_image()
-    label = bn_label()
+def bn_impossible(bn_impossible_criterion, bn_image, bn_label):
+    criterion = bn_impossible_criterion
+    image = bn_image
+    label = bn_label
 
     cm_model = contextmanager(bn_model)
     with cm_model() as model:
@@ -296,10 +359,10 @@ def bn_impossible():
 
 
 @pytest.fixture
-def bn_trivial():
-    criterion = bn_trivial_criterion()
-    image = bn_image()
-    label = bn_label()
+def bn_trivial(bn_trivial_criterion, bn_image, bn_label):
+    criterion = bn_trivial_criterion
+    image = bn_image
+    label = bn_label
 
     cm_model = contextmanager(bn_model)
     with cm_model() as model:
@@ -312,24 +375,31 @@ def bn_trivial():
 
 
 @pytest.fixture
-def bn_adversarial_pytorch():
-    model = bn_model_pytorch()
-    criterion = bn_criterion()
-    image = bn_image_pytorch()
-    label = bn_label()
-    return Adversarial(model, criterion, image, label)
+def bn_adversarial_pytorch(bn_model_pytorch, bn_criterion,
+                           bn_image_pytorch, bn_label_pytorch):
+    model = bn_model_pytorch
+    criterion = bn_criterion
+    image = bn_image_pytorch
+    label = bn_label_pytorch
+    adv = Adversarial(model, criterion, image, label)
+    assert adv.image is None
+    assert adv.distance.value == np.inf
+    return adv
 
 
 @pytest.fixture
-def bn_targeted_adversarial_pytorch():
-    model = bn_model_pytorch()
-    criterion = bn_targeted_criterion()
-    image = bn_image_pytorch()
-    label = bn_label()
-    return Adversarial(model, criterion, image, label)
+def bn_targeted_adversarial_pytorch(bn_model_pytorch, bn_targeted_criterion,
+                                    bn_image_pytorch, bn_label_pytorch):
+    model = bn_model_pytorch
+    criterion = bn_targeted_criterion
+    image = bn_image_pytorch
+    label = bn_label_pytorch
+    adv = Adversarial(model, criterion, image, label)
+    assert adv.image is None
+    assert adv.distance.value == np.inf
+    return adv
 
 
-@pytest.fixture
 def binarized_bn_model():
     """Creates a simple brightness model that does not require training.
 
@@ -366,11 +436,20 @@ def binarized_bn_model():
         yield model
 
 
+# binarized_bn_model is also needed as a function, so we create the
+# fixture separately
+@pytest.fixture(name='bn_model')
+def binarized_bn_model_fixutre():
+    cm_model = contextmanager(binarized_bn_model)
+    with cm_model() as model:
+        yield model
+
+
 @pytest.fixture
-def binarized_bn_adversarial():
-    criterion = bn_criterion()
-    image = bn_image()
-    label = binarized_bn_label()
+def binarized_bn_adversarial(bn_criterion, bn_image, binarized_bn_label):
+    criterion = bn_criterion
+    image = bn_image
+    label = binarized_bn_label
 
     cm_model = contextmanager(binarized_bn_model)
     with cm_model() as model:
@@ -378,8 +457,8 @@ def binarized_bn_adversarial():
 
 
 @pytest.fixture
-def binarized_bn_label():
-    image = bn_image()
+def binarized_bn_label(bn_image):
+    image = bn_image
     image = binarize(image, (0, 1))
     mean = np.mean(image, axis=(0, 1))
     assert mean.shape == (10,)
@@ -387,7 +466,6 @@ def binarized_bn_label():
     return label
 
 
-@pytest.fixture
 def binarized2_bn_model():
     """Creates a simple brightness model that does not require training.
 
@@ -424,11 +502,20 @@ def binarized2_bn_model():
         yield model
 
 
+# binarized2_bn_model is also needed as a function, so we create the
+# fixture separately
+@pytest.fixture(name='binarized2_bn_model')
+def binarized2_bn_model_fixutre():
+    cm_model = contextmanager(binarized2_bn_model)
+    with cm_model() as model:
+        yield model
+
+
 @pytest.fixture
-def binarized2_bn_adversarial():
-    criterion = bn_criterion()
-    image = bn_image()
-    label = binarized2_bn_label()
+def binarized2_bn_adversarial(bn_criterion, bn_image, binarized2_bn_label):
+    criterion = bn_criterion
+    image = bn_image
+    label = binarized2_bn_label
 
     cm_model = contextmanager(binarized2_bn_model)
     with cm_model() as model:
@@ -436,8 +523,8 @@ def binarized2_bn_adversarial():
 
 
 @pytest.fixture
-def binarized2_bn_label():
-    image = bn_image()
+def binarized2_bn_label(bn_image):
+    image = bn_image
     image = binarize(image, (0, 1), included_in='lower')
     mean = np.mean(image, axis=(0, 1))
     assert mean.shape == (10,)

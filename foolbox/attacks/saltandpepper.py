@@ -2,6 +2,7 @@ import numpy as np
 
 from .base import Attack
 from .base import call_decorator
+from .. import nprng
 
 
 class SaltAndPepperNoiseAttack(Attack):
@@ -57,7 +58,7 @@ class SaltAndPepperNoiseAttack(Attack):
             for epsilon in np.linspace(0, max_epsilon, num=epsilons + 1)[1:]:
                 p = epsilon
 
-                u = np.random.uniform(size=shape)
+                u = nprng.uniform(size=shape)
                 u = u.repeat(channels, axis=axis)
 
                 salt = (u >= 1 - p / 2).astype(image.dtype) * r
@@ -74,5 +75,6 @@ class SaltAndPepperNoiseAttack(Attack):
                     # higher epsilon usually means larger perturbation, but
                     # this relationship is not strictly monotonic, so we set
                     # the new limit a bit higher than the best one so far
-                    max_epsilon = epsilon * 1.2
+                    # but not larger than 1
+                    max_epsilon = min(1, epsilon * 1.2)
                     break

@@ -1,4 +1,6 @@
 sudo: required
+services:
+    - docker
 dist: trusty
 language: python
 python:
@@ -10,7 +12,7 @@ env:
         - THEANO_FLAGS='floatX=float32'
     matrix:
         - KERAS_BACKEND=tensorflow
-        - KERAS_BACKEND=theano
+          # - KERAS_BACKEND=theano
 matrix:
     exclude:
         - python: 3.6
@@ -32,9 +34,9 @@ before_install:
     - travis_wait travis_retry pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
     - python -c 'import lasagne; print(lasagne.__version__)'
 
-    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then travis_wait travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp27-cp27mu-linux_x86_64.whl; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then travis_wait travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp35-cp35m-linux_x86_64.whl; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then travis_wait travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-linux_x86_64.whl; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then travis_wait travis_retry pip install http://download.pytorch.org/whl/cpu/torch-1.0.1.post2-cp27-cp27mu-linux_x86_64.whl; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then travis_wait travis_retry pip install http://download.pytorch.org/whl/cpu/torch-1.0.1.post2-cp35-cp35m-linux_x86_64.whl; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then travis_wait travis_retry pip install http://download.pytorch.org/whl/cpu/torch-1.0.1.post2-cp36-cp36m-linux_x86_64.whl; fi
     - python -c 'import torch; print(torch.__version__)'
 
     - travis_wait travis_retry pip install --upgrade keras>=2.1.5
@@ -59,14 +61,18 @@ before_install:
     - python -c 'import torch; import tensorflow; print(tensorflow.__version__); print(torch.__version__)'
 
     - pip install pytest-faulthandler
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then docker pull bvlc/caffe:cpu; fi
+
+    - travis_wait travis_retry pip install --upgrade numpy
 install:
     - pip install -e .
 script:
     - pytest --collect-only
       # tf eager cannot be run in the same process as standard tf
-    - pytest --ignore=foolbox/tests/test_models_tensorflow_eager.py
+    - pytest --ignore=foolbox/tests/test_models_tensorflow_eager.py --ignore=foolbox/tests/test_models_caffe.py
     - pytest --cov-append foolbox/tests/test_models_tensorflow_eager.py
-    - flake8 --ignore E402,E741 .
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then docker run -v `pwd`:`pwd` bvlc/caffe:cpu  sh -c "cd `pwd` && bash foolbox/tests/run_caffe_test.sh"; fi
+    - flake8 --ignore E402,E741,W503,W504 .
 after_success:
     - coveralls
 cache:

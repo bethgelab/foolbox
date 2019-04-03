@@ -123,7 +123,7 @@ class Model(ABC):
         Parameters
         ----------
         images : `numpy.ndarray`
-            Batch of images with shape (batch size, height, width, channels).
+            Batch of inputs with shape as expected by the model.
 
         Returns
         -------
@@ -144,7 +144,8 @@ class Model(ABC):
         Parameters
         ----------
         image : `numpy.ndarray`
-            Image with shape (height, width, channels).
+            Single input with shape as expected by the model
+            (without the batch dimension).
 
         Returns
         -------
@@ -198,7 +199,8 @@ class DifferentiableModel(Model):
         Parameters
         ----------
         image : `numpy.ndarray`
-            Image with shape (height, width, channels).
+            Single input with shape as expected by the model
+            (without the batch dimension).
         label : int
             Reference label used to calculate the gradient.
 
@@ -228,7 +230,8 @@ class DifferentiableModel(Model):
         Parameters
         ----------
         image : `numpy.ndarray`
-            Image with shape (height, width, channels).
+            Single input with shape as expected by the model
+            (without the batch dimension).
         label : int
             Reference label used to calculate the gradient.
 
@@ -257,7 +260,8 @@ class DifferentiableModel(Model):
         gradient : `numpy.ndarray`
             Gradient of some loss w.r.t. the logits.
         image : `numpy.ndarray`
-            Image with shape (height, width, channels).
+            Single input with shape as expected by the model
+            (without the batch dimension).
 
         Returns
         -------

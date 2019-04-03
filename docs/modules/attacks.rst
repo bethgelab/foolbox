@@ -62,13 +62,14 @@
    :nosignatures:
 
    BoundaryAttack
+   SpatialAttack
+   PointwiseAttack
    GaussianBlurAttack
    ContrastReductionAttack
    AdditiveUniformNoiseAttack
    AdditiveGaussianNoiseAttack
    SaltAndPepperNoiseAttack
    BlendedUniformNoiseAttack
-   PointwiseAttack
 
 
 .. rubric:: :doc:`attacks/other`
