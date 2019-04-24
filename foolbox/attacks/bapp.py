@@ -486,11 +486,9 @@ class BoundaryAttackPlusPlus(Attack):
         fval = 2 * decisions.astype(self.internal_dtype).reshape(
             decision_shape) - 1.0
 
-        # Baseline subtraction (when fval differs
-        if np.mean(fval) == 1.0:  # label changes.
-            gradf = np.mean(rv, axis=0)
-        elif np.mean(fval) == -1.0:  # label not change.
-            gradf = - np.mean(rv, axis=0)
+        # Baseline subtraction (when fval differs)
+        if abs(np.mean(fval)) == 1.0:  
+            gradf = np.mean(fval) * np.mean(rv, axis=0)
         else:
             fval = fval - np.mean(fval)
             gradf = np.mean(fval * rv, axis=0)
