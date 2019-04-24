@@ -487,7 +487,7 @@ class BoundaryAttackPlusPlus(Attack):
             decision_shape) - 1.0
 
         # Baseline subtraction (when fval differs)
-        if abs(np.mean(fval)) == 1.0:  
+        if abs(np.mean(fval)) == 1.0:
             gradf = np.mean(fval) * np.mean(rv, axis=0)
         else:
             fval = fval - np.mean(fval)
