@@ -238,6 +238,10 @@ class BoundaryAttackPlusPlus(Attack):
         for step in range(1, iterations + 1):
 
             t0 = time.time()
+
+            # ===========================================================
+            # Gradient direction estimation.
+            # ===========================================================
             # Choose delta.
             delta = self.select_delta(dist_post_update, step)
 
@@ -256,7 +260,9 @@ class BoundaryAttackPlusPlus(Attack):
             t1 = time.time()
             self.time_gradient_estimation += t1 - t0
 
-            # search step size.
+            # ===========================================================
+            # Update, and binary search back to the boundary.
+            # ===========================================================
             if self.stepsize_search == 'geometric_progression':
                 # find step size.
                 epsilon = self.geometric_progression_for_stepsize(
