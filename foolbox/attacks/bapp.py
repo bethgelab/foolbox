@@ -263,7 +263,7 @@ class BoundaryAttackPlusPlus(Attack):
                     perturbed, update, dist, decision_function, step)
 
                 # Update the sample.
-                perturbed = self.clip_image(perturbed + epsilon * gradf,
+                perturbed = self.clip_image(perturbed + epsilon * update,
                                             self.clip_min, self.clip_max)
 
                 # Binary search to return to the boundary.
