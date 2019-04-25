@@ -222,12 +222,13 @@ class BoundaryAttackPlusPlus(Attack):
         # ===========================================================
         t0 = time.time()
 
-        dist_post_update = self.compute_distance(perturbed, original)
+        
 
         # Project the initialization to the boundary.
-        perturbed, dist = self.binary_search_batch(
+        perturbed, dist_post_update = self.binary_search_batch(
             original, np.expand_dims(perturbed, 0), decision_function)
-        print('Initial distance {:.4E}'.format(dist))
+
+        dist = self.compute_distance(perturbed, original)
 
         distance = a.distance.value
         self.time_search += time.time() - t0
@@ -298,8 +299,6 @@ class BoundaryAttackPlusPlus(Attack):
 
             # compute new distance.
             dist = self.compute_distance(perturbed, original)
-            print('iteration: {:d}, {:s} distance {:.4E}'.format(
-                step, self.constraint, dist))
 
             # ===========================================================
             # Log the step
