@@ -222,8 +222,6 @@ class BoundaryAttackPlusPlus(Attack):
         # ===========================================================
         t0 = time.time()
 
-        
-
         # Project the initialization to the boundary.
         perturbed, dist_post_update = self.binary_search_batch(
             original, np.expand_dims(perturbed, 0), decision_function)
