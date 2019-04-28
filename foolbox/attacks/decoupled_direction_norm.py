@@ -47,8 +47,8 @@ class DecoupledDirectionNormL2Attack(Attack):
         init_norm : float, optional
             Initial value for the norm.
         quantize : bool, optional
-            If True, the returned adversarials will have quantized values to the
-            specified number of levels.
+            If True, the returned adversarials will have quantized values to
+            the specified number of levels.
         levels : int, optional
             Number of levels to use for quantization
             (e.g. 256 for 8 bit images).
@@ -97,7 +97,7 @@ class DecoupledDirectionNormL2Attack(Attack):
             if quantize:
                 perturbation = (perturbation - min_) / s
                 perturbation = np.round(perturbation * (levels - 1)) / (
-                            levels - 1)
+                        levels - 1)
                 perturbation = perturbation * s + min_
             perturbation = np.clip(perturbation, min_ - original_image,
                                    max_ - original_image)
