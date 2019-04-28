@@ -96,8 +96,8 @@ class DecoupledDirectionNormL2Attack(Attack):
             perturbation *= s * norm / np.linalg.norm(perturbation)
             if quantize:
                 perturbation = (perturbation - min_) / s
-                perturbation = np.round(perturbation * (levels - 1)) / (
-                        levels - 1)
+                perturbation = np.round(perturbation * (levels - 1))
+                perturbation /= (levels - 1)
                 perturbation = perturbation * s + min_
             perturbation = np.clip(perturbation, min_ - original_image,
                                    max_ - original_image)
