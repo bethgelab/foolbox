@@ -64,8 +64,12 @@ class DecoupledDirectionNormL2Attack(Attack):
 
         min_, max_ = a.bounds()
         s = max_ - min_
-        multiplier = -1 if a.target_class() is not None else 1
-        attack_class = a.target_class() or a.original_class
+        if a.target_class() is not None:
+            multiplier = -1
+            attack_class = a.target_class()
+        else:
+            multiplier = 1
+            attack_class = a.original_class
         norm = initial_norm
         original_image = a.original_image
         perturbation = np.zeros_like(original_image)
