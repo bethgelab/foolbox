@@ -99,8 +99,7 @@ class DecoupledDirectionNormL2Attack(Attack):
                                    max_ - original_image)
 
 
-def cosine_learning_rate(current_step: int, max_steps: int, init_lr: float,
-                         final_lr: float) -> float:
+def cosine_learning_rate(current_step, max_steps, init_lr, final_lr):
     """Cosine annealing schedule for learning rate.
 
     Parameters
