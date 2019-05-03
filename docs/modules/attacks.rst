@@ -70,6 +70,7 @@
    AdditiveGaussianNoiseAttack
    SaltAndPepperNoiseAttack
    BlendedUniformNoiseAttack
+   BoundaryAttackPlusPlus
 
 
 .. rubric:: :doc:`attacks/other`
