@@ -82,7 +82,7 @@ class DecoupledDirectionNormL2Attack(Attack):
 
             # renorm gradient and handle 0-norm gradient
             grad_norm = np.linalg.norm(grad)
-            if grad_norm == 0:
+            if grad_norm == 0:  # pragma: no cover
                 grad = np.random.normal(size=grad.shape)
                 grad_norm = np.linalg.norm(grad)
             grad *= s / grad_norm
