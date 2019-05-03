@@ -106,3 +106,7 @@ Gradient-based attacks
 .. autoclass:: CarliniWagnerL2Attack
    :members:
    :special-members:
+
+.. autoclass:: DecoupledDirectionNormL2Attack
+   :members:
+   :special-members:
