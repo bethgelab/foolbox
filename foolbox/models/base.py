@@ -249,6 +249,29 @@ class DifferentiableModel(Model):
         _, gradient = self.predictions_and_gradient(image, label)
         return gradient
 
+    def batch_gradients(self, images, labels):
+        """Calculates the gradient of the cross-entropy loss w.r.t. the images.
+
+        Parameters
+        ----------
+        image : `numpy.ndarray`
+            Batch of input with shape as expected by the model.
+        labels : int
+            Reference label used to calculate the gradient.
+
+        Returns
+        -------
+        gradients : `numpy.ndarray`
+            The gradient of the cross-entropy loss w.r.t. the inputs. Will
+            have the same shape as the inputs.
+
+        See Also
+        --------
+        :meth:`gradient`
+
+        """
+        raise NotImplementedError
+
     @abstractmethod
     def backward(self, gradient, image):
         """Backpropagates the gradient of some loss w.r.t. the logits
@@ -271,6 +294,30 @@ class DifferentiableModel(Model):
         See Also
         --------
         :meth:`gradient`
+
+        """
+        raise NotImplementedError
+
+    def batch_backward(self, gradients, images):
+        """Backpropagates the gradient of some loss w.r.t. the logits
+        through the network and returns the gradient of that loss w.r.t
+        to the input images.
+
+        Parameters
+        ----------
+        gradients : `numpy.ndarray`
+            Gradient of some loss w.r.t. the logits.
+        images : `numpy.ndarray`
+            Batch of inputs with shape as expected by the model.
+
+        Returns
+        -------
+        gradients : `numpy.ndarray`
+            The gradient w.r.t the input images.
+
+        See Also
+        --------
+        :meth:`backward`
 
         """
         raise NotImplementedError
