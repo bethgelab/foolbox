@@ -30,7 +30,7 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
             method = supported_methods[method]
             result = method(*args)
             assert result is not None
-        logging.info(f'{i + 1} of {len(advs)} attacks completed')
+        logging.info('{} of {} attacks completed'.format(i + 1, len(advs)))
     return advs
 
 
@@ -78,7 +78,7 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
             + len(attacks_requesting_backwards)
         if N_active_attacks < len(predictions) + len(gradients) + len(backwards):  # noqa: E501
             # an attack completed in this iteration
-            logging.info(f'{len(advs) - N_active_attacks} of {len(advs)} attacks completed')  # noqa: E501
+            logging.info('{} of {} attacks completed'.format(len(advs) - N_active_attacks, len(advs)))  # noqa: E501
         if N_active_attacks == 0:
             break
 
