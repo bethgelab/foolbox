@@ -65,13 +65,13 @@ class MXNetGluonModel(DifferentiableModel):
     def predictions_and_gradient(self, image, label):
         import mxnet as mx
         image, dpdx = self._process_input(image)
-        label = mx.nd.array([label])
+        label = mx.nd.array([label], ctx=self._device)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
             logits = self._block(data_array)
             loss = mx.nd.softmax_cross_entropy(logits, label)
-            loss.backward(train_mode=False)
+        loss.backward(train_mode=False)
         predictions = np.squeeze(logits.asnumpy(), axis=0)
         gradient = np.squeeze(data_array.grad.asnumpy(), axis=0)
         gradient = self._process_gradient(dpdx, gradient)
@@ -80,16 +80,32 @@ class MXNetGluonModel(DifferentiableModel):
     def _loss_fn(self, image, label):
         import mxnet as mx
         image, _ = self._process_input(image)
-        label = mx.nd.array([label])
+        label = mx.nd.array([label], ctx=self._device)
         data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
             logits = self._block(data_array)
             loss = mx.nd.softmax_cross_entropy(logits, label)
-            loss.backward()
+        loss.backward(train_mode=False)
         return loss.asnumpy()
 
     def backward(self, gradient, image):  # pragma: no cover
-        # TODO: backward functionality has not yet been implemented
-        # for MXNetGluonModel
-        raise NotImplementedError
+        # lazy import
+        import mxnet as mx
+
+        assert gradient.ndim == 1
+        image, dpdx = self._process_input(image)
+        gradient_pre_array = mx.nd.array(
+            gradient[np.newaxis], ctx=self._device)
+        data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
+        data_array.attach_grad()
+        with mx.autograd.record(train_mode=False):
+            logits = self._block(data_array)
+        assert gradient_pre_array.shape == logits.shape
+        logits.backward(gradient_pre_array, train_mode=False)
+
+        gradient_array = data_array.grad
+        gradient = np.squeeze(gradient_array.asnumpy(), axis=0)
+        gradient = self._process_gradient(dpdx, gradient)
+
+        return gradient

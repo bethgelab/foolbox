@@ -44,6 +44,7 @@
    IterativeGradientAttack
    IterativeGradientSignAttack
    CarliniWagnerL2Attack
+   DecoupledDirectionNormL2Attack
 
 
 .. rubric:: :doc:`attacks/score`
@@ -70,6 +71,7 @@
    AdditiveGaussianNoiseAttack
    SaltAndPepperNoiseAttack
    BlendedUniformNoiseAttack
+   BoundaryAttackPlusPlus
 
 
 .. rubric:: :doc:`attacks/other`

@@ -1,2 +1,3 @@
 -r requirements-dev.txt
-mypy >= 0.511
+randomgen>=1.14.4
+mypy>=0.511
