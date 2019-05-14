@@ -3,8 +3,8 @@ import numpy as np
 from foolbox.attacks import CarliniWagnerL2Attack as Attack
 
 
-def test_untargeted_attack(bn_adversarial):
-    adv = bn_adversarial
+def test_untargeted_attack(bn_yielding_adversarial):
+    adv = bn_yielding_adversarial
     attack = Attack()
     attack(adv, max_iterations=100)
     assert adv.image is not None
