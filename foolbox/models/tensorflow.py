@@ -58,17 +58,18 @@ class TensorFlowModel(DifferentiableModel):
             self._images = images
             self._batch_logits = logits
             self._logits = tf.squeeze(logits, axis=0)
-            self._label = tf.placeholder(tf.int64, (), name='label')
+            self._labels = tf.placeholder(tf.int64, (None,), name='labels')
 
             loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                labels=self._label[tf.newaxis],
-                logits=self._logits[tf.newaxis])
-            self._loss = tf.squeeze(loss, axis=0)
+                labels=self._labels,
+                logits=self._batch_logits)
+            self._loss = tf.reduce_sum(loss)
             gradients = tf.gradients(loss, images)
             assert len(gradients) == 1
             if gradients[0] is None:
                 gradients[0] = tf.zeros_like(images)
             self._gradient = tf.squeeze(gradients[0], axis=0)
+            self._batch_gradients = gradients[0]
 
             self._bw_gradient_pre = tf.placeholder(tf.float32, self._logits.shape)  # noqa: E501
             bw_loss = tf.reduce_sum(self._logits * self._bw_gradient_pre)
@@ -77,6 +78,14 @@ class TensorFlowModel(DifferentiableModel):
             if bw_gradients[0] is None:
                 bw_gradients[0] = tf.zeros_like(images)
             self._bw_gradient = tf.squeeze(bw_gradients[0], axis=0)
+
+            self._bw_gradients_pre = tf.placeholder(tf.float32, self._batch_logits.shape)  # noqa: E501
+            batch_bw_loss = tf.reduce_sum(self._batch_logits * self._bw_gradients_pre)  # noqa: E501
+            batch_bw_gradients = tf.gradients(batch_bw_loss, images)
+            assert len(batch_bw_gradients) == 1
+            if batch_bw_gradients[0] is None:
+                batch_bw_gradients[0] = tf.zeros_like(images)
+            self._bw_gradients = batch_bw_gradients[0]
 
     @classmethod
     def from_keras(cls, model, bounds, input_shape=None,
@@ -144,17 +153,17 @@ class TensorFlowModel(DifferentiableModel):
             [self._logits, self._gradient],
             feed_dict={
                 self._images: image[np.newaxis],
-                self._label: label})
+                self._labels: np.asarray(label)[np.newaxis]})
         gradient = self._process_gradient(dpdx, gradient)
         return predictions, gradient
 
-    def gradient(self, image, label):
-        image, dpdx = self._process_input(image)
+    def batch_gradients(self, images, labels):
+        images, dpdx = self._process_input(images)
         g = self._session.run(
-            self._gradient,
+            self._batch_gradients,
             feed_dict={
-                self._images: image[np.newaxis],
-                self._label: label})
+                self._images: images,
+                self._labels: labels})
         g = self._process_gradient(dpdx, g)
         return g
 
@@ -164,18 +173,18 @@ class TensorFlowModel(DifferentiableModel):
             self._loss,
             feed_dict={
                 self._images: image[np.newaxis],
-                self._label: label})
+                self._labels: np.asarray(label)[np.newaxis]})
         return loss
 
-    def backward(self, gradient, image):
-        assert gradient.ndim == 1
-        input_shape = image.shape
-        image, dpdx = self._process_input(image)
+    def batch_backward(self, gradients, images):
+        assert gradients.ndim == 2
+        input_shape = images.shape
+        images, dpdx = self._process_input(images)
         g = self._session.run(
-            self._bw_gradient,
+            self._bw_gradients,
             feed_dict={
-                self._images: image[np.newaxis],
-                self._bw_gradient_pre: gradient})
+                self._images: images,
+                self._bw_gradients_pre: gradients})
         g = self._process_gradient(dpdx, g)
         assert g.shape == input_shape
         return g

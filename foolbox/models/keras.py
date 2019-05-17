@@ -51,7 +51,7 @@ class KerasModel(DifferentiableModel):
         assert predicts in ['probabilities', 'logits']
 
         images_input = model.input
-        label_input = K.placeholder(shape=(1,))
+        labels_input = K.placeholder(shape=(None,))
 
         predictions = model.output
 
@@ -65,76 +65,49 @@ class KerasModel(DifferentiableModel):
             if K.backend() == 'tensorflow':
                 predictions, = predictions.op.inputs
                 loss = K.sparse_categorical_crossentropy(
-                    label_input, predictions, from_logits=True)
-            else:
+                    labels_input, predictions, from_logits=True)
+            else:  # pragma: no cover
                 logging.warning('relying on numerically unstable conversion'
                                 ' from probabilities to softmax')
                 loss = K.sparse_categorical_crossentropy(
-                    label_input, predictions, from_logits=False)
+                    labels_input, predictions, from_logits=False)
 
                 # transform the probability predictions into logits, so that
                 # the rest of this code can assume predictions to be logits
                 predictions = self._to_logits(predictions)
         elif predicts == 'logits':
             loss = K.sparse_categorical_crossentropy(
-                label_input, predictions, from_logits=True)
+                labels_input, predictions, from_logits=True)
 
-        # sparse_categorical_crossentropy returns 1-dim tensor,
-        # gradients wants 0-dim tensor (for some backends)
-        loss = K.squeeze(loss, axis=0)
-        grads = K.gradients(loss, images_input)
+        loss = K.sum(loss, axis=0)
+        grads = K.gradients(loss, [images_input])
 
-        grad_loss_output = K.placeholder(shape=(num_classes, 1))
-        external_loss = K.dot(predictions, grad_loss_output)
-        # remove batch dimension of predictions
-        external_loss = K.squeeze(external_loss, axis=0)
-        # remove singleton dimension of grad_loss_output
-        external_loss = K.squeeze(external_loss, axis=0)
+        grad_loss_output = K.placeholder(shape=predictions.shape)
+        external_loss = K.batch_dot(predictions, grad_loss_output, axes=-1)
+        external_loss = K.sum(external_loss, axis=0)
+        grads_loss_input = K.gradients(external_loss, [images_input])
 
-        grads_loss_input = K.gradients(external_loss, images_input)
-
-        if K.backend() == 'tensorflow':
-            # tensorflow backend returns a list with the gradient
-            # as the only element, even if loss is a single scalar
-            # tensor;
-            # theano always returns the gradient itself (and requires
-            # that loss is a single scalar tensor)
-            assert isinstance(grads, list)
-            assert len(grads) == 1
-            grad = grads[0]
-
-            assert isinstance(grads_loss_input, list)
-            assert len(grads_loss_input) == 1
-            grad_loss_input = grads_loss_input[0]
-        elif K.backend() == 'cntk':  # pragma: no cover
-            assert isinstance(grads, list)
-            assert len(grads) == 1
-            grad = grads[0]
-            grad = K.reshape(grad, (1,) + grad.shape)
-
-            assert isinstance(grads_loss_input, list)
-            assert len(grads_loss_input) == 1
-            grad_loss_input = grads_loss_input[0]
-            grad_loss_input = K.reshape(grad_loss_input, (1,) + grad_loss_input.shape)  # noqa: E501
-        else:
-            assert not isinstance(grads, list)
-            grad = grads
-
-            grad_loss_input = grads_loss_input
+        assert isinstance(grads, list)
+        grad, = grads
+        assert isinstance(grads_loss_input, list)
+        grad_loss_input, = grads_loss_input
 
         self._loss_fn = K.function(
-            [images_input, label_input],
+            [images_input, labels_input],
             [loss])
         self._batch_pred_fn = K.function(
             [images_input], [predictions])
         self._pred_grad_fn = K.function(
-            [images_input, label_input],
+            [images_input, labels_input],
             [predictions, grad])
+        self._batch_grad_fn = K.function(
+            [images_input, labels_input],
+            [grad])
         self._bw_grad_fn = K.function(
             [grad_loss_output, images_input],
             [grad_loss_input])
 
-    def _to_logits(self, predictions):
+    def _to_logits(self, predictions):  # pragma: no cover
         from keras import backend as K
         eps = 10e-8
         predictions = K.clip(predictions, eps, 1 - eps)
@@ -146,9 +119,7 @@ class KerasModel(DifferentiableModel):
 
     def batch_predictions(self, images):
         px, _ = self._process_input(images)
-        predictions = self._batch_pred_fn([px])
-        assert len(predictions) == 1
-        predictions = predictions[0]
+        predictions, = self._batch_pred_fn([px])
         assert predictions.shape == (images.shape[0], self.num_classes())
         return predictions
 
@@ -165,16 +136,17 @@ class KerasModel(DifferentiableModel):
         assert gradient.shape == input_shape
         return predictions, gradient
 
-    def backward(self, gradient, image):
-        assert gradient.ndim == 1
-        gradient = np.reshape(gradient, (-1, 1))
-        px, dpdx = self._process_input(image)
-        gradient = self._bw_grad_fn([
-            gradient,
-            px[np.newaxis],
-        ])
-        gradient = gradient[0]   # output of bw_grad_fn is a list
-        gradient = np.squeeze(gradient, axis=0)
-        gradient = self._process_gradient(dpdx, gradient)
-        assert gradient.shape == image.shape
-        return gradient
+    def batch_gradients(self, images, labels):
+        px, dpdx = self._process_input(images)
+        g, = self._batch_grad_fn([px, labels])
+        g = self._process_gradient(dpdx, g)
+        assert g.shape == images.shape
+        return g
+
+    def batch_backward(self, gradients, images):
+        assert gradients.ndim == 2
+        px, dpdx = self._process_input(images)
+        g, = self._bw_grad_fn([gradients, px])
+        g = self._process_gradient(dpdx, g)
+        assert g.shape == images.shape
+        return g

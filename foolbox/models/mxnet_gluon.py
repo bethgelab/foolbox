@@ -77,6 +77,20 @@ class MXNetGluonModel(DifferentiableModel):
         gradient = self._process_gradient(dpdx, gradient)
         return predictions, gradient
 
+    def batch_gradients(self, images, labels):
+        import mxnet as mx
+        images, dpdx = self._process_input(images)
+        images = mx.nd.array(images, ctx=self._device)
+        labels = mx.nd.array(labels, ctx=self._device)
+        images.attach_grad()
+        with mx.autograd.record(train_mode=False):
+            logits = self._block(images)
+            loss = mx.nd.softmax_cross_entropy(logits, labels)
+        loss.backward(train_mode=False)
+        gradients = images.grad.asnumpy()
+        gradients = self._process_gradient(dpdx, gradients)
+        return gradients
+
     def _loss_fn(self, image, label):
         import mxnet as mx
         image, _ = self._process_input(image)
@@ -89,23 +103,19 @@ class MXNetGluonModel(DifferentiableModel):
         loss.backward(train_mode=False)
         return loss.asnumpy()
 
-    def backward(self, gradient, image):  # pragma: no cover
+    def batch_backward(self, gradients, images):
         # lazy import
         import mxnet as mx
 
-        assert gradient.ndim == 1
-        image, dpdx = self._process_input(image)
-        gradient_pre_array = mx.nd.array(
-            gradient[np.newaxis], ctx=self._device)
-        data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
-        data_array.attach_grad()
+        assert gradients.ndim == 2
+        images, dpdx = self._process_input(images)
+        images = mx.nd.array(images, ctx=self._device)
+        gradients = mx.nd.array(gradients, ctx=self._device)
+        images.attach_grad()
         with mx.autograd.record(train_mode=False):
-            logits = self._block(data_array)
-        assert gradient_pre_array.shape == logits.shape
-        logits.backward(gradient_pre_array, train_mode=False)
-
-        gradient_array = data_array.grad
-        gradient = np.squeeze(gradient_array.asnumpy(), axis=0)
-        gradient = self._process_gradient(dpdx, gradient)
-
-        return gradient
+            logits = self._block(images)
+        assert gradients.shape == logits.shape
+        logits.backward(gradients, train_mode=False)
+        gradients = images.grad.asnumpy()
+        gradients = self._process_gradient(dpdx, gradients)
+        return gradients

@@ -234,8 +234,12 @@ def test_pytorch_model_preprocessing_shape_change():
             x = np.transpose(x, axes=(0, 3, 1, 2))
 
         def grad(dmdp):
-            assert dmdp.ndim == 3
-            dmdx = np.transpose(dmdp, axes=(1, 2, 0))
+            if dmdp.ndim == 3:
+                dmdx = np.transpose(dmdp, axes=(1, 2, 0))
+            elif dmdp.ndim == 4:
+                dmdx = np.transpose(dmdp, axes=(0, 2, 3, 1))
+            else:
+                raise AssertionError
             return dmdx
 
         return x, grad

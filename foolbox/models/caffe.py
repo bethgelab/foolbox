@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import numpy as np
+import warnings
 from .base import DifferentiableModel
 from .. import utils
 
@@ -16,6 +18,11 @@ class CaffeModel(DifferentiableModel):
         super(CaffeModel, self).__init__(bounds=bounds,
                                          channel_axis=channel_axis,
                                          preprocessing=preprocessing)
+
+        warnings.warn('Caffe was superseeded by Caffe2 and now PyTorch 1.0,'
+                      ' thus Caffe support in Foolbox will be removed',
+                      DeprecationWarning)
+
         import caffe
         self.net = net
         assert isinstance(net, caffe.Net)
@@ -53,11 +60,17 @@ class CaffeModel(DifferentiableModel):
 
         return predictions, grad
 
+    def batch_gradients(self, images, labels):
+        if images.shape[0] == labels.shape[0] == 1:
+            _, g = self.predictions_and_gradient(images[0], labels[0])
+            return g[np.newaxis]
+        raise NotImplementedError
+
     def _loss_fn(self, image, label):
         logits = self.batch_predictions(image[None])
         return utils.batch_crossentropy([label], logits)
 
-    def backward(self, gradient, image):
+    def _backward_one(self, gradient, image):
         input_shape = image.shape
         image, dpdx = self._process_input(image)
         self.net.blobs[self.data_blob_name].data[:] = image
@@ -70,3 +83,8 @@ class CaffeModel(DifferentiableModel):
         assert grad.shape == input_shape
 
         return grad
+
+    def batch_backward(self, gradients, images):
+        if images.shape[0] == gradients.shape[0] == 1:
+            return self._backward_one(gradients[0], images[0])[np.newaxis]
+        raise NotImplementedError

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import warnings
 import numpy as np
 
 from .base import DifferentiableModel
@@ -40,6 +41,9 @@ class TheanoModel(DifferentiableModel):
         super(TheanoModel, self).__init__(bounds=bounds,
                                           channel_axis=channel_axis,
                                           preprocessing=preprocessing)
+
+        warnings.warn('Theano is no longer being developed and Theano support'
+                      ' in Foolbox will be removed', DeprecationWarning)
 
         self._num_classes = num_classes
 
@@ -87,7 +91,7 @@ class TheanoModel(DifferentiableModel):
         assert gradient.dtype == image.dtype
         return predictions, gradient
 
-    def gradient(self, image, label):
+    def _gradient_one(self, image, label):
         input_shape = image.shape
         image, dpdx = self._process_input(image)
         label = np.array(label, dtype=np.int32)
@@ -99,10 +103,15 @@ class TheanoModel(DifferentiableModel):
         assert gradient.dtype == image.dtype
         return gradient
 
+    def batch_gradients(self, images, labels):
+        if images.shape[0] == labels.shape[0] == 1:
+            return self._gradient_one(images[0], labels[0])[np.newaxis]
+        raise NotImplementedError
+
     def num_classes(self):
         return self._num_classes
 
-    def backward(self, gradient, image):
+    def _backward_one(self, gradient, image):
         assert gradient.ndim == 1
         input_shape = image.shape
         image, dpdx = self._process_input(image)
@@ -114,3 +123,8 @@ class TheanoModel(DifferentiableModel):
         assert gradient.shape == input_shape
         assert gradient.dtype == image.dtype
         return gradient
+
+    def batch_backward(self, gradients, images):
+        if images.shape[0] == gradients.shape[0] == 1:
+            return self._backward_one(gradients[0], images[0])[np.newaxis]
+        raise NotImplementedError
