@@ -109,8 +109,6 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
         raise NotImplementedError
 
     def batch_backward(self, gradients, images):
-        if images.shape[0] == gradients.shape[0] == 1:
-            return self.backward(gradients[0], images[0])[np.newaxis]
         raise NotImplementedError
 
 

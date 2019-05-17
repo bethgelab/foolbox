@@ -115,7 +115,7 @@ class LasagneModel(DifferentiableModel):
     def num_classes(self):
         return self._num_classes
 
-    def backward(self, gradient, image):
+    def _backward_one(self, gradient, image):
         assert gradient.ndim == 1
         input_shape = image.shape
         image, dpdx = self._process_input(image)
@@ -130,5 +130,5 @@ class LasagneModel(DifferentiableModel):
 
     def batch_backward(self, gradients, images):
         if images.shape[0] == gradients.shape[0] == 1:
-            return self.backward(gradients[0], images[0])[np.newaxis]
+            return self._backward_one(gradients[0], images[0])[np.newaxis]
         raise NotImplementedError

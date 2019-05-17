@@ -70,7 +70,7 @@ class CaffeModel(DifferentiableModel):
         logits = self.batch_predictions(image[None])
         return utils.batch_crossentropy([label], logits)
 
-    def backward(self, gradient, image):
+    def _backward_one(self, gradient, image):
         input_shape = image.shape
         image, dpdx = self._process_input(image)
         self.net.blobs[self.data_blob_name].data[:] = image
@@ -86,5 +86,5 @@ class CaffeModel(DifferentiableModel):
 
     def batch_backward(self, gradients, images):
         if images.shape[0] == gradients.shape[0] == 1:
-            return self.backward(gradients[0], images[0])[np.newaxis]
+            return self._backward_one(gradients[0], images[0])[np.newaxis]
         raise NotImplementedError
