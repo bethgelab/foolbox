@@ -66,7 +66,7 @@ class KerasModel(DifferentiableModel):
                 predictions, = predictions.op.inputs
                 loss = K.sparse_categorical_crossentropy(
                     labels_input, predictions, from_logits=True)
-            else:
+            else:  # pragma: no cover
                 logging.warning('relying on numerically unstable conversion'
                                 ' from probabilities to softmax')
                 loss = K.sparse_categorical_crossentropy(
@@ -87,26 +87,10 @@ class KerasModel(DifferentiableModel):
         external_loss = K.sum(external_loss, axis=0)
         grads_loss_input = K.gradients(external_loss, [images_input])
 
-        if K.backend() == 'tensorflow':
-            # tensorflow backend returns a list with the gradient
-            # as the only element, even if loss is a single scalar
-            # tensor;
-            # theano always returns the gradient itself (and requires
-            # that loss is a single scalar tensor)
-            assert isinstance(grads, list)
-            grad, = grads
-            assert isinstance(grads_loss_input, list)
-            grad_loss_input, = grads_loss_input
-        elif K.backend() == 'cntk':  # pragma: no cover
-            assert isinstance(grads, list)
-            grad, = grads
-            assert isinstance(grads_loss_input, list)
-            grad_loss_input, = grads_loss_input
-        else:
-            assert not isinstance(grads, list)
-            grad = grads
-            assert not isinstance(grads_loss_input, list)
-            grad_loss_input = grads_loss_input
+        assert isinstance(grads, list)
+        grad, = grads
+        assert isinstance(grads_loss_input, list)
+        grad_loss_input, = grads_loss_input
 
         self._loss_fn = K.function(
             [images_input, labels_input],
@@ -123,7 +107,7 @@ class KerasModel(DifferentiableModel):
             [grad_loss_output, images_input],
             [grad_loss_input])
 
-    def _to_logits(self, predictions):
+    def _to_logits(self, predictions):  # pragma: no cover
         from keras import backend as K
         eps = 10e-8
         predictions = K.clip(predictions, eps, 1 - eps)
