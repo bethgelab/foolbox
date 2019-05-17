@@ -99,6 +99,25 @@ class TensorFlowEagerModel(DifferentiableModel):
 
         return predictions, grad
 
+    def batch_gradients(self, images, labels):
+        import tensorflow as tf
+        input_shape = images.shape
+        images, dpdx = self._process_input(images)
+        images = tf.constant(images)
+        target = tf.constant(labels)
+
+        with tf.GradientTape() as tape:
+            tape.watch(images)
+            predictions = self._model(images)
+            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
+                labels=target, logits=predictions)
+
+        gradients = tape.gradient(loss, images)
+        gradients = gradients.numpy()
+        gradients = self._process_gradient(dpdx, gradients)
+        assert gradients.shape == input_shape
+        return gradients
+
     def _loss_fn(self, image, label):
         import tensorflow as tf
         image, _ = self._process_input(image)
@@ -137,3 +156,24 @@ class TensorFlowEagerModel(DifferentiableModel):
         assert grad.shape == input_shape
 
         return grad
+
+    def batch_backward(self, gradients, images):
+        import tensorflow as tf
+        input_shape = images.shape
+        images, dpdx = self._process_input(images)
+        images = tf.constant(images)
+        assert gradients.ndim == 2
+        gradients = tf.constant(gradients)
+
+        with tf.GradientTape() as tape:
+            tape.watch(images)
+            predictions = self._model(images)
+
+        # backprop the given output gradient (the gradient of
+        # some loss w.r.t. predictions) through the model
+        # to get the gradient of that loss w.r.t. images
+        gradients = tape.gradient(predictions, images, gradients)
+        gradients = gradients.numpy()
+        gradients = self._process_gradient(dpdx, gradients)
+        assert gradients.shape == input_shape
+        return gradients
