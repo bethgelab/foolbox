@@ -247,7 +247,7 @@ class SparseFoolAttack(Attack):
             # Fit the current point to the hyperplane.
             f_k = np.dot(normal_vec, perturbed.flatten() - boundary_point_vec)
             f_k = f_k + (1e-3 * sign_true)  # Avoid numerical instabilities
-            
+
             # Compute the L1 projection (perturbation) of the current point
             # towards the direction of the maximum
             # absolute value
