@@ -60,16 +60,14 @@ class MXNetModel(DifferentiableModel):
         self._data_sym = data
         self._batch_logits_sym = logits
 
-        label = mx.symbol.Variable('label')
-        self._label_sym = label
+        labels = mx.symbol.Variable('labels')
+        self._label_sym = labels
 
         # workaround for https://github.com/apache/incubator-mxnet/issues/6874
-        log_softmax = mx.sym.log_softmax(logits)
-
-        loss = mx.sym.sum(
-            mx.sym.one_hot(indices=label, depth=num_classes) * log_softmax)
-
         # loss = mx.symbol.softmax_cross_entropy(logits, label)
+        log_softmax = mx.sym.log_softmax(logits)
+        loss = mx.sym.sum(
+            mx.sym.one_hot(indices=labels, depth=num_classes) * log_softmax)
         self._loss_sym = loss
 
         self._args_map = args.copy()
@@ -131,6 +129,29 @@ class MXNetModel(DifferentiableModel):
         gradient = self._process_gradient(dpdx, gradient)
         return np.squeeze(logits, axis=0), np.squeeze(gradient, axis=0)
 
+    def batch_gradients(self, images, labels):
+        import mxnet as mx
+        images, dpdx = self._process_input(images)
+        data_array = mx.nd.array(images, ctx=self._device)
+        label_array = mx.nd.array(labels, ctx=self._device)
+        self._args_map[self._data_sym.name] = data_array
+        self._args_map[self._label_sym.name] = label_array
+
+        grad_array = mx.nd.zeros(images.shape, ctx=self._device)
+        grad_map = {self._data_sym.name: grad_array}
+
+        model = self._loss_sym.bind(
+            ctx=self._device,
+            args=self._args_map,
+            args_grad=grad_map,
+            grad_req='write',
+            aux_states=self._aux_map)
+        model.forward(is_train=False)
+        model.backward()
+        gradient = grad_array.asnumpy()
+        gradient = self._process_gradient(dpdx, gradient)
+        return gradient
+
     def _loss_fn(self, image, label):
         import mxnet as mx
         image, _ = self._process_input(image)
@@ -173,5 +194,34 @@ class MXNetModel(DifferentiableModel):
 
         gradient = grad_array.asnumpy()
         gradient = np.squeeze(gradient, axis=0)
+        gradient = self._process_gradient(dpdx, gradient)
+        return gradient
+
+    def batch_backward(self, gradients, images):
+        import mxnet as mx
+
+        assert gradients.ndim == 2
+
+        images, dpdx = self._process_input(images)
+        data_array = mx.nd.array(images, ctx=self._device)
+        self._args_map[self._data_sym.name] = data_array
+
+        grad_array = mx.nd.zeros(images.shape, ctx=self._device)
+        grad_map = {self._data_sym.name: grad_array}
+
+        logits = self._batch_logits_sym.bind(
+            ctx=self._device,
+            args=self._args_map,
+            args_grad=grad_map,
+            grad_req='write',
+            aux_states=self._aux_map)
+
+        logits.forward(is_train=False)
+
+        gradient_pre_array = mx.nd.array(
+            gradients, ctx=self._device)
+        logits.backward(gradient_pre_array)
+
+        gradient = grad_array.asnumpy()
         gradient = self._process_gradient(dpdx, gradient)
         return gradient
