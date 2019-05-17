@@ -98,14 +98,14 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
         gradient = self.gradient(image, label)
         return predictions, gradient
 
-    def gradient(self, image, label):
+    def _gradient_one(self, image, label):
         pred_fn = self.batch_predictions
         bounds = self.bounds()
         return self._gradient_estimator(pred_fn, image, label, bounds)
 
     def batch_gradients(self, images, labels):
         if images.shape[0] == labels.shape[0] == 1:
-            return self.gradient(images[0], labels[0])[np.newaxis]
+            return self._gradient_one(images[0], labels[0])[np.newaxis]
         raise NotImplementedError
 
     def batch_backward(self, gradients, images):

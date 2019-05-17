@@ -91,7 +91,7 @@ class TheanoModel(DifferentiableModel):
         assert gradient.dtype == image.dtype
         return predictions, gradient
 
-    def gradient(self, image, label):
+    def _gradient_one(self, image, label):
         input_shape = image.shape
         image, dpdx = self._process_input(image)
         label = np.array(label, dtype=np.int32)
@@ -105,7 +105,7 @@ class TheanoModel(DifferentiableModel):
 
     def batch_gradients(self, images, labels):
         if images.shape[0] == labels.shape[0] == 1:
-            return self.gradient(images[0], labels[0])[np.newaxis]
+            return self._gradient_one(images[0], labels[0])[np.newaxis]
         raise NotImplementedError
 
     def num_classes(self):
