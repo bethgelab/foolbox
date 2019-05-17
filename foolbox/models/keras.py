@@ -83,13 +83,10 @@ class KerasModel(DifferentiableModel):
         grads = K.gradients(loss, [images_input])
 
         grad_loss_output = K.placeholder(shape=predictions.shape)
-        external_loss = K.batch_dot(predictions, grad_loss_output)
-        # remove singleton dimension of grad_loss_output
-        external_loss = K.squeeze(external_loss, axis=1)
-        # sum over batch axis
+        external_loss = K.batch_dot(predictions, grad_loss_output, axes=-1)
         external_loss = K.sum(external_loss, axis=0)
-
-        grads_loss_input = K.gradients(external_loss, images_input)
+        grads_loss_input = K.gradients(external_loss, [images_input])
+        assert len(grads_loss_input) == 1
 
         if K.backend() == 'tensorflow':
             # tensorflow backend returns a list with the gradient
@@ -172,10 +169,9 @@ class KerasModel(DifferentiableModel):
 
     def backward(self, gradient, image):
         assert gradient.ndim == 1
-        gradient = np.reshape(gradient, (-1, 1))
         px, dpdx = self._process_input(image)
         gradient = self._bw_grad_fn([
-            gradient,
+            gradient[np.newaxis],
             px[np.newaxis],
         ])
         gradient = gradient[0]   # output of bw_grad_fn is a list
