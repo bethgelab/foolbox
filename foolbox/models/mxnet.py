@@ -167,36 +167,6 @@ class MXNetModel(DifferentiableModel):
         loss = loss_array.asnumpy()[0]
         return loss
 
-    def backward(self, gradient, image):
-        import mxnet as mx
-
-        assert gradient.ndim == 1
-
-        image, dpdx = self._process_input(image)
-        data_array = mx.nd.array(image[np.newaxis], ctx=self._device)
-        self._args_map[self._data_sym.name] = data_array
-
-        grad_array = mx.nd.zeros(image[np.newaxis].shape, ctx=self._device)
-        grad_map = {self._data_sym.name: grad_array}
-
-        logits = self._batch_logits_sym.bind(
-            ctx=self._device,
-            args=self._args_map,
-            args_grad=grad_map,
-            grad_req='write',
-            aux_states=self._aux_map)
-
-        logits.forward(is_train=False)
-
-        gradient_pre_array = mx.nd.array(
-            gradient[np.newaxis], ctx=self._device)
-        logits.backward(gradient_pre_array)
-
-        gradient = grad_array.asnumpy()
-        gradient = np.squeeze(gradient, axis=0)
-        gradient = self._process_gradient(dpdx, gradient)
-        return gradient
-
     def batch_backward(self, gradients, images):
         import mxnet as mx
 

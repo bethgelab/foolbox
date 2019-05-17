@@ -212,52 +212,6 @@ class PyTorchModel(DifferentiableModel):
         loss = loss.numpy()
         return loss
 
-    def backward(self, gradient, image):
-        # lazy import
-        import torch
-        if self._old_pytorch():  # pragma: no cover
-            from torch.autograd import Variable
-
-        assert gradient.ndim == 1
-
-        gradient = torch.from_numpy(gradient).to(self.device)
-        if self._old_pytorch():  # pragma: no cover
-            gradient = Variable(gradient)
-
-        input_shape = image.shape
-        image, dpdx = self._process_input(image)
-        images = image[np.newaxis]
-        images = torch.from_numpy(images).to(self.device)
-        if self._old_pytorch():  # pragma: no cover
-            images = Variable(images, requires_grad=True)
-        else:
-            images.requires_grad_()
-        predictions = self._model(images)
-
-        predictions = predictions[0]
-
-        assert gradient.dim() == 1
-        assert predictions.dim() == 1
-        assert gradient.size() == predictions.size()
-
-        loss = torch.dot(predictions, gradient)
-        loss.backward()
-        # should be the same as predictions.backward(gradient=gradient)
-
-        grad = images.grad
-
-        if self._old_pytorch():  # pragma: no cover
-            grad = grad.data
-        grad = grad.to("cpu")
-        if not self._old_pytorch():
-            grad = grad.detach()
-        grad = grad.numpy()
-        grad = np.squeeze(grad, axis=0)
-        grad = self._process_gradient(dpdx, grad)
-        assert grad.shape == input_shape
-
-        return grad
-
     def batch_backward(self, gradients, images):
         # lazy import
         import torch

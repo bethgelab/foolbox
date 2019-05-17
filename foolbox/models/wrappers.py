@@ -63,9 +63,6 @@ class DifferentiableModelWrapper(ModelWrapper):
     def gradient(self, image, label):
         return self.wrapped_model.gradient(image, label)
 
-    def backward(self, gradient, image):
-        return self.wrapped_model.backward(gradient, image)
-
     def batch_gradients(self, images, labels):
         return self.wrapped_model.batch_gradients(images, labels)
 
@@ -112,9 +109,6 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
         return self._gradient_estimator(pred_fn, image, label, bounds)
 
     def batch_gradients(self, images, labels):
-        raise NotImplementedError
-
-    def backward(self, gradient, image):
         raise NotImplementedError
 
     def batch_backward(self, gradients, images):
@@ -169,11 +163,8 @@ class CompositeModel(DifferentiableModel):
     def batch_gradients(self, images, labels):
         return self.backward_model.batch_gradients(images, labels)
 
-    def backward(self, gradient, image):
-        return self.backward_model.backward(gradient, image)
-
     def batch_backward(self, gradients, images):
-        return self.backward_model.backward(gradients, images)
+        return self.backward_model.batch_backward(gradients, images)
 
     def __enter__(self):
         assert self.forward_model.__enter__() == self.forward_model

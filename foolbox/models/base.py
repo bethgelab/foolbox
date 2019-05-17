@@ -273,7 +273,6 @@ class DifferentiableModel(Model):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def backward(self, gradient, image):
         """Backpropagates the gradient of some loss w.r.t. the logits
         through the network and returns the gradient of that loss w.r.t
@@ -297,7 +296,8 @@ class DifferentiableModel(Model):
         :meth:`gradient`
 
         """
-        raise NotImplementedError
+        g = self.batch_backward(gradient[np.newaxis], image[np.newaxis])
+        return np.squeeze(g, axis=0)
 
     @abstractmethod
     def batch_backward(self, gradients, images):

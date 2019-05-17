@@ -167,19 +167,6 @@ class KerasModel(DifferentiableModel):
         g = self._process_gradient(dpdx, g)
         return g
 
-    def backward(self, gradient, image):
-        assert gradient.ndim == 1
-        px, dpdx = self._process_input(image)
-        gradient = self._bw_grad_fn([
-            gradient[np.newaxis],
-            px[np.newaxis],
-        ])
-        gradient = gradient[0]   # output of bw_grad_fn is a list
-        gradient = np.squeeze(gradient, axis=0)
-        gradient = self._process_gradient(dpdx, gradient)
-        assert gradient.shape == image.shape
-        return gradient
-
     def batch_backward(self, gradients, images):
         assert gradients.ndim == 2
         px, dpdx = self._process_input(images)

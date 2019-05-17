@@ -131,32 +131,6 @@ class TensorFlowEagerModel(DifferentiableModel):
         loss = loss.numpy()
         return loss
 
-    def backward(self, gradient, image):
-        import tensorflow as tf
-        input_shape = image.shape
-        image, dpdx = self._process_input(image)
-        images = image[np.newaxis]
-        images = tf.constant(images)
-        assert gradient.ndim == 1
-        gradient = gradient[np.newaxis]
-        gradient = tf.constant(gradient)
-
-        with tf.GradientTape() as tape:
-            tape.watch(images)
-            predictions = self._model(images)
-
-        # backprop the given output gradient (the gradient of
-        # some loss w.r.t. predictions) through the model
-        # to get the gradient of that loss w.r.t. images
-        grad = tape.gradient(predictions, images, gradient)
-
-        grad = grad.numpy()
-        grad = np.squeeze(grad, axis=0)
-        grad = self._process_gradient(dpdx, grad)
-        assert grad.shape == input_shape
-
-        return grad
-
     def batch_backward(self, gradients, images):
         import tensorflow as tf
         input_shape = images.shape
