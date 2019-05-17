@@ -157,16 +157,6 @@ class TensorFlowModel(DifferentiableModel):
         gradient = self._process_gradient(dpdx, gradient)
         return predictions, gradient
 
-    def gradient(self, image, label):
-        image, dpdx = self._process_input(image)
-        g = self._session.run(
-            self._gradient,
-            feed_dict={
-                self._images: image[np.newaxis],
-                self._labels: np.asarray(label)[np.newaxis]})
-        g = self._process_gradient(dpdx, g)
-        return g
-
     def batch_gradients(self, images, labels):
         images, dpdx = self._process_input(images)
         g = self._session.run(

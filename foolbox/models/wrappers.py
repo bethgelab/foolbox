@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import numpy as np
 from .base import Model
 from .base import DifferentiableModel
 
@@ -35,9 +36,6 @@ class ModelWrapper(Model):
     def batch_predictions(self, images):
         return self.wrapped_model.batch_predictions(images)
 
-    def predictions(self, image):
-        return self.wrapped_model.predictions(image)
-
     def num_classes(self):
         return self.wrapped_model.num_classes()
 
@@ -59,9 +57,6 @@ class DifferentiableModelWrapper(ModelWrapper, DifferentiableModel):
 
     def predictions_and_gradient(self, image, label):
         return self.wrapped_model.predictions_and_gradient(image, label)
-
-    def gradient(self, image, label):
-        return self.wrapped_model.gradient(image, label)
 
     def batch_gradients(self, images, labels):
         return self.wrapped_model.batch_gradients(images, labels)
@@ -109,9 +104,13 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
         return self._gradient_estimator(pred_fn, image, label, bounds)
 
     def batch_gradients(self, images, labels):
+        if images.shape[0] == labels.shape[0] == 1:
+            return self.gradient(images[0], labels[0])[np.newaxis]
         raise NotImplementedError
 
     def batch_backward(self, gradients, images):
+        if images.shape[0] == gradients.shape[0] == 1:
+            return self.backward(gradients[0], images[0])[np.newaxis]
         raise NotImplementedError
 
 
@@ -156,9 +155,6 @@ class CompositeModel(DifferentiableModel):
         predictions = self.forward_model.predictions(image)
         gradient = self.backward_model.gradient(image, label)
         return predictions, gradient
-
-    def gradient(self, image, label):
-        return self.backward_model.gradient(image, label)
 
     def batch_gradients(self, images, labels):
         return self.backward_model.batch_gradients(images, labels)

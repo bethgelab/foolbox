@@ -246,8 +246,9 @@ class DifferentiableModel(Model):
         :meth:`gradient`
 
         """
-        _, gradient = self.predictions_and_gradient(image, label)
-        return gradient
+        label = np.asarray(label)
+        g = self.batch_gradients(image[np.newaxis], label[np.newaxis])
+        return np.squeeze(g, axis=0)
 
     @abstractmethod
     def batch_gradients(self, images, labels):
