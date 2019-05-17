@@ -77,13 +77,19 @@ class SparseFoolAttack(Attack):
             if is_adv:
                 return
 
-            # Approximate the decision boundary as an affine hyperplane. To do so, we need a data point that lies on
-            # the decision boundary, and the normal of the decision boundary at that point. The final approximation is
-            # done using an overshooted version of the boundary point by a factor lambda_.
-            boundary_point, boundary_normal = self.boundary_approximation_deepfool(a, perturbed, _label, lambda_)
+            # Approximate the decision boundary as an affine hyperplane. To do
+            # so, we need a data point that lies on the decision boundary, and
+            # the normal of the decision boundary at that point. The final
+            # approximation is done using an overshooted version of the
+            # boundary point by a factor lambda_.
+            boundary_point, boundary_normal = \
+                self.boundary_approximation_deepfool(a, perturbed,
+                                                     _label, lambda_)
 
-            # Compute the l1 perturbation between the current adversarial point and the approximated hyperplane
-            perturbation = self.l1_linear_solver(perturbed, boundary_point, boundary_normal, min_, max_)
+            # Compute the l1 perturbation between the current adversarial point
+            # and the approximated hyperplane
+            perturbation = self.l1_linear_solver(perturbed, boundary_point,
+                                                 boundary_normal, min_, max_)
 
             # Update the current iterate
             perturbed = np.clip(perturbed + 1.02 * perturbation, min_, max_)
@@ -143,7 +149,10 @@ class SparseFoolAttack(Attack):
             # Update the boundary point
             boundary_point = initial_point + total_perturbation
 
-            logits, grad, is_adv = a.predictions_and_gradient(initial_point + 1.02 * total_perturbation, strict=False)
+            logits, grad, is_adv = \
+                a.predictions_and_gradient(
+                    initial_point + 1.02 * total_perturbation, strict=False)
+
             if is_adv:
 
                 # Get fooling label
@@ -151,14 +160,17 @@ class SparseFoolAttack(Attack):
                 fooling_label = np.argmax(logits)
 
                 # Compute the gradients at the boundary point
-                grad_fool = a.gradient(boundary_point, label=fooling_label, strict=False)
-                grad_true = a.gradient(boundary_point, label=label, strict=False)
+                grad_fool = a.gradient(boundary_point, label=fooling_label,
+                                       strict=False)
+                grad_true = a.gradient(boundary_point, label=label,
+                                       strict=False)
                 dg = grad_fool - grad_true
 
-                # Compute the normal and correct the sign of the gradient difference
+                # Compute the normal and correct the sign of the gradient
                 normal = (-dg) / np.linalg.norm(dg)
 
-                # Return the overshooted boundary point and the normal to the decision boundary
+                # Return the overshooted boundary point and the normal to the
+                # decision boundary
                 return initial_point + lambda_ * total_perturbation, normal
 
             # correspondence to algorithm 2 in [2]_:
@@ -174,15 +186,18 @@ class SparseFoolAttack(Attack):
             # we use a numerically stable implementation of the cross-entropy
             # and expect that the deep learning frameworks also use such a
             # stable implementation to calculate the gradient
-            losses = [-crossentropy(logits=logits, label=k) for k in residual_labels]
-            grads = [a.gradient(boundary_point, label=k, strict=False) for k in residual_labels]
+            losses = [-crossentropy(logits=logits, label=k)
+                      for k in residual_labels]
+            grads = [a.gradient(boundary_point, label=k, strict=False)
+                     for k in residual_labels]
 
             # compute optimal direction (and loss difference)
             # pairwise between each label and the target
             diffs = [(l - loss, g - grad) for l, g in zip(losses, grads)]
 
             # calculate distances
-            distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8) for dl, dg in diffs]
+            distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8)
+                         for dl, dg in diffs]
 
             # choose optimal distance
             optimal = np.argmin(distances)
@@ -190,7 +205,8 @@ class SparseFoolAttack(Attack):
 
             # apply perturbation
             # the (-dg) corrects the sign, gradient here is -gradient of paper
-            total_perturbation = total_perturbation + abs(df) / (np.linalg.norm(dg) + 1e-8) ** 2 * (-dg)
+            perturbation = abs(df) / (np.linalg.norm(dg) + 1e-8) ** 2 * (-dg)
+            total_perturbation = total_perturbation + perturbation
 
     @classmethod
     def l1_linear_solver(cls, initial_point, boundary_point,
@@ -204,7 +220,8 @@ class SparseFoolAttack(Attack):
         initial_point : `numpy.ndarray`
             The initial point for which we seek the L1 solution.
         boundary_point : `numpy.ndarray`
-            The point that lies on the decision boundary (or an overshooted version).
+            The point that lies on the decision boundary
+            (or an overshooted version).
         normal : `numpy.ndarray`
             The normal of the decision boundary at the boundary point.
         min_ : `numpy.ndarray`
@@ -227,15 +244,20 @@ class SparseFoolAttack(Attack):
         perturbed = initial_point
         while current_sign == sign_true and np.count_nonzero(coordinates) > 0:
 
-            # Fit the current point to the hyperplane. We add a small bias for numerical instabilities
-            f_k = np.dot(normal_vec, perturbed.flatten() - boundary_point_vec) + (1e-3 * sign_true)
+            # Fit the current point to the hyperplane. We add a small bias for
+            # numerical instabilities
+            f_k = np.dot(normal_vec, perturbed.flatten() - boundary_point_vec)\
+                  + (1e-3 * sign_true)
 
-            # Compute the L1 projection (perturbation) of the current point towards the direction of the maximum
+            # Compute the L1 projection (perturbation) of the current point
+            # towards the direction of the maximum
             # absolute value
             mask = np.zeros_like(coordinates)
-            mask[np.unravel_index(np.argmax(np.absolute(coordinates)), coordinates.shape)] = 1
+            mask[np.unravel_index(np.argmax(np.absolute(coordinates)),
+                                  coordinates.shape)] = 1
 
-            perturbation = max(abs(f_k) / np.amax(np.absolute(coordinates)), 1e-4) * mask * np.sign(coordinates)
+            perturbation = max(abs(f_k) / np.amax(np.absolute(coordinates)),
+                               1e-4) * mask * np.sign(coordinates)
 
             # Apply the perturbation
             perturbed = perturbed + perturbation
@@ -245,7 +267,8 @@ class SparseFoolAttack(Attack):
             f_k = np.dot(normal_vec, perturbed.flatten() - boundary_point_vec)
             current_sign = np.sign(f_k)
 
-            # Remove the used coordinate from the space of the available coordinates
+            # Remove the used coordinate from the space of the available
+            # coordinates
             coordinates[perturbation != 0] = 0
 
         # Return the l1 solution
