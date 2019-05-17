@@ -8,8 +8,8 @@ from ..utils import crossentropy
 
 
 class SparseFoolAttack(Attack):
-    """A geometry-inspired, fast gradient-based
-    attack for computing sparse adversarial perturbations.
+    """A geometry-inspired and fast attack for computing
+    sparse adversarial perturbations.
 
     Implements SparseFool introduced in [1]_.
 
@@ -29,8 +29,8 @@ class SparseFoolAttack(Attack):
     def __call__(self, input_or_adv, label=None, unpack=True,
                  steps=30, lambda_=1.):
 
-        """A fast gradient-based
-        attack for computing sparse adversarial perturbations.
+        """A geometry-inspired and fast attack for computing
+        sparse adversarial perturbations.
 
         Parameters
         ----------
@@ -211,7 +211,7 @@ class SparseFoolAttack(Attack):
 
         """
 
-        coordinates = normal.copy()
+        coordinates = normal
         normal_vec = normal.flatten()
         boundary_point_vec = boundary_point.flatten()
         initial_point_vec = initial_point.flatten()
