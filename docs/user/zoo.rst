@@ -23,4 +23,4 @@ and run a `FGSM (GradienSignAttack)` against it.
 
     # apply attack on source image
     attack  = foolbox.attacks.FGSM(model)
-    adversarial = attack(image[:,:,::-1], label)
+    adversarial = attack(image, label)
