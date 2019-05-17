@@ -86,7 +86,6 @@ class KerasModel(DifferentiableModel):
         external_loss = K.batch_dot(predictions, grad_loss_output, axes=-1)
         external_loss = K.sum(external_loss, axis=0)
         grads_loss_input = K.gradients(external_loss, [images_input])
-        assert len(grads_loss_input) == 1
 
         if K.backend() == 'tensorflow':
             # tensorflow backend returns a list with the gradient
@@ -95,24 +94,18 @@ class KerasModel(DifferentiableModel):
             # theano always returns the gradient itself (and requires
             # that loss is a single scalar tensor)
             assert isinstance(grads, list)
-            assert len(grads) == 1
-            grad = grads[0]
-
+            grad, = grads
             assert isinstance(grads_loss_input, list)
-            assert len(grads_loss_input) == 1
-            grad_loss_input = grads_loss_input[0]
+            grad_loss_input, = grads_loss_input
         elif K.backend() == 'cntk':  # pragma: no cover
             assert isinstance(grads, list)
-            assert len(grads) == 1
-            grad = grads[0]
-
+            grad, = grads
             assert isinstance(grads_loss_input, list)
-            assert len(grads_loss_input) == 1
-            grad_loss_input = grads_loss_input[0]
+            grad_loss_input, = grads_loss_input
         else:
             assert not isinstance(grads, list)
             grad = grads
-
+            assert not isinstance(grads_loss_input, list)
             grad_loss_input = grads_loss_input
 
         self._loss_fn = K.function(
@@ -142,9 +135,7 @@ class KerasModel(DifferentiableModel):
 
     def batch_predictions(self, images):
         px, _ = self._process_input(images)
-        predictions = self._batch_pred_fn([px])
-        assert len(predictions) == 1
-        predictions = predictions[0]
+        predictions, = self._batch_pred_fn([px])
         assert predictions.shape == (images.shape[0], self.num_classes())
         return predictions
 
@@ -163,15 +154,15 @@ class KerasModel(DifferentiableModel):
 
     def batch_gradients(self, images, labels):
         px, dpdx = self._process_input(images)
-        g = self._batch_grad_fn([px, labels])
+        g, = self._batch_grad_fn([px, labels])
         g = self._process_gradient(dpdx, g)
+        assert g.shape == images.shape
         return g
 
     def batch_backward(self, gradients, images):
         assert gradients.ndim == 2
         px, dpdx = self._process_input(images)
-        g = self._bw_grad_fn([gradients, px])
-        g = g[0]   # output of bw_grad_fn is a list
+        g, = self._bw_grad_fn([gradients, px])
         g = self._process_gradient(dpdx, g)
         assert g.shape == images.shape
         return g

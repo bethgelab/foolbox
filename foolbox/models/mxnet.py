@@ -68,6 +68,7 @@ class MXNetModel(DifferentiableModel):
         log_softmax = mx.sym.log_softmax(logits)
         loss = mx.sym.sum(
             mx.sym.one_hot(indices=labels, depth=num_classes) * log_softmax)
+        loss = mx.sym.make_loss(loss)
         self._loss_sym = loss
 
         self._args_map = args.copy()
