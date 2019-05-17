@@ -18,15 +18,6 @@ In addition, it comes with a **large collection of adversarial attacks**, both g
 
 The source code and a `minimal working example`_ can be found on `GitHub`_.
 
-Robust Vision Benchmark
-==================
-
-.. image:: http://bethgelab.org/media/banners/benchmark_banner.png
-    :target: https://robust.vision/benchmark
-
-You might want to have a look at our recently announced `Robust Vision Benchmark <https://robust.vision/benchmark>`__, a benchmark for adversarial attacks and the robustness of machine learning models.
-
-
 .. toctree::
    :maxdepth: 2
    :caption: User Guide
