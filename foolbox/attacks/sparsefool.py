@@ -164,10 +164,10 @@ class SparseFoolAttack(Attack):
                                        strict=False)
                 grad_true = a.gradient(boundary_point, label=label,
                                        strict=False)
-                dg = grad_fool - grad_true
+                grad_diff = grad_fool - grad_true
 
                 # Compute the normal and correct the sign of the gradient
-                normal = (-dg) / np.linalg.norm(dg)
+                normal = (-grad_diff) / np.linalg.norm(grad_diff)
 
                 # Return the overshooted boundary point and the normal to the
                 # decision boundary
@@ -244,11 +244,10 @@ class SparseFoolAttack(Attack):
         perturbed = initial_point
         while current_sign == sign_true and np.count_nonzero(coordinates) > 0:
 
-            # Fit the current point to the hyperplane. We add a small bias for
-            # numerical instabilities
-            f_k = np.dot(normal_vec, perturbed.flatten() - boundary_point_vec)\
-                  + (1e-3 * sign_true)
-
+            # Fit the current point to the hyperplane.
+            f_k = np.dot(normal_vec, perturbed.flatten() - boundary_point_vec)
+            f_k = f_k + (1e-3 * sign_true)  # Avoid numerical instabilities
+            
             # Compute the L1 projection (perturbation) of the current point
             # towards the direction of the maximum
             # absolute value
