@@ -42,7 +42,7 @@ class ModelWrapper(Model):
         return self.wrapped_model.num_classes()
 
 
-class DifferentiableModelWrapper(ModelWrapper):
+class DifferentiableModelWrapper(ModelWrapper, DifferentiableModel):
     """Base class for models that wrap other models and provide
     gradient methods.
 
