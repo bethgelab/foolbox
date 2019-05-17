@@ -12,6 +12,7 @@ class SparseFoolAttack(Attack):
     sparse adversarial perturbations.
 
     Implements SparseFool introduced in [1]_.
+    The official code is provided in [3]_.
 
     References
     ----------
@@ -22,6 +23,8 @@ class SparseFoolAttack(Attack):
     .. [2] Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
            "DeepFool: a simple and accurate method to fool deep neural
            networks", https://arxiv.org/abs/1511.04599
+
+    .. [3] https://github.com/LTS4/SparseFool
 
     """
 
