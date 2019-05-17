@@ -249,6 +249,7 @@ class DifferentiableModel(Model):
         _, gradient = self.predictions_and_gradient(image, label)
         return gradient
 
+    @abstractmethod
     def batch_gradients(self, images, labels):
         """Calculates the gradient of the cross-entropy loss w.r.t. the images.
 
@@ -298,6 +299,7 @@ class DifferentiableModel(Model):
         """
         raise NotImplementedError
 
+    @abstractmethod
     def batch_backward(self, gradients, images):
         """Backpropagates the gradient of some loss w.r.t. the logits
         through the network and returns the gradient of that loss w.r.t
