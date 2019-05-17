@@ -62,7 +62,8 @@ class CaffeModel(DifferentiableModel):
 
     def batch_gradients(self, images, labels):
         if images.shape[0] == labels.shape[0] == 1:
-            return self.gradient(images[0], labels[0])[np.newaxis]
+            _, g = self.predictions_and_gradient(images[0], labels[0])
+            return g[np.newaxis]
         raise NotImplementedError
 
     def _loss_fn(self, image, label):
