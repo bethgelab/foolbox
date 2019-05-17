@@ -10,20 +10,20 @@ Implicit
 
 .. code-block:: python3
 
-  model = TensorFlowModel(images, logits, bounds=(0, 255))
+  model = TensorFlowModel(inputs, logits, bounds=(0, 255))
   criterion = TargetClassProbability('ostrich', p=0.99)
   attack = LBFGSAttack(model, criterion)
 
-Running the attack by passing image and label will
+Running the attack by passing an input and a label will
 implicitly create an :class:`Adversarial` instance. By
 passing `unpack=False` we tell the attack to return the
-:class:`Adversarial` instance rather than the actual image.
+:class:`Adversarial` instance rather than a numpy array.
 
 .. code-block:: python3
 
    adversarial = attack(image, label=label, unpack=False)
 
-We can then get the actual image using the :attr:`image` attribute:
+We can then get the actual adversarial input using the :attr:`image` attribute:
 
 .. code-block:: python3
 
