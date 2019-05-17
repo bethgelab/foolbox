@@ -51,7 +51,7 @@ class KerasModel(DifferentiableModel):
         assert predicts in ['probabilities', 'logits']
 
         images_input = model.input
-        label_input = K.placeholder(shape=(1,))
+        labels_input = K.placeholder(shape=(None,))
 
         predictions = model.output
 
@@ -65,31 +65,29 @@ class KerasModel(DifferentiableModel):
             if K.backend() == 'tensorflow':
                 predictions, = predictions.op.inputs
                 loss = K.sparse_categorical_crossentropy(
-                    label_input, predictions, from_logits=True)
+                    labels_input, predictions, from_logits=True)
             else:
                 logging.warning('relying on numerically unstable conversion'
                                 ' from probabilities to softmax')
                 loss = K.sparse_categorical_crossentropy(
-                    label_input, predictions, from_logits=False)
+                    labels_input, predictions, from_logits=False)
 
                 # transform the probability predictions into logits, so that
                 # the rest of this code can assume predictions to be logits
                 predictions = self._to_logits(predictions)
         elif predicts == 'logits':
             loss = K.sparse_categorical_crossentropy(
-                label_input, predictions, from_logits=True)
+                labels_input, predictions, from_logits=True)
 
-        # sparse_categorical_crossentropy returns 1-dim tensor,
-        # gradients wants 0-dim tensor (for some backends)
-        loss = K.squeeze(loss, axis=0)
-        grads = K.gradients(loss, images_input)
+        loss = K.sum(loss, axis=0)
+        grads = K.gradients(loss, [images_input])
 
-        grad_loss_output = K.placeholder(shape=(num_classes, 1))
-        external_loss = K.dot(predictions, grad_loss_output)
-        # remove batch dimension of predictions
-        external_loss = K.squeeze(external_loss, axis=0)
+        grad_loss_output = K.placeholder(shape=predictions.shape)
+        external_loss = K.batch_dot(predictions, grad_loss_output)
         # remove singleton dimension of grad_loss_output
-        external_loss = K.squeeze(external_loss, axis=0)
+        external_loss = K.squeeze(external_loss, axis=1)
+        # sum over batch axis
+        external_loss = K.sum(external_loss, axis=0)
 
         grads_loss_input = K.gradients(external_loss, images_input)
 
@@ -110,12 +108,10 @@ class KerasModel(DifferentiableModel):
             assert isinstance(grads, list)
             assert len(grads) == 1
             grad = grads[0]
-            grad = K.reshape(grad, (1,) + grad.shape)
 
             assert isinstance(grads_loss_input, list)
             assert len(grads_loss_input) == 1
             grad_loss_input = grads_loss_input[0]
-            grad_loss_input = K.reshape(grad_loss_input, (1,) + grad_loss_input.shape)  # noqa: E501
         else:
             assert not isinstance(grads, list)
             grad = grads
@@ -123,13 +119,16 @@ class KerasModel(DifferentiableModel):
             grad_loss_input = grads_loss_input
 
         self._loss_fn = K.function(
-            [images_input, label_input],
+            [images_input, labels_input],
             [loss])
         self._batch_pred_fn = K.function(
             [images_input], [predictions])
         self._pred_grad_fn = K.function(
-            [images_input, label_input],
+            [images_input, labels_input],
             [predictions, grad])
+        self._batch_grad_fn = K.function(
+            [images_input, labels_input],
+            [grad])
         self._bw_grad_fn = K.function(
             [grad_loss_output, images_input],
             [grad_loss_input])
@@ -165,6 +164,12 @@ class KerasModel(DifferentiableModel):
         assert gradient.shape == input_shape
         return predictions, gradient
 
+    def batch_gradients(self, images, labels):
+        px, dpdx = self._process_input(images)
+        g = self._batch_grad_fn([px, labels])
+        g = self._process_gradient(dpdx, g)
+        return g
+
     def backward(self, gradient, image):
         assert gradient.ndim == 1
         gradient = np.reshape(gradient, (-1, 1))
@@ -178,3 +183,12 @@ class KerasModel(DifferentiableModel):
         gradient = self._process_gradient(dpdx, gradient)
         assert gradient.shape == image.shape
         return gradient
+
+    def batch_backward(self, gradients, images):
+        assert gradients.ndim == 2
+        px, dpdx = self._process_input(images)
+        g = self._bw_grad_fn([gradients, px])
+        g = g[0]   # output of bw_grad_fn is a list
+        g = self._process_gradient(dpdx, g)
+        assert g.shape == images.shape
+        return g
