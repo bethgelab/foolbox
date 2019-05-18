@@ -50,7 +50,7 @@ class BlendedUniformNoiseAttack(Attack):
         image = a.unperturbed
         min_, max_ = a.bounds()
 
-        if a.image is not None:  # pragma: no cover
+        if a.perturbed is not None:  # pragma: no cover
             warnings.warn('BlendedUniformNoiseAttack started with'
                           ' previously found adversarial.')
 

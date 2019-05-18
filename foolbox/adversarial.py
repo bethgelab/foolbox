@@ -101,8 +101,8 @@ class Adversarial(object):
         self.predictions(self.__unperturbed)
 
     @property
-    def image(self):
-        """The best adversarial found so far."""
+    def perturbed(self):
+        """The best adversarial example found so far."""
         return self.__best_adversarial
 
     @property

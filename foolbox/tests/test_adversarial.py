@@ -23,7 +23,7 @@ def test_adversarial(model, criterion, image, label):
 
     assert not adversarial.predictions(image)[1]
 
-    assert adversarial.image is None
+    assert adversarial.perturbed is None
     assert adversarial.output is None
     assert adversarial.adversarial_class is None
     assert adversarial.distance == MSE(value=np.inf)
@@ -54,7 +54,7 @@ def test_adversarial(model, criterion, image, label):
     label = 22  # wrong label
     adversarial = Adversarial(model, criterion, image, label, verbose=True)
 
-    assert adversarial.image is not None
+    assert adversarial.perturbed is not None
     assert adversarial.output is not None
     assert adversarial.adversarial_class == true_label
     assert adversarial.adversarial_class == np.argmax(adversarial.output)
@@ -142,14 +142,14 @@ def test_inplace(bn_model, bn_adversarial, bn_label):
             a.predictions(x)
             x[:] = a.unperturbed
 
-    assert bn_adversarial.image is None
+    assert bn_adversarial.perturbed is None
     assert np.argmax(bn_model.predictions(bn_adversarial.unperturbed)) == bn_label  # noqa: E501
     attack = TestAttack()
     attack(bn_adversarial)
-    assert bn_adversarial.image is not None
+    assert bn_adversarial.perturbed is not None
     assert bn_adversarial.distance.value > 0
     assert np.argmax(bn_model.predictions(bn_adversarial.unperturbed)) == bn_label  # noqa: E501
-    assert np.argmax(bn_model.predictions(bn_adversarial.image)) != bn_label
-    assert not (bn_adversarial.image == bn_adversarial.unperturbed).all()
+    assert np.argmax(bn_model.predictions(bn_adversarial.perturbed)) != bn_label
+    assert not (bn_adversarial.perturbed == bn_adversarial.unperturbed).all()
     assert (bn_adversarial.distance.reference == bn_adversarial.unperturbed).all()  # noqa: E501
-    assert (bn_adversarial.distance.other == bn_adversarial.image).all()
+    assert (bn_adversarial.distance.other == bn_adversarial.perturbed).all()

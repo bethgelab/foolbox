@@ -382,7 +382,7 @@ def bn_adversarial_pytorch(bn_model_pytorch, bn_criterion,
     image = bn_image_pytorch
     label = bn_label_pytorch
     adv = Adversarial(model, criterion, image, label)
-    assert adv.image is None
+    assert adv.perturbed is None
     assert adv.distance.value == np.inf
     return adv
 
@@ -395,7 +395,7 @@ def bn_targeted_adversarial_pytorch(bn_model_pytorch, bn_targeted_criterion,
     image = bn_image_pytorch
     label = bn_label_pytorch
     adv = Adversarial(model, criterion, image, label)
-    assert adv.image is None
+    assert adv.perturbed is None
     assert adv.distance.value == np.inf
     return adv
 

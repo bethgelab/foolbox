@@ -206,14 +206,14 @@ class BoundaryAttack(Attack):
 
         self.initialize_starting_point(a)
 
-        if a.image is None:
+        if a.perturbed is None:
             warnings.warn(
                 'Initialization failed. If the criterion is targeted,'
                 ' it might be necessary to pass an explicit starting'
                 ' point or targeted initialization attack.')
             return
 
-        assert a.image.dtype == external_dtype
+        assert a.perturbed.dtype == external_dtype
 
         # ===========================================================
         # Initialize variables, constants, hyperparameters, etc.
@@ -228,7 +228,7 @@ class BoundaryAttack(Attack):
 
         # get original and starting point in the right format
         original = a.unperturbed.astype(self.internal_dtype)
-        perturbed = a.image.astype(self.internal_dtype)
+        perturbed = a.perturbed.astype(self.internal_dtype)
         distance = a.distance
 
         # determine next step for batch size tuning
@@ -376,7 +376,7 @@ class BoundaryAttack(Attack):
                         self.printv(
                             'During initialization, a better adversarial'
                             ' has been found. Continuing from there.')
-                        perturbed = a.image.astype(self.internal_dtype)
+                        perturbed = a.perturbed.astype(self.internal_dtype)
                         distance = a.distance
                         # becaue we are resetting perturbed, it's important
                         # that the new generator is created afterwards
@@ -632,7 +632,7 @@ class BoundaryAttack(Attack):
         starting_point = self._starting_point
         init_attack = self._initialization_attack
 
-        if a.image is not None:
+        if a.perturbed is not None:
             print(
                 'Attack is applied to a previously found adversarial.'
                 ' Continuing search for better adversarials.')
@@ -648,7 +648,7 @@ class BoundaryAttack(Attack):
 
         if starting_point is not None:
             a.predictions(starting_point)
-            assert a.image is not None, ('Invalid starting point provided.'
+            assert a.perturbed is not None, ('Invalid starting point provided.'
                                          ' Please provide a starting point'
                                          ' that is adversarial.')
             return

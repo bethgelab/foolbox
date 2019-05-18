@@ -57,14 +57,14 @@ class BinarizationRefinementAttack(Attack):
         self._starting_point = starting_point
         self.initialize_starting_point(a)
 
-        if a.image is None:
+        if a.perturbed is None:
             warnings.warn(
                 'This attack can only be applied to an adversarial'
                 ' found by another attack, either by calling it with'
                 ' an Adversarial object or by passing a starting_point')
             return
 
-        assert a.image.dtype == a.unperturbed.dtype
+        assert a.perturbed.dtype == a.unperturbed.dtype
         dtype = a.unperturbed.dtype
 
         assert np.issubdtype(dtype, np.floating)
@@ -95,7 +95,7 @@ class BinarizationRefinementAttack(Attack):
         assert lower < upper
 
         o = a.unperturbed
-        x = a.image
+        x = a.perturbed
 
         p = np.full_like(o, np.nan)
 
@@ -124,7 +124,7 @@ class BinarizationRefinementAttack(Attack):
     def initialize_starting_point(self, a):
         starting_point = self._starting_point
 
-        if a.image is not None:
+        if a.perturbed is not None:
             if starting_point is not None:  # pragma: no cover
                 warnings.warn(
                     'Ignoring starting_point because the attack'
@@ -133,7 +133,7 @@ class BinarizationRefinementAttack(Attack):
 
         if starting_point is not None:
             a.predictions(starting_point)
-            assert a.image is not None, ('Invalid starting point provided.'
+            assert a.perturbed is not None, ('Invalid starting point provided.'
                                          ' Please provide a starting point'
                                          ' that is adversarial.')
             return

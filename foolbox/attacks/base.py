@@ -142,13 +142,13 @@ def call_decorator(call_fn):
                 # stopping of the attack
                 logging.info('threshold reached, stopping attack')
 
-        if a.image is None:
+        if a.perturbed is None:
             warnings.warn('{} did not find an adversarial, maybe the model'
                           ' or the criterion is not supported by this'
                           ' attack.'.format(self.name()))
 
         if unpack:
-            return a.image
+            return a.perturbed
         else:
             return a
 
