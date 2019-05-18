@@ -151,8 +151,8 @@ class SparseFoolAttack(Attack):
 
         # sanity check: original label has probability or exists in labels
         if not logits[label] > 0 or label not in labels or label == labels[-1]:
-            logging.warning('Original label has zero probability or is not'
-                            'in the desired labels.')
+            logging.fatal('Original label has zero probability or is not in'
+                          'the desired labels.')
             return None, _
 
         def get_residual_labels(logs):
