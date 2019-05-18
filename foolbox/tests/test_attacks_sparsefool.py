@@ -43,6 +43,14 @@ def test_subsample(bn_adversarial):
     assert adv.distance.value < np.inf
 
 
+def test_step(bn_adversarial):
+    adv = bn_adversarial
+    attack = Attack()
+    attack(adv, steps=1)
+    assert adv.image is not None
+    assert adv.distance.value < np.inf
+    
+
 def test_attack_impossible(bn_impossible):
     adv = bn_impossible
     attack = Attack()
