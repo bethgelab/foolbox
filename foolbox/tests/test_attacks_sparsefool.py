@@ -49,7 +49,7 @@ def test_step(bn_adversarial):
     attack(adv, steps=1)
     assert adv.image is not None
     assert adv.distance.value < np.inf
-    
+
 
 def test_attack_impossible(bn_impossible):
     adv = bn_impossible
