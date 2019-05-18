@@ -94,6 +94,10 @@ class SparseFoolAttack(Attack):
                 self.boundary_approximation_deepfool(a, perturbed, subsample,
                                                      _label, lambda_)
 
+            if boundary_point is None:
+                logging.fatal('SparseFool fails to find an adversarial.')
+                return
+
             # Compute the l1 perturbation between the current adversarial point
             # and the approximated hyperplane
             perturbation = self.l1_linear_solver(perturbed, boundary_point,
@@ -144,6 +148,12 @@ class SparseFoolAttack(Attack):
             logging.info('Only testing the top-{} classes'.format(subsample))
             assert isinstance(subsample, int)
             labels = labels[:subsample]
+
+        # sanity check: original label has probability or exists in labels
+        if not logits[label] > 0 or label not in labels or label == labels[-1]:
+            logging.warning('Original label has zero probability or is not'
+                            'in the desired labels.')
+            return None, _
 
         def get_residual_labels(logs):
             """Get all labels with p < p[original_class]"""
