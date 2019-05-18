@@ -71,10 +71,6 @@ class SparseFoolAttack(Attack):
             logging.fatal('SparseFool is an untargeted adversarial attack.')
             return
 
-        if lambda_ < 1:
-            logging.fatal('The value of lambda_ should be >= 1.')
-            return
-
         _label = a.original_class
 
         min_, max_ = a.bounds()
