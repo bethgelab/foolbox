@@ -20,22 +20,21 @@ class Adversarial(object):
     """Defines an adversarial that should be found and stores the result.
 
     The :class:`Adversarial` class represents a single adversarial example
-    for a given model, criterion and reference image. It can be passed to
-    an adversarial attack to find the actual adversarial.
+    for a given model, criterion and reference input. It can be passed to
+    an adversarial attack to find the actual adversarial perturbation.
 
     Parameters
     ----------
     model : a :class:`Model` instance
         The model that should be fooled by the adversarial.
     criterion : a :class:`Criterion` instance
-        The criterion that determines which images are adversarial.
-    original_image : a :class:`numpy.ndarray`
-        The original image to which the adversarial image should
-        be as close as possible.
+        The criterion that determines which inputs are adversarial.
+    unperturbed : a :class:`numpy.ndarray`
+        The unperturbed input to which the adversarial input should be as close as possible.
     original_class : int
-        The ground-truth label of the original image.
+        The ground-truth label of the unperturbed input.
     distance : a :class:`Distance` class
-        The measure used to quantify similarity between images.
+        The measure used to quantify how close inputs are.
     threshold : float or :class:`Distance`
         If not None, the attack will stop as soon as the adversarial
         perturbation has a size smaller than this threshold. Can be
@@ -53,7 +52,7 @@ class Adversarial(object):
             self,
             model,
             criterion,
-            original_image,
+            unperturbed,
             original_class,
             distance=MSE,
             threshold=None,
@@ -61,8 +60,8 @@ class Adversarial(object):
 
         self.__model = model
         self.__criterion = criterion
-        self.__original_image = original_image
-        self.__original_image_for_distance = original_image
+        self.__unperturbed = unperturbed
+        self.__unperturbed_for_distance = unperturbed
         self.__original_class = original_class
         self.__distance = distance
 
@@ -84,7 +83,7 @@ class Adversarial(object):
 
         # check if the original image is already adversarial
         try:
-            self.predictions(original_image)
+            self.predictions(unperturbed)
         except StopAttack:
             # if a threshold is specified and the original input is
             # misclassified, this can already cause a StopAttack
@@ -99,7 +98,7 @@ class Adversarial(object):
         self._best_prediction_calls = 0
         self._best_gradient_calls = 0
 
-        self.predictions(self.__original_image)
+        self.predictions(self.__unperturbed)
 
     @property
     def image(self):
@@ -130,9 +129,9 @@ class Adversarial(object):
         return self.__best_distance
 
     @property
-    def original_image(self):
+    def unperturbed(self):
         """The original input."""
-        return self.__original_image
+        return self.__unperturbed
 
     @property
     def original_class(self):
@@ -155,12 +154,12 @@ class Adversarial(object):
         return self.__distance
 
     def set_distance_dtype(self, dtype):
-        assert dtype >= self.__original_image.dtype
-        self.__original_image_for_distance = self.__original_image.astype(
+        assert dtype >= self.__unperturbed.dtype
+        self.__unperturbed_for_distance = self.__unperturbed.astype(
             dtype, copy=False)
 
     def reset_distance_dtype(self):
-        self.__original_image_for_distance = self.__original_image
+        self.__unperturbed_for_distance = self.__unperturbed
 
     def normalized_distance(self, image):
         """Calculates the distance of a given image to the
@@ -178,7 +177,7 @@ class Adversarial(object):
 
         """
         return self.__distance(
-            self.__original_image_for_distance,
+            self.__unperturbed_for_distance,
             image,
             bounds=self.bounds())
 
@@ -281,14 +280,17 @@ class Adversarial(object):
         """
         try:
             self.__model.gradient
-            self.__model.predictions_and_gradient
+            self.__model.gradient_one
+            self.__model.forward_and_gradient_one
+            self.__model.backward
+            self.__model.backward_one
         except AttributeError:
             return False
         else:
             return True
 
     def predictions(self, image, strict=True, return_details=False):
-        """Interface to model.predictions for attacks.
+        """Interface to model.forward_one for attacks.
 
         Parameters
         ----------
@@ -303,7 +305,7 @@ class Adversarial(object):
         assert not strict or in_bounds
 
         self._total_prediction_calls += 1
-        predictions = self.__model.predictions(image)
+        predictions = self.__model.forward_one(image)
         is_adversarial, is_best, distance = self.__is_adversarial(
             image, predictions, in_bounds)
 
@@ -315,7 +317,7 @@ class Adversarial(object):
 
     def batch_predictions(
             self, images, greedy=False, strict=True, return_details=False):
-        """Interface to model.batch_predictions for attacks.
+        """Interface to model.forward for attacks.
 
         Parameters
         ----------
@@ -332,7 +334,7 @@ class Adversarial(object):
             assert in_bounds
 
         self._total_prediction_calls += len(images)
-        predictions = self.__model.batch_predictions(images)
+        predictions = self.__model.forward(images)
 
         assert predictions.ndim == 2
         assert predictions.shape[0] == images.shape[0]
@@ -369,7 +371,7 @@ class Adversarial(object):
         return predictions, is_adversarial
 
     def gradient(self, image=None, label=None, strict=True):
-        """Interface to model.gradient for attacks.
+        """Interface to model.gradient_one for attacks.
 
         Parameters
         ----------
@@ -387,21 +389,21 @@ class Adversarial(object):
         assert self.has_gradient()
 
         if image is None:
-            image = self.__original_image
+            image = self.__unperturbed
         if label is None:
             label = self.__original_class
 
         assert not strict or self.in_bounds(image)
 
         self._total_gradient_calls += 1
-        gradient = self.__model.gradient(image, label)
+        gradient = self.__model.gradient_one(image, label)
 
         assert gradient.shape == image.shape
         return gradient
 
     def predictions_and_gradient(
             self, image=None, label=None, strict=True, return_details=False):
-        """Interface to model.predictions_and_gradient for attacks.
+        """Interface to model.forward_and_gradient_one for attacks.
 
         Parameters
         ----------
@@ -419,7 +421,7 @@ class Adversarial(object):
         assert self.has_gradient()
 
         if image is None:
-            image = self.__original_image
+            image = self.__unperturbed
         if label is None:
             label = self.__original_class
 
@@ -428,7 +430,7 @@ class Adversarial(object):
 
         self._total_prediction_calls += 1
         self._total_gradient_calls += 1
-        predictions, gradient = self.__model.predictions_and_gradient(image, label)  # noqa: E501
+        predictions, gradient = self.__model.forward_and_gradient(image, label)  # noqa: E501
         is_adversarial, is_best, distance = self.__is_adversarial(
             image, predictions, in_bounds)
 
@@ -440,7 +442,7 @@ class Adversarial(object):
             return predictions, gradient, is_adversarial
 
     def backward(self, gradient, image=None, strict=True):
-        """Interface to model.backward for attacks.
+        """Interface to model.backward_one for attacks.
 
         Parameters
         ----------
@@ -464,12 +466,12 @@ class Adversarial(object):
         assert gradient.ndim == 1
 
         if image is None:
-            image = self.__original_image
+            image = self.__unperturbed
 
         assert not strict or self.in_bounds(image)
 
         self._total_gradient_calls += 1
-        gradient = self.__model.backward(gradient, image)
+        gradient = self.__model.backward_one(gradient, image)
 
         assert gradient.shape == image.shape
         return gradient
