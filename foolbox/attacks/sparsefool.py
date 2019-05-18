@@ -30,7 +30,7 @@ class SparseFoolAttack(Attack):
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
-                 steps=30, lambda_=1.):
+                 steps=30, lambda_=1., subsample=10):
 
         """A geometry-inspired and fast attack for computing
         sparse adversarial perturbations.
@@ -52,6 +52,10 @@ class SparseFoolAttack(Attack):
         lambda_ : float
             Pushes the approximated decision boundary deeper into the
             classification region of the fooling class.
+        subsample : int
+            Limit on the number of the most likely classes that should
+            be considered when approximating the decision boundary. A small
+            value is usually sufficient and much faster.
 
         """
 
@@ -65,6 +69,10 @@ class SparseFoolAttack(Attack):
 
         if a.target_class() is not None:
             logging.fatal('SparseFool is an untargeted adversarial attack.')
+            return
+
+        if lambda_ < 1:
+            logging.fatal('The value of lambda_ should be >= 1.')
             return
 
         _label = a.original_class
@@ -83,7 +91,7 @@ class SparseFoolAttack(Attack):
             # approximation is done using an overshooted version of the
             # boundary point by a factor lambda_.
             boundary_point, boundary_normal = \
-                self.boundary_approximation_deepfool(a, perturbed,
+                self.boundary_approximation_deepfool(a, perturbed, subsample,
                                                      _label, lambda_)
 
             # Compute the l1 perturbation between the current adversarial point
@@ -97,8 +105,8 @@ class SparseFoolAttack(Attack):
         a.predictions(perturbed)  # to find an adversarial in the last step
 
     @classmethod
-    def boundary_approximation_deepfool(cls, a, initial_point, label, lambda_,
-                                        steps=100, subsample=10):
+    def boundary_approximation_deepfool(cls, a, initial_point, subsample,
+                                        label, lambda_, steps=100):
 
         """Approximates the decision boundary as an affine hyperplane.
         The approximation is done using a slightly modified version of
@@ -112,6 +120,10 @@ class SparseFoolAttack(Attack):
         initial_point : `numpy.ndarray`
             The initial point that we want to move towards the decision
             boundary of the fooling class.
+        subsample : int
+            Limit on the number of the most likely classes that should
+            be considered. A small value is usually sufficient and much
+            faster.
         label : int
             The reference label of the original input. Must be passed
             if `a` is a `numpy.ndarray`, must not be passed if `a` is
@@ -121,10 +133,6 @@ class SparseFoolAttack(Attack):
             further into the classification region of the fooling class.
         steps : int
             Maximum number of steps to perform.
-        subsample : int
-            Limit on the number of the most likely classes that should
-            be considered. A small value is usually sufficient and much
-            faster.
 
         """
 
