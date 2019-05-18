@@ -35,14 +35,6 @@ def test_lambda(bn_adversarial):
     assert adv.distance.value < np.inf
 
 
-def test_lambda_invalid(bn_adversarial):
-    adv = bn_adversarial
-    attack = Attack()
-    attack(adv, lambda_=0)
-    assert adv.image is not None
-    assert adv.distance.value < np.inf
-
-
 def test_subsample(bn_adversarial):
     adv = bn_adversarial
     attack = Attack()
