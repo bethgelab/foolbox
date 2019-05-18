@@ -194,12 +194,11 @@ class SparseFoolAttack(Attack):
 
             residual_labels = get_residual_labels(logits)
 
-            # sanity check: original label has probability or not in labels
+            # sanity check: original label has zero probability or is not in
+            # the labels
             if len(residual_labels) == 0:
-                logging.fatal(
-                    'Original label has zero probability or is not in the'
-                    'desired labels.')
-                
+                logging.fatal('No label with p < p[original_class]')
+
                 return None, _
 
             # instead of using the logits and the gradient of the logits,
