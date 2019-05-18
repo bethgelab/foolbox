@@ -113,9 +113,9 @@ class CarliniWagnerL2Attack(Attack):
 
         # variables representing inputs in attack space will be
         # prefixed with att_
-        att_original = to_attack_space(a.original_image)
+        att_original = to_attack_space(a.unperturbed)
 
-        # will be close but not identical to a.original_image
+        # will be close but not identical to a.unperturbed
         reconstructed_original, _ = to_model_space(att_original)
 
         # the binary search finds the smallest const for which we

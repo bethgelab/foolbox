@@ -42,7 +42,7 @@ class SaltAndPepperNoiseAttack(Attack):
         del label
         del unpack
 
-        image = a.original_image
+        image = a.unperturbed
         min_, max_ = a.bounds()
         axis = a.channel_axis(batch=False)
         channels = image.shape[axis]

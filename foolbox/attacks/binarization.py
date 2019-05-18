@@ -64,8 +64,8 @@ class BinarizationRefinementAttack(Attack):
                 ' an Adversarial object or by passing a starting_point')
             return
 
-        assert a.image.dtype == a.original_image.dtype
-        dtype = a.original_image.dtype
+        assert a.image.dtype == a.unperturbed.dtype
+        dtype = a.unperturbed.dtype
 
         assert np.issubdtype(dtype, np.floating)
 
@@ -94,7 +94,7 @@ class BinarizationRefinementAttack(Attack):
 
         assert lower < upper
 
-        o = a.original_image
+        o = a.unperturbed
         x = a.image
 
         p = np.full_like(o, np.nan)

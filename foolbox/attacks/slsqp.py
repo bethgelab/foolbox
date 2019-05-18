@@ -38,8 +38,8 @@ class SLSQPAttack(Attack):
         del label
         del unpack
 
-        image = a.original_image
-        dtype = a.original_image.dtype
+        image = a.unperturbed
+        dtype = a.unperturbed.dtype
         min_, max_ = a.bounds()
 
         # flatten the image (and remember the shape)

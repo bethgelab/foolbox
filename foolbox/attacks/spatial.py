@@ -90,8 +90,8 @@ class SpatialAttack(Attack):
         def crop_center(img):
             # crop center of the image (of the size of the original image)
             start = tuple(map(lambda a, da: (a - da) // 2, img.shape,
-                              a.original_image.shape))
-            end = tuple(map(operator.add, start, a.original_image.shape))
+                              a.unperturbed.shape))
+            end = tuple(map(operator.add, start, a.unperturbed.shape))
             slices = tuple(map(slice, start, end))
             return img[slices]
 
@@ -113,7 +113,7 @@ class SpatialAttack(Attack):
                                  'and inputs with NCHW or NHWC format')
 
             # rotate image (increases size)
-            x = a.original_image
+            x = a.unperturbed
             x = rotate(x, angle=angle, axes=axes, reshape=True, order=1)
 
             # translate image

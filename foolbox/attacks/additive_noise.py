@@ -41,7 +41,7 @@ class AdditiveNoiseAttack(Attack):
         del label
         del unpack
 
-        image = a.original_image
+        image = a.unperturbed
         bounds = a.bounds()
         min_, max_ = bounds
 

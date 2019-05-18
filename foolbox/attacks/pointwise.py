@@ -65,10 +65,10 @@ class PointwiseAttack(Attack):
                 ' point or targeted initialization attack.')
             return
 
-        shape = a.original_image.shape
-        N = a.original_image.size
+        shape = a.unperturbed.shape
+        N = a.unperturbed.size
 
-        original = a.original_image.reshape(-1)
+        original = a.unperturbed.reshape(-1)
         x = a.image.copy().reshape(-1)
 
         assert original.dtype == x.dtype

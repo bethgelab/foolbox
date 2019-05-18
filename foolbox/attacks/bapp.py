@@ -120,7 +120,7 @@ class BoundaryAttackPlusPlus(Attack):
             self.constraint = 'linf'
 
         # Set binary search threshold.
-        self.shape = input_or_adv.original_image.shape
+        self.shape = input_or_adv.unperturbed.shape
         self.d = np.prod(self.shape)
         if self.constraint == 'l2':
             self.theta = self.gamma / np.sqrt(self.d)
@@ -150,7 +150,7 @@ class BoundaryAttackPlusPlus(Attack):
         # Increase floating point precision
         # ===========================================================
 
-        self.external_dtype = a.original_image.dtype
+        self.external_dtype = a.unperturbed.dtype
 
         assert self.internal_dtype in [np.float32, np.float64]
         assert self.external_dtype in [np.float32, np.float64]
@@ -214,7 +214,7 @@ class BoundaryAttackPlusPlus(Attack):
 
         assert a.image.dtype == self.external_dtype
         # get original and starting point in the right format
-        original = a.original_image.astype(self.internal_dtype)
+        original = a.unperturbed.astype(self.internal_dtype)
         perturbed = a.image.astype(self.internal_dtype)
 
         # ===========================================================
@@ -367,7 +367,7 @@ class BoundaryAttackPlusPlus(Attack):
         high = 1.0
         while high - low > 0.001:
             mid = (high + low) / 2.0
-            blended = (1 - mid) * a.original_image + mid * random_noise
+            blended = (1 - mid) * a.unperturbed + mid * random_noise
             _, success = a.predictions(blended.astype(self.external_dtype))
             if success:
                 high = mid
@@ -385,28 +385,28 @@ class BoundaryAttackPlusPlus(Attack):
         with upper and lower threshold. """
         return np.minimum(np.maximum(clip_min, image), clip_max)
 
-    def project(self, original_image, perturbed_images, alphas):
+    def project(self, unperturbed, perturbed_images, alphas):
         """ Projection onto given l2 / linf balls in a batch. """
         alphas_shape = [len(alphas)] + [1] * len(self.shape)
         alphas = alphas.reshape(alphas_shape)
         if self.constraint == 'l2':
-            projected = (1 - alphas) * original_image + \
+            projected = (1 - alphas) * unperturbed + \
                 alphas * perturbed_images
         elif self.constraint == 'linf':
             projected = self.clip_image(
                 perturbed_images,
-                original_image - alphas,
-                original_image + alphas
+                unperturbed - alphas,
+                unperturbed + alphas
             )
         return projected
 
-    def binary_search_batch(self, original_image, perturbed_images,
+    def binary_search_batch(self, unperturbed, perturbed_images,
                             decision_function):
         """ Binary search to approach the boundary. """
 
         # Compute distance between each of perturbed image and original image.
         dists_post_update = np.array(
-            [self.compute_distance(original_image,
+            [self.compute_distance(unperturbed,
                                    perturbed_image) for perturbed_image in
              perturbed_images])
 
@@ -426,7 +426,7 @@ class BoundaryAttackPlusPlus(Attack):
         while np.max((highs - lows) / thresholds) > 1:
             # projection to mids.
             mids = (highs + lows) / 2.0
-            mid_images = self.project(original_image, perturbed_images,
+            mid_images = self.project(unperturbed, perturbed_images,
                                       mids)
 
             # Update highs and lows based on model decisions.
@@ -434,14 +434,14 @@ class BoundaryAttackPlusPlus(Attack):
             lows = np.where(decisions == 0, mids, lows)
             highs = np.where(decisions == 1, mids, highs)
 
-        out_images = self.project(original_image, perturbed_images,
+        out_images = self.project(unperturbed, perturbed_images,
                                   highs)
 
         # Compute distance of the output image to select the best choice.
         # (only used when stepsize_search is grid_search.)
         dists = np.array([
             self.compute_distance(
-                original_image,
+                unperturbed,
                 out_image
             )
             for out_image in out_images])

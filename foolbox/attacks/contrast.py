@@ -38,7 +38,7 @@ class ContrastReductionAttack(Attack):
         del label
         del unpack
 
-        image = a.original_image
+        image = a.unperturbed
         min_, max_ = a.bounds()
         target = (max_ + min_) / 2
 

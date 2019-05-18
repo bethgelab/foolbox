@@ -40,7 +40,7 @@ class SinglePixelAttack(Attack):
         del unpack
 
         channel_axis = a.channel_axis(batch=False)
-        image = a.original_image
+        image = a.unperturbed
         axes = [i for i in range(image.ndim) if i != channel_axis]
         assert len(axes) == 2
         h = image.shape[axes[0]]
@@ -145,7 +145,7 @@ class LocalSearchAttack(Attack):
             im = im + (min_ + max_) / 2
             return im
 
-        Im = a.original_image
+        Im = a.unperturbed
         Im, LB, UB = normalize(Im)
 
         cI = a.original_class

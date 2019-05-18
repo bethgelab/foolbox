@@ -18,7 +18,7 @@ def test_attack(binarized_bn_adversarial):
 
     assert v2 < v1 < np.inf
 
-    o = adv.original_image
+    o = adv.unperturbed
     x = adv.image
     d = x[x != o]
     np.testing.assert_allclose(d, 0.5)
@@ -54,13 +54,13 @@ def test_attack_sp(binarized_bn_adversarial):
     v1 = adv.distance.value
 
     attack = BinarizationRefinementAttack(adv._model)
-    adv = attack(adv.original_image, adv.original_class,
+    adv = attack(adv.unperturbed, adv.original_class,
                  starting_point=adv.image, unpack=False)
     v2 = adv.distance.value
 
     assert v2 < v1 < np.inf
 
-    o = adv.original_image
+    o = adv.unperturbed
     x = adv.image
     d = x[x != o]
     np.testing.assert_allclose(d, 0.5)
@@ -79,7 +79,7 @@ def test_attack2(binarized2_bn_adversarial):
 
     assert v2 < v1 < np.inf
 
-    o = adv.original_image
+    o = adv.unperturbed
     x = adv.image
     d = x[x != o]
     np.testing.assert_allclose(d, 0.5)

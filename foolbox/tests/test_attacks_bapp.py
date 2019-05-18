@@ -44,7 +44,7 @@ def test_attack_continue(bn_adversarial):
 def test_attack_targeted(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttackPlusPlus()
-    o = adv.original_image
+    o = adv.unperturbed
     np.random.seed(2)
     starting_point = np.random.uniform(
         0, 1, size=o.shape).astype(o.dtype)
@@ -66,7 +66,7 @@ def test_attack_targeted(bn_adversarial):
 def test_attack_linf_targeted(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttackPlusPlus(distance=Linf)
-    o = adv.original_image
+    o = adv.unperturbed
     np.random.seed(2)
     starting_point = np.random.uniform(
         0, 1, size=o.shape).astype(o.dtype)

@@ -214,10 +214,10 @@ class ADefAttack(Attack):
         if not a.has_gradient():
             return
 
-        perturbed = a.original_image.copy()  # is updated in every iteration
+        perturbed = a.unperturbed.copy()  # is updated in every iteration
 
         # image_original is not updated, but kept as a copy
-        image_original = a.original_image.copy()
+        image_original = a.unperturbed.copy()
         target_class = a.target_class()
         targeted = target_class is not None
         original_label = a.original_class

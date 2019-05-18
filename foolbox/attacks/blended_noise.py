@@ -47,7 +47,7 @@ class BlendedUniformNoiseAttack(Attack):
         del label
         del unpack
 
-        image = a.original_image
+        image = a.unperturbed
         min_, max_ = a.bounds()
 
         if a.image is not None:  # pragma: no cover

@@ -107,7 +107,7 @@ class IterativeProjectedGradientBaseAttack(Attack):
         min_, max_ = a.bounds()
         s = max_ - min_
 
-        original = a.original_image.copy()
+        original = a.unperturbed.copy()
 
         if random_start:
             # using uniform noise even if the perturbation clipping uses

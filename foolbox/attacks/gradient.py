@@ -19,7 +19,7 @@ class SingleStepGradientBaseAttack(Attack):
         if not a.has_gradient():
             return
 
-        image = a.original_image
+        image = a.unperturbed
         min_, max_ = a.bounds()
 
         gradient = self._gradient(a)

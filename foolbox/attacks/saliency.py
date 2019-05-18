@@ -108,7 +108,7 @@ class SaliencyMapAttack(Attack):
 
         for target in target_classes:
 
-            image = a.original_image
+            image = a.unperturbed
 
             # the mask defines the search domain
             # each modified pixel with border value is set to zero in mask

@@ -23,7 +23,7 @@ class IterativeGradientBaseAttack(Attack):
         if not a.has_gradient():
             return
 
-        image = a.original_image
+        image = a.unperturbed
         min_, max_ = a.bounds()
 
         if not isinstance(epsilons, Iterable):

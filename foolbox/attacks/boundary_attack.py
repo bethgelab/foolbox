@@ -190,7 +190,7 @@ class BoundaryAttack(Attack):
         # Increase floating point precision
         # ===========================================================
 
-        external_dtype = a.original_image.dtype
+        external_dtype = a.unperturbed.dtype
 
         assert self.internal_dtype in [np.float32, np.float64]
         assert external_dtype in [np.float32, np.float64]
@@ -227,7 +227,7 @@ class BoundaryAttack(Attack):
         min_, max_ = bounds
 
         # get original and starting point in the right format
-        original = a.original_image.astype(self.internal_dtype)
+        original = a.unperturbed.astype(self.internal_dtype)
         perturbed = a.image.astype(self.internal_dtype)
         distance = a.distance
 

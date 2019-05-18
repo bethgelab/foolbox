@@ -86,7 +86,7 @@ class DeepFoolAttack(Attack):
         _label = a.original_class
 
         # define labels
-        logits, _ = a.predictions(a.original_image)
+        logits, _ = a.predictions(a.unperturbed)
         labels = np.argsort(logits)[::-1]
         if subsample:
             # choose the top-k classes
@@ -100,7 +100,7 @@ class DeepFoolAttack(Attack):
                 k for k in labels
                 if logits[k] < logits[_label]]
 
-        perturbed = a.original_image
+        perturbed = a.unperturbed
         min_, max_ = a.bounds()
 
         for step in range(steps):

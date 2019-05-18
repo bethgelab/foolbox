@@ -65,6 +65,6 @@ class PrecomputedImagesAttack(Attack):
         del label
         del unpack
 
-        image = a.original_image
+        image = a.unperturbed
         adversarial = self._get_output(a, image)
         a.predictions(adversarial)

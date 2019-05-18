@@ -40,7 +40,7 @@ class GaussianBlurAttack(Attack):
         del label
         del unpack
 
-        image = a.original_image
+        image = a.unperturbed
         min_, max_ = a.bounds()
         axis = a.channel_axis(batch=False)
         hw = [image.shape[i] for i in range(image.ndim) if i != axis]

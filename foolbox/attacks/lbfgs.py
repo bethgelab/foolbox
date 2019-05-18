@@ -140,7 +140,7 @@ class LBFGSAttack(Attack):
                 logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.distance))  # noqa: E501
 
     def _optimize(self, a, target_class, epsilon, maxiter):
-        image = a.original_image
+        image = a.unperturbed
         min_, max_ = a.bounds()
 
         # store the shape for later and operate on the flattened image
