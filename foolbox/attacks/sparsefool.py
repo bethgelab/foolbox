@@ -149,12 +149,6 @@ class SparseFoolAttack(Attack):
             assert isinstance(subsample, int)
             labels = labels[:subsample]
 
-        # sanity check: original label has probability or exists in labels
-        if not logits[label] > 0 or label not in labels or label == labels[-1]:
-            logging.fatal('Original label has zero probability or is not in'
-                          'the desired labels.')
-            return None, _
-
         def get_residual_labels(logs):
             """Get all labels with p < p[original_class]"""
             return [
@@ -199,6 +193,14 @@ class SparseFoolAttack(Attack):
             loss = -crossentropy(logits=logits, label=label)
 
             residual_labels = get_residual_labels(logits)
+
+            # sanity check: original label has probability or not in labels
+            if len(residual_labels) == 0:
+                logging.fatal(
+                    'Original label has zero probability or is not in the'
+                    'desired labels.')
+                
+                return None, _
 
             # instead of using the logits and the gradient of the logits,
             # we use a numerically stable implementation of the cross-entropy
