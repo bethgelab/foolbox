@@ -23,7 +23,7 @@ Keras: ResNet50
 
    image, label = foolbox.utils.imagenet_example()
    # ::-1 reverses the color channels, because Keras ResNet50 expects BGR instead of RGB
-   print(np.argmax(model.predictions(image[:, :, ::-1])), label)
+   print(np.argmax(model.forward_one(image[:, :, ::-1])), label)
 
 PyTorch: ResNet18
 -----------------
@@ -45,7 +45,7 @@ of this document.
 
    image, label = foolbox.utils.imagenet_example(data_format='channels_first')
    image = image / 255
-   print(np.argmax(model.predictions(image)), label)
+   print(np.argmax(model.forward_one(image)), label)
 
 TensorFlow: VGG19
 -----------------
@@ -78,7 +78,7 @@ of the TensorFlow session created by Foolbox internally if no default session is
 
     with foolbox.models.TensorFlowModel(images, logits, (0, 255)) as model:
         restorer.restore(model.session, '/path/to/vgg_19.ckpt')
-        print(np.argmax(model.predictions(image)))
+        print(np.argmax(model.forward_one(image)))
 
 Option 2
 ^^^^^^^^
@@ -90,7 +90,7 @@ This option is recommended if you want to create the TensorFlow session yourself
     with tf.Session() as session:
         restorer.restore(session, '/path/to/vgg_19.ckpt')
         model = foolbox.models.TensorFlowModel(images, logits, (0, 255))
-        print(np.argmax(model.predictions(image)))
+        print(np.argmax(model.forward_one(image)))
 
 Option 3
 ^^^^^^^^
@@ -102,7 +102,7 @@ This option is recommended if you want to avoid nesting context managers, e.g. d
     session = tf.InteractiveSession()
     restorer.restore(session, '/path/to/vgg_19.ckpt')
     model = foolbox.models.TensorFlowModel(images, logits, (0, 255))
-    print(np.argmax(model.predictions(image)))
+    print(np.argmax(model.forward_one(image)))
     session.close()
 
 Option 4
@@ -116,7 +116,7 @@ This is possible, but usually one of the other options should be preferred.
     with session.as_default():
         restorer.restore(session, '/path/to/vgg_19.ckpt')
         model = foolbox.models.TensorFlowModel(images, logits, (0, 255))
-        print(np.argmax(model.predictions(image)))
+        print(np.argmax(model.forward_one(image)))
     session.close()
 
 Applying an attack
@@ -164,13 +164,13 @@ Creating an untargeted adversarial for a PyTorch model
    image = image / 255.  # because our model expects values in [0, 1]
 
    print('label', label)
-   print('predicted class', np.argmax(fmodel.predictions(image)))
+   print('predicted class', np.argmax(fmodel.forward_one(image)))
 
    # apply attack on source image
    attack = foolbox.attacks.FGSM(fmodel)
    adversarial = attack(image, label)
 
-   print('adversarial class', np.argmax(fmodel.predictions(adversarial)))
+   print('adversarial class', np.argmax(fmodel.forward_one(adversarial)))
 
 outputs
 
@@ -212,11 +212,11 @@ Creating a targeted adversarial for the Keras ResNet model
    adversarial = attack(image[:, :, ::-1], label)
 
    # show results
-   print(np.argmax(fmodel.predictions(adversarial)))
-   print(foolbox.utils.softmax(fmodel.predictions(adversarial))[781])
+   print(np.argmax(fmodel.forward_one(adversarial)))
+   print(foolbox.utils.softmax(fmodel.forward_one(adversarial))[781])
    adversarial_rgb = adversarial[np.newaxis, :, :, ::-1]
    preds = kmodel.predict(preprocess_input(adversarial_rgb.copy()))
-   print("Top 5 predictions (adversarial: ", decode_predictions(preds, top=5))
+   print("Top 5 predictions (adversarial: ", decode_forward_one(preds, top=5))
 
 outputs
 

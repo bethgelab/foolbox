@@ -51,7 +51,7 @@ Finally, we can create and apply the attack:
    attack = LBFGSAttack(model, criterion)
 
    image = np.asarray(Image.open('example.jpg'))
-   label = np.argmax(model.predictions(image))
+   label = np.argmax(model.forward_one(image))
 
    adversarial = attack(image, label=label)
 

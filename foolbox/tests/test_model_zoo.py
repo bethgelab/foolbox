@@ -36,7 +36,7 @@ def test_loading_model(url, dim):
     x[:] = np.random.randn(*x.shape)
 
     # run the model
-    logits = model.predictions(x)
+    logits = model.forward_one(x)
     probabilities = foolbox.utils.softmax(logits)
     predicted_class = np.argmax(logits)
 

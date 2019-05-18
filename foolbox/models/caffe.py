@@ -62,12 +62,12 @@ class CaffeModel(DifferentiableModel):
 
     def gradient(self, inputs, labels):
         if inputs.shape[0] == labels.shape[0] == 1:
-            _, g = self.predictions_and_gradient(inputs[0], labels[0])
+            _, g = self.forward_and_gradient_one(inputs[0], labels[0])
             return g[np.newaxis]
         raise NotImplementedError
 
     def _loss_fn(self, x, label):
-        logits = self.batch_predictions(x[None])
+        logits = self.forward(x[None])
         return utils.batch_crossentropy([label], logits)
 
     def _backward_one(self, gradient, x):

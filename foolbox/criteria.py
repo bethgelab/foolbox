@@ -115,7 +115,7 @@ class Criterion(ABC):
 class CombinedCriteria(Criterion):
     """Meta criterion that combines several criteria into a new one.
 
-    Considers images as adversarial that are considered adversarial
+    Considers inputs as adversarial that are considered adversarial
     by all sub-criteria that are combined by this criterion.
 
     Instead of using this class directly, it is possible to combine
@@ -165,7 +165,7 @@ class CombinedCriteria(Criterion):
 
 
 class Misclassification(Criterion):
-    """Defines adversarials as images for which the predicted class
+    """Defines adversarials as inputs for which the predicted class
     is not the original class.
 
     See Also
@@ -187,7 +187,7 @@ class Misclassification(Criterion):
 
 
 class ConfidentMisclassification(Criterion):
-    """Defines adversarials as images for which the probability
+    """Defines adversarials as inputs for which the probability
     of any class other than the original is above a given threshold.
 
     Parameters
@@ -214,7 +214,7 @@ class ConfidentMisclassification(Criterion):
 
 
 class TopKMisclassification(Criterion):
-    """Defines adversarials as images for which the original class is
+    """Defines adversarials as inputs for which the original class is
     not one of the top k predicted classes.
 
     For k = 1, the :class:`Misclassification` class provides a more
@@ -250,7 +250,7 @@ class TopKMisclassification(Criterion):
 
 
 class TargetClass(Criterion):
-    """Defines adversarials as images for which the predicted class
+    """Defines adversarials as inputs for which the predicted class
     is the given target class.
 
     Parameters
@@ -281,7 +281,7 @@ class TargetClass(Criterion):
 
 
 class OriginalClassProbability(Criterion):
-    """Defines adversarials as images for which the probability
+    """Defines adversarials as inputs for which the probability
     of the original class is below a given threshold.
 
     This criterion alone does not guarantee that the class
@@ -312,7 +312,7 @@ class OriginalClassProbability(Criterion):
 
 
 class TargetClassProbability(Criterion):
-    """Defines adversarials as images for which the probability
+    """Defines adversarials as inputs for which the probability
     of a given target class is above a given threshold.
 
     If the threshold is below 0.5, this criterion does not guarantee

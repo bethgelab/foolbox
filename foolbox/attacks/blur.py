@@ -58,6 +58,6 @@ class GaussianBlurAttack(Attack):
             blurred = gaussian_filter(image, sigmas)
             blurred = np.clip(blurred, min_, max_)
 
-            _, is_adversarial = a.predictions(blurred)
+            _, is_adversarial = a.forward_one(blurred)
             if is_adversarial:
                 return

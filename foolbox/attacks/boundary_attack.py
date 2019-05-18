@@ -314,7 +314,7 @@ class BoundaryAttack(Attack):
 
         # ===========================================================
         # Iteratively refine adversarial by following the boundary
-        # between adversarial and non-adversarial images
+        # between adversarial and non-adversarial inputs
         # ===========================================================
 
         generation_args = None
@@ -474,7 +474,7 @@ class BoundaryAttack(Attack):
                 # check spherical ones
                 if do_spherical:
                     t = time.time()
-                    _, batch_is_adversarial = a.batch_predictions(
+                    _, batch_is_adversarial = a.forward(
                         spherical_candidates.astype(external_dtype),
                         strict=False)
                     t = time.time() - t
@@ -506,7 +506,7 @@ class BoundaryAttack(Attack):
                     assert candidates.shape == reduced_shape
 
                     t = time.time()
-                    _, batch_is_adversarial = a.batch_predictions(
+                    _, batch_is_adversarial = a.forward(
                         candidates.astype(external_dtype),
                         strict=False)
                     t = time.time() - t
@@ -535,7 +535,7 @@ class BoundaryAttack(Attack):
                     # check if one of the candidates is adversarial
                     t = time.time()
                     _, is_adversarial, adv_index, is_best, candidate_distance \
-                        = a.batch_predictions(
+                        = a.forward(
                             candidates.astype(external_dtype), greedy=True,
                             strict=False, return_details=True)
                     t = time.time() - t
@@ -647,7 +647,7 @@ class BoundaryAttack(Attack):
             return
 
         if starting_point is not None:
-            a.predictions(starting_point)
+            a.forward_one(starting_point)
             assert a.perturbed is not None, ('Invalid starting point provided.'
                                          ' Please provide a starting point'
                                          ' that is adversarial.')
@@ -922,7 +922,7 @@ class BoundaryAttack(Attack):
             for i in range(n):
                 t = time.time()
                 _, is_adversarial, adv_index, is_best, candidate_distance \
-                    = a.batch_predictions(
+                    = a.forward(
                         batch.astype(external_dtype), greedy=True,
                         strict=False, return_details=True)
                 t = time.time() - t
@@ -931,7 +931,7 @@ class BoundaryAttack(Attack):
                 self.stats_prediction_calls[batch_size - 1] += 1
 
                 t = time.time()
-                _, _ = a.batch_predictions(
+                _, _ = a.forward(
                     batch.astype(external_dtype), strict=False)
                 t = time.time() - t
 

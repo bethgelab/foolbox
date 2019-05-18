@@ -52,7 +52,7 @@ class Model(ABC):
 
     The :class:`Model` class represents a model and provides a
     unified interface to its predictions. Subclasses must implement
-    batch_predictions and num_classes.
+    forward and num_classes.
 
     :class:`Model` instances can be used as context managers and subclasses
     can require this to allocate and release resources.

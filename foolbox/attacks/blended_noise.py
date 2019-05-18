@@ -38,7 +38,7 @@ class BlendedUniformNoiseAttack(Attack):
             Either Iterable of blending steps or number of blending steps
             between 0 and 1 that should be tried.
         max_directions : int
-            Maximum number of random images to try.
+            Maximum number of random inputs to try.
 
         """
 
@@ -55,12 +55,12 @@ class BlendedUniformNoiseAttack(Attack):
                           ' previously found adversarial.')
 
         for j in range(max_directions):
-            # random noise images tend to be classified into the same class,
+            # random noise inputs tend to be classified into the same class,
             # so we might need to make very many draws if the original class
             # is that one
             random_image = nprng.uniform(
                 min_, max_, size=image.shape).astype(image.dtype)
-            _, is_adversarial = a.predictions(random_image)
+            _, is_adversarial = a.forward_one(random_image)
             if is_adversarial:
                 logging.info('Found adversarial image after {} '
                              'attempts'.format(j + 1))
@@ -80,6 +80,6 @@ class BlendedUniformNoiseAttack(Attack):
             if not a.in_bounds(perturbed):  # pragma: no cover
                 np.clip(perturbed, min_, max_, out=perturbed)
 
-            _, is_adversarial = a.predictions(perturbed)
+            _, is_adversarial = a.forward_one(perturbed)
             if is_adversarial:
                 return

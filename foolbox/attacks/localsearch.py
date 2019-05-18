@@ -62,7 +62,7 @@ class SinglePixelAttack(Attack):
                 perturbed = image.copy()
                 perturbed[location] = value
 
-                _, is_adv = a.predictions(perturbed)
+                _, is_adv = a.forward_one(perturbed)
                 if is_adv:
                     return
 
@@ -196,7 +196,7 @@ class LocalSearchAttack(Attack):
             def score(Its):
                 Its = np.stack(Its)
                 Its = unnormalize(Its)
-                batch_logits, _ = a.batch_predictions(Its, strict=False)
+                batch_logits, _ = a.forward(Its, strict=False)
                 scores = [softmax(logits)[cI] for logits in batch_logits]
                 return scores
 
@@ -215,7 +215,7 @@ class LocalSearchAttack(Attack):
                     Ii[location] = cyclic(r, Ii[location])
 
             # Check whether the perturbed image Ii is an adversarial image
-            _, is_adv = a.predictions(unnormalize(Ii))
+            _, is_adv = a.forward_one(unnormalize(Ii))
             if is_adv:  # pragma: no cover
                 return
 

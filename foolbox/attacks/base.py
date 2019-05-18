@@ -29,10 +29,10 @@ class Attack(ABC):
         The model that should be fooled by the adversarial.
         Ignored if the attack is called with an :class:`Adversarial` instance.
     criterion : a :class:`Criterion` instance
-        The criterion that determines which images are adversarial.
+        The criterion that determines which inputs are adversarial.
         Ignored if the attack is called with an :class:`Adversarial` instance.
     distance : a :class:`Distance` class
-        The measure used to quantify similarity between images.
+        The measure used to quantify similarity between inputs.
         Ignored if the attack is called with an :class:`Adversarial` instance.
     threshold : float or :class:`Distance`
         If not None, the attack will stop as soon as the adversarial

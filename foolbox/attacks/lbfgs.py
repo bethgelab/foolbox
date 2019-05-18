@@ -101,7 +101,7 @@ class LBFGSAttack(Attack):
                     num_random_targets = 1
                     logging.warning('Using GradientAttack to determine a target class failed, falling back to a random target class')  # noqa: E501
                 else:
-                    logits, _ = a.predictions(adv_img)
+                    logits, _ = a.forward_one(adv_img)
                     target_class = np.argmax(logits)
                     target_classes = [target_class]
                     logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))  # noqa: E501
@@ -162,7 +162,7 @@ class LBFGSAttack(Attack):
             def crossentropy(x):
                 # lbfgs with approx grad does not seem to respect the bounds
                 # setting strict to False
-                logits, _ = a.predictions(x.reshape(shape), strict=False)
+                logits, _ = a.forward_one(x.reshape(shape), strict=False)
                 ce = utils_ce(logits=logits, label=target_class)
                 return ce
 
@@ -179,7 +179,7 @@ class LBFGSAttack(Attack):
                 return d.value, d.gradient.reshape(-1)
 
             def crossentropy(x):
-                logits, gradient, _ = a.predictions_and_gradient(
+                logits, gradient, _ = a.forward_and_gradient_one(
                     x.reshape(shape), target_class, strict=False)
                 gradient = gradient.reshape(-1)
                 ce = utils_ce(logits=logits, label=target_class)
@@ -214,7 +214,7 @@ class LBFGSAttack(Attack):
                 logging.info('Image out of bounds (min, max = {}, {}). Performing manual clip.'.format(np.amin(x), np.amax(x)))  # noqa: E501
                 x = np.clip(x, min_, max_)
 
-            _, is_adversarial = a.predictions(x.reshape(shape).astype(dtype))
+            _, is_adversarial = a.forward_one(x.reshape(shape).astype(dtype))
             return is_adversarial
 
         # finding initial c

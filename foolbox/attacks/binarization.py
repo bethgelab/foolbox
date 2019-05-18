@@ -115,7 +115,7 @@ class BinarizationRefinementAttack(Attack):
 
         logging.info('distance before the {}: {}'.format(
             self.__class__.__name__, a.distance))
-        _, is_adversarial = a.predictions(p)
+        _, is_adversarial = a.forward_one(p)
         assert is_adversarial, ('The specified thresholding does not'
                                 ' match what is done by the model.')
         logging.info('distance after the {}: {}'.format(
@@ -132,7 +132,7 @@ class BinarizationRefinementAttack(Attack):
             return
 
         if starting_point is not None:
-            a.predictions(starting_point)
+            a.forward_one(starting_point)
             assert a.perturbed is not None, ('Invalid starting point provided.'
                                          ' Please provide a starting point'
                                          ' that is adversarial.')

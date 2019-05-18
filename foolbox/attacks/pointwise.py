@@ -87,7 +87,7 @@ class PointwiseAttack(Attack):
                 x[index] = new_value
 
                 # check if still adversarial
-                _, is_adversarial = a.predictions(x.reshape(shape))
+                _, is_adversarial = a.forward_one(x.reshape(shape))
 
                 # if adversarial, restart from there
                 if is_adversarial:
@@ -122,7 +122,7 @@ class PointwiseAttack(Attack):
                 x[index] = original_value
 
                 # check if still adversarial
-                _, is_adversarial = a.predictions(x.reshape(shape))
+                _, is_adversarial = a.forward_one(x.reshape(shape))
 
                 # if adversarial, no binary search needed
                 if is_adversarial:  # pragma: no cover
@@ -154,7 +154,7 @@ class PointwiseAttack(Attack):
         for i in range(10):
             next_value = (adv_value + non_adv_value) / 2
             x[index] = next_value
-            _, is_adversarial = a.predictions(x.reshape(shape))
+            _, is_adversarial = a.forward_one(x.reshape(shape))
             if is_adversarial:
                 adv_value = next_value
             else:
@@ -177,7 +177,7 @@ class PointwiseAttack(Attack):
             return
 
         if starting_point is not None:
-            a.predictions(starting_point)
+            a.forward_one(starting_point)
             assert a.perturbed is not None, ('Invalid starting point provided.'
                                          ' Please provide a starting point'
                                          ' that is adversarial.')

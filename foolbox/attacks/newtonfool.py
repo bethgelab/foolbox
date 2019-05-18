@@ -62,7 +62,7 @@ class NewtonFoolAttack(Attack):
 
             # (1) get the score and gradients
             logits, gradients, is_adversarial = \
-                a.predictions_and_gradient(perturbed_image)
+                a.forward_and_gradient_one(perturbed_image)
 
             if is_adversarial:
                 return

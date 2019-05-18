@@ -67,4 +67,4 @@ class PrecomputedImagesAttack(Attack):
 
         image = a.unperturbed
         adversarial = self._get_output(a, image)
-        a.predictions(adversarial)
+        a.forward_one(adversarial)

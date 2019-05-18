@@ -232,7 +232,7 @@ class ADefAttack(Attack):
         # class and pass this index to ind_of_candidates (not the actual
         # target).
         if targeted:
-            logits, _ = a.predictions(perturbed)
+            logits, _ = a.forward_one(perturbed)
             pred_sorted = (-logits).argsort()
             index_of_target_class, = np.where(pred_sorted == target_class)
             ind_of_candidates = index_of_target_class
@@ -254,7 +254,7 @@ class ADefAttack(Attack):
               if i != color_axis]
         h, w = hw
 
-        logits, is_adv = a.predictions(perturbed)
+        logits, is_adv = a.forward_one(perturbed)
 
         # Indices of the 'num_classes' highest values in descending order:
         candidates = np.argsort(-logits)[ind_of_candidates]
@@ -272,9 +272,9 @@ class ADefAttack(Attack):
 
         for step in range(max_iter):
             n += 1
-            _, is_adv = a.predictions(perturbed)
+            _, is_adv = a.forward_one(perturbed)
             if is_adv:
-                a.predictions(perturbed)
+                a.forward_one(perturbed)
                 logging.info(
                     'Image successfully deformed from {} to {}'.format(
                         original_label, current_label))
@@ -286,7 +286,7 @@ class ADefAttack(Attack):
             logits_for_grad = np.zeros_like(logits)
             logits_for_grad[original_label] = 1
 
-            grad_original = a.backward(logits_for_grad, perturbed)
+            grad_original = a.backward_one(logits_for_grad, perturbed)
 
             # Find vector fields for the image and each candidate label.
             # Keep the smallest vector field for each image.
@@ -300,7 +300,7 @@ class ADefAttack(Attack):
                 logits_for_grad[target_label] = 1
 
                 # gradient of the target label w.r.t. image
-                grad_target = a.backward(logits_for_grad, perturbed)
+                grad_target = a.backward_one(logits_for_grad, perturbed)
 
                 # Derivative of the binary classifier 'F_lab - F_orig'
                 dfx = grad_target - grad_original
@@ -331,7 +331,7 @@ class ADefAttack(Attack):
             norm_full = norm_min
 
             # getting the current label after applying the vector field
-            logits, _ = a.predictions(perturbed)
+            logits, _ = a.forward_one(perturbed)
             current_label = np.argmax(logits)
             fx = logits - logits[current_label]
 
@@ -339,11 +339,11 @@ class ADefAttack(Attack):
             logging.info('Current label: {} '.format(current_label))
             logging.info('Norm vector field: {} '.format(norm_full))
 
-        logits, _ = a.predictions(perturbed)
+        logits, _ = a.forward_one(perturbed)
         current_label = np.argmax(logits)
         logging.info('{} -> {}'.format(original_label, current_label))
 
-        a.predictions(perturbed)
+        a.forward_one(perturbed)
 
         self.vector_field = vec_field_full
         return

@@ -35,7 +35,7 @@ class SingleStepGradientBaseAttack(Attack):
                 perturbed = image + gradient * epsilon
                 perturbed = np.clip(perturbed, min_, max_)
 
-                _, is_adversarial = a.predictions(perturbed)
+                _, is_adversarial = a.forward_one(perturbed)
                 if is_adversarial:
                     if decrease_if_first and i < 20:
                         logging.info('repeating attack with smaller epsilons')
@@ -91,7 +91,7 @@ class GradientAttack(SingleStepGradientBaseAttack):
 
     def _gradient(self, a):
         min_, max_ = a.bounds()
-        gradient = a.gradient()
+        gradient = a.gradient_one()
         gradient_norm = np.sqrt(np.mean(np.square(gradient)))
         gradient = gradient / (gradient_norm + 1e-8) * (max_ - min_)
         return gradient
@@ -149,7 +149,7 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
 
     def _gradient(self, a):
         min_, max_ = a.bounds()
-        gradient = a.gradient()
+        gradient = a.gradient_one()
         gradient = np.sign(gradient) * (max_ - min_)
         return gradient
 

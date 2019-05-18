@@ -126,7 +126,7 @@ class SpatialAttack(Attack):
             x = np.clip(x, min_, max_)
 
             # test image
-            _, is_adv = a.predictions(x)
+            _, is_adv = a.forward_one(x)
 
             if abort_early and is_adv:
                 break

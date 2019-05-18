@@ -30,7 +30,7 @@ def test_attack_continue(bn_adversarial):
     np.random.seed(2)
     starting_point = np.random.uniform(
         0, 1, size=o.shape).astype(o.dtype)
-    adv.predictions(starting_point)
+    adv.forward_one(starting_point)
     assert adv.perturbed is not None
     attack(adv)
     assert adv.perturbed is not None

@@ -163,7 +163,7 @@ class BoundaryAttackPlusPlus(Attack):
         # ===========================================================
         # Construct batch decision function with binary output.
         # ===========================================================
-        # decision_function = lambda x: a.batch_predictions(
+        # decision_function = lambda x: a.forward(
         #     x.astype(self.external_dtype), strict=False)[1]
         def decision_function(x):
             outs = []
@@ -172,7 +172,7 @@ class BoundaryAttackPlusPlus(Attack):
                 current_batch = x[self.batch_size * j:
                                   self.batch_size * (j + 1)]
                 current_batch = current_batch.astype(self.external_dtype)
-                out = a.batch_predictions(current_batch, strict=False)[1]
+                out = a.forward(current_batch, strict=False)[1]
                 outs.append(out)
             outs = np.concatenate(outs, axis=0)
             return outs
@@ -337,7 +337,7 @@ class BoundaryAttackPlusPlus(Attack):
             return
 
         if starting_point is not None:
-            a.predictions(starting_point)
+            a.forward_one(starting_point)
             assert a.perturbed is not None, ('Invalid starting point provided.'
                                          ' Please provide a starting point'
                                          ' that is adversarial.')
@@ -354,7 +354,7 @@ class BoundaryAttackPlusPlus(Attack):
         while True:
             random_noise = np.random.uniform(self.clip_min, self.clip_max,
                                              size=self.shape)
-            _, success = a.predictions(
+            _, success = a.forward_one(
                 random_noise.astype(self.external_dtype))
             num_evals += 1
             if success:
@@ -368,7 +368,7 @@ class BoundaryAttackPlusPlus(Attack):
         while high - low > 0.001:
             mid = (high + low) / 2.0
             blended = (1 - mid) * a.unperturbed + mid * random_noise
-            _, success = a.predictions(blended.astype(self.external_dtype))
+            _, success = a.forward_one(blended.astype(self.external_dtype))
             if success:
                 high = mid
             else:
@@ -385,22 +385,22 @@ class BoundaryAttackPlusPlus(Attack):
         with upper and lower threshold. """
         return np.minimum(np.maximum(clip_min, image), clip_max)
 
-    def project(self, unperturbed, perturbed_images, alphas):
+    def project(self, unperturbed, perturbed_inputs, alphas):
         """ Projection onto given l2 / linf balls in a batch. """
         alphas_shape = [len(alphas)] + [1] * len(self.shape)
         alphas = alphas.reshape(alphas_shape)
         if self.constraint == 'l2':
             projected = (1 - alphas) * unperturbed + \
-                alphas * perturbed_images
+                alphas * perturbed_inputs
         elif self.constraint == 'linf':
             projected = self.clip_image(
-                perturbed_images,
+                perturbed_inputs,
                 unperturbed - alphas,
                 unperturbed + alphas
             )
         return projected
 
-    def binary_search_batch(self, unperturbed, perturbed_images,
+    def binary_search_batch(self, unperturbed, perturbed_inputs,
                             decision_function):
         """ Binary search to approach the boundary. """
 
@@ -408,7 +408,7 @@ class BoundaryAttackPlusPlus(Attack):
         dists_post_update = np.array(
             [self.compute_distance(unperturbed,
                                    perturbed_image) for perturbed_image in
-             perturbed_images])
+             perturbed_inputs])
 
         # Choose upper thresholds in binary searchs based on constraint.
         if self.constraint == 'linf':
@@ -417,24 +417,24 @@ class BoundaryAttackPlusPlus(Attack):
             thresholds = np.minimum(dists_post_update * self.theta,
                                     self.theta)
         else:
-            highs = np.ones(len(perturbed_images))
+            highs = np.ones(len(perturbed_inputs))
             thresholds = self.theta
 
-        lows = np.zeros(len(perturbed_images))
+        lows = np.zeros(len(perturbed_inputs))
 
         # Call recursive function.
         while np.max((highs - lows) / thresholds) > 1:
             # projection to mids.
             mids = (highs + lows) / 2.0
-            mid_images = self.project(unperturbed, perturbed_images,
+            mid_inputs = self.project(unperturbed, perturbed_inputs,
                                       mids)
 
             # Update highs and lows based on model decisions.
-            decisions = decision_function(mid_images)
+            decisions = decision_function(mid_inputs)
             lows = np.where(decisions == 0, mids, lows)
             highs = np.where(decisions == 1, mids, highs)
 
-        out_images = self.project(unperturbed, perturbed_images,
+        out_inputs = self.project(unperturbed, perturbed_inputs,
                                   highs)
 
         # Compute distance of the output image to select the best choice.
@@ -444,11 +444,11 @@ class BoundaryAttackPlusPlus(Attack):
                 unperturbed,
                 out_image
             )
-            for out_image in out_images])
+            for out_image in out_inputs])
         idx = np.argmin(dists)
 
         dist = dists_post_update[idx]
-        out_image = out_images[idx]
+        out_image = out_inputs[idx]
         return out_image, dist
 
     def select_delta(self, dist_post_update, current_iteration):

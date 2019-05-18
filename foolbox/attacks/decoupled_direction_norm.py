@@ -76,7 +76,7 @@ class DecoupledDirectionNormL2Attack(Attack):
 
         for i in range(steps):
 
-            logits, grad, is_adv = a.predictions_and_gradient(
+            logits, grad, is_adv = a.forward_and_gradient_one(
                 image=unperturbed + perturbation,
                 label=attack_class, strict=True)
 

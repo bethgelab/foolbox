@@ -48,6 +48,6 @@ class ContrastReductionAttack(Attack):
         for epsilon in epsilons:
             perturbed = (1 - epsilon) * image + epsilon * target
 
-            _, is_adversarial = a.predictions(perturbed)
+            _, is_adversarial = a.forward_one(perturbed)
             if is_adversarial:
                 return

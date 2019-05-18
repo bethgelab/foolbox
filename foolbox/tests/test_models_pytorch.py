@@ -33,20 +33,20 @@ def test_pytorch_model(num_classes):
     test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
     test_label = 7
 
-    assert model.batch_predictions(test_images).shape \
+    assert model.forward(test_images).shape \
         == (2, num_classes)
 
-    test_logits = model.predictions(test_images[0])
+    test_logits = model.forward_one(test_images[0])
     assert test_logits.shape == (num_classes,)
 
     test_gradient = model.gradient(test_images[0], test_label)
     assert test_gradient.shape == test_images[0].shape
 
     np.testing.assert_almost_equal(
-        model.predictions_and_gradient(test_images[0], test_label)[0],
+        model.forward_and_gradient_one(test_images[0], test_label)[0],
         test_logits)
     np.testing.assert_almost_equal(
-        model.predictions_and_gradient(test_images[0], test_label)[1],
+        model.forward_and_gradient_one(test_images[0], test_label)[1],
         test_gradient)
 
     assert model.num_classes() == num_classes
@@ -95,14 +95,14 @@ def test_pytorch_model_preprocessing():
     test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
     test_images_copy = test_images.copy()
 
-    p1 = model1.batch_predictions(test_images)
-    p2 = model2.batch_predictions(test_images)
+    p1 = model1.forward(test_images)
+    p2 = model2.forward(test_images)
 
     # make sure the images have not been changed by
     # the in-place preprocessing
     assert np.all(test_images == test_images_copy)
 
-    p3 = model3.batch_predictions(test_images)
+    p3 = model3.forward(test_images)
 
     assert p1.shape == p2.shape == p3.shape == (2, num_classes)
 
@@ -147,7 +147,7 @@ def test_pytorch_model_gradient():
     test_image = np.random.rand(channels, 5, 5).astype(np.float32)
     test_label = 7
 
-    _, g1 = model.predictions_and_gradient(test_image, test_label)
+    _, g1 = model.forward_and_gradient_one(test_image, test_label)
 
     l1 = model._loss_fn(test_image - epsilon / 2 * g1, test_label)
     l2 = model._loss_fn(test_image + epsilon / 2 * g1, test_label)
@@ -254,13 +254,13 @@ def test_pytorch_model_preprocessing_shape_change():
     test_images_nhwc = np.random.rand(2, 5, 5, channels).astype(np.float32)
     test_images_nchw = np.transpose(test_images_nhwc, (0, 3, 1, 2))
 
-    p1 = model1.batch_predictions(test_images_nchw)
-    p2 = model2.batch_predictions(test_images_nhwc)
+    p1 = model1.forward(test_images_nchw)
+    p2 = model2.forward(test_images_nhwc)
 
     assert np.all(p1 == p2)
 
-    p1 = model1.predictions(test_images_nchw[0])
-    p2 = model2.predictions(test_images_nhwc[0])
+    p1 = model1.forward_one(test_images_nchw[0])
+    p2 = model2.forward_one(test_images_nhwc[0])
 
     assert np.all(p1 == p2)
 

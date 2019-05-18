@@ -53,7 +53,7 @@ class AdditiveNoiseAttack(Attack):
             perturbed = image + epsilon * noise
             perturbed = np.clip(perturbed, min_, max_)
 
-            _, is_adversarial = a.predictions(perturbed)
+            _, is_adversarial = a.forward_one(perturbed)
             if is_adversarial:
                 return
 

@@ -40,7 +40,7 @@ class IterativeGradientBaseAttack(Attack):
                 perturbed = perturbed + gradient * epsilon
                 perturbed = np.clip(perturbed, min_, max_)
 
-                a.predictions(perturbed)
+                a.forward_one(perturbed)
                 # we don't return early if an adversarial was found
                 # because there might be a different epsilon
                 # and/or step that results in a better adversarial
@@ -89,7 +89,7 @@ class IterativeGradientAttack(IterativeGradientBaseAttack):
 
     def _gradient(self, a, x):
         min_, max_ = a.bounds()
-        gradient = a.gradient(x)
+        gradient = a.gradient_one(x)
         gradient_norm = np.sqrt(np.mean(np.square(gradient)))
         gradient = gradient / (gradient_norm + 1e-8) * (max_ - min_)
         return gradient
@@ -138,6 +138,6 @@ class IterativeGradientSignAttack(IterativeGradientBaseAttack):
 
     def _gradient(self, a, x):
         min_, max_ = a.bounds()
-        gradient = a.gradient(x)
+        gradient = a.gradient_one(x)
         gradient = np.sign(gradient) * (max_ - min_)
         return gradient

@@ -58,7 +58,7 @@ class SLSQPAttack(Attack):
 
         def eq_constraint(x, *args):
             """Equality constraint"""
-            _, is_adv = a.predictions(x.reshape(shape).astype(dtype))
+            _, is_adv = a.forward_one(x.reshape(shape).astype(dtype))
             if is_adv:
                 return 0.
             else:
@@ -80,4 +80,4 @@ class SLSQPAttack(Attack):
             constraints=constraints,
             options=options)
 
-        a.predictions(result.x.reshape(shape).astype(dtype))
+        a.forward_one(result.x.reshape(shape).astype(dtype))

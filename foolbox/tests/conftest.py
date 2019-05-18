@@ -69,12 +69,12 @@ def model(image):
     predictions = np.array([1., 0., 0.5] * 111 + [2.] + [0.3, 0.5, 1.1] * 222)
     model = Mock()
     model.bounds = Mock(return_value=(0, 255))
-    model.predictions = Mock(return_value=predictions)
-    model.batch_predictions = Mock(return_value=predictions[np.newaxis])
+    model.forward_one = Mock(return_value=predictions)
+    model.forward = Mock(return_value=predictions[np.newaxis])
     gradient = image
-    model.predictions_and_gradient = Mock(return_value=(predictions, gradient))  # noqa: E501
-    model.gradient = Mock(return_value=gradient)
-    model.backward = Mock(return_value=gradient)
+    model.forward_and_gradient = Mock(return_value=(predictions, gradient))  # noqa: E501
+    model.gradient_one = Mock(return_value=gradient)
+    model.backward_one = Mock(return_value=gradient)
     model.num_classes = Mock(return_value=1000)
     model.channel_axis = Mock(return_value=3)
     return model

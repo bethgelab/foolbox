@@ -1,5 +1,5 @@
 """
-Provides classes to measure the distance between images.
+Provides classes to measure the distance between inputs.
 
 Distances
 ---------
@@ -119,7 +119,7 @@ class Distance(ABC):
 
 
 class MeanSquaredDistance(Distance):
-    """Calculates the mean squared error between two images.
+    """Calculates the mean squared error between two inputs.
 
     """
 
@@ -151,7 +151,7 @@ MSE = MeanSquaredDistance
 
 
 class MeanAbsoluteDistance(Distance):
-    """Calculates the mean absolute error between two images.
+    """Calculates the mean absolute error between two inputs.
 
     """
 
@@ -171,7 +171,7 @@ MAE = MeanAbsoluteDistance
 
 
 class Linfinity(Distance):
-    """Calculates the L-infinity norm of the difference between two images.
+    """Calculates the L-infinity norm of the difference between two inputs.
 
     """
 
@@ -194,7 +194,7 @@ Linf = Linfinity
 
 
 class L0(Distance):
-    """Calculates the L0 norm of the difference between two images.
+    """Calculates the L0 norm of the difference between two inputs.
 
     """
 
