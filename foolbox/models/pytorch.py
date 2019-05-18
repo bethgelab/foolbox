@@ -63,38 +63,21 @@ class PyTorchModel(DifferentiableModel):
                 ' not be deterministic. Call the eval() method to set it in'
                 ' evaluation mode if this is not intended.')
 
-    def _old_pytorch(self):
-        # lazy import
-        import torch
-        version = torch.__version__.split('.')[:2]
-        pre04 = int(version[0]) == 0 and int(version[1]) < 4
-        return pre04
-
     def batch_predictions(self, images):
         # lazy import
         import torch
-        if self._old_pytorch():  # pragma: no cover
-            from torch.autograd import Variable
 
         images, _ = self._process_input(images)
         n = len(images)
         images = torch.from_numpy(images).to(self.device)
 
-        if self._old_pytorch():  # pragma: no cover
-            images = Variable(images, volatile=True)
-            predictions = self._model(images)
-            predictions = predictions.data
-        else:
-            predictions = self._model(images)
-            # TODO: add no_grad once we have a solution
-            # for models that require grads internally
-            # for inference
-            # with torch.no_grad():
-            #     predictions = self._model(images)
-        predictions = predictions.to("cpu")
-        if not self._old_pytorch():
-            predictions = predictions.detach()
-        predictions = predictions.numpy()
+        predictions = self._model(images)
+        # TODO: add no_grad once we have a solution
+        # for models that require grads internally
+        # for inference
+        # with torch.no_grad():
+        #     predictions = self._model(images)
+        predictions = predictions.detach().cpu().numpy()
         assert predictions.ndim == 2
         assert predictions.shape == (n, self.num_classes())
         return predictions
@@ -106,8 +89,6 @@ class PyTorchModel(DifferentiableModel):
         # lazy import
         import torch
         import torch.nn as nn
-        if self._old_pytorch():  # pragma: no cover
-            from torch.autograd import Variable
 
         input_shape = image.shape
         image, dpdx = self._process_input(image)
@@ -116,12 +97,7 @@ class PyTorchModel(DifferentiableModel):
 
         images = image[np.newaxis]
         images = torch.from_numpy(images).to(self.device)
-
-        if self._old_pytorch():  # pragma: no cover
-            target = Variable(target)
-            images = Variable(images, requires_grad=True)
-        else:
-            images.requires_grad_()
+        images.requires_grad_()
 
         predictions = self._model(images)
         ce = nn.CrossEntropyLoss()
@@ -129,23 +105,12 @@ class PyTorchModel(DifferentiableModel):
         loss.backward()
         grad = images.grad
 
-        if self._old_pytorch():  # pragma: no cover
-            predictions = predictions.data
-        predictions = predictions.to("cpu")
-
-        if not self._old_pytorch():
-            predictions = predictions.detach()
-        predictions = predictions.numpy()
+        predictions = predictions.detach().cpu().numpy()
         predictions = np.squeeze(predictions, axis=0)
         assert predictions.ndim == 1
         assert predictions.shape == (self.num_classes(),)
 
-        if self._old_pytorch():  # pragma: no cover
-            grad = grad.data
-        grad = grad.to("cpu")
-        if not self._old_pytorch():
-            grad = grad.detach()
-        grad = grad.numpy()
+        grad = grad.detach().cpu().numpy()
         grad = np.squeeze(grad, axis=0)
         grad = self._process_gradient(dpdx, grad)
         assert grad.shape == input_shape
@@ -156,33 +121,20 @@ class PyTorchModel(DifferentiableModel):
         # lazy import
         import torch
         import torch.nn as nn
-        if self._old_pytorch():  # pragma: no cover
-            from torch.autograd import Variable
 
         input_shape = images.shape
         images, dpdx = self._process_input(images)
         target = np.asarray(labels)
         target = torch.from_numpy(labels).long().to(self.device)
         images = torch.from_numpy(images).to(self.device)
-
-        if self._old_pytorch():  # pragma: no cover
-            target = Variable(target)
-            images = Variable(images, requires_grad=True)
-        else:
-            images.requires_grad_()
+        images.requires_grad_()
 
         predictions = self._model(images)
         ce = nn.CrossEntropyLoss()
         loss = ce(predictions, target)
         loss.backward()
         grad = images.grad
-
-        if self._old_pytorch():  # pragma: no cover
-            grad = grad.data
-        grad = grad.to("cpu")
-        if not self._old_pytorch():
-            grad = grad.detach()
-        grad = grad.numpy()
+        grad = grad.detach().cpu().numpy()
         grad = self._process_gradient(dpdx, grad)
         assert grad.shape == input_shape
         return grad
@@ -191,66 +143,39 @@ class PyTorchModel(DifferentiableModel):
         # lazy import
         import torch
         import torch.nn as nn
-        if self._old_pytorch():  # pragma: no cover
-            from torch.autograd import Variable
 
         image, _ = self._process_input(image)
         target = np.array([label])
         target = torch.from_numpy(target).long().to(self.device)
-        if self._old_pytorch():  # pragma: no cover
-            target = Variable(target)
-
         images = torch.from_numpy(image[None]).to(self.device)
-        if self._old_pytorch():  # pragma: no cover
-            images = Variable(images, volatile=True)
         predictions = self._model(images)
         ce = nn.CrossEntropyLoss()
         loss = ce(predictions, target)
-        if self._old_pytorch():  # pragma: no cover
-            loss = loss.data
-        loss = loss.to("cpu")
-        loss = loss.numpy()
+        loss = loss.cpu().numpy()
         return loss
 
     def batch_backward(self, gradients, images):
         # lazy import
         import torch
-        if self._old_pytorch():  # pragma: no cover
-            from torch.autograd import Variable
 
         assert gradients.ndim == 2
 
         gradients = torch.from_numpy(gradients).to(self.device)
-        if self._old_pytorch():  # pragma: no cover
-            gradients = Variable(gradients)
 
         input_shape = images.shape
         images, dpdx = self._process_input(images)
         images = torch.from_numpy(images).to(self.device)
-        if self._old_pytorch():  # pragma: no cover
-            images = Variable(images, requires_grad=True)
-        else:
-            images.requires_grad_()
+        images.requires_grad_()
         predictions = self._model(images)
 
         assert gradients.dim() == 2
         assert predictions.dim() == 2
         assert gradients.size() == predictions.size()
 
-        # loss = torch.dot(predictions, gradients)
-        # loss.backward()
-        # should be the same as predictions.backward(gradient=gradients)
         predictions.backward(gradient=gradients)
 
         grad = images.grad
-
-        if self._old_pytorch():  # pragma: no cover
-            grad = grad.data
-        grad = grad.to("cpu")
-        if not self._old_pytorch():
-            grad = grad.detach()
-        grad = grad.numpy()
+        grad = grad.detach().cpu().numpy()
         grad = self._process_gradient(dpdx, grad)
         assert grad.shape == input_shape
-
         return grad
