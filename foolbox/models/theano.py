@@ -11,7 +11,7 @@ class TheanoModel(DifferentiableModel):
 
     Parameters
     ----------
-    images : `theano.tensor`
+    inputs : `theano.tensor`
         The input to the model.
     logits : `theano.tensor`
         The predictions of the model, before the softmax.
@@ -31,7 +31,7 @@ class TheanoModel(DifferentiableModel):
 
     def __init__(
             self,
-            images,
+            inputs,
             logits,
             bounds,
             num_classes,
@@ -51,80 +51,72 @@ class TheanoModel(DifferentiableModel):
         import theano as th
         import theano.tensor as T
 
-        probs = T.nnet.nnet.softmax(logits)
-
         labels = T.ivector('labels')
-        loss = T.nnet.nnet.categorical_crossentropy(
-            probs, labels)
-        gradient = th.gradient.grad(loss[0], images)
+        loss = T.nnet.nnet.categorical_crossentropy(T.nnet.nnet.softmax(logits), labels).sum()
+        gradient = th.gradient.grad(loss, inputs)
 
-        bw_gradient_pre = T.fmatrix('bw_gradient_pre')
-        bw_loss = (logits * bw_gradient_pre).sum()
-        bw_gradient = th.gradient.grad(bw_loss, images)
+        backward_grad_logits = T.fmatrix('backward_grad_logits')
+        backward_loss = (logits * backward_grad_logits).sum()
+        backward_grad_inputs = th.gradient.grad(backward_loss, inputs)
 
-        self._batch_prediction_fn = th.function([images], logits)
-        self._predictions_and_gradient_fn = th.function(
-            [images, labels], [logits, gradient])
-        self._gradient_fn = th.function([images, labels], gradient)
-        self._loss_fn = th.function([images, labels], loss)
-        self._bw_gradient_fn = th.function(
-            [bw_gradient_pre, images], bw_gradient)
+        self._forward_fn = th.function([inputs], logits)
+        self._forward_and_gradient_fn = th.function([inputs, labels], [logits, gradient])
+        self._gradient_fn = th.function([inputs, labels], gradient)
+        self._backward_fn = th.function([backward_grad_logits, inputs], backward_grad_inputs)
 
-    def batch_predictions(self, images):
-        images, _ = self._process_input(images)
-        predictions = self._batch_prediction_fn(images)
-        assert predictions.shape == (images.shape[0], self.num_classes())
+    def forward(self, inputs):
+        inputs, _ = self._process_input(inputs)
+        predictions = self._forward_fn(inputs)
+        assert predictions.shape == (inputs.shape[0], self.num_classes())
         return predictions
 
-    def predictions_and_gradient(self, image, label):
-        input_shape = image.shape
-        image, dpdx = self._process_input(image)
+    def forward_and_gradient_one(self, x, label):
+        input_shape = x.shape
+        x, dpdx = self._process_input(x)
         label = np.array(label, dtype=np.int32)
-        predictions, gradient = self._predictions_and_gradient_fn(
-            image[np.newaxis], label[np.newaxis])
-        gradient = gradient.astype(image.dtype)
+        predictions, gradient = self._forward_and_gradient_fn(x[np.newaxis], label[np.newaxis])
+        gradient = gradient.astype(x.dtype)
         predictions = np.squeeze(predictions, axis=0)
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
         assert predictions.shape == (self.num_classes(),)
         assert gradient.shape == input_shape
-        assert gradient.dtype == image.dtype
+        assert gradient.dtype == x.dtype
         return predictions, gradient
 
-    def _gradient_one(self, image, label):
-        input_shape = image.shape
-        image, dpdx = self._process_input(image)
-        label = np.array(label, dtype=np.int32)
-        gradient = self._gradient_fn(image[np.newaxis], label[np.newaxis])
-        gradient = gradient.astype(image.dtype)
+    def _gradient_one(self, x, label):
+        input_shape = x.shape
+        x, dpdx = self._process_input(x)
+        label = np.asarray(label, dtype=np.int32)
+        gradient = self._gradient_fn(x[np.newaxis], label[np.newaxis])
+        gradient = gradient.astype(x.dtype)
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
         assert gradient.shape == input_shape
-        assert gradient.dtype == image.dtype
+        assert gradient.dtype == x.dtype
         return gradient
 
-    def batch_gradients(self, images, labels):
-        if images.shape[0] == labels.shape[0] == 1:
-            return self._gradient_one(images[0], labels[0])[np.newaxis]
+    def gradient(self, inputs, labels):
+        if inputs.shape[0] == labels.shape[0] == 1:
+            return self._gradient_one(inputs[0], labels[0])[np.newaxis]
         raise NotImplementedError
 
     def num_classes(self):
         return self._num_classes
 
-    def _backward_one(self, gradient, image):
+    def _backward_one(self, gradient, x):
         assert gradient.ndim == 1
-        input_shape = image.shape
-        image, dpdx = self._process_input(image)
-        gradient = self._bw_gradient_fn(
-            gradient[np.newaxis], image[np.newaxis])
-        gradient = gradient.astype(image.dtype)
+        input_shape = x.shape
+        x, dpdx = self._process_input(x)
+        gradient = self._backward_fn(gradient[np.newaxis], x[np.newaxis])
+        gradient = gradient.astype(x.dtype)
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
         assert gradient.shape == input_shape
-        assert gradient.dtype == image.dtype
+        assert gradient.dtype == x.dtype
         return gradient
 
-    def batch_backward(self, gradients, images):
-        if images.shape[0] == gradients.shape[0] == 1:
-            return self._backward_one(gradients[0], images[0])[np.newaxis]
+    def backward(self, gradient, inputs):
+        if inputs.shape[0] == gradient.shape[0] == 1:
+            return self._backward_one(gradient[0], inputs[0])[np.newaxis]
         raise NotImplementedError

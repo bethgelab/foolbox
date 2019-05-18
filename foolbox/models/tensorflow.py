@@ -11,7 +11,7 @@ class TensorFlowModel(DifferentiableModel):
 
     Parameters
     ----------
-    images : `tensorflow.Tensor`
+    inputs : `tensorflow.Tensor`
         The input to the model, usually a `tensorflow.placeholder`.
     logits : `tensorflow.Tensor`
         The predictions of the model, before the softmax.
@@ -29,7 +29,7 @@ class TensorFlowModel(DifferentiableModel):
 
     def __init__(
             self,
-            images,
+            inputs,
             logits,
             bounds,
             channel_axis=3,
@@ -46,46 +46,38 @@ class TensorFlowModel(DifferentiableModel):
         if session is None:
             logging.warning('No default session. Created a new tf.Session. '
                             'Please restore variables using this session.')
-            session = tf.Session(graph=images.graph)
+            session = tf.Session(graph=inputs.graph)
             self._created_session = True
         else:
             self._created_session = False
-            assert session.graph == images.graph, \
+            assert session.graph == inputs.graph, \
                 'The default session uses the wrong graph'
 
         with session.graph.as_default():
             self._session = session
-            self._images = images
-            self._batch_logits = logits
-            self._logits = tf.squeeze(logits, axis=0)
-            self._labels = tf.placeholder(tf.int64, (None,), name='labels')
+            self._inputs = inputs
+            self._logits = logits
 
-            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                labels=self._labels,
-                logits=self._batch_logits)
-            self._loss = tf.reduce_sum(loss)
-            gradients = tf.gradients(loss, images)
-            assert len(gradients) == 1
-            if gradients[0] is None:
-                gradients[0] = tf.zeros_like(images)
-            self._gradient = tf.squeeze(gradients[0], axis=0)
-            self._batch_gradients = gradients[0]
+            labels = tf.placeholder(tf.int64, (None,), name='labels')
+            self._labels = labels
 
-            self._bw_gradient_pre = tf.placeholder(tf.float32, self._logits.shape)  # noqa: E501
-            bw_loss = tf.reduce_sum(self._logits * self._bw_gradient_pre)
-            bw_gradients = tf.gradients(bw_loss, images)
-            assert len(bw_gradients) == 1
-            if bw_gradients[0] is None:
-                bw_gradients[0] = tf.zeros_like(images)
-            self._bw_gradient = tf.squeeze(bw_gradients[0], axis=0)
+            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels, logits=logits)
+            loss = tf.reduce_sum(loss)
+            self._loss = loss
 
-            self._bw_gradients_pre = tf.placeholder(tf.float32, self._batch_logits.shape)  # noqa: E501
-            batch_bw_loss = tf.reduce_sum(self._batch_logits * self._bw_gradients_pre)  # noqa: E501
-            batch_bw_gradients = tf.gradients(batch_bw_loss, images)
-            assert len(batch_bw_gradients) == 1
-            if batch_bw_gradients[0] is None:
-                batch_bw_gradients[0] = tf.zeros_like(images)
-            self._bw_gradients = batch_bw_gradients[0]
+            gradient, = tf.gradients(loss, inputs)
+            if gradient is None:
+                gradient = tf.zeros_like(inputs)
+            self._gradient = gradient
+
+            backward_grad_logits = tf.placeholder(tf.float32, logits.shape)
+            backward_loss = tf.reduce_sum(logits * backward_grad_logits)
+            backward_grad_inputs, = tf.gradients(backward_loss, inputs)
+            if backward_grad_inputs is None:
+                backward_grad_inputs = tf.zeros_like(inputs)
+
+            self._backward_grad_logits = backward_grad_logits
+            self._backward_grad_inputs = backward_grad_inputs
 
     @classmethod
     def from_keras(cls, model, bounds, input_shape=None,
@@ -118,14 +110,11 @@ class TensorFlowModel(DifferentiableModel):
             try:
                 input_shape = model.input_shape[1:]
             except AttributeError:
-                raise ValueError(
-                    'Please specify input_shape manually or '
-                    'provide a model with an input_shape attribute')
+                raise ValueError('Please specify input_shape manually or provide a model with an input_shape attribute')
         with tf.keras.backend.get_session().as_default():
             inputs = tf.placeholder(tf.float32, (None,) + input_shape)
             logits = model(inputs)
-            return cls(inputs, logits, bounds=bounds,
-                       channel_axis=channel_axis, preprocessing=preprocessing)
+            return cls(inputs, logits, bounds=bounds, channel_axis=channel_axis, preprocessing=preprocessing)
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self._created_session:
@@ -137,54 +126,52 @@ class TensorFlowModel(DifferentiableModel):
         return self._session
 
     def num_classes(self):
-        _, n = self._batch_logits.get_shape().as_list()
+        _, n = self._logits.get_shape().as_list()
         return n
 
-    def batch_predictions(self, images):
-        images, _ = self._process_input(images)
-        predictions = self._session.run(
-            self._batch_logits,
-            feed_dict={self._images: images})
+    def forward(self, inputs):
+        inputs, _ = self._process_input(inputs)
+        predictions = self._session.run(self._logits, feed_dict={self._inputs: inputs})
         return predictions
 
-    def predictions_and_gradient(self, image, label):
-        image, dpdx = self._process_input(image)
+    def forward_and_gradient_one(self, x, label):
+        x, dpdx = self._process_input(x)
         predictions, gradient = self._session.run(
             [self._logits, self._gradient],
-            feed_dict={
-                self._images: image[np.newaxis],
-                self._labels: np.asarray(label)[np.newaxis]})
+            feed_dict={self._inputs: x[np.newaxis], self._labels: np.asarray(label)[np.newaxis]})
+        predictions = np.squeeze(predictions, axis=0)
+        gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
         return predictions, gradient
 
-    def batch_gradients(self, images, labels):
-        images, dpdx = self._process_input(images)
+    def gradient(self, inputs, labels):
+        inputs, dpdx = self._process_input(inputs)
         g = self._session.run(
-            self._batch_gradients,
+            self._gradient,
             feed_dict={
-                self._images: images,
+                self._inputs: inputs,
                 self._labels: labels})
         g = self._process_gradient(dpdx, g)
         return g
 
-    def _loss_fn(self, image, label):
-        image, dpdx = self._process_input(image)
+    def _loss_fn(self, x, label):
+        x, dpdx = self._process_input(x)
         loss = self._session.run(
             self._loss,
             feed_dict={
-                self._images: image[np.newaxis],
+                self._inputs: x[np.newaxis],
                 self._labels: np.asarray(label)[np.newaxis]})
         return loss
 
-    def batch_backward(self, gradients, images):
-        assert gradients.ndim == 2
-        input_shape = images.shape
-        images, dpdx = self._process_input(images)
+    def backward(self, gradient, inputs):
+        assert gradient.ndim == 2
+        input_shape = inputs.shape
+        inputs, dpdx = self._process_input(inputs)
         g = self._session.run(
-            self._bw_gradients,
+            self._backward_gradient_inputs,
             feed_dict={
-                self._images: images,
-                self._bw_gradients_pre: gradients})
+                self._inputs: inputs,
+                self._backward_gradient_logits: gradient})
         g = self._process_gradient(dpdx, g)
         assert g.shape == input_shape
         return g

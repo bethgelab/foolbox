@@ -117,48 +117,45 @@ class Model(ABC):
         return dmdx
 
     @abstractmethod
-    def batch_predictions(self, images):
-        """Calculates predictions for a batch of images.
+    def forward(self, inputs):
+        """Takes a batch of inputs and returns the logits predicted by the underlying model.
 
         Parameters
         ----------
-        images : `numpy.ndarray`
-            Batch of inputs with shape as expected by the model.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
 
         Returns
         -------
         `numpy.ndarray`
-            Predictions (logits, i.e. before the softmax) with shape
-            (batch size, number of classes).
+            Predicted logits with shape (batch size, number of classes).
 
         See Also
         --------
-        :meth:`predictions`
+        :meth:`forward_one`
 
         """
         raise NotImplementedError
 
-    def predictions(self, image):
-        """Convenience method that calculates predictions for a single image.
+    def forward_one(self, x):
+        """Takes a single input and returns the logits predicted by the underlying model.
 
         Parameters
         ----------
-        image : `numpy.ndarray`
-            Single input with shape as expected by the model
-            (without the batch dimension).
+        x : `numpy.ndarray`
+            Single input with shape as expected by the model (without the batch dimension).
 
         Returns
         -------
         `numpy.ndarray`
-            Vector of predictions (logits, i.e. before the softmax) with
-            shape (number of classes,).
+            Predicted logits with shape (number of classes,).
 
         See Also
         --------
-        :meth:`batch_predictions`
+        :meth:`forward`
 
         """
-        return np.squeeze(self.batch_predictions(image[np.newaxis]), axis=0)
+        return np.squeeze(self.forward(x[np.newaxis]), axis=0)
 
     @abstractmethod
     def num_classes(self):
@@ -174,153 +171,135 @@ class Model(ABC):
 
 
 class DifferentiableModel(Model):
-    """Base class for differentiable models that provide gradients.
+    """Base class for differentiable models.
 
-    The :class:`DifferentiableModel` class can be used as a base
-    class for models that provide gradients. Subclasses must implement
-    predictions_and_gradient.
+    The :class:`DifferentiableModel` class can be used as a base class for models that can support
+    gradient backpropagation. Subclasses must implement gradient and backward.
 
-    A model should be considered differentiable based on whether it
-    provides a :meth:`predictions_and_gradient` method and a
-    :meth:`gradient` method, not based on whether it subclasses
-    :class:`DifferentiableModel`.
-
-    A differentiable model does not necessarily provide reasonable
-    values for the gradients, the gradient can be wrong. It only
-    guarantees that the relevant methods can be called.
+    A differentiable model does not necessarily provide reasonable values for the gradient, the gradient
+    can be wrong. It only guarantees that the relevant methods can be called.
 
     """
 
     @abstractmethod
-    def predictions_and_gradient(self, image, label):
-        """Calculates predictions for an image and the gradient of
-        the cross-entropy loss w.r.t. the image.
+    def gradient(self, inputs, labels):
+        """Takes a batch of inputs and labels and returns the gradient of the cross-entropy loss w.r.t. the inputs.
 
         Parameters
         ----------
-        image : `numpy.ndarray`
-            Single input with shape as expected by the model
-            (without the batch dimension).
-        label : int
-            Reference label used to calculate the gradient.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
 
         Returns
         -------
-        predictions : `numpy.ndarray`
-            Vector of predictions (logits, i.e. before the softmax) with
-            shape (number of classes,).
         gradient : `numpy.ndarray`
-            The gradient of the cross-entropy loss w.r.t. the image. Will
-            have the same shape as the image.
+            The gradient of the cross-entropy loss w.r.t. the inputs.
 
         See Also
         --------
+        :meth:`gradient_one`
+        :meth:`backward`
+
+        """
+        raise NotImplementedError
+
+    def gradient_one(self, x, label):
+        """Takes a single input and label and returns the gradient of the cross-entropy loss w.r.t. the input.
+
+        Parameters
+        ----------
+        x : `numpy.ndarray`
+            Single input with shape as expected by the model (without the batch dimension).
+        label : int
+            Class label of the input as an integer in [0, number of classes).
+
+        Returns
+        -------
+        `numpy.ndarray`
+            The gradient of the cross-entropy loss w.r.t. the input.
+
+        See Also
+        --------
+        :meth:`gradient`
+
+        """
+        return np.squeeze(self.gradient(x[np.newaxis], np.asarray(label)[np.newaxis]), axis=0)
+
+    @abstractmethod
+    def backward(self, gradient, inputs):
+        """Backpropagates the gradient of some loss w.r.t. the logits through the underlying
+        model and returns the gradient of that loss w.r.t to the inputs.
+
+        Parameters
+        ----------
+        gradient : `numpy.ndarray`
+            Gradient of some loss w.r.t. the logits with shape (batch size, number of classes).
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+
+        Returns
+        -------
+        `numpy.ndarray`
+            The gradient of the respective loss w.r.t the inputs.
+
+        See Also
+        --------
+        :meth:`backward_one`
         :meth:`gradient`
 
         """
         raise NotImplementedError
 
-    def gradient(self, image, label):
-        """Calculates the gradient of the cross-entropy loss w.r.t. the image.
-
-        The default implementation calls predictions_and_gradient.
-        Subclasses can provide more efficient implementations that
-        only calculate the gradient.
-
-        Parameters
-        ----------
-        image : `numpy.ndarray`
-            Single input with shape as expected by the model
-            (without the batch dimension).
-        label : int
-            Reference label used to calculate the gradient.
-
-        Returns
-        -------
-        gradient : `numpy.ndarray`
-            The gradient of the cross-entropy loss w.r.t. the image. Will
-            have the same shape as the image.
-
-        See Also
-        --------
-        :meth:`gradient`
-
-        """
-        label = np.asarray(label)
-        g = self.batch_gradients(image[np.newaxis], label[np.newaxis])
-        return np.squeeze(g, axis=0)
-
-    @abstractmethod
-    def batch_gradients(self, images, labels):
-        """Calculates the gradient of the cross-entropy loss w.r.t. the images.
-
-        Parameters
-        ----------
-        image : `numpy.ndarray`
-            Batch of input with shape as expected by the model.
-        labels : int
-            Reference label used to calculate the gradient.
-
-        Returns
-        -------
-        gradients : `numpy.ndarray`
-            The gradient of the cross-entropy loss w.r.t. the inputs. Will
-            have the same shape as the inputs.
-
-        See Also
-        --------
-        :meth:`gradient`
-
-        """
-        raise NotImplementedError
-
-    def backward(self, gradient, image):
-        """Backpropagates the gradient of some loss w.r.t. the logits
-        through the network and returns the gradient of that loss w.r.t
-        to the input image.
+    def backward_one(self, gradient, x):
+        """Backpropagates the gradient of some loss w.r.t. the logits through the underlying
+        model and returns the gradient of that loss w.r.t to the input.
 
         Parameters
         ----------
         gradient : `numpy.ndarray`
-            Gradient of some loss w.r.t. the logits.
-        image : `numpy.ndarray`
-            Single input with shape as expected by the model
-            (without the batch dimension).
+            Gradient of some loss w.r.t. the logits with shape (number of classes,).
+        x : `numpy.ndarray`
+            Single input with shape as expected by the model (without the batch dimension).
 
         Returns
         -------
-        gradient : `numpy.ndarray`
-            The gradient w.r.t the image.
-
-        See Also
-        --------
-        :meth:`gradient`
-
-        """
-        g = self.batch_backward(gradient[np.newaxis], image[np.newaxis])
-        return np.squeeze(g, axis=0)
-
-    @abstractmethod
-    def batch_backward(self, gradients, images):
-        """Backpropagates the gradient of some loss w.r.t. the logits
-        through the network and returns the gradient of that loss w.r.t
-        to the input images.
-
-        Parameters
-        ----------
-        gradients : `numpy.ndarray`
-            Gradient of some loss w.r.t. the logits.
-        images : `numpy.ndarray`
-            Batch of inputs with shape as expected by the model.
-
-        Returns
-        -------
-        gradients : `numpy.ndarray`
-            The gradient w.r.t the input images.
+        `numpy.ndarray`
+            The gradient of the respective loss w.r.t the input.
 
         See Also
         --------
         :meth:`backward`
 
         """
-        raise NotImplementedError
+        return np.squeeze(self.batch_backward(gradient[np.newaxis], x[np.newaxis]), axis=0)
+
+    def forward_and_gradient_one(self, x, label):
+        """Takes a single input and label and returns both the logits predicted by the underlying
+        model and the gradient of the cross-entropy loss w.r.t. the input.
+
+        Defaults to individual calls to forward_one and gradient_one but can be overriden by
+        subclasses to provide a more efficient implementation.
+
+        Parameters
+        ----------
+        x : `numpy.ndarray`
+            Single input with shape as expected by the model (without the batch dimension).
+        label : int
+            Class label of the input as an integer in [0, number of classes).
+
+        Returns
+        -------
+        `numpy.ndarray`
+            Predicted logits with shape (batch size, number of classes).
+        `numpy.ndarray`
+            The gradient of the cross-entropy loss w.r.t. the input.
+
+        See Also
+        --------
+        :meth:`forward_one`
+        :meth:`gradient_one`
+
+        """
+        return self.forward_one(x), self.gradient_one(x, label)

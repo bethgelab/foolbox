@@ -33,8 +33,8 @@ class ModelWrapper(Model):
     def __exit__(self, exc_type, exc_value, traceback):
         return self.wrapped_model.__exit__(exc_type, exc_value, traceback)
 
-    def batch_predictions(self, images):
-        return self.wrapped_model.batch_predictions(images)
+    def forward(self, inputs):
+        return self.wrapped_model.forward(inputs)
 
     def num_classes(self):
         return self.wrapped_model.num_classes()
@@ -55,14 +55,14 @@ class DifferentiableModelWrapper(ModelWrapper, DifferentiableModel):
 
     """
 
-    def predictions_and_gradient(self, image, label):
-        return self.wrapped_model.predictions_and_gradient(image, label)
+    def forward_and_gradient_one(self, x, label):
+        return self.wrapped_model.forward_and_gradient_one(x, label)
 
-    def batch_gradients(self, images, labels):
-        return self.wrapped_model.batch_gradients(images, labels)
+    def gradient(self, inputs, labels):
+        return self.wrapped_model.gradient(inputs, labels)
 
-    def batch_backward(self, gradients, images):
-        return self.wrapped_model.batch_backward(gradients, images)
+    def backward(self, gradient, inputs):
+        return self.wrapped_model.backward(gradient, inputs)
 
 
 class ModelWithoutGradients(ModelWrapper):
@@ -81,9 +81,9 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
     model : :class:`Model`
         The model that is wrapped.
     gradient_estimator : `callable`
-        Callable taking three arguments (pred_fn, image, label) and
+        Callable taking three arguments (pred_fn, x, label) and
         returning the estimated gradients. pred_fn will be the
-        batch_predictions method of the wrapped model.
+        forward method of the wrapped model.
     """
 
     def __init__(self, model, gradient_estimator):
@@ -93,22 +93,22 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
         assert callable(gradient_estimator)
         self._gradient_estimator = gradient_estimator
 
-    def predictions_and_gradient(self, image, label):
-        predictions = self.predictions(image)
-        gradient = self.gradient(image, label)
+    def forward_and_gradient_one(self, x, label):
+        predictions = self.forward_one(x)
+        gradient = self.gradient(x, label)
         return predictions, gradient
 
-    def _gradient_one(self, image, label):
-        pred_fn = self.batch_predictions
+    def _gradient_one(self, x, label):
+        pred_fn = self.forward
         bounds = self.bounds()
-        return self._gradient_estimator(pred_fn, image, label, bounds)
+        return self._gradient_estimator(pred_fn, x, label, bounds)
 
-    def batch_gradients(self, images, labels):
-        if images.shape[0] == labels.shape[0] == 1:
-            return self._gradient_one(images[0], labels[0])[np.newaxis]
+    def gradient(self, inputs, labels):
+        if inputs.shape[0] == labels.shape[0] == 1:
+            return self._gradient_one(inputs[0], labels[0])[np.newaxis]
         raise NotImplementedError
 
-    def batch_backward(self, gradients, images):
+    def backward(self, gradient, inputs):
         raise NotImplementedError
 
 
@@ -146,19 +146,19 @@ class CompositeModel(DifferentiableModel):
     def num_classes(self):
         return self._num_classes
 
-    def batch_predictions(self, images):
-        return self.forward_model.batch_predictions(images)
+    def forward(self, inputs):
+        return self.forward_model.forward(inputs)
 
-    def predictions_and_gradient(self, image, label):
-        predictions = self.forward_model.predictions(image)
-        gradient = self.backward_model.gradient(image, label)
+    def forward_and_gradient_one(self, x, label):
+        predictions = self.forward_model.forward_one(x)
+        gradient = self.backward_model.gradient_one(x, label)
         return predictions, gradient
 
-    def batch_gradients(self, images, labels):
-        return self.backward_model.batch_gradients(images, labels)
+    def gradient(self, inputs, labels):
+        return self.backward_model.gradient(inputs, labels)
 
-    def batch_backward(self, gradients, images):
-        return self.backward_model.batch_backward(gradients, images)
+    def backward(self, gradient, inputs):
+        return self.backward_model.backward(gradient, inputs)
 
     def __enter__(self):
         assert self.forward_model.__enter__() == self.forward_model

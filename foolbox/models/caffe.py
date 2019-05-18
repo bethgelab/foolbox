@@ -35,19 +35,19 @@ class CaffeModel(DifferentiableModel):
     def num_classes(self):
         return self.net.blobs[self.output_blob_name].data.shape[-1]
 
-    def batch_predictions(self, images):
-        images, _ = self._process_input(images)
-        self.net.blobs[self.data_blob_name].reshape(*images.shape)
-        self.net.blobs[self.label_blob_name].reshape(images.shape[0])
-        self.net.blobs[self.data_blob_name].data[:] = images
+    def forward(self, inputs):
+        inputs, _ = self._process_input(inputs)
+        self.net.blobs[self.data_blob_name].reshape(*inputs.shape)
+        self.net.blobs[self.label_blob_name].reshape(inputs.shape[0])
+        self.net.blobs[self.data_blob_name].data[:] = inputs
         self.net.forward()
         return self.net.blobs[self.output_blob_name].data
 
-    def predictions_and_gradient(self, image, label):
-        input_shape = image.shape
+    def forward_and_gradient_one(self, x, label):
+        input_shape = x.shape
 
-        image, dpdx = self._process_input(image)
-        self.net.blobs[self.data_blob_name].data[0, :] = image
+        x, dpdx = self._process_input(x)
+        self.net.blobs[self.data_blob_name].data[0, :] = x
         self.net.blobs[self.label_blob_name].data[0] = label
 
         self.net.forward()
@@ -60,20 +60,20 @@ class CaffeModel(DifferentiableModel):
 
         return predictions, grad
 
-    def batch_gradients(self, images, labels):
-        if images.shape[0] == labels.shape[0] == 1:
-            _, g = self.predictions_and_gradient(images[0], labels[0])
+    def gradient(self, inputs, labels):
+        if inputs.shape[0] == labels.shape[0] == 1:
+            _, g = self.predictions_and_gradient(inputs[0], labels[0])
             return g[np.newaxis]
         raise NotImplementedError
 
-    def _loss_fn(self, image, label):
-        logits = self.batch_predictions(image[None])
+    def _loss_fn(self, x, label):
+        logits = self.batch_predictions(x[None])
         return utils.batch_crossentropy([label], logits)
 
-    def _backward_one(self, gradient, image):
-        input_shape = image.shape
-        image, dpdx = self._process_input(image)
-        self.net.blobs[self.data_blob_name].data[:] = image
+    def _backward_one(self, gradient, x):
+        input_shape = x.shape
+        x, dpdx = self._process_input(x)
+        self.net.blobs[self.data_blob_name].data[:] = x
         self.net.forward()
         self.net.blobs[self.output_blob_name].diff[...] = gradient
         grad_data = self.net.backward(start=self.output_blob_name,
@@ -84,7 +84,7 @@ class CaffeModel(DifferentiableModel):
 
         return grad
 
-    def batch_backward(self, gradients, images):
-        if images.shape[0] == gradients.shape[0] == 1:
-            return self._backward_one(gradients[0], images[0])[np.newaxis]
+    def backward(self, gradient, inputs):
+        if inputs.shape[0] == gradient.shape[0] == 1:
+            return self._backward_one(gradient[0], inputs[0])[np.newaxis]
         raise NotImplementedError
