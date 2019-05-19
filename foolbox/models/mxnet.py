@@ -121,7 +121,7 @@ class MXNetModel(DifferentiableModel):
             aux_states=self._aux_map)
         model.forward(is_train=False)
         logits_array = model.outputs[0]
-        model.backward([
+        model.backward_one([
             mx.nd.zeros(logits_array.shape),
             mx.nd.array(np.array([1]))
         ])
@@ -148,7 +148,7 @@ class MXNetModel(DifferentiableModel):
             grad_req='write',
             aux_states=self._aux_map)
         model.forward(is_train=False)
-        model.backward()
+        model.backward_one()
         gradient = grad_array.asnumpy()
         gradient = self._process_gradient(dpdx, gradient)
         return gradient

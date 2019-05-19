@@ -49,11 +49,11 @@ def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):
             gl_bn_model.forward_one(bn_image) ==
             model.forward_one(bn_image))
         assert np.all(
-            bn_model.gradient(bn_image, bn_label) ==
-            model.gradient(bn_image, bn_label))
+            bn_model.gradient_one(bn_image, bn_label) ==
+            model.gradient_one(bn_image, bn_label))
         assert np.all(
-            bn_model.backward(test_grad, bn_image) ==
-            model.backward(test_grad, bn_image))
+            bn_model.backward_one(test_grad, bn_image) ==
+            model.backward_one(test_grad, bn_image))
         assert np.all(
             gl_bn_model.forward_one(bn_image) ==
             model.forward_and_gradient_one(bn_image, bn_label)[0])

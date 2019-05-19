@@ -34,7 +34,7 @@ def test_lasagne_model(num_classes):
     test_logits = model.forward_one(test_images[0])
     assert test_logits.shape == (num_classes,)
 
-    test_gradient = model.gradient(test_images[0], test_label)
+    test_gradient = model.gradient_one(test_images[0], test_label)
     assert test_gradient.shape == test_images[0].shape
 
     np.testing.assert_almost_equal(
@@ -113,7 +113,7 @@ def test_lasagne_backward(num_classes):
     test_image = np.random.rand(channels, 5, 5).astype(np.float32)
     test_grad_pre = np.random.rand(num_classes).astype(np.float32)
 
-    test_grad = model.backward(test_grad_pre, test_image)
+    test_grad = model.backward_one(test_grad_pre, test_image)
     assert test_grad.shape == test_image.shape
 
     manual_grad = np.repeat(np.repeat(

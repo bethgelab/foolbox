@@ -62,7 +62,7 @@ class DifferentiableModelWrapper(ModelWrapper, DifferentiableModel):
         return self.wrapped_model.gradient(inputs, labels)
 
     def backward(self, gradient, inputs):
-        return self.wrapped_model.backward(gradient, inputs)
+        return self.wrapped_model.backward_one(gradient, inputs)
 
 
 class ModelWithoutGradients(ModelWrapper):
@@ -158,7 +158,7 @@ class CompositeModel(DifferentiableModel):
         return self.backward_model.gradient(inputs, labels)
 
     def backward(self, gradient, inputs):
-        return self.backward_model.backward(gradient, inputs)
+        return self.backward_model.backward_one(gradient, inputs)
 
     def __enter__(self):
         assert self.forward_model.__enter__() == self.forward_model
