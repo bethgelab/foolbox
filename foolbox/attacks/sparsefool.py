@@ -168,10 +168,8 @@ class SparseFoolAttack(Attack):
                 fooling_label = np.argmax(logits)
 
                 # Compute the gradients at the boundary point
-                grad_fool = a.gradient_one(boundary_point, label=fooling_label,
-                                       strict=False)
-                grad_true = a.gradient_one(boundary_point, label=label,
-                                       strict=False)
+                grad_fool = a.gradient_one(boundary_point, label=fooling_label, strict=False)
+                grad_true = a.gradient_one(boundary_point, label=label, strict=False)
                 grad_diff = grad_fool - grad_true
 
                 # Compute the normal and correct the sign of the gradient
