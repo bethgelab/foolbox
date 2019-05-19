@@ -127,9 +127,7 @@ def test_adversarial(model, criterion, image, label):
     assert not is_adversarial
     assert index is None
 
-    # without gradient
-    del model.predictions_and_gradient
-
+    del model.gradient
     assert not adversarial.has_gradient()
 
 

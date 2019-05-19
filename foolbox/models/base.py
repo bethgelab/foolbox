@@ -273,7 +273,7 @@ class DifferentiableModel(Model):
         :meth:`backward`
 
         """
-        return np.squeeze(self.batch_backward(gradient[np.newaxis], x[np.newaxis]), axis=0)
+        return np.squeeze(self.backward(gradient[np.newaxis], x[np.newaxis]), axis=0)
 
     def forward_and_gradient_one(self, x, label):
         """Takes a single input and label and returns both the logits predicted by the underlying
