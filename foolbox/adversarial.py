@@ -135,7 +135,7 @@ class Adversarial(object):
 
     @property
     def original_class(self):
-        """The class of the original input (ground-truth, not model prediction)."""  # noqa: E501
+        """The class of the original input (ground-truth, not model prediction)."""
         return self.__original_class
 
     @property
