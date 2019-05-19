@@ -74,10 +74,10 @@ class SparseFoolAttack(Attack):
         _label = a.original_class
 
         min_, max_ = a.bounds()
-        perturbed = a.original_image
+        perturbed = a.unperturbed
         for step in range(steps):
 
-            logits, grad, is_adv = a.predictions_and_gradient(perturbed)
+            logits, grad, is_adv = a.forward_and_gradient_one(perturbed)
             if is_adv:
                 return
 
@@ -102,7 +102,7 @@ class SparseFoolAttack(Attack):
             # Update the current iterate
             perturbed = np.clip(perturbed + 1.02 * perturbation, min_, max_)
 
-        a.predictions(perturbed)  # to find an adversarial in the last step
+        a.forward_one(perturbed)  # to find an adversarial in the last step
 
     @classmethod
     def boundary_approximation_deepfool(cls, a, initial_point, subsample,
@@ -137,7 +137,7 @@ class SparseFoolAttack(Attack):
         """
 
         # define labels
-        logits, _ = a.predictions(initial_point)
+        logits, _ = a.forward_one(initial_point)
         labels = np.argsort(logits)[::-1]
         if subsample:
             # choose the top-k classes
@@ -158,7 +158,7 @@ class SparseFoolAttack(Attack):
             boundary_point = initial_point + total_perturbation
 
             logits, grad, is_adv = \
-                a.predictions_and_gradient(
+                a.forward_and_gradient_one(
                     initial_point + 1.02 * total_perturbation, strict=False)
 
             if is_adv:
@@ -168,9 +168,9 @@ class SparseFoolAttack(Attack):
                 fooling_label = np.argmax(logits)
 
                 # Compute the gradients at the boundary point
-                grad_fool = a.gradient(boundary_point, label=fooling_label,
+                grad_fool = a.gradient_one(boundary_point, label=fooling_label,
                                        strict=False)
-                grad_true = a.gradient(boundary_point, label=label,
+                grad_true = a.gradient_one(boundary_point, label=label,
                                        strict=False)
                 grad_diff = grad_fool - grad_true
 
@@ -203,7 +203,7 @@ class SparseFoolAttack(Attack):
             # stable implementation to calculate the gradient
             losses = [-crossentropy(logits=logits, label=k)
                       for k in residual_labels]
-            grads = [a.gradient(boundary_point, label=k, strict=False)
+            grads = [a.gradient_one(boundary_point, label=k, strict=False)
                      for k in residual_labels]
 
             # compute optimal direction (and loss difference)
@@ -240,9 +240,9 @@ class SparseFoolAttack(Attack):
         normal : `numpy.ndarray`
             The normal of the decision boundary at the boundary point.
         min_ : `numpy.ndarray`
-            The minimum allowed image values.
+            The minimum allowed input values.
         max_ : int
-            The maximum allowed image values.
+            The maximum allowed input values.
 
         """
 
