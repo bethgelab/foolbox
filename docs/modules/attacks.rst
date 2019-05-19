@@ -45,6 +45,7 @@
    IterativeGradientSignAttack
    CarliniWagnerL2Attack
    DecoupledDirectionNormL2Attack
+   SparseFoolAttack
 
 
 .. rubric:: :doc:`attacks/score`
