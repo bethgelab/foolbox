@@ -110,3 +110,7 @@ Gradient-based attacks
 .. autoclass:: DecoupledDirectionNormL2Attack
    :members:
    :special-members:
+
+.. autoclass:: SparseFoolAttack
+   :members:
+   :special-members:
