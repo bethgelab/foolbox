@@ -178,9 +178,8 @@ class PointwiseAttack(Attack):
 
         if starting_point is not None:
             a.forward_one(starting_point)
-            assert a.perturbed is not None, ('Invalid starting point provided.'
-                                         ' Please provide a starting point'
-                                         ' that is adversarial.')
+            assert a.perturbed is not None, (
+                'Invalid starting point provided. Please provide a starting point that is adversarial.')
             return
 
         if init_attack is None:
