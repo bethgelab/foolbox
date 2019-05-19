@@ -80,8 +80,8 @@ def test_lasagne_gradient(num_classes):
 
     _, g1 = model.forward_and_gradient_one(test_image, test_label)
 
-    l1 = model._loss_fn(test_image[None] - epsilon / 2 * g1, [test_label])[0]
-    l2 = model._loss_fn(test_image[None] + epsilon / 2 * g1, [test_label])[0]
+    l1 = model._loss_fn(test_image[None] - epsilon / 2 * g1, [test_label])
+    l2 = model._loss_fn(test_image[None] + epsilon / 2 * g1, [test_label])
 
     assert 1e5 * (l2 - l1) > 1
 

@@ -171,7 +171,7 @@ class TensorFlowModel(DifferentiableModel):
             self._backward_grad_inputs,
             feed_dict={
                 self._inputs: inputs,
-                self._backward_gradient_logits: gradient})
+                self._backward_grad_logits: gradient})
         g = self._process_gradient(dpdx, g)
         assert g.shape == input_shape
         return g

@@ -40,7 +40,7 @@ class SinglePixelAttack(Attack):
         del unpack
 
         channel_axis = a.channel_axis(batch=False)
-        axes = [i for i in range(x.ndim) if i != channel_axis]
+        axes = [i for i in range(a.unperturbed.ndim) if i != channel_axis]
         assert len(axes) == 2
         h = a.unperturbed.shape[axes[0]]
         w = a.unperturbed.shape[axes[1]]
