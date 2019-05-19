@@ -109,12 +109,12 @@ class Distance(ABC):
 
     def __eq__(self, other):
         if other.__class__ != self.__class__:
-            raise TypeError('Comparisons are only possible between the same distance types.')  # noqa: E501
+            raise TypeError('Comparisons are only possible between the same distance types.')
         return self.value == other.value
 
     def __lt__(self, other):
         if other.__class__ != self.__class__:
-            raise TypeError('Comparisons are only possible between the same distance types.')  # noqa: E501
+            raise TypeError('Comparisons are only possible between the same distance types.')
         return self.value < other.value
 
 

@@ -99,12 +99,13 @@ class LBFGSAttack(Attack):
                     # using GradientAttack did not work,
                     # falling back to random target
                     num_random_targets = 1
-                    logging.warning('Using GradientAttack to determine a target class failed, falling back to a random target class')  # noqa: E501
+                    logging.warning('Using GradientAttack to determine a target class failed,'
+                                    ' falling back to a random target class')
                 else:
                     logits, _ = a.forward_one(adv_img)
                     target_class = np.argmax(logits)
                     target_classes = [target_class]
-                    logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))  # noqa: E501
+                    logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))
 
             if num_random_targets > 0:
 
@@ -120,11 +121,11 @@ class LBFGSAttack(Attack):
                 # https://github.com/numpy/numpy/issues/2764
                 target_classes = rng.sample(
                     range(num_classes), num_random_targets + 1)
-                target_classes = [t for t in target_classes if t != original_class]  # noqa: E501
+                target_classes = [t for t in target_classes if t != original_class]
                 target_classes = target_classes[:num_random_targets]
 
                 str_target_classes = [str(t) for t in target_classes]
-                logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))  # noqa: E501
+                logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))
         else:
             target_classes = [target_class]
 
@@ -137,7 +138,7 @@ class LBFGSAttack(Attack):
                 epsilon=epsilon, maxiter=maxiter)
 
             if len(target_classes) > 1:  # pragma: no coverage
-                logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.distance))  # noqa: E501
+                logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.distance))
 
     def _optimize(self, a, target_class, epsilon, maxiter):
         x0 = a.unperturbed
@@ -209,7 +210,8 @@ class LBFGSAttack(Attack):
 
             # LBFGS-B does not always exactly respect the boundaries
             if np.amax(x) > max_ or np.amin(x) < min_:   # pragma: no coverage
-                logging.info('Input out of bounds (min, max = {}, {}). Performing manual clip.'.format(np.amin(x), np.amax(x)))  # noqa: E501
+                logging.info('Input out of bounds (min, max = {}, {}). Performing manual clip.'.format(
+                    np.amin(x), np.amax(x)))
                 x = np.clip(x, min_, max_)
 
             _, is_adversarial = a.forward_one(x.reshape(shape).astype(dtype))
@@ -226,7 +228,7 @@ class LBFGSAttack(Attack):
             if is_adversarial:
                 break
         else:  # pragma: no cover
-            logging.info('Could not find an adversarial; maybe the model returns wrong gradients')  # noqa: E501
+            logging.info('Could not find an adversarial; maybe the model returns wrong gradients')
             return
 
         # binary search

@@ -72,9 +72,11 @@ def model(image):
     model.forward_one = Mock(return_value=predictions)
     model.forward = Mock(return_value=predictions[np.newaxis])
     gradient = image
-    model.forward_and_gradient = Mock(return_value=(predictions, gradient))  # noqa: E501
+    model.forward_and_gradient_one = Mock(return_value=(predictions, gradient))
     model.gradient_one = Mock(return_value=gradient)
     model.backward_one = Mock(return_value=gradient)
+    model.gradient = Mock(return_value=gradient[np.newaxis])
+    model.backward = Mock(return_value=gradient[np.newaxis])
     model.num_classes = Mock(return_value=1000)
     model.channel_axis = Mock(return_value=3)
     return model

@@ -72,12 +72,13 @@ class SaliencyMapAttack(Attack):
                     # using GradientAttack did not work,
                     # falling back to random target
                     num_random_targets = 1
-                    logging.info('Using GradientAttack to determine a target class failed, falling back to a random target class')  # noqa: E501
+                    logging.info('Using GradientAttack to determine a target class failed,'
+                                 ' falling back to a random target class')
                 else:
                     logits, _ = a.forward_one(adv_img)
                     target_class = np.argmax(logits)
                     target_classes = [target_class]
-                    logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))  # noqa: E501
+                    logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))
             else:  # pragma: no coverage
                 num_random_targets = 1
 
@@ -95,11 +96,11 @@ class SaliencyMapAttack(Attack):
                 # https://github.com/numpy/numpy/issues/2764
                 target_classes = rng.sample(
                     range(num_classes), num_random_targets + 1)
-                target_classes = [t for t in target_classes if t != original_class]  # noqa: E501
+                target_classes = [t for t in target_classes if t != original_class]
                 target_classes = target_classes[:num_random_targets]
 
                 str_target_classes = [str(t) for t in target_classes]
-                logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))  # noqa: E501
+                logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))
         else:
             target_classes = [target_class]
 

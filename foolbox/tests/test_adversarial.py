@@ -69,35 +69,36 @@ def test_adversarial(model, criterion, image, label):
     first_predictions = predictions
     assert is_adversarial
 
-    predictions, is_adversarial, _, _ = adversarial.forward_one(image, return_details=True)  # noqa: E501
+    predictions, is_adversarial, _, _ = adversarial.forward_one(image, return_details=True)
     first_predictions = predictions
     assert is_adversarial
 
-    predictions, is_adversarial = adversarial.forward(image[np.newaxis])  # noqa: E501
+    predictions, is_adversarial = adversarial.forward(image[np.newaxis])
     assert (predictions == first_predictions[np.newaxis]).all()
     assert np.all(is_adversarial == np.array([True]))
 
-    predictions, is_adversarial, index = adversarial.forward(image[np.newaxis], greedy=True)  # noqa: E501
+    predictions, is_adversarial, index = adversarial.forward(image[np.newaxis], greedy=True)
     assert (predictions == first_predictions[np.newaxis]).all()
     assert is_adversarial
     assert index == 0
 
-    predictions, is_adversarial, index, _, _ = adversarial.forward(image[np.newaxis], greedy=True, return_details=True)  # noqa: E501
+    predictions, is_adversarial, index, _, _ = adversarial.forward(image[np.newaxis], greedy=True, return_details=True)
     assert (predictions == first_predictions[np.newaxis]).all()
     assert is_adversarial
     assert index == 0
 
-    predictions, gradient, is_adversarial = adversarial.forward_and_gradient_one(image, label)  # noqa: E501
+    predictions, gradient, is_adversarial = adversarial.forward_and_gradient_one(image, label)
     assert (predictions == first_predictions).all()
     assert gradient.shape == image.shape
     assert is_adversarial
 
-    predictions, gradient, is_adversarial, _, _ = adversarial.forward_and_gradient_one(image, label, return_details=True)  # noqa: E501
+    predictions, gradient, is_adversarial, _, _ = adversarial.forward_and_gradient_one(
+        image, label, return_details=True)
     assert (predictions == first_predictions).all()
     assert gradient.shape == image.shape
     assert is_adversarial
 
-    predictions, gradient, is_adversarial = adversarial.forward_and_gradient_one()  # noqa: E501
+    predictions, gradient, is_adversarial = adversarial.forward_and_gradient_one()
     assert (predictions == first_predictions).all()
     assert gradient.shape == image.shape
     assert is_adversarial
@@ -122,7 +123,7 @@ def test_adversarial(model, criterion, image, label):
     # without adversarials
     criterion.is_adversarial = Mock(return_value=False)
     adversarial = Adversarial(model, criterion, image, label)
-    predictions, is_adversarial, index = adversarial.forward(image[np.newaxis], greedy=True)  # noqa: E501
+    predictions, is_adversarial, index = adversarial.forward(image[np.newaxis], greedy=True)
     assert (predictions == first_predictions[np.newaxis]).all()
     assert not is_adversarial
     assert index is None
@@ -141,13 +142,13 @@ def test_inplace(bn_model, bn_adversarial, bn_label):
             x[:] = a.unperturbed
 
     assert bn_adversarial.perturbed is None
-    assert np.argmax(bn_model.forward_one(bn_adversarial.unperturbed)) == bn_label  # noqa: E501
+    assert np.argmax(bn_model.forward_one(bn_adversarial.unperturbed)) == bn_label
     attack = TestAttack()
     attack(bn_adversarial)
     assert bn_adversarial.perturbed is not None
     assert bn_adversarial.distance.value > 0
-    assert np.argmax(bn_model.forward_one(bn_adversarial.unperturbed)) == bn_label  # noqa: E501
+    assert np.argmax(bn_model.forward_one(bn_adversarial.unperturbed)) == bn_label
     assert np.argmax(bn_model.forward_one(bn_adversarial.perturbed)) != bn_label
     assert not (bn_adversarial.perturbed == bn_adversarial.unperturbed).all()
-    assert (bn_adversarial.distance.reference == bn_adversarial.unperturbed).all()  # noqa: E501
+    assert (bn_adversarial.distance.reference == bn_adversarial.unperturbed).all()
     assert (bn_adversarial.distance.other == bn_adversarial.perturbed).all()

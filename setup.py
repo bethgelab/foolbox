@@ -33,7 +33,7 @@ tests_require = [
 setup(
     name="foolbox",
     version=version,
-    description="Python toolbox to create adversarial examples that fool neural networks",  # noqa: E501
+    description="Python toolbox to create adversarial examples that fool neural networks",
     long_description=README,
     classifiers=[
         "Development Status :: 3 - Alpha",
