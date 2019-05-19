@@ -62,7 +62,7 @@ class DifferentiableModelWrapper(ModelWrapper, DifferentiableModel):
         return self.wrapped_model.gradient(inputs, labels)
 
     def backward(self, gradient, inputs):
-        return self.wrapped_model.backward_one(gradient, inputs)
+        return self.wrapped_model.backward(gradient, inputs)
 
 
 class ModelWithoutGradients(ModelWrapper):
