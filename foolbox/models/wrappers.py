@@ -95,7 +95,7 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
 
     def forward_and_gradient_one(self, x, label):
         predictions = self.forward_one(x)
-        gradient = self.gradient(x, label)
+        gradient = self.gradient_one(x, label)
         return predictions, gradient
 
     def _gradient_one(self, x, label):

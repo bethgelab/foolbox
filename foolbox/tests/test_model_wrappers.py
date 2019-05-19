@@ -30,13 +30,13 @@ def test_diff_wrapper(bn_model, bn_image, bn_label):
     assert model1.num_classes() == model2.num_classes()
     assert np.all(model1.forward_one(x) == model2.forward_one(x))
     assert np.all(model1.forward(xs) == model2.forward(xs))
-    assert np.all(model1.gradient(x, la) == model2.gradient(x, la))
+    assert np.all(model1.gradient_one(x, la) == model2.gradient_one(x, la))
     assert np.all(model1.forward_and_gradient_one(x, la)[0] ==
                   model2.forward_and_gradient_one(x, la)[0])
     assert np.all(model1.forward_and_gradient_one(x, la)[1] ==
                   model2.forward_and_gradient_one(x, la)[1])
     g = model1.forward_one(x)
-    assert np.all(model1.backward(g, x) == model2.backward(g, x))
+    assert np.all(model1.backward_one(g, x) == model2.backward_one(g, x))
 
 
 def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):

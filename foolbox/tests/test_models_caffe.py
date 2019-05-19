@@ -159,9 +159,9 @@ def test_caffe_model_preprocessing_shape_change(tmpdir):
 
     assert np.all(p1 == p2)
 
-    g1 = model1.gradient(test_images_nchw[0], 3)
+    g1 = model1.gradient_one(test_images_nchw[0], 3)
     assert g1.ndim == 3
     g1 = np.transpose(g1, (1, 2, 0))
-    g2 = model2.gradient(test_images_nhwc[0], 3)
+    g2 = model2.gradient_one(test_images_nhwc[0], 3)
 
     np.testing.assert_array_almost_equal(g1, g2)
