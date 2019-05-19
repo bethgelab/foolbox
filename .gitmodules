@@ -1,3 +1,3 @@
 [submodule "foolbox/tests/data/model_repo"]
 	path = foolbox/tests/data/model_repo
-	url = https://github.com/bveliqi/foolbox-zoo-dummy.git
+	url = https://github.com/bethgelab/foolbox-zoo-dummy.git
