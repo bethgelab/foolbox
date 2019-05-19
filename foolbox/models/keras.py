@@ -84,7 +84,7 @@ class KerasModel(DifferentiableModel):
         self._forward_fn = K.function([inputs], [predictions])
         self._gradient_fn = K.function([inputs, labels], [gradient])
         self._backward_fn = K.function([backward_grad_logits, inputs], [backward_grad_inputs])
-        self._foward_and_gradient_fn = K.function([inputs, labels], [predictions, gradient])
+        self._forward_and_gradient_fn = K.function([inputs, labels], [predictions, gradient])
 
     def _to_logits(self, predictions):  # pragma: no cover
         from keras import backend as K
@@ -98,7 +98,7 @@ class KerasModel(DifferentiableModel):
 
     def forward(self, inputs):
         px, _ = self._process_input(inputs)
-        predictions, = self._batch_pred_fn([px])
+        predictions, = self._forward_fn([px])
         assert predictions.shape == (inputs.shape[0], self.num_classes())
         return predictions
 

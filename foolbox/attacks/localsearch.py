@@ -40,11 +40,10 @@ class SinglePixelAttack(Attack):
         del unpack
 
         channel_axis = a.channel_axis(batch=False)
-        x = a.unperturbed
         axes = [i for i in range(x.ndim) if i != channel_axis]
         assert len(axes) == 2
-        h = x.shape[axes[0]]
-        w = x.shape[axes[1]]
+        h = a.unperturbed.shape[axes[0]]
+        w = a.unperturbed.shape[axes[1]]
 
         min_, max_ = a.bounds()
 
@@ -59,7 +58,7 @@ class SinglePixelAttack(Attack):
             location = tuple(location)
 
             for value in [min_, max_]:
-                perturbed = x.copy()
+                perturbed = a.unperturbed.copy()
                 perturbed[location] = value
 
                 _, is_adv = a.forward_one(perturbed)

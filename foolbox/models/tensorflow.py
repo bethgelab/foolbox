@@ -168,7 +168,7 @@ class TensorFlowModel(DifferentiableModel):
         input_shape = inputs.shape
         inputs, dpdx = self._process_input(inputs)
         g = self._session.run(
-            self._backward_gradient_inputs,
+            self._backward_grad_inputs,
             feed_dict={
                 self._inputs: inputs,
                 self._backward_gradient_logits: gradient})

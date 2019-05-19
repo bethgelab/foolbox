@@ -428,7 +428,7 @@ class Adversarial(object):
 
         self._total_prediction_calls += 1
         self._total_gradient_calls += 1
-        predictions, gradient = self.__model.forward_and_gradient(x, label)
+        predictions, gradient = self.__model.forward_and_gradient_one(x, label)
         is_adversarial, is_best, distance = self.__is_adversarial(x, predictions, in_bounds)
 
         assert predictions.ndim == 1

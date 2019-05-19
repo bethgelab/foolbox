@@ -63,6 +63,9 @@ class TheanoModel(DifferentiableModel):
         self._forward_and_gradient_fn = th.function([inputs, labels], [logits, gradient])
         self._gradient_fn = th.function([inputs, labels], gradient)
         self._backward_fn = th.function([backward_grad_logits, inputs], backward_grad_inputs)
+        
+        # for tests
+        self._loss_fn = th.function([inputs, labels], loss)
 
     def forward(self, inputs):
         inputs, _ = self._process_input(inputs)
