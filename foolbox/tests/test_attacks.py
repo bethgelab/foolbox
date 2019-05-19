@@ -44,7 +44,7 @@ def test_base_attack(model, criterion, image, label):
     adv = attack(image, label=wrong_label)
     assert adv.shape == image.shape
     adv = attack(image, label=wrong_label, unpack=False)
-    assert adv.image.shape == image.shape
+    assert adv.perturbed.shape == image.shape
 
     adv = Adversarial(model, criterion, image, wrong_label)
     adv = attack(adv)

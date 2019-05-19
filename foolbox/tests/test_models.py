@@ -17,7 +17,7 @@ def test_base_model():
 
     class TestModel(models.Model):
 
-        def batch_predictions(self, images):
+        def forward(self, inputs):
             pass
 
         def num_classes(self):

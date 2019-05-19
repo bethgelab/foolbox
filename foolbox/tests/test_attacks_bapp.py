@@ -9,7 +9,7 @@ def test_attack(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttackPlusPlus()
     attack(adv, iterations=20, verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
@@ -17,7 +17,7 @@ def test_attack_linf(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttackPlusPlus(distance=Linf)
     attack(adv, iterations=20, verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
@@ -25,7 +25,7 @@ def test_attack_non_verbose(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttackPlusPlus()
     attack(adv, iterations=20, verbose=False)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
@@ -36,7 +36,7 @@ def test_attack_continue(bn_adversarial):
     d1 = adv.distance.value
     attack2 = BoundaryAttackPlusPlus()
     attack2(adv, iterations=20, verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
     assert adv.distance.value < d1
 
@@ -44,7 +44,7 @@ def test_attack_continue(bn_adversarial):
 def test_attack_targeted(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttackPlusPlus()
-    o = adv.original_image
+    o = adv.unperturbed
     np.random.seed(2)
     starting_point = np.random.uniform(
         0, 1, size=o.shape).astype(o.dtype)
@@ -59,14 +59,14 @@ def test_attack_targeted(bn_adversarial):
         initial_num_evals=200,
         max_num_evals=20000,
         verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
 def test_attack_linf_targeted(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttackPlusPlus(distance=Linf)
-    o = adv.original_image
+    o = adv.unperturbed
     np.random.seed(2)
     starting_point = np.random.uniform(
         0, 1, size=o.shape).astype(o.dtype)
@@ -81,7 +81,7 @@ def test_attack_linf_targeted(bn_adversarial):
         initial_num_evals=200,
         max_num_evals=20000,
         verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
@@ -89,7 +89,7 @@ def test_attack_gl(gl_bn_adversarial):
     adv = gl_bn_adversarial
     attack = BoundaryAttackPlusPlus()
     attack(adv, iterations=200, verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
@@ -97,5 +97,5 @@ def test_attack_impossible(bn_impossible):
     adv = bn_impossible
     attack = BoundaryAttackPlusPlus()
     attack(adv, iterations=200, verbose=True)
-    assert adv.image is None
+    assert adv.perturbed is None
     assert adv.distance.value == np.inf

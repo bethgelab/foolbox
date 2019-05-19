@@ -86,7 +86,7 @@ class DeepFoolAttack(Attack):
         _label = a.original_class
 
         # define labels
-        logits, _ = a.predictions(a.original_image)
+        logits, _ = a.forward_one(a.unperturbed)
         labels = np.argsort(logits)[::-1]
         if subsample:
             # choose the top-k classes
@@ -100,11 +100,11 @@ class DeepFoolAttack(Attack):
                 k for k in labels
                 if logits[k] < logits[_label]]
 
-        perturbed = a.original_image
+        perturbed = a.unperturbed
         min_, max_ = a.bounds()
 
         for step in range(steps):
-            logits, grad, is_adv = a.predictions_and_gradient(perturbed)
+            logits, grad, is_adv = a.forward_and_gradient_one(perturbed)
             if is_adv:
                 return
 
@@ -124,7 +124,7 @@ class DeepFoolAttack(Attack):
             losses = [
                 -crossentropy(logits=logits, label=k)
                 for k in residual_labels]
-            grads = [a.gradient(perturbed, label=k) for k in residual_labels]
+            grads = [a.gradient_one(perturbed, label=k) for k in residual_labels]
 
             # compute optimal direction (and loss difference)
             # pairwise between each label and the target
@@ -156,12 +156,12 @@ class DeepFoolAttack(Attack):
 
             # the original implementation accumulates the perturbations
             # and only adds the overshoot when adding the accumulated
-            # perturbation to the original image; we apply the overshoot
+            # perturbation to the original input; we apply the overshoot
             # to each perturbation (step)
             perturbed = perturbed + 1.05 * perturbation
             perturbed = np.clip(perturbed, min_, max_)
 
-        a.predictions(perturbed)  # to find an adversarial in the last step
+        a.forward_one(perturbed)  # to find an adversarial in the last step
 
 
 class DeepFoolL2Attack(DeepFoolAttack):

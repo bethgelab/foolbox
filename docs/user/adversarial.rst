@@ -27,7 +27,7 @@ We can then get the actual adversarial input using the :attr:`image` attribute:
 
 .. code-block:: python3
 
-   adversarial_image = adversarial.image
+   adversarial_image = adversarial.perturbed
 
 
 Explicit
@@ -51,7 +51,7 @@ Again, we can get the image using the :attr:`image` attribute:
 
 .. code-block:: python3
 
-   adversarial_image = adversarial.image
+   adversarial_image = adversarial.perturbed
 
 This approach gives us more flexibility and allows us to specify
 a different distance measure:

@@ -23,7 +23,7 @@ class IterativeGradientBaseAttack(Attack):
         if not a.has_gradient():
             return
 
-        image = a.original_image
+        x = a.unperturbed
         min_, max_ = a.bounds()
 
         if not isinstance(epsilons, Iterable):
@@ -32,7 +32,7 @@ class IterativeGradientBaseAttack(Attack):
             epsilons = np.linspace(0, max_epsilon_iter, num=epsilons + 1)[1:]
 
         for epsilon in epsilons:
-            perturbed = image
+            perturbed = x
 
             for _ in range(steps):
                 gradient = self._gradient(a, perturbed)
@@ -40,7 +40,7 @@ class IterativeGradientBaseAttack(Attack):
                 perturbed = perturbed + gradient * epsilon
                 perturbed = np.clip(perturbed, min_, max_)
 
-                a.predictions(perturbed)
+                a.forward_one(perturbed)
                 # we don't return early if an adversarial was found
                 # because there might be a different epsilon
                 # and/or step that results in a better adversarial
@@ -89,7 +89,7 @@ class IterativeGradientAttack(IterativeGradientBaseAttack):
 
     def _gradient(self, a, x):
         min_, max_ = a.bounds()
-        gradient = a.gradient(x)
+        gradient = a.gradient_one(x)
         gradient_norm = np.sqrt(np.mean(np.square(gradient)))
         gradient = gradient / (gradient_norm + 1e-8) * (max_ - min_)
         return gradient
@@ -138,6 +138,6 @@ class IterativeGradientSignAttack(IterativeGradientBaseAttack):
 
     def _gradient(self, a, x):
         min_, max_ = a.bounds()
-        gradient = a.gradient(x)
+        gradient = a.gradient_one(x)
         gradient = np.sign(gradient) * (max_ - min_)
         return gradient

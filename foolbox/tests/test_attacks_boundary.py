@@ -10,7 +10,7 @@ def test_attack(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
     attack(adv, iterations=200, verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
@@ -18,7 +18,7 @@ def test_attack_non_verbose(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
     attack(adv, iterations=200, verbose=False)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
@@ -29,7 +29,7 @@ def test_attack_continue(bn_adversarial):
     d1 = adv.distance.value
     attack2 = BoundaryAttack()
     attack2(adv, iterations=200, verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
     assert adv.distance.value < d1
 
@@ -37,7 +37,7 @@ def test_attack_continue(bn_adversarial):
 def test_attack_parameters(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
-    o = adv.original_image
+    o = adv.unperturbed
     np.random.seed(2)
     starting_point = np.random.uniform(
         0, 1, size=o.shape).astype(o.dtype)
@@ -51,7 +51,7 @@ def test_attack_parameters(bn_adversarial):
         threaded_gen=False,
         alternative_generator=True,
         verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
@@ -63,7 +63,7 @@ def test_attack_parameters2(bn_adversarial):
         iterations=200,
         alternative_generator=True,
         verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
@@ -71,7 +71,7 @@ def test_attack_parameters2(bn_adversarial):
 def test_attack_parameters3(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
-    o = adv.original_image
+    o = adv.unperturbed
     np.random.seed(2)
     starting_point = np.random.uniform(
         0, 1, size=o.shape).astype(o.dtype)
@@ -84,7 +84,7 @@ def test_attack_parameters3(bn_adversarial):
         threaded_rnd=False,
         threaded_gen=False,
         verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
@@ -92,7 +92,7 @@ def test_attack_gl(gl_bn_adversarial):
     adv = gl_bn_adversarial
     attack = BoundaryAttack()
     attack(adv, iterations=200, verbose=True)
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
 
@@ -100,7 +100,7 @@ def test_attack_impossible(bn_impossible):
     adv = bn_impossible
     attack = BoundaryAttack()
     attack(adv, iterations=200, verbose=True)
-    assert adv.image is None
+    assert adv.perturbed is None
     assert adv.distance.value == np.inf
 
 
@@ -112,5 +112,5 @@ def test_attack_convergence(bn_adversarial):
     attack2 = BoundaryAttack()
     attack2(adv, iterations=5000, verbose=True)
     # should converge
-    assert adv.image is not None
+    assert adv.perturbed is not None
     assert adv.distance.value < np.inf

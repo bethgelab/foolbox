@@ -71,14 +71,11 @@ class DecoupledDirectionNormL2Attack(Attack):
             multiplier = 1
             attack_class = a.original_class
         norm = initial_norm
-        original_image = a.original_image
-        perturbation = np.zeros_like(original_image)
+        unperturbed = a.unperturbed
+        perturbation = np.zeros_like(unperturbed)
 
         for i in range(steps):
-
-            logits, grad, is_adv = a.predictions_and_gradient(
-                image=original_image + perturbation,
-                label=attack_class, strict=True)
+            logits, grad, is_adv = a.forward_and_gradient_one(unperturbed + perturbation, attack_class, strict=True)
 
             # renorm gradient and handle 0-norm gradient
             grad_norm = np.linalg.norm(grad)
@@ -99,8 +96,8 @@ class DecoupledDirectionNormL2Attack(Attack):
                 perturbation = np.round(perturbation * (levels - 1))
                 perturbation /= (levels - 1)
                 perturbation = perturbation * s + min_
-            perturbation = np.clip(perturbation, min_ - original_image,
-                                   max_ - original_image)
+            perturbation = np.clip(perturbation, min_ - unperturbed,
+                                   max_ - unperturbed)
 
 
 def cosine_learning_rate(current_step, max_steps, init_lr, final_lr):

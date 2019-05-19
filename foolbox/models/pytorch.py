@@ -63,20 +63,20 @@ class PyTorchModel(DifferentiableModel):
                 ' not be deterministic. Call the eval() method to set it in'
                 ' evaluation mode if this is not intended.')
 
-    def batch_predictions(self, images):
+    def forward(self, inputs):
         # lazy import
         import torch
 
-        images, _ = self._process_input(images)
-        n = len(images)
-        images = torch.from_numpy(images).to(self.device)
+        inputs, _ = self._process_input(inputs)
+        n = len(inputs)
+        inputs = torch.from_numpy(inputs).to(self.device)
 
-        predictions = self._model(images)
+        predictions = self._model(inputs)
         # TODO: add no_grad once we have a solution
         # for models that require grads internally
         # for inference
         # with torch.no_grad():
-        #     predictions = self._model(images)
+        #     predictions = self._model(inputs)
         predictions = predictions.detach().cpu().numpy()
         assert predictions.ndim == 2
         assert predictions.shape == (n, self.num_classes())
@@ -85,25 +85,25 @@ class PyTorchModel(DifferentiableModel):
     def num_classes(self):
         return self._num_classes
 
-    def predictions_and_gradient(self, image, label):
+    def forward_and_gradient_one(self, x, label):
         # lazy import
         import torch
         import torch.nn as nn
 
-        input_shape = image.shape
-        image, dpdx = self._process_input(image)
+        input_shape = x.shape
+        x, dpdx = self._process_input(x)
         target = np.array([label])
         target = torch.from_numpy(target).long().to(self.device)
 
-        images = image[np.newaxis]
-        images = torch.from_numpy(images).to(self.device)
-        images.requires_grad_()
+        inputs = x[np.newaxis]
+        inputs = torch.from_numpy(inputs).to(self.device)
+        inputs.requires_grad_()
 
-        predictions = self._model(images)
+        predictions = self._model(inputs)
         ce = nn.CrossEntropyLoss()
         loss = ce(predictions, target)
         loss.backward()
-        grad = images.grad
+        grad = inputs.grad
 
         predictions = predictions.detach().cpu().numpy()
         predictions = np.squeeze(predictions, axis=0)
@@ -117,64 +117,64 @@ class PyTorchModel(DifferentiableModel):
 
         return predictions, grad
 
-    def batch_gradients(self, images, labels):
+    def gradient(self, inputs, labels):
         # lazy import
         import torch
         import torch.nn as nn
 
-        input_shape = images.shape
-        images, dpdx = self._process_input(images)
+        input_shape = inputs.shape
+        inputs, dpdx = self._process_input(inputs)
         target = np.asarray(labels)
         target = torch.from_numpy(labels).long().to(self.device)
-        images = torch.from_numpy(images).to(self.device)
-        images.requires_grad_()
+        inputs = torch.from_numpy(inputs).to(self.device)
+        inputs.requires_grad_()
 
-        predictions = self._model(images)
+        predictions = self._model(inputs)
         ce = nn.CrossEntropyLoss()
         loss = ce(predictions, target)
         loss.backward()
-        grad = images.grad
+        grad = inputs.grad
         grad = grad.detach().cpu().numpy()
         grad = self._process_gradient(dpdx, grad)
         assert grad.shape == input_shape
         return grad
 
-    def _loss_fn(self, image, label):
+    def _loss_fn(self, x, label):
         # lazy import
         import torch
         import torch.nn as nn
 
-        image, _ = self._process_input(image)
+        x, _ = self._process_input(x)
         target = np.array([label])
         target = torch.from_numpy(target).long().to(self.device)
-        images = torch.from_numpy(image[None]).to(self.device)
-        predictions = self._model(images)
+        inputs = torch.from_numpy(x[None]).to(self.device)
+        predictions = self._model(inputs)
         ce = nn.CrossEntropyLoss()
         loss = ce(predictions, target)
         loss = loss.cpu().numpy()
         return loss
 
-    def batch_backward(self, gradients, images):
+    def backward(self, gradient, inputs):
         # lazy import
         import torch
 
-        assert gradients.ndim == 2
+        assert gradient.ndim == 2
 
-        gradients = torch.from_numpy(gradients).to(self.device)
+        gradient = torch.from_numpy(gradient).to(self.device)
 
-        input_shape = images.shape
-        images, dpdx = self._process_input(images)
-        images = torch.from_numpy(images).to(self.device)
-        images.requires_grad_()
-        predictions = self._model(images)
+        input_shape = inputs.shape
+        inputs, dpdx = self._process_input(inputs)
+        inputs = torch.from_numpy(inputs).to(self.device)
+        inputs.requires_grad_()
+        predictions = self._model(inputs)
 
-        assert gradients.dim() == 2
+        assert gradient.dim() == 2
         assert predictions.dim() == 2
-        assert gradients.size() == predictions.size()
+        assert gradient.size() == predictions.size()
 
-        predictions.backward(gradient=gradients)
+        predictions.backward(gradient=gradient)
 
-        grad = images.grad
+        grad = inputs.grad
         grad = grad.detach().cpu().numpy()
         grad = self._process_gradient(dpdx, grad)
         assert grad.shape == input_shape

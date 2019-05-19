@@ -10,8 +10,7 @@ from .. import nprng
 
 
 class BlendedUniformNoiseAttack(Attack):
-    """Blends the image with a uniform noise image until it
-    is misclassified.
+    """Blends the input with a uniform noise input until it is misclassified.
 
     """
 
@@ -19,8 +18,7 @@ class BlendedUniformNoiseAttack(Attack):
     def __call__(self, input_or_adv, label=None, unpack=True,
                  epsilons=1000, max_directions=1000):
 
-        """Blends the image with a uniform noise image until it
-        is misclassified.
+        """Blends the input with a uniform noise input until it is misclassified.
 
         Parameters
         ----------
@@ -38,7 +36,7 @@ class BlendedUniformNoiseAttack(Attack):
             Either Iterable of blending steps or number of blending steps
             between 0 and 1 that should be tried.
         max_directions : int
-            Maximum number of random images to try.
+            Maximum number of random inputs to try.
 
         """
 
@@ -47,39 +45,39 @@ class BlendedUniformNoiseAttack(Attack):
         del label
         del unpack
 
-        image = a.original_image
+        x = a.unperturbed
         min_, max_ = a.bounds()
 
-        if a.image is not None:  # pragma: no cover
+        if a.perturbed is not None:  # pragma: no cover
             warnings.warn('BlendedUniformNoiseAttack started with'
                           ' previously found adversarial.')
 
         for j in range(max_directions):
-            # random noise images tend to be classified into the same class,
+            # random noise inputs tend to be classified into the same class,
             # so we might need to make very many draws if the original class
             # is that one
-            random_image = nprng.uniform(
-                min_, max_, size=image.shape).astype(image.dtype)
-            _, is_adversarial = a.predictions(random_image)
+            random = nprng.uniform(
+                min_, max_, size=x.shape).astype(x.dtype)
+            _, is_adversarial = a.forward_one(random)
             if is_adversarial:
-                logging.info('Found adversarial image after {} '
+                logging.info('Found adversarial input after {} '
                              'attempts'.format(j + 1))
                 break
         else:
             # never breaked
             warnings.warn('BlendedUniformNoiseAttack failed to draw a'
-                          ' random image that is adversarial.')
+                          ' random input that is adversarial.')
 
         if not isinstance(epsilons, Iterable):
             epsilons = np.linspace(0, 1, num=epsilons + 1)[1:]
 
         for epsilon in epsilons:
-            perturbed = (1 - epsilon) * image + epsilon * random_image
+            perturbed = (1 - epsilon) * x + epsilon * random
             # due to limited floating point precision,
             # clipping can be required
             if not a.in_bounds(perturbed):  # pragma: no cover
                 np.clip(perturbed, min_, max_, out=perturbed)
 
-            _, is_adversarial = a.predictions(perturbed)
+            _, is_adversarial = a.forward_one(perturbed)
             if is_adversarial:
                 return

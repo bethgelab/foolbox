@@ -67,17 +67,18 @@ class SaliencyMapAttack(Attack):
             if num_random_targets == 0:
                 gradient_attack = GradientAttack()
                 gradient_attack(a)
-                adv_img = a.image
+                adv_img = a.perturbed
                 if adv_img is None:  # pragma: no coverage
                     # using GradientAttack did not work,
                     # falling back to random target
                     num_random_targets = 1
-                    logging.info('Using GradientAttack to determine a target class failed, falling back to a random target class')  # noqa: E501
+                    logging.info('Using GradientAttack to determine a target class failed,'
+                                 ' falling back to a random target class')
                 else:
-                    logits, _ = a.predictions(adv_img)
+                    logits, _ = a.forward_one(adv_img)
                     target_class = np.argmax(logits)
                     target_classes = [target_class]
-                    logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))  # noqa: E501
+                    logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))
             else:  # pragma: no coverage
                 num_random_targets = 1
 
@@ -95,11 +96,11 @@ class SaliencyMapAttack(Attack):
                 # https://github.com/numpy/numpy/issues/2764
                 target_classes = rng.sample(
                     range(num_classes), num_random_targets + 1)
-                target_classes = [t for t in target_classes if t != original_class]  # noqa: E501
+                target_classes = [t for t in target_classes if t != original_class]
                 target_classes = target_classes[:num_random_targets]
 
                 str_target_classes = [str(t) for t in target_classes]
-                logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))  # noqa: E501
+                logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))
         else:
             target_classes = [target_class]
 
@@ -108,25 +109,25 @@ class SaliencyMapAttack(Attack):
 
         for target in target_classes:
 
-            image = a.original_image
+            x = a.unperturbed
 
             # the mask defines the search domain
             # each modified pixel with border value is set to zero in mask
-            mask = np.ones_like(image)
+            mask = np.ones_like(x)
 
             # count tracks how often each pixel was changed
-            counts = np.zeros_like(image)
+            counts = np.zeros_like(x)
 
             # TODO: shouldn't this be without target
             labels = range(a.num_classes())
 
-            perturbed = image.copy()
+            perturbed = x.copy()
 
             min_, max_ = a.bounds()
 
             # TODO: stop if mask is all zero
             for step in range(max_iter):
-                _, is_adversarial = a.predictions(perturbed)
+                _, is_adversarial = a.forward_one(perturbed)
                 if is_adversarial:
                     return
 
@@ -150,13 +151,13 @@ class SaliencyMapAttack(Attack):
 
                 perturbed = np.clip(perturbed, min_, max_)
 
-    def _saliency_map(self, a, image, target, labels, mask, fast=False):
+    def _saliency_map(self, a, x, target, labels, mask, fast=False):
         """Implements Algorithm 3 in manuscript
 
         """
 
         # pixel influence on target class
-        alphas = a.gradient(image, target) * mask
+        alphas = a.gradient_one(x, target) * mask
 
         # pixel influence on sum of residual classes
         # (don't evaluate if fast == True)
@@ -164,7 +165,7 @@ class SaliencyMapAttack(Attack):
             betas = -np.ones_like(alphas)
         else:
             betas = np.sum([
-                a.gradient(image, label) * mask - alphas
+                a.gradient_one(x, label) * mask - alphas
                 for label in labels], 0)
 
         # compute saliency map

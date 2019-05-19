@@ -19,15 +19,15 @@ class SinglePixelAttack(Attack):
         Parameters
         ----------
         input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, correctly classified image. If image is a
-            numpy array, label must be passed as well. If image is
+            The original, correctly classified input. If it is a
+            numpy array, label must be passed as well. If it is
             an :class:`Adversarial` instance, label must not be passed.
         label : int
-            The reference label of the original image. Must be passed
-            if image is a numpy array, must not be passed if image is
+            The reference label of the original input. Must be passed
+            if input is a numpy array, must not be passed if input is
             an :class:`Adversarial` instance.
         unpack : bool
-            If true, returns the adversarial image, otherwise returns
+            If true, returns the adversarial input, otherwise returns
             the Adversarial object.
         max_pixels : int
             Maximum number of pixels to try.
@@ -40,11 +40,10 @@ class SinglePixelAttack(Attack):
         del unpack
 
         channel_axis = a.channel_axis(batch=False)
-        image = a.original_image
-        axes = [i for i in range(image.ndim) if i != channel_axis]
+        axes = [i for i in range(a.unperturbed.ndim) if i != channel_axis]
         assert len(axes) == 2
-        h = image.shape[axes[0]]
-        w = image.shape[axes[1]]
+        h = a.unperturbed.shape[axes[0]]
+        w = a.unperturbed.shape[axes[1]]
 
         min_, max_ = a.bounds()
 
@@ -59,10 +58,10 @@ class SinglePixelAttack(Attack):
             location = tuple(location)
 
             for value in [min_, max_]:
-                perturbed = image.copy()
+                perturbed = a.unperturbed.copy()
                 perturbed[location] = value
 
-                _, is_adv = a.predictions(perturbed)
+                _, is_adv = a.forward_one(perturbed)
                 if is_adv:
                     return
 
@@ -89,15 +88,15 @@ class LocalSearchAttack(Attack):
         Parameters
         ----------
         input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, correctly classified image. If image is a
-            numpy array, label must be passed as well. If image is
+            The original, correctly classified input. If it is a
+            numpy array, label must be passed as well. If it is
             an :class:`Adversarial` instance, label must not be passed.
         label : int
-            The reference label of the original image. Must be passed
-            if image is a numpy array, must not be passed if image is
+            The reference label of the original input. Must be passed
+            if input is a numpy array, must not be passed if input is
             an :class:`Adversarial` instance.
         unpack : bool
-            If true, returns the adversarial image, otherwise returns
+            If true, returns the adversarial input, otherwise returns
             the Adversarial object.
         r : float
             Perturbation parameter that controls the cyclic perturbation;
@@ -145,7 +144,7 @@ class LocalSearchAttack(Attack):
             im = im + (min_ + max_) / 2
             return im
 
-        Im = a.original_image
+        Im = a.unperturbed
         Im, LB, UB = normalize(Im)
 
         cI = a.original_class
@@ -196,7 +195,7 @@ class LocalSearchAttack(Attack):
             def score(Its):
                 Its = np.stack(Its)
                 Its = unnormalize(Its)
-                batch_logits, _ = a.batch_predictions(Its, strict=False)
+                batch_logits, _ = a.forward(Its, strict=False)
                 scores = [softmax(logits)[cI] for logits in batch_logits]
                 return scores
 
@@ -206,7 +205,7 @@ class LocalSearchAttack(Attack):
 
             PxPy_star = PxPy[indices]
 
-            # Generation of new perturbed image Ii
+            # Generation of new perturbed input Ii
             for x, y in PxPy_star:
                 for b in range(channels):
                     location = [x, y]
@@ -214,8 +213,8 @@ class LocalSearchAttack(Attack):
                     location = tuple(location)
                     Ii[location] = cyclic(r, Ii[location])
 
-            # Check whether the perturbed image Ii is an adversarial image
-            _, is_adv = a.predictions(unnormalize(Ii))
+            # Check whether the perturbed input Ii is an adversarial input
+            _, is_adv = a.forward_one(unnormalize(Ii))
             if is_adv:  # pragma: no cover
                 return
 

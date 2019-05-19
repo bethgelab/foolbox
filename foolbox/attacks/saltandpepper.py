@@ -6,8 +6,7 @@ from .. import nprng
 
 
 class SaltAndPepperNoiseAttack(Attack):
-    """Increases the amount of salt and pepper noise until the
-    image is misclassified.
+    """Increases the amount of salt and pepper noise until the input is misclassified.
 
     """
 
@@ -15,8 +14,7 @@ class SaltAndPepperNoiseAttack(Attack):
     def __call__(self, input_or_adv, label=None, unpack=True,
                  epsilons=100, repetitions=10):
 
-        """Increases the amount of salt and pepper noise until the
-        image is misclassified.
+        """Increases the amount of salt and pepper noise until the input is misclassified.
 
         Parameters
         ----------
@@ -42,11 +40,11 @@ class SaltAndPepperNoiseAttack(Attack):
         del label
         del unpack
 
-        image = a.original_image
+        x = a.unperturbed
         min_, max_ = a.bounds()
         axis = a.channel_axis(batch=False)
-        channels = image.shape[axis]
-        shape = list(image.shape)
+        channels = x.shape[axis]
+        shape = list(x.shape)
         shape[axis] = 1
         r = max_ - min_
         pixels = np.prod(shape)
@@ -61,16 +59,16 @@ class SaltAndPepperNoiseAttack(Attack):
                 u = nprng.uniform(size=shape)
                 u = u.repeat(channels, axis=axis)
 
-                salt = (u >= 1 - p / 2).astype(image.dtype) * r
-                pepper = -(u < p / 2).astype(image.dtype) * r
+                salt = (u >= 1 - p / 2).astype(x.dtype) * r
+                pepper = -(u < p / 2).astype(x.dtype) * r
 
-                perturbed = image + salt + pepper
+                perturbed = x + salt + pepper
                 perturbed = np.clip(perturbed, min_, max_)
 
                 if a.normalized_distance(perturbed) >= a.distance:
                     continue
 
-                _, is_adversarial = a.predictions(perturbed)
+                _, is_adversarial = a.forward_one(perturbed)
                 if is_adversarial:
                     # higher epsilon usually means larger perturbation, but
                     # this relationship is not strictly monotonic, so we set

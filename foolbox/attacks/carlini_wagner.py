@@ -113,9 +113,9 @@ class CarliniWagnerL2Attack(Attack):
 
         # variables representing inputs in attack space will be
         # prefixed with att_
-        att_original = to_attack_space(a.original_image)
+        att_original = to_attack_space(a.unperturbed)
 
-        # will be close but not identical to a.original_image
+        # will be close but not identical to a.unperturbed
         reconstructed_original, _ = to_model_space(att_original)
 
         # the binary search finds the smallest const for which we
@@ -143,7 +143,7 @@ class CarliniWagnerL2Attack(Attack):
 
             for iteration in range(max_iterations):
                 x, dxdp = to_model_space(att_original + att_perturbation)
-                logits, is_adv = a.predictions(x)
+                logits, is_adv = a.forward_one(x)
                 loss, dldx = self.loss_function(
                     const, a, x, logits, reconstructed_original,
                     confidence, min_, max_)
@@ -219,7 +219,7 @@ class CarliniWagnerL2Attack(Attack):
         logits_diff_grad = np.zeros_like(logits)
         logits_diff_grad[c_minimize] = 1
         logits_diff_grad[c_maximize] = -1
-        is_adv_loss_grad = a.backward(logits_diff_grad, x)
+        is_adv_loss_grad = a.backward_one(logits_diff_grad, x)
         assert is_adv_loss >= 0
         if is_adv_loss == 0:
             is_adv_loss_grad = 0

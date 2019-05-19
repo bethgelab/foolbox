@@ -12,7 +12,7 @@ from .. import rng
 
 
 class LBFGSAttack(Attack):
-    """Uses L-BFGS-B to minimize the distance between the image and the adversarial
+    """Uses L-BFGS-B to minimize the distance between the input and the adversarial
     as well as the cross-entropy between the predictions for the adversarial
     and the the one-hot encoded target class.
 
@@ -50,7 +50,7 @@ class LBFGSAttack(Attack):
                  num_random_targets=0,
                  maxiter=150):
 
-        """Uses L-BFGS-B to minimize the distance between the image and the
+        """Uses L-BFGS-B to minimize the distance between the input and the
         adversarial as well as the cross-entropy between the predictions for
         the adversarial and the the one-hot encoded target class.
 
@@ -94,17 +94,18 @@ class LBFGSAttack(Attack):
             if num_random_targets == 0:
                 gradient_attack = GradientAttack()
                 gradient_attack(a)
-                adv_img = a.image
+                adv_img = a.perturbed
                 if adv_img is None:  # pragma: no coverage
                     # using GradientAttack did not work,
                     # falling back to random target
                     num_random_targets = 1
-                    logging.warning('Using GradientAttack to determine a target class failed, falling back to a random target class')  # noqa: E501
+                    logging.warning('Using GradientAttack to determine a target class failed,'
+                                    ' falling back to a random target class')
                 else:
-                    logits, _ = a.predictions(adv_img)
+                    logits, _ = a.forward_one(adv_img)
                     target_class = np.argmax(logits)
                     target_classes = [target_class]
-                    logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))  # noqa: E501
+                    logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))
 
             if num_random_targets > 0:
 
@@ -120,11 +121,11 @@ class LBFGSAttack(Attack):
                 # https://github.com/numpy/numpy/issues/2764
                 target_classes = rng.sample(
                     range(num_classes), num_random_targets + 1)
-                target_classes = [t for t in target_classes if t != original_class]  # noqa: E501
+                target_classes = [t for t in target_classes if t != original_class]
                 target_classes = target_classes[:num_random_targets]
 
                 str_target_classes = [str(t) for t in target_classes]
-                logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))  # noqa: E501
+                logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))
         else:
             target_classes = [target_class]
 
@@ -137,21 +138,19 @@ class LBFGSAttack(Attack):
                 epsilon=epsilon, maxiter=maxiter)
 
             if len(target_classes) > 1:  # pragma: no coverage
-                logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.distance))  # noqa: E501
+                logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.distance))
 
     def _optimize(self, a, target_class, epsilon, maxiter):
-        image = a.original_image
+        x0 = a.unperturbed
         min_, max_ = a.bounds()
 
-        # store the shape for later and operate on the flattened image
-        shape = image.shape
-        dtype = image.dtype
-        image = image.flatten().astype(np.float64)
+        # store the shape for later and operate on the flattened input
+        shape = x0.shape
+        dtype = x0.dtype
+        x0 = x0.flatten().astype(np.float64)
 
-        n = len(image)
+        n = len(x0)
         bounds = [(min_, max_)] * n
-
-        x0 = image
 
         if self._approximate_gradient:
 
@@ -162,7 +161,7 @@ class LBFGSAttack(Attack):
             def crossentropy(x):
                 # lbfgs with approx grad does not seem to respect the bounds
                 # setting strict to False
-                logits, _ = a.predictions(x.reshape(shape), strict=False)
+                logits, _ = a.forward_one(x.reshape(shape), strict=False)
                 ce = utils_ce(logits=logits, label=target_class)
                 return ce
 
@@ -179,7 +178,7 @@ class LBFGSAttack(Attack):
                 return d.value, d.gradient.reshape(-1)
 
             def crossentropy(x):
-                logits, gradient, _ = a.predictions_and_gradient(
+                logits, gradient, _ = a.forward_and_gradient_one(
                     x.reshape(shape), target_class, strict=False)
                 gradient = gradient.reshape(-1)
                 ce = utils_ce(logits=logits, label=target_class)
@@ -211,10 +210,11 @@ class LBFGSAttack(Attack):
 
             # LBFGS-B does not always exactly respect the boundaries
             if np.amax(x) > max_ or np.amin(x) < min_:   # pragma: no coverage
-                logging.info('Image out of bounds (min, max = {}, {}). Performing manual clip.'.format(np.amin(x), np.amax(x)))  # noqa: E501
+                logging.info('Input out of bounds (min, max = {}, {}). Performing manual clip.'.format(
+                    np.amin(x), np.amax(x)))
                 x = np.clip(x, min_, max_)
 
-            _, is_adversarial = a.predictions(x.reshape(shape).astype(dtype))
+            _, is_adversarial = a.forward_one(x.reshape(shape).astype(dtype))
             return is_adversarial
 
         # finding initial c
@@ -228,7 +228,7 @@ class LBFGSAttack(Attack):
             if is_adversarial:
                 break
         else:  # pragma: no cover
-            logging.info('Could not find an adversarial; maybe the model returns wrong gradients')  # noqa: E501
+            logging.info('Could not find an adversarial; maybe the model returns wrong gradients')
             return
 
         # binary search

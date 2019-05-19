@@ -59,15 +59,15 @@ class BoundaryAttackPlusPlus(Attack):
         Parameters
         ----------
         input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, correctly classified image. If image is a
-            numpy array, label must be passed as well. If image is
+            The original, correctly classified input. If it is a
+            numpy array, label must be passed as well. If it is
             an :class:`Adversarial` instance, label must not be passed.
         label : int
-            The reference label of the original image. Must be passed
-            if image is a numpy array, must not be passed if image is
+            The reference label of the original input. Must be passed
+            if input is a numpy array, must not be passed if input is
             an :class:`Adversarial` instance.
         unpack : bool
-            If true, returns the adversarial image, otherwise returns
+            If true, returns the adversarial input, otherwise returns
             the Adversarial object.
         iterations : int
             Number of iterations to run.
@@ -120,7 +120,7 @@ class BoundaryAttackPlusPlus(Attack):
             self.constraint = 'linf'
 
         # Set binary search threshold.
-        self.shape = input_or_adv.original_image.shape
+        self.shape = input_or_adv.unperturbed.shape
         self.d = np.prod(self.shape)
         if self.constraint == 'l2':
             self.theta = self.gamma / np.sqrt(self.d)
@@ -150,7 +150,7 @@ class BoundaryAttackPlusPlus(Attack):
         # Increase floating point precision
         # ===========================================================
 
-        self.external_dtype = a.original_image.dtype
+        self.external_dtype = a.unperturbed.dtype
 
         assert self.internal_dtype in [np.float32, np.float64]
         assert self.external_dtype in [np.float32, np.float64]
@@ -163,7 +163,7 @@ class BoundaryAttackPlusPlus(Attack):
         # ===========================================================
         # Construct batch decision function with binary output.
         # ===========================================================
-        # decision_function = lambda x: a.batch_predictions(
+        # decision_function = lambda x: a.forward(
         #     x.astype(self.external_dtype), strict=False)[1]
         def decision_function(x):
             outs = []
@@ -172,7 +172,7 @@ class BoundaryAttackPlusPlus(Attack):
                 current_batch = x[self.batch_size * j:
                                   self.batch_size * (j + 1)]
                 current_batch = current_batch.astype(self.external_dtype)
-                out = a.batch_predictions(current_batch, strict=False)[1]
+                out = a.forward(current_batch, strict=False)[1]
                 outs.append(out)
             outs = np.concatenate(outs, axis=0)
             return outs
@@ -203,7 +203,7 @@ class BoundaryAttackPlusPlus(Attack):
 
         self.initialize_starting_point(a)
 
-        if a.image is None:
+        if a.perturbed is None:
             warnings.warn(
                 'Initialization failed.'
                 ' it might be necessary to pass an explicit starting'
@@ -212,10 +212,10 @@ class BoundaryAttackPlusPlus(Attack):
 
         self.time_initialization += time.time() - self.t_initial
 
-        assert a.image.dtype == self.external_dtype
+        assert a.perturbed.dtype == self.external_dtype
         # get original and starting point in the right format
-        original = a.original_image.astype(self.internal_dtype)
-        perturbed = a.image.astype(self.internal_dtype)
+        original = a.unperturbed.astype(self.internal_dtype)
+        perturbed = a.perturbed.astype(self.internal_dtype)
 
         # ===========================================================
         # Iteratively refine adversarial
@@ -268,8 +268,7 @@ class BoundaryAttackPlusPlus(Attack):
                     perturbed, update, dist, decision_function, step)
 
                 # Update the sample.
-                perturbed = self.clip_image(perturbed + epsilon * update,
-                                            self.clip_min, self.clip_max)
+                perturbed = np.clip(perturbed + epsilon * update, self.clip_min, self.clip_max)
 
                 # Binary search to return to the boundary.
                 perturbed, dist_post_update = self.binary_search_batch(
@@ -281,8 +280,7 @@ class BoundaryAttackPlusPlus(Attack):
                 epsilons_shape = [20] + len(self.shape) * [1]
                 perturbeds = perturbed + epsilons.reshape(
                     epsilons_shape) * update
-                perturbeds = self.clip_image(perturbeds,
-                                             self.clip_min, self.clip_max)
+                perturbeds = np.clip(perturbeds, self.clip_min, self.clip_max)
                 idx_perturbed = decision_function(perturbeds)
 
                 if np.sum(idx_perturbed) > 0:
@@ -326,7 +324,7 @@ class BoundaryAttackPlusPlus(Attack):
     def initialize_starting_point(self, a):
         starting_point = self._starting_point
 
-        if a.image is not None:
+        if a.perturbed is not None:
             print(
                 'Attack is applied to a previously found adversarial.'
                 ' Continuing search for better adversarials.')
@@ -337,10 +335,9 @@ class BoundaryAttackPlusPlus(Attack):
             return
 
         if starting_point is not None:
-            a.predictions(starting_point)
-            assert a.image is not None, ('Invalid starting point provided.'
-                                         ' Please provide a starting point'
-                                         ' that is adversarial.')
+            a.forward_one(starting_point)
+            assert a.perturbed is not None, (
+                'Invalid starting point provided. Please provide a starting point that is adversarial.')
             return
 
         """
@@ -354,7 +351,7 @@ class BoundaryAttackPlusPlus(Attack):
         while True:
             random_noise = np.random.uniform(self.clip_min, self.clip_max,
                                              size=self.shape)
-            _, success = a.predictions(
+            _, success = a.forward_one(
                 random_noise.astype(self.external_dtype))
             num_evals += 1
             if success:
@@ -362,53 +359,44 @@ class BoundaryAttackPlusPlus(Attack):
             if num_evals > 1e4:
                 return
 
-        # Binary search to minimize l2 distance to original image.
+        # Binary search to minimize l2 distance to the original input.
         low = 0.0
         high = 1.0
         while high - low > 0.001:
             mid = (high + low) / 2.0
-            blended = (1 - mid) * a.original_image + mid * random_noise
-            _, success = a.predictions(blended.astype(self.external_dtype))
+            blended = (1 - mid) * a.unperturbed + mid * random_noise
+            _, success = a.forward_one(blended.astype(self.external_dtype))
             if success:
                 high = mid
             else:
                 low = mid
 
-    def compute_distance(self, image1, image2):
+    def compute_distance(self, x1, x2):
         if self.constraint == 'l2':
-            return np.linalg.norm(image1 - image2)
+            return np.linalg.norm(x1 - x2)
         elif self.constraint == 'linf':
-            return np.max(abs(image1 - image2))
+            return np.max(abs(x1 - x2))
 
-    def clip_image(self, image, clip_min, clip_max):
-        """ Clip an image, or an image batch,
-        with upper and lower threshold. """
-        return np.minimum(np.maximum(clip_min, image), clip_max)
-
-    def project(self, original_image, perturbed_images, alphas):
+    def project(self, unperturbed, perturbed_inputs, alphas):
         """ Projection onto given l2 / linf balls in a batch. """
         alphas_shape = [len(alphas)] + [1] * len(self.shape)
         alphas = alphas.reshape(alphas_shape)
         if self.constraint == 'l2':
-            projected = (1 - alphas) * original_image + \
-                alphas * perturbed_images
+            projected = (1 - alphas) * unperturbed + \
+                alphas * perturbed_inputs
         elif self.constraint == 'linf':
-            projected = self.clip_image(
-                perturbed_images,
-                original_image - alphas,
-                original_image + alphas
-            )
+            projected = np.clip(perturbed_inputs, unperturbed - alphas, unperturbed + alphas)
         return projected
 
-    def binary_search_batch(self, original_image, perturbed_images,
+    def binary_search_batch(self, unperturbed, perturbed_inputs,
                             decision_function):
         """ Binary search to approach the boundary. """
 
-        # Compute distance between each of perturbed image and original image.
+        # Compute distance between each of perturbed and unperturbed input.
         dists_post_update = np.array(
-            [self.compute_distance(original_image,
-                                   perturbed_image) for perturbed_image in
-             perturbed_images])
+            [self.compute_distance(unperturbed,
+                                   perturbed_x) for perturbed_x in
+             perturbed_inputs])
 
         # Choose upper thresholds in binary searchs based on constraint.
         if self.constraint == 'linf':
@@ -417,39 +405,39 @@ class BoundaryAttackPlusPlus(Attack):
             thresholds = np.minimum(dists_post_update * self.theta,
                                     self.theta)
         else:
-            highs = np.ones(len(perturbed_images))
+            highs = np.ones(len(perturbed_inputs))
             thresholds = self.theta
 
-        lows = np.zeros(len(perturbed_images))
+        lows = np.zeros(len(perturbed_inputs))
 
         # Call recursive function.
         while np.max((highs - lows) / thresholds) > 1:
             # projection to mids.
             mids = (highs + lows) / 2.0
-            mid_images = self.project(original_image, perturbed_images,
+            mid_inputs = self.project(unperturbed, perturbed_inputs,
                                       mids)
 
             # Update highs and lows based on model decisions.
-            decisions = decision_function(mid_images)
+            decisions = decision_function(mid_inputs)
             lows = np.where(decisions == 0, mids, lows)
             highs = np.where(decisions == 1, mids, highs)
 
-        out_images = self.project(original_image, perturbed_images,
+        out_inputs = self.project(unperturbed, perturbed_inputs,
                                   highs)
 
-        # Compute distance of the output image to select the best choice.
+        # Compute distance of the output to select the best choice.
         # (only used when stepsize_search is grid_search.)
         dists = np.array([
             self.compute_distance(
-                original_image,
-                out_image
+                unperturbed,
+                out
             )
-            for out_image in out_images])
+            for out in out_inputs])
         idx = np.argmin(dists)
 
         dist = dists_post_update[idx]
-        out_image = out_images[idx]
-        return out_image, dist
+        out = out_inputs[idx]
+        return out, dist
 
     def select_delta(self, dist_post_update, current_iteration):
         """
@@ -479,8 +467,7 @@ class BoundaryAttackPlusPlus(Attack):
         axis = tuple(range(1, 1 + len(self.shape)))
         rv = rv / np.sqrt(np.sum(rv ** 2, axis=axis, keepdims=True))
         perturbed = sample + delta * rv
-        perturbed = self.clip_image(perturbed, self.clip_min,
-                                    self.clip_max)
+        perturbed = np.clip(perturbed, self.clip_min, self.clip_max)
         rv = (perturbed - sample) / delta
 
         # query the model.
@@ -507,8 +494,7 @@ class BoundaryAttackPlusPlus(Attack):
         """
         epsilon = dist / np.sqrt(current_iteration)
         while True:
-            updated = self.clip_image(x + epsilon * update,
-                                      self.clip_min, self.clip_max)
+            updated = np.clip(x + epsilon * update, self.clip_min, self.clip_max)
             success = decision_function(updated[None])[0]
             if success:
                 break

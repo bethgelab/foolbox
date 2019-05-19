@@ -58,18 +58,18 @@ class PointwiseAttack(Attack):
         self._initialization_attack = initialization_attack
         self.initialize_starting_point(a)
 
-        if a.image is None:
+        if a.perturbed is None:
             warnings.warn(
                 'Initialization failed. If the criterion is targeted,'
                 ' it might be necessary to pass an explicit starting'
                 ' point or targeted initialization attack.')
             return
 
-        shape = a.original_image.shape
-        N = a.original_image.size
+        shape = a.unperturbed.shape
+        N = a.unperturbed.size
 
-        original = a.original_image.reshape(-1)
-        x = a.image.copy().reshape(-1)
+        original = a.unperturbed.reshape(-1)
+        x = a.perturbed.copy().reshape(-1)
 
         assert original.dtype == x.dtype
 
@@ -87,7 +87,7 @@ class PointwiseAttack(Attack):
                 x[index] = new_value
 
                 # check if still adversarial
-                _, is_adversarial = a.predictions(x.reshape(shape))
+                _, is_adversarial = a.forward_one(x.reshape(shape))
 
                 # if adversarial, restart from there
                 if is_adversarial:
@@ -122,7 +122,7 @@ class PointwiseAttack(Attack):
                 x[index] = original_value
 
                 # check if still adversarial
-                _, is_adversarial = a.predictions(x.reshape(shape))
+                _, is_adversarial = a.forward_one(x.reshape(shape))
 
                 # if adversarial, no binary search needed
                 if is_adversarial:  # pragma: no cover
@@ -154,7 +154,7 @@ class PointwiseAttack(Attack):
         for i in range(10):
             next_value = (adv_value + non_adv_value) / 2
             x[index] = next_value
-            _, is_adversarial = a.predictions(x.reshape(shape))
+            _, is_adversarial = a.forward_one(x.reshape(shape))
             if is_adversarial:
                 adv_value = next_value
             else:
@@ -165,7 +165,7 @@ class PointwiseAttack(Attack):
         starting_point = self._starting_point
         init_attack = self._initialization_attack
 
-        if a.image is not None:
+        if a.perturbed is not None:
             if starting_point is not None:  # pragma: no cover
                 warnings.warn(
                     'Ignoring starting_point because the attack'
@@ -177,10 +177,9 @@ class PointwiseAttack(Attack):
             return
 
         if starting_point is not None:
-            a.predictions(starting_point)
-            assert a.image is not None, ('Invalid starting point provided.'
-                                         ' Please provide a starting point'
-                                         ' that is adversarial.')
+            a.forward_one(starting_point)
+            assert a.perturbed is not None, (
+                'Invalid starting point provided. Please provide a starting point that is adversarial.')
             return
 
         if init_attack is None:

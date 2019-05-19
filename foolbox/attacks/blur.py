@@ -8,13 +8,13 @@ from .base import call_decorator
 
 
 class GaussianBlurAttack(Attack):
-    """Blurs the image until it is misclassified."""
+    """Blurs the input until it is misclassified."""
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  epsilons=1000):
 
-        """Blurs the image until it is misclassified.
+        """Blurs the input until it is misclassified.
 
         Parameters
         ----------
@@ -23,7 +23,7 @@ class GaussianBlurAttack(Attack):
             an :class:`Adversarial` instance.
         label : int
             The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            if input is a `numpy.ndarray`, must not be passed if input is
             an :class:`Adversarial` instance.
         unpack : bool
             If true, returns the adversarial input, otherwise returns
@@ -40,10 +40,10 @@ class GaussianBlurAttack(Attack):
         del label
         del unpack
 
-        image = a.original_image
+        x = a.unperturbed
         min_, max_ = a.bounds()
         axis = a.channel_axis(batch=False)
-        hw = [image.shape[i] for i in range(image.ndim) if i != axis]
+        hw = [x.shape[i] for i in range(x.ndim) if i != axis]
         h, w = hw
         size = max(h, w)
 
@@ -55,9 +55,9 @@ class GaussianBlurAttack(Attack):
             # sigma = size = max(width, height)
             sigmas = [epsilon * size] * 3
             sigmas[axis] = 0
-            blurred = gaussian_filter(image, sigmas)
+            blurred = gaussian_filter(x, sigmas)
             blurred = np.clip(blurred, min_, max_)
 
-            _, is_adversarial = a.predictions(blurred)
+            _, is_adversarial = a.forward_one(blurred)
             if is_adversarial:
                 return

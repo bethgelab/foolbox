@@ -6,29 +6,29 @@ from .. import nprng
 
 
 class SLSQPAttack(Attack):
-    """Uses SLSQP to minimize the distance between the image and the
-    adversarial under the constraint that the image is adversarial."""
+    """Uses SLSQP to minimize the distance between the input and the
+    adversarial under the constraint that the input is adversarial."""
 
     # TODO: add support for criteria that are differentiable (if the network
     # is differentiable) and use this to provide constraint gradients
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True):
-        """Uses SLSQP to minimize the distance between the image and the
-        adversarial under the constraint that the image is adversarial.
+        """Uses SLSQP to minimize the distance between the input and the
+        adversarial under the constraint that the input is adversarial.
 
         Parameters
         ----------
         input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, correctly classified image. If image is a
-            numpy array, label must be passed as well. If image is
+            The original, correctly classified input. If it is a
+            numpy array, label must be passed as well. If it is
             an :class:`Adversarial` instance, label must not be passed.
         label : int
-            The reference label of the original image. Must be passed
-            if image is a numpy array, must not be passed if image is
+            The reference label of the original input. Must be passed
+            if input is a numpy array, must not be passed if input is
             an :class:`Adversarial` instance.
         unpack : bool
-            If true, returns the adversarial image, otherwise returns
+            If true, returns the adversarial input, otherwise returns
             the Adversarial object.
 
         """
@@ -38,16 +38,16 @@ class SLSQPAttack(Attack):
         del label
         del unpack
 
-        image = a.original_image
-        dtype = a.original_image.dtype
+        x = a.unperturbed
+        dtype = a.unperturbed.dtype
         min_, max_ = a.bounds()
 
-        # flatten the image (and remember the shape)
-        shape = image.shape
-        n = image.size
-        image = image.flatten()
+        # flatten the input (and remember the shape)
+        shape = x.shape
+        n = x.size
+        x = x.flatten()
 
-        x0 = nprng.uniform(min_, max_, size=image.shape)
+        x0 = nprng.uniform(min_, max_, size=x.shape)
         bounds = [(min_, max_)] * n
         options = {'maxiter': 500}
 
@@ -58,7 +58,7 @@ class SLSQPAttack(Attack):
 
         def eq_constraint(x, *args):
             """Equality constraint"""
-            _, is_adv = a.predictions(x.reshape(shape).astype(dtype))
+            _, is_adv = a.forward_one(x.reshape(shape).astype(dtype))
             if is_adv:
                 return 0.
             else:
@@ -80,4 +80,4 @@ class SLSQPAttack(Attack):
             constraints=constraints,
             options=options)
 
-        a.predictions(result.x.reshape(shape).astype(dtype))
+        a.forward_one(result.x.reshape(shape).astype(dtype))

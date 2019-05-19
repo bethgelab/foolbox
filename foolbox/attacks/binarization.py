@@ -57,15 +57,15 @@ class BinarizationRefinementAttack(Attack):
         self._starting_point = starting_point
         self.initialize_starting_point(a)
 
-        if a.image is None:
+        if a.perturbed is None:
             warnings.warn(
                 'This attack can only be applied to an adversarial'
                 ' found by another attack, either by calling it with'
                 ' an Adversarial object or by passing a starting_point')
             return
 
-        assert a.image.dtype == a.original_image.dtype
-        dtype = a.original_image.dtype
+        assert a.perturbed.dtype == a.unperturbed.dtype
+        dtype = a.unperturbed.dtype
 
         assert np.issubdtype(dtype, np.floating)
 
@@ -94,8 +94,8 @@ class BinarizationRefinementAttack(Attack):
 
         assert lower < upper
 
-        o = a.original_image
-        x = a.image
+        o = a.unperturbed
+        x = a.perturbed
 
         p = np.full_like(o, np.nan)
 
@@ -115,7 +115,7 @@ class BinarizationRefinementAttack(Attack):
 
         logging.info('distance before the {}: {}'.format(
             self.__class__.__name__, a.distance))
-        _, is_adversarial = a.predictions(p)
+        _, is_adversarial = a.forward_one(p)
         assert is_adversarial, ('The specified thresholding does not'
                                 ' match what is done by the model.')
         logging.info('distance after the {}: {}'.format(
@@ -124,7 +124,7 @@ class BinarizationRefinementAttack(Attack):
     def initialize_starting_point(self, a):
         starting_point = self._starting_point
 
-        if a.image is not None:
+        if a.perturbed is not None:
             if starting_point is not None:  # pragma: no cover
                 warnings.warn(
                     'Ignoring starting_point because the attack'
@@ -132,8 +132,7 @@ class BinarizationRefinementAttack(Attack):
             return
 
         if starting_point is not None:
-            a.predictions(starting_point)
-            assert a.image is not None, ('Invalid starting point provided.'
-                                         ' Please provide a starting point'
-                                         ' that is adversarial.')
+            a.forward_one(starting_point)
+            assert a.perturbed is not None, (
+                'Invalid starting point provided. Please provide a starting point that is adversarial.')
             return
