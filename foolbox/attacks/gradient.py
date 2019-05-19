@@ -19,7 +19,7 @@ class SingleStepGradientBaseAttack(Attack):
         if not a.has_gradient():
             return
 
-        image = a.unperturbed
+        x = a.unperturbed
         min_, max_ = a.bounds()
 
         gradient = self._gradient(a)
@@ -32,7 +32,7 @@ class SingleStepGradientBaseAttack(Attack):
 
         for _ in range(2):  # to repeat with decreased epsilons if necessary
             for i, epsilon in enumerate(epsilons):
-                perturbed = image + gradient * epsilon
+                perturbed = x + gradient * epsilon
                 perturbed = np.clip(perturbed, min_, max_)
 
                 _, is_adversarial = a.forward_one(perturbed)
@@ -47,8 +47,8 @@ class SingleStepGradientBaseAttack(Attack):
 
 
 class GradientAttack(SingleStepGradientBaseAttack):
-    """Perturbs the image with the gradient of the loss w.r.t. the image,
-    gradually increasing the magnitude until the image is misclassified.
+    """Perturbs the input with the gradient of the loss w.r.t. the input,
+    gradually increasing the magnitude until the input is misclassified.
 
     Does not do anything if the model does not have a gradient.
 
@@ -58,8 +58,8 @@ class GradientAttack(SingleStepGradientBaseAttack):
     def __call__(self, input_or_adv, label=None, unpack=True,
                  epsilons=1000, max_epsilon=1):
 
-        """Perturbs the image with the gradient of the loss w.r.t. the image,
-        gradually increasing the magnitude until the image is misclassified.
+        """Perturbs the input with the gradient of the loss w.r.t. the input,
+        gradually increasing the magnitude until the input is misclassified.
 
         Parameters
         ----------
@@ -98,8 +98,8 @@ class GradientAttack(SingleStepGradientBaseAttack):
 
 
 class GradientSignAttack(SingleStepGradientBaseAttack):
-    """Adds the sign of the gradient to the image, gradually increasing
-    the magnitude until the image is misclassified. This attack is
+    """Adds the sign of the gradient to the input, gradually increasing
+    the magnitude until the input is misclassified. This attack is
     often referred to as Fast Gradient Sign Method and was introduced
     in [1]_.
 
@@ -116,8 +116,8 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
     def __call__(self, input_or_adv, label=None, unpack=True,
                  epsilons=1000, max_epsilon=1):
 
-        """Adds the sign of the gradient to the image, gradually increasing
-        the magnitude until the image is misclassified.
+        """Adds the sign of the gradient to the input, gradually increasing
+        the magnitude until the input is misclassified.
 
         Parameters
         ----------

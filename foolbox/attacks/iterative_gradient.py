@@ -23,7 +23,7 @@ class IterativeGradientBaseAttack(Attack):
         if not a.has_gradient():
             return
 
-        image = a.unperturbed
+        x = a.unperturbed
         min_, max_ = a.bounds()
 
         if not isinstance(epsilons, Iterable):
@@ -32,7 +32,7 @@ class IterativeGradientBaseAttack(Attack):
             epsilons = np.linspace(0, max_epsilon_iter, num=epsilons + 1)[1:]
 
         for epsilon in epsilons:
-            perturbed = image
+            perturbed = x
 
             for _ in range(steps):
                 gradient = self._gradient(a, perturbed)

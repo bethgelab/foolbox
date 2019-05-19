@@ -108,19 +108,19 @@ class SaliencyMapAttack(Attack):
 
         for target in target_classes:
 
-            image = a.unperturbed
+            x = a.unperturbed
 
             # the mask defines the search domain
             # each modified pixel with border value is set to zero in mask
-            mask = np.ones_like(image)
+            mask = np.ones_like(x)
 
             # count tracks how often each pixel was changed
-            counts = np.zeros_like(image)
+            counts = np.zeros_like(x)
 
             # TODO: shouldn't this be without target
             labels = range(a.num_classes())
 
-            perturbed = image.copy()
+            perturbed = x.copy()
 
             min_, max_ = a.bounds()
 
@@ -150,13 +150,13 @@ class SaliencyMapAttack(Attack):
 
                 perturbed = np.clip(perturbed, min_, max_)
 
-    def _saliency_map(self, a, image, target, labels, mask, fast=False):
+    def _saliency_map(self, a, x, target, labels, mask, fast=False):
         """Implements Algorithm 3 in manuscript
 
         """
 
         # pixel influence on target class
-        alphas = a.gradient_one(image, target) * mask
+        alphas = a.gradient_one(x, target) * mask
 
         # pixel influence on sum of residual classes
         # (don't evaluate if fast == True)
@@ -164,7 +164,7 @@ class SaliencyMapAttack(Attack):
             betas = -np.ones_like(alphas)
         else:
             betas = np.sum([
-                a.gradient_one(image, label) * mask - alphas
+                a.gradient_one(x, label) * mask - alphas
                 for label in labels], 0)
 
         # compute saliency map

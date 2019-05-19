@@ -10,8 +10,7 @@ from .. import nprng
 
 
 class BlendedUniformNoiseAttack(Attack):
-    """Blends the image with a uniform noise image until it
-    is misclassified.
+    """Blends the input with a uniform noise input until it is misclassified.
 
     """
 
@@ -19,8 +18,7 @@ class BlendedUniformNoiseAttack(Attack):
     def __call__(self, input_or_adv, label=None, unpack=True,
                  epsilons=1000, max_directions=1000):
 
-        """Blends the image with a uniform noise image until it
-        is misclassified.
+        """Blends the input with a uniform noise input until it is misclassified.
 
         Parameters
         ----------
@@ -47,7 +45,7 @@ class BlendedUniformNoiseAttack(Attack):
         del label
         del unpack
 
-        image = a.unperturbed
+        x = a.unperturbed
         min_, max_ = a.bounds()
 
         if a.perturbed is not None:  # pragma: no cover
@@ -58,23 +56,23 @@ class BlendedUniformNoiseAttack(Attack):
             # random noise inputs tend to be classified into the same class,
             # so we might need to make very many draws if the original class
             # is that one
-            random_image = nprng.uniform(
-                min_, max_, size=image.shape).astype(image.dtype)
-            _, is_adversarial = a.forward_one(random_image)
+            random = nprng.uniform(
+                min_, max_, size=x.shape).astype(x.dtype)
+            _, is_adversarial = a.forward_one(random)
             if is_adversarial:
-                logging.info('Found adversarial image after {} '
+                logging.info('Found adversarial input after {} '
                              'attempts'.format(j + 1))
                 break
         else:
             # never breaked
             warnings.warn('BlendedUniformNoiseAttack failed to draw a'
-                          ' random image that is adversarial.')
+                          ' random input that is adversarial.')
 
         if not isinstance(epsilons, Iterable):
             epsilons = np.linspace(0, 1, num=epsilons + 1)[1:]
 
         for epsilon in epsilons:
-            perturbed = (1 - epsilon) * image + epsilon * random_image
+            perturbed = (1 - epsilon) * x + epsilon * random
             # due to limited floating point precision,
             # clipping can be required
             if not a.in_bounds(perturbed):  # pragma: no cover

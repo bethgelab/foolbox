@@ -56,13 +56,13 @@ class NewtonFoolAttack(Attack):
 
         l2_norm = np.linalg.norm(a.unperturbed)
         min_, max_ = a.bounds()
-        perturbed_image = a.unperturbed.copy()
+        perturbed = a.unperturbed.copy()
 
         for i in range(max_iter):
 
             # (1) get the score and gradients
             logits, gradients, is_adversarial = \
-                a.forward_and_gradient_one(perturbed_image)
+                a.forward_and_gradient_one(perturbed)
 
             if is_adversarial:
                 return
@@ -90,8 +90,8 @@ class NewtonFoolAttack(Attack):
                                                      gradients,
                                                      gradient_l2_norm)
 
-            perturbed_image += current_pertubation
-            perturbed_image = np.clip(perturbed_image, min_, max_)
+            perturbed += current_pertubation
+            perturbed = np.clip(perturbed, min_, max_)
 
     @staticmethod
     def _delta(eta, norm, score, gradient_norm, num_classes):

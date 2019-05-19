@@ -9,14 +9,14 @@ from .. import nprng
 
 
 class AdditiveNoiseAttack(Attack):
-    """Base class for attacks that add random noise to an image.
+    """Base class for attacks that add random noise to an input.
 
     """
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True, epsilons=1000):
-        """Adds uniform or Gaussian noise to the image, gradually increasing
-        the standard deviation until the image is misclassified.
+        """Adds uniform or Gaussian noise to the input, gradually increasing
+        the standard deviation until the input is misclassified.
 
         Parameters
         ----------
@@ -41,7 +41,7 @@ class AdditiveNoiseAttack(Attack):
         del label
         del unpack
 
-        image = a.unperturbed
+        x = a.unperturbed
         bounds = a.bounds()
         min_, max_ = bounds
 
@@ -49,8 +49,8 @@ class AdditiveNoiseAttack(Attack):
             epsilons = np.linspace(0, 1, num=epsilons + 1)[1:]
 
         for epsilon in epsilons:
-            noise = self._sample_noise(epsilon, image, bounds)
-            perturbed = image + epsilon * noise
+            noise = self._sample_noise(epsilon, x, bounds)
+            perturbed = x + epsilon * noise
             perturbed = np.clip(perturbed, min_, max_)
 
             _, is_adversarial = a.forward_one(perturbed)
@@ -63,28 +63,28 @@ class AdditiveNoiseAttack(Attack):
 
 
 class AdditiveUniformNoiseAttack(AdditiveNoiseAttack):
-    """Adds uniform noise to the image, gradually increasing
-    the standard deviation until the image is misclassified.
+    """Adds uniform noise to the input, gradually increasing
+    the standard deviation until the input is misclassified.
 
     """
 
-    def _sample_noise(self, epsilon, image, bounds):
+    def _sample_noise(self, epsilon, x, bounds):
         min_, max_ = bounds
         w = epsilon * (max_ - min_)
-        noise = nprng.uniform(-w, w, size=image.shape)
-        noise = noise.astype(image.dtype)
+        noise = nprng.uniform(-w, w, size=x.shape)
+        noise = noise.astype(x.dtype)
         return noise
 
 
 class AdditiveGaussianNoiseAttack(AdditiveNoiseAttack):
-    """Adds Gaussian noise to the image, gradually increasing
-    the standard deviation until the image is misclassified.
+    """Adds Gaussian noise to the input, gradually increasing
+    the standard deviation until the input is misclassified.
 
     """
 
-    def _sample_noise(self, epsilon, image, bounds):
+    def _sample_noise(self, epsilon, x, bounds):
         min_, max_ = bounds
         std = epsilon / np.sqrt(3) * (max_ - min_)
-        noise = nprng.normal(scale=std, size=image.shape)
-        noise = noise.astype(image.dtype)
+        noise = nprng.normal(scale=std, size=x.shape)
+        noise = noise.astype(x.dtype)
         return noise

@@ -156,7 +156,7 @@ class DeepFoolAttack(Attack):
 
             # the original implementation accumulates the perturbations
             # and only adds the overshoot when adding the accumulated
-            # perturbation to the original image; we apply the overshoot
+            # perturbation to the original input; we apply the overshoot
             # to each perturbation (step)
             perturbed = perturbed + 1.05 * perturbation
             perturbed = np.clip(perturbed, min_, max_)

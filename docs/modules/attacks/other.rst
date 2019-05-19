@@ -7,6 +7,6 @@ Other attacks
    :members:
    :special-members:
 
-.. autoclass:: PrecomputedImagesAttack
+.. autoclass:: PrecomputedAdversarialsAttack
    :members:
    :special-members:

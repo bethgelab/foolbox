@@ -78,15 +78,15 @@ class BoundaryAttack(Attack):
         Parameters
         ----------
         input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, correctly classified image. If image is a
-            numpy array, label must be passed as well. If image is
+            The original, correctly classified input. If it is a
+            numpy array, label must be passed as well. If it is
             an :class:`Adversarial` instance, label must not be passed.
         label : int
-            The reference label of the original image. Must be passed
-            if image is a numpy array, must not be passed if image is
+            The reference label of the original input. Must be passed
+            if input is a numpy array, must not be passed if input is
             an :class:`Adversarial` instance.
         unpack : bool
-            If true, returns the adversarial image, otherwise returns
+            If true, returns the adversarial input, otherwise returns
             the Adversarial object.
         iterations : int
             Maximum number of iterations to run. Might converge and stop

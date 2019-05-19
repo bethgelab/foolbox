@@ -4,42 +4,42 @@ from .base import Attack
 from .base import call_decorator
 
 
-class PrecomputedImagesAttack(Attack):
+class PrecomputedAdversarialsAttack(Attack):
     """Attacks a model using precomputed adversarial candidates.
 
     Parameters
     ----------
-    input_images : `numpy.ndarray`
-        The original images that will be expected by this attack.
-    output_images : `numpy.ndarray`
-        The adversarial candidates corresponding to the input_images.
+    inputs : `numpy.ndarray`
+        The original inputs that will be expected by this attack.
+    outputs : `numpy.ndarray`
+        The adversarial candidates corresponding to the inputs.
     *args : positional args
         Poistional args passed to the `Attack` base class.
     **kwargs : keyword args
         Keyword args passed to the `Attack` base class.
     """
 
-    def __init__(self, input_images, output_images, *args, **kwargs):
-        super(PrecomputedImagesAttack, self).__init__(*args, **kwargs)
+    def __init__(self, inputs, outputs, *args, **kwargs):
+        super(PrecomputedAdversarialsAttack, self).__init__(*args, **kwargs)
 
-        assert input_images.shape == output_images.shape
+        assert inputs.shape == outputs.shape
 
-        self._input_images = input_images
-        self._output_images = output_images
+        self._inputs = inputs
+        self._outputs = outputs
 
-    def _get_output(self, a, image):
-        """ Looks up the precomputed adversarial image for a given image.
+    def _get_output(self, a, x):
+        """ Looks up the precomputed adversarial for a given input.
 
         """
-        sd = np.square(self._input_images - image)
+        sd = np.square(self._inputs - x)
         mses = np.mean(sd, axis=tuple(range(1, sd.ndim)))
         index = np.argmin(mses)
 
         # if we run into numerical problems with this approach, we might
         # need to add a very tiny threshold here
         if mses[index] > 0:
-            raise ValueError('No precomputed output image for this image')
-        return self._output_images[index]
+            raise ValueError('Could not find a precomputed adversarial for this input')
+        return self._outputs[index]
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True):
@@ -65,6 +65,6 @@ class PrecomputedImagesAttack(Attack):
         del label
         del unpack
 
-        image = a.unperturbed
-        adversarial = self._get_output(a, image)
+        x = a.unperturbed
+        adversarial = self._get_output(a, x)
         a.forward_one(adversarial)

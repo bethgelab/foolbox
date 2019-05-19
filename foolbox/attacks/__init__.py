@@ -13,7 +13,7 @@ from .slsqp import SLSQPAttack
 from .additive_noise import AdditiveNoiseAttack, AdditiveUniformNoiseAttack, AdditiveGaussianNoiseAttack
 from .blended_noise import BlendedUniformNoiseAttack
 from .saltandpepper import SaltAndPepperNoiseAttack
-from .precomputed import PrecomputedImagesAttack
+from .precomputed import PrecomputedAdversarialsAttack
 from .boundary_attack import BoundaryAttack
 from .pointwise import PointwiseAttack
 from .binarization import BinarizationRefinementAttack

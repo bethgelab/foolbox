@@ -75,10 +75,7 @@ class DecoupledDirectionNormL2Attack(Attack):
         perturbation = np.zeros_like(unperturbed)
 
         for i in range(steps):
-
-            logits, grad, is_adv = a.forward_and_gradient_one(
-                image=unperturbed + perturbation,
-                label=attack_class, strict=True)
+            logits, grad, is_adv = a.forward_and_gradient_one(unperturbed + perturbation, attack_class, strict=True)
 
             # renorm gradient and handle 0-norm gradient
             grad_norm = np.linalg.norm(grad)

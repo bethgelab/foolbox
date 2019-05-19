@@ -12,7 +12,7 @@ from .. import rng
 
 
 class LBFGSAttack(Attack):
-    """Uses L-BFGS-B to minimize the distance between the image and the adversarial
+    """Uses L-BFGS-B to minimize the distance between the input and the adversarial
     as well as the cross-entropy between the predictions for the adversarial
     and the the one-hot encoded target class.
 
@@ -50,7 +50,7 @@ class LBFGSAttack(Attack):
                  num_random_targets=0,
                  maxiter=150):
 
-        """Uses L-BFGS-B to minimize the distance between the image and the
+        """Uses L-BFGS-B to minimize the distance between the input and the
         adversarial as well as the cross-entropy between the predictions for
         the adversarial and the the one-hot encoded target class.
 
@@ -140,18 +140,16 @@ class LBFGSAttack(Attack):
                 logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.distance))  # noqa: E501
 
     def _optimize(self, a, target_class, epsilon, maxiter):
-        image = a.unperturbed
+        x0 = a.unperturbed
         min_, max_ = a.bounds()
 
-        # store the shape for later and operate on the flattened image
-        shape = image.shape
-        dtype = image.dtype
-        image = image.flatten().astype(np.float64)
+        # store the shape for later and operate on the flattened input
+        shape = x0.shape
+        dtype = x0.dtype
+        x0 = x0.flatten().astype(np.float64)
 
-        n = len(image)
+        n = len(x0)
         bounds = [(min_, max_)] * n
-
-        x0 = image
 
         if self._approximate_gradient:
 
@@ -211,7 +209,7 @@ class LBFGSAttack(Attack):
 
             # LBFGS-B does not always exactly respect the boundaries
             if np.amax(x) > max_ or np.amin(x) < min_:   # pragma: no coverage
-                logging.info('Image out of bounds (min, max = {}, {}). Performing manual clip.'.format(np.amin(x), np.amax(x)))  # noqa: E501
+                logging.info('Input out of bounds (min, max = {}, {}). Performing manual clip.'.format(np.amin(x), np.amax(x)))  # noqa: E501
                 x = np.clip(x, min_, max_)
 
             _, is_adversarial = a.forward_one(x.reshape(shape).astype(dtype))

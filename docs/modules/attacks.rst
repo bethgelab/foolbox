@@ -80,4 +80,4 @@
    :nosignatures:
 
    BinarizationRefinementAttack
-   PrecomputedImagesAttack
+   PrecomputedAdversarialsAttack
