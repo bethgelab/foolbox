@@ -5,7 +5,7 @@ import logging
 import warnings
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_call_decorator
 from .. import distances
 from ..utils import crossentropy
 from .. import nprng
@@ -61,13 +61,15 @@ class IterativeProjectedGradientBaseAttack(Attack):
                 k = 20
             else:
                 k = int(binary_search)
-            return self._run_binary_search(
+            yield from self._run_binary_search(
                 a, epsilon, stepsize, iterations,
                 random_start, targeted, class_, return_early, k=k)
+            return
         else:
-            return self._run_one(
+            success = yield from self._run_one(
                 a, epsilon, stepsize, iterations,
                 random_start, targeted, class_, return_early)
+            return success
 
     def _run_binary_search(self, a, epsilon, stepsize, iterations,
                            random_start, targeted, class_, return_early, k):
@@ -76,12 +78,14 @@ class IterativeProjectedGradientBaseAttack(Attack):
 
         def try_epsilon(epsilon):
             stepsize = factor * epsilon
-            return self._run_one(
+            success = yield from self._run_one(
                 a, epsilon, stepsize, iterations,
                 random_start, targeted, class_, return_early)
+            return success
 
         for i in range(k):
-            if try_epsilon(epsilon):
+            success = yield from try_epsilon(epsilon)
+            if success:
                 logging.info('successful for eps = {}'.format(epsilon))
                 break
             logging.info('not successful for eps = {}'.format(epsilon))
@@ -95,7 +99,8 @@ class IterativeProjectedGradientBaseAttack(Attack):
 
         for i in range(k):
             epsilon = (good + bad) / 2
-            if try_epsilon(epsilon):
+            success = yield from try_epsilon(epsilon)
+            if success:
                 good = epsilon
                 logging.info('successful for eps = {}'.format(epsilon))
             else:
@@ -123,7 +128,7 @@ class IterativeProjectedGradientBaseAttack(Attack):
 
         success = False
         for _ in range(iterations):
-            gradient = self._gradient(a, x, class_, strict=strict)
+            gradient = yield from self._gradient(a, x, class_, strict=strict)
             # non-strict only for the first call and
             # only if random_start is True
             strict = True
@@ -138,7 +143,7 @@ class IterativeProjectedGradientBaseAttack(Attack):
 
             x = np.clip(x, min_, max_)
 
-            logits, is_adversarial = a.forward_one(x)
+            logits, is_adversarial = yield from a.forward_one(x)
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 if targeted:
                     ce = crossentropy(a.original_class, logits)
@@ -156,7 +161,7 @@ class IterativeProjectedGradientBaseAttack(Attack):
 
 class LinfinityGradientMixin(object):
     def _gradient(self, a, x, class_, strict=True):
-        gradient = a.gradient_one(x, class_, strict=strict)
+        gradient = yield from a.gradient_one(x, class_, strict=strict)
         gradient = np.sign(gradient)
         min_, max_ = a.bounds()
         gradient = (max_ - min_) * gradient
@@ -165,7 +170,7 @@ class LinfinityGradientMixin(object):
 
 class L1GradientMixin(object):
     def _gradient(self, a, x, class_, strict=True):
-        gradient = a.gradient_one(x, class_, strict=strict)
+        gradient = yield from a.gradient_one(x, class_, strict=strict)
         # using mean to make range of epsilons comparable to Linf
         gradient = gradient / np.mean(np.abs(gradient))
         min_, max_ = a.bounds()
@@ -175,7 +180,7 @@ class L1GradientMixin(object):
 
 class L2GradientMixin(object):
     def _gradient(self, a, x, class_, strict=True):
-        gradient = a.gradient_one(x, class_, strict=strict)
+        gradient = yield from a.gradient_one(x, class_, strict=strict)
         # using mean to make range of epsilons comparable to Linf
         gradient = gradient / np.sqrt(np.mean(np.square(gradient)))
         min_, max_ = a.bounds()
@@ -266,7 +271,7 @@ class LinfinityBasicIterativeAttack(
 
     """
 
-    @call_decorator
+    @generator_call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -321,9 +326,9 @@ class LinfinityBasicIterativeAttack(
 
         assert epsilon > 0
 
-        self._run(a, binary_search,
-                  epsilon, stepsize, iterations,
-                  random_start, return_early)
+        yield from self._run(a, binary_search,
+                             epsilon, stepsize, iterations,
+                             random_start, return_early)
 
 
 BasicIterativeMethod = LinfinityBasicIterativeAttack
@@ -343,7 +348,7 @@ class L1BasicIterativeAttack(
 
     """
 
-    @call_decorator
+    @generator_call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -398,9 +403,9 @@ class L1BasicIterativeAttack(
 
         assert epsilon > 0
 
-        self._run(a, binary_search,
-                  epsilon, stepsize, iterations,
-                  random_start, return_early)
+        yield from self._run(a, binary_search,
+                             epsilon, stepsize, iterations,
+                             random_start, return_early)
 
 
 class L2BasicIterativeAttack(
@@ -416,7 +421,7 @@ class L2BasicIterativeAttack(
 
     """
 
-    @call_decorator
+    @generator_call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -471,9 +476,9 @@ class L2BasicIterativeAttack(
 
         assert epsilon > 0
 
-        self._run(a, binary_search,
-                  epsilon, stepsize, iterations,
-                  random_start, return_early)
+        yield from self._run(a, binary_search,
+                             epsilon, stepsize, iterations,
+                             random_start, return_early)
 
 
 class ProjectedGradientDescentAttack(
@@ -503,7 +508,7 @@ class ProjectedGradientDescentAttack(
 
     """
 
-    @call_decorator
+    @generator_call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -558,9 +563,9 @@ class ProjectedGradientDescentAttack(
 
         assert epsilon > 0
 
-        self._run(a, binary_search,
-                  epsilon, stepsize, iterations,
-                  random_start, return_early)
+        yield from self._run(a, binary_search,
+                             epsilon, stepsize, iterations,
+                             random_start, return_early)
 
 
 ProjectedGradientDescent = ProjectedGradientDescentAttack
@@ -587,7 +592,7 @@ class RandomStartProjectedGradientDescentAttack(
 
     """
 
-    @call_decorator
+    @generator_call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -642,9 +647,9 @@ class RandomStartProjectedGradientDescentAttack(
 
         assert epsilon > 0
 
-        self._run(a, binary_search,
-                  epsilon, stepsize, iterations,
-                  random_start, return_early)
+        yield from self._run(a, binary_search,
+                             epsilon, stepsize, iterations,
+                             random_start, return_early)
 
 
 RandomProjectedGradientDescent = RandomStartProjectedGradientDescentAttack
@@ -672,7 +677,7 @@ class MomentumIterativeAttack(
 
     def _gradient(self, a, x, class_, strict=True):
         # get current gradient
-        gradient = a.gradient_one(x, class_, strict=strict)
+        gradient = yield from a.gradient_one(x, class_, strict=strict)
         gradient = gradient / max(1e-12, np.mean(np.abs(gradient)))
 
         # combine with history of gradient as new history
@@ -690,9 +695,11 @@ class MomentumIterativeAttack(
         # reset momentum history every time we restart
         # gradient descent
         self._momentum_history = 0
-        return super(MomentumIterativeAttack, self)._run_one(*args, **kwargs)
+        success = yield from super(MomentumIterativeAttack, self)._run_one(
+            *args, **kwargs)
+        return success
 
-    @call_decorator
+    @generator_call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
                  binary_search=True,
                  epsilon=0.3,
@@ -751,9 +758,9 @@ class MomentumIterativeAttack(
 
         self._decay_factor = decay_factor
 
-        self._run(a, binary_search,
-                  epsilon, stepsize, iterations,
-                  random_start, return_early)
+        yield from self._run(a, binary_search,
+                             epsilon, stepsize, iterations,
+                             random_start, return_early)
 
 
 MomentumIterativeMethod = MomentumIterativeAttack
