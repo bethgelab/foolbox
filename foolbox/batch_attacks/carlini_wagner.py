@@ -5,7 +5,7 @@ import numpy as np
 import logging
 
 from ..attacks.base import Attack
-from ..attacks.base import generator_call_decorator
+from .decorator import generator_call_decorator
 from ..utils import onehot_like
 
 

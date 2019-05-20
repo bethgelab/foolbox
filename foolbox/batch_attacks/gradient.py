@@ -5,7 +5,7 @@ import logging
 import abc
 
 from ..attacks.base import Attack
-from ..attacks.base import generator_call_decorator
+from .decorator import generator_call_decorator
 
 
 class SingleStepGradientBaseAttack(Attack):
