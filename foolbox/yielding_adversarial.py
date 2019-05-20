@@ -4,10 +4,6 @@ Provides a class that represents an adversarial example.
 """
 
 import numpy as np
-import numbers
-
-from .distances import Distance
-from .distances import MSE
 
 from .adversarial import Adversarial
 from .adversarial import StopAttack
