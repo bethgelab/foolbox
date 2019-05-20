@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import itertools
 from .distances import MSE
-from .adversarial import YieldingAdversarial
+from .yielding_adversarial import YieldingAdversarial
 
 
 def run_sequential(create_attack_fn, model, criterion, inputs, labels,

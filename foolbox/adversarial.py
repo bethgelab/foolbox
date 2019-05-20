@@ -48,6 +48,7 @@ class Adversarial(object):
         if the threshold has been reached.
 
     """
+
     def __init__(
             self,
             model,
