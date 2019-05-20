@@ -69,7 +69,8 @@ install:
 script:
     - pytest --collect-only
       # tf eager cannot be run in the same process as standard tf
-    - pytest --ignore=foolbox/tests/test_models_tensorflow_eager.py --ignore=foolbox/tests/test_models_caffe.py
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; pytest --ignore=foolbox/tests/test_models_tensorflow_eager.py --ignore=foolbox/tests/test_models_caffe.py --ignore=foolbox/tests/batch_attacks/; fi
+    - if [[ $TRAVIS_PYTHON_VERSION != 2.7 ]]; pytest --ignore=foolbox/tests/test_models_tensorflow_eager.py --ignore=foolbox/tests/test_models_caffe.py; fi
     - pytest --cov-append foolbox/tests/test_models_tensorflow_eager.py
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then docker run -v `pwd`:`pwd` bvlc/caffe:cpu  sh -c "cd `pwd` && bash foolbox/tests/run_caffe_test.sh"; fi
     - flake8 --ignore E402,E741,W503,W504 .
