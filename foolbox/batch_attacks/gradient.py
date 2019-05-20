@@ -4,8 +4,8 @@ from collections import Iterable
 import logging
 import abc
 
-from .base import Attack
-from .base import generator_call_decorator
+from ..attacks.base import Attack
+from ..attacks.base import generator_call_decorator
 
 
 class SingleStepGradientBaseAttack(Attack):

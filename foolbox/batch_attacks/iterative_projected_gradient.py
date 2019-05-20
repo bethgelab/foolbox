@@ -4,8 +4,8 @@ from abc import abstractmethod
 import logging
 import warnings
 
-from .base import Attack
-from .base import generator_call_decorator
+from ..attacks.base import Attack
+from ..attacks.base import generator_call_decorator
 from .. import distances
 from ..utils import crossentropy
 from .. import nprng
