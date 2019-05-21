@@ -40,7 +40,6 @@ from foolbox.models import CaffeModel
 from foolbox.models import ModelWithoutGradients
 from foolbox.models import ModelWithEstimatedGradients
 from foolbox import Adversarial
-from foolbox import YieldingAdversarial
 from foolbox.distances import MSE
 from foolbox.distances import Linfinity
 from foolbox.distances import MAE
@@ -288,17 +287,6 @@ def bn_adversarial(bn_criterion, bn_image, bn_label):
     cm_model = contextmanager(bn_model)
     with cm_model() as model:
         yield Adversarial(model, criterion, image, label)
-
-
-@pytest.fixture
-def bn_yielding_adversarial(bn_criterion, bn_image, bn_label):
-    criterion = bn_criterion
-    image = bn_image
-    label = bn_label
-
-    cm_model = contextmanager(bn_model)
-    with cm_model() as model:
-        yield YieldingAdversarial(model, criterion, image, label)
 
 
 @pytest.fixture
