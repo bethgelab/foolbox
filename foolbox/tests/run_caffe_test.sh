@@ -18,4 +18,4 @@ EOF
 # clear cache for importing mock modules without conflicts
 find . -type d -name __pycache__  -o \( -type f -name '*.py[co]' \) -print | xargs rm -rf
 
-PYTHONPATH="/mock:${PYTHONPATH}" pytest --cov-append foolbox/tests/test_models_caffe.py
+PYTHONPATH="/mock:${PYTHONPATH}" pytest --cov-append foolbox/tests/models/test_models_caffe.py

@@ -11,6 +11,7 @@ else:  # pragma: no cover
     ABC = abc.ABCMeta('ABC', (), {})
 
 from ..adversarial import Adversarial
+from ..yielding_adversarial import YieldingAdversarial
 from ..adversarial import StopAttack
 from ..criteria import Misclassification
 from ..distances import MSE
@@ -101,7 +102,10 @@ def call_decorator(call_fn):
     def wrapper(self, input_or_adv, label=None, unpack=True, **kwargs):
         assert input_or_adv is not None
 
-        if isinstance(input_or_adv, Adversarial):
+        if isinstance(input_or_adv, YieldingAdversarial):
+            raise ValueError('If you pass an Adversarial instance, it must not be a YieldingAdversarial instance'
+                             ' when calling non-batch-supporting attacks like this one (check foolbox.batch_attacks).')
+        elif isinstance(input_or_adv, Adversarial):
             a = input_or_adv
             if label is not None:
                 raise ValueError('Label must not be passed when input_or_adv'

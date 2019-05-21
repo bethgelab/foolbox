@@ -230,6 +230,13 @@ def bn_image():
 
 
 @pytest.fixture
+def bn_images():
+    np.random.seed(22)
+    image = np.random.uniform(size=(7, 5, 5, 10)).astype(np.float32)
+    return image
+
+
+@pytest.fixture
 def bn_image_pytorch():
     np.random.seed(22)
     image = np.random.uniform(size=(10, 5, 5)).astype(np.float32)
@@ -243,6 +250,14 @@ def bn_label(bn_image):
     assert mean.shape == (10,)
     label = np.argmax(mean)
     return label
+
+
+@pytest.fixture
+def bn_labels(bn_images):
+    images = bn_images
+    mean = np.mean(images, axis=(1, 2))
+    labels = np.argmax(mean, axis=-1)
+    return labels
 
 
 @pytest.fixture

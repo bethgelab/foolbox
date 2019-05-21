@@ -48,6 +48,7 @@ class Adversarial(object):
         if the threshold has been reached.
 
     """
+
     def __init__(
             self,
             model,
@@ -82,10 +83,13 @@ class Adversarial(object):
         self._best_gradient_calls = 0
 
         # check if the original input is already adversarial
+        self._check_unperturbed()
+
+    def _check_unperturbed(self):
         try:
-            self.forward_one(unperturbed)
+            self.forward_one(self.__unperturbed)
         except StopAttack:
-            # if a threshold is specified and the original input is
+            # if a threshold is specified and the unperturbed input is
             # misclassified, this can already cause a StopAttack
             # exception
             assert self.distance.value == 0.
@@ -98,7 +102,7 @@ class Adversarial(object):
         self._best_prediction_calls = 0
         self._best_gradient_calls = 0
 
-        self.forward_one(self.__unperturbed)
+        self._check_unperturbed()
 
     @property
     def perturbed(self):
