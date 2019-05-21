@@ -49,8 +49,8 @@ def test_attack_l2(Attack, bn_model, bn_criterion, bn_images, bn_labels):
 
 @pytest.mark.parametrize('Attack', Attacks)
 def test_attack_l1(Attack, bn_model, bn_criterion, bn_images, bn_labels):
-    attack = Attack(bn_model, bn_criterion)
-    advs = attack(bn_images, bn_labels, unpack=False, distance=MAE)
+    attack = Attack(bn_model, bn_criterion, distance=MAE)
+    advs = attack(bn_images, bn_labels, unpack=False)
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf
