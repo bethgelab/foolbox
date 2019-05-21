@@ -129,7 +129,7 @@ class CarliniWagnerL2Attack(Attack):
                     binary_search_steps >= 10:
                 # in the last binary search step, use the upper_bound instead
                 # TODO: find out why... it's not obvious why this is useful
-                const = upper_bound
+                const = min(1e10, upper_bound)
 
             logging.info('starting optimization with const = {}'.format(const))
 
@@ -148,8 +148,7 @@ class CarliniWagnerL2Attack(Attack):
                     const, a, x, logits, reconstructed_original,
                     confidence, min_, max_)
 
-                logging.info('loss: {}; best overall distance: {}'.format(
-                    loss, a.distance))
+                logging.info('loss: {}; best overall distance: {}'.format(loss, a.distance))
 
                 # backprop the gradient of the loss w.r.t. x further
                 # to get the gradient of the loss w.r.t. att_perturbation
