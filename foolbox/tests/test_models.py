@@ -23,6 +23,6 @@ def test_base_model():
         def num_classes(self):
             return 0
 
-    model = TestModel(bounds=(0, 1), channel_axis=1)
-    assert model.bounds() == (0, 1)
-    assert model.channel_axis() == 1
+    with TestModel(bounds=(0, 1), channel_axis=1) as model:
+        assert model.bounds() == (0, 1)
+        assert model.channel_axis() == 1
