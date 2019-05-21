@@ -117,7 +117,7 @@ def bn_model():
 
 # bn_model is also needed as a function, so we create the fixture separately
 @pytest.fixture(name='bn_model')
-def bn_model_fixutre():
+def bn_model_fixture():
     cm_model = contextmanager(bn_model)
     with cm_model() as model:
         yield model
@@ -192,7 +192,7 @@ def gl_bn_model():
 
 # gl_bn_model is also needed as a function, so we create the fixture separately
 @pytest.fixture(name='gl_bn_model')
-def gl_bn_model_fixutre():
+def gl_bn_model_fixture():
     cm_model = contextmanager(gl_bn_model)
     with cm_model() as model:
         yield model
@@ -456,7 +456,7 @@ def binarized_bn_model():
 # binarized_bn_model is also needed as a function, so we create the
 # fixture separately
 @pytest.fixture(name='bn_model')
-def binarized_bn_model_fixutre():
+def binarized_bn_model_fixture():
     cm_model = contextmanager(binarized_bn_model)
     with cm_model() as model:
         yield model
@@ -522,7 +522,7 @@ def binarized2_bn_model():
 # binarized2_bn_model is also needed as a function, so we create the
 # fixture separately
 @pytest.fixture(name='binarized2_bn_model')
-def binarized2_bn_model_fixutre():
+def binarized2_bn_model_fixture():
     cm_model = contextmanager(binarized2_bn_model)
     with cm_model() as model:
         yield model
