@@ -6,7 +6,7 @@ from .base import DifferentiableModel
 from .. import utils
 
 
-class CaffeModel(DifferentiableModel):
+class CaffeModel(DifferentiableModel):  # pragma: no cover
     def __init__(self,
                  net,
                  bounds,
