@@ -302,4 +302,4 @@ class DifferentiableModel(Model):
         :meth:`gradient_one`
 
         """
-        return self.forward_one(x), self.gradient_one(x, label)
+        return self.forward_one(x), self.gradient_one(x, label)  # pragma: no cover
