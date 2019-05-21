@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import GradientSignAttack as Attack
+from foolbox.batch_attacks import GradientSignAttack as Attack
 
 
 def test_untargeted_attack(bn_model, bn_criterion, bn_images, bn_labels):
