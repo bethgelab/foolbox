@@ -25,7 +25,7 @@ Installation
 
    pip install foolbox
 
-We test using Python 2.7, 3.5 and 3.6. Other Python versions might work as well. **We recommend using Python 3!**
+Foolbox requires Python 3.5 or newer (since Foolbox 2.0).
 
 Documentation
 -------------
