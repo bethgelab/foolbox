@@ -499,7 +499,7 @@ class BoundaryAttackPlusPlus(Attack):
             if success:
                 break
             else:
-                epsilon = epsilon / 2.0
+                epsilon = epsilon / 2.0  # pragma: no cover
 
         return epsilon
 
