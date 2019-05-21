@@ -130,7 +130,7 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
 
     def _gradient(self, a):
         min_, max_ = a.bounds()
-        gradient = a.gradient_one()
+        gradient = yield from a.gradient_one()
         gradient = np.sign(gradient) * (max_ - min_)
         return gradient
 
