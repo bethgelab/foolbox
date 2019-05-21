@@ -4,12 +4,12 @@ from __future__ import division
 import numpy as np
 import logging
 
-from ..attacks.base import Attack
-from .decorator import generator_call_decorator
+from .base import BatchAttack
+from .base import generator_decorator
 from ..utils import onehot_like
 
 
-class CarliniWagnerL2Attack(Attack):
+class CarliniWagnerL2Attack(BatchAttack):
     """The L2 version of the Carlini & Wagner attack.
 
     This attack is described in [1]_. This implementation
@@ -25,26 +25,22 @@ class CarliniWagnerL2Attack(Attack):
 
     """
 
-    @generator_call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 binary_search_steps=5, max_iterations=1000,
-                 confidence=0, learning_rate=5e-3,
-                 initial_const=1e-2, abort_early=True):
+    @generator_decorator
+    def as_generator(self, a,
+                     binary_search_steps=5, max_iterations=1000,
+                     confidence=0, learning_rate=5e-3,
+                     initial_const=1e-2, abort_early=True):
 
         """The L2 version of the Carlini & Wagner attack.
 
         Parameters
         ----------
-        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, unperturbed input as a `numpy.ndarray` or
-            an :class:`Adversarial` instance.
-        label : int
-            The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
-            an :class:`Adversarial` instance.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
         unpack : bool
-            If true, returns the adversarial input, otherwise returns
-            the Adversarial object.
+            If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         binary_search_steps : int
             The number of steps for the binary search used to
             find the optimal tradeoff-constant between distance and confidence.
@@ -68,11 +64,6 @@ class CarliniWagnerL2Attack(Attack):
             for some time (a tenth of max_iterations).
 
         """
-
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
 
         if not a.has_gradient():
             logging.fatal('Applied gradient-based attack to model that '
@@ -235,6 +226,9 @@ class CarliniWagnerL2Attack(Attack):
         is passed as `exclude`."""
         other_logits = logits - onehot_like(logits, exclude, value=np.inf)
         return np.argmax(other_logits)
+
+
+CarliniWagnerL2Attack.__call__.__doc__ = CarliniWagnerL2Attack.as_generator.__doc__
 
 
 class AdamOptimizer:

@@ -4,11 +4,11 @@ from collections import Iterable
 import logging
 import abc
 
-from ..attacks.base import Attack
-from .decorator import generator_call_decorator
+from .base import BatchAttack
+from .base import generator_decorator
 
 
-class SingleStepGradientBaseAttack(Attack):
+class SingleStepGradientBaseAttack(BatchAttack):
     """Common base class for single step gradient attacks."""
 
     @abc.abstractmethod
@@ -54,25 +54,19 @@ class GradientAttack(SingleStepGradientBaseAttack):
 
     """
 
-    @generator_call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=1000, max_epsilon=1):
-
+    @generator_decorator
+    def as_generator(self, a, epsilons=1000, max_epsilon=1):
         """Perturbs the input with the gradient of the loss w.r.t. the input,
         gradually increasing the magnitude until the input is misclassified.
 
         Parameters
         ----------
-        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, unperturbed input as a `numpy.ndarray` or
-            an :class:`Adversarial` instance.
-        label : int
-            The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
-            an :class:`Adversarial` instance.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
         unpack : bool
-            If true, returns the adversarial input, otherwise returns
-            the Adversarial object.
+            If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         epsilons : int or Iterable[float]
             Either Iterable of step sizes in the gradient direction
             or number of step sizes between 0 and max_epsilon that should
@@ -82,11 +76,6 @@ class GradientAttack(SingleStepGradientBaseAttack):
 
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         yield from self._run(a, epsilons=epsilons, max_epsilon=max_epsilon)
 
     def _gradient(self, a):
@@ -95,6 +84,9 @@ class GradientAttack(SingleStepGradientBaseAttack):
         gradient_norm = np.sqrt(np.mean(np.square(gradient)))
         gradient = gradient / (gradient_norm + 1e-8) * (max_ - min_)
         return gradient
+
+
+GradientAttack.__call__.__doc__ = GradientAttack.as_generator.__doc__
 
 
 class GradientSignAttack(SingleStepGradientBaseAttack):
@@ -112,25 +104,19 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
            https://arxiv.org/abs/1412.6572
     """
 
-    @generator_call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=1000, max_epsilon=1):
-
+    @generator_decorator
+    def as_generator(self, a, epsilons=1000, max_epsilon=1):
         """Adds the sign of the gradient to the input, gradually increasing
         the magnitude until the input is misclassified.
 
         Parameters
         ----------
-        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, unperturbed input as a `numpy.ndarray` or
-            an :class:`Adversarial` instance.
-        label : int
-            The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
-            an :class:`Adversarial` instance.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
         unpack : bool
-            If true, returns the adversarial input, otherwise returns
-            the Adversarial object.
+            If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         epsilons : int or Iterable[float]
             Either Iterable of step sizes in the direction of the sign of
             the gradient or number of step sizes between 0 and max_epsilon
@@ -140,11 +126,6 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
 
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         yield from self._run(a, epsilons=epsilons, max_epsilon=max_epsilon)
 
     def _gradient(self, a):
@@ -152,6 +133,9 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
         gradient = a.gradient_one()
         gradient = np.sign(gradient) * (max_ - min_)
         return gradient
+
+
+GradientSignAttack.__call__.__doc__ = GradientSignAttack.as_generator.__doc__
 
 
 FGSM = GradientSignAttack

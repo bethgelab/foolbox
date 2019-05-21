@@ -10,7 +10,7 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
     advs = [YieldingAdversarial(model, criterion, x, label,
                                 distance=distance, threshold=threshold, verbose=verbose)  # noqa: E501
             for x, label in zip(inputs, labels)]
-    attacks = [create_attack_fn()(adv) for adv in advs]
+    attacks = [create_attack_fn().as_generator(adv) for adv in advs]
 
     supported_methods = {
         'forward_one': model.forward_one,
@@ -39,7 +39,7 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
     advs = [YieldingAdversarial(model, criterion, x, label,
                                 distance=distance, threshold=threshold, verbose=verbose)  # noqa: E501
             for x, label in zip(inputs, labels)]
-    attacks = [create_attack_fn()(adv) for adv in advs]
+    attacks = [create_attack_fn().as_generator(adv) for adv in advs]
 
     predictions = [None for _ in attacks]
     gradients = []

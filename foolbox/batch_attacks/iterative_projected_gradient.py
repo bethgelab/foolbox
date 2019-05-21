@@ -4,17 +4,17 @@ from abc import abstractmethod
 import logging
 import warnings
 
-from ..attacks.base import Attack
-from .decorator import generator_call_decorator
+from .base import BatchAttack
+from .base import generator_decorator
 from .. import distances
 from ..utils import crossentropy
 from .. import nprng
 
 
-class IterativeProjectedGradientBaseAttack(Attack):
+class IterativeProjectedGradientBaseAttack(BatchAttack):
     """Base class for iterative (projected) gradient attacks.
 
-    Concrete subclasses should implement __call__, _gradient
+    Concrete subclasses should implement as_generator, _gradient
     and _clip_perturbation.
 
     TODO: add support for other loss-functions, e.g. the CW loss function,
@@ -271,30 +271,26 @@ class LinfinityBasicIterativeAttack(
 
     """
 
-    @generator_call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 binary_search=True,
-                 epsilon=0.3,
-                 stepsize=0.05,
-                 iterations=10,
-                 random_start=False,
-                 return_early=True):
+    @generator_decorator
+    def as_generator(self, a,
+                     binary_search=True,
+                     epsilon=0.3,
+                     stepsize=0.05,
+                     iterations=10,
+                     random_start=False,
+                     return_early=True):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
 
         Parameters
         ----------
-        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, unperturbed input as a `numpy.ndarray` or
-            an :class:`Adversarial` instance.
-        label : int
-            The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
-            an :class:`Adversarial` instance.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
         unpack : bool
-            If true, returns the adversarial input, otherwise returns
-            the Adversarial object.
+            If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         binary_search : bool or int
             Whether to perform a binary search over epsilon and stepsize,
             keeping their ratio constant and using their values to start
@@ -319,16 +315,14 @@ class LinfinityBasicIterativeAttack(
             soon as an adversarial is found.
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         assert epsilon > 0
 
         yield from self._run(a, binary_search,
                              epsilon, stepsize, iterations,
                              random_start, return_early)
+
+
+LinfinityBasicIterativeAttack.__call__.__doc__ = LinfinityBasicIterativeAttack.as_generator.__doc__
 
 
 BasicIterativeMethod = LinfinityBasicIterativeAttack
@@ -348,30 +342,26 @@ class L1BasicIterativeAttack(
 
     """
 
-    @generator_call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 binary_search=True,
-                 epsilon=0.3,
-                 stepsize=0.05,
-                 iterations=10,
-                 random_start=False,
-                 return_early=True):
+    @generator_decorator
+    def as_generator(self, a,
+                     binary_search=True,
+                     epsilon=0.3,
+                     stepsize=0.05,
+                     iterations=10,
+                     random_start=False,
+                     return_early=True):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
 
         Parameters
         ----------
-        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, unperturbed input as a `numpy.ndarray` or
-            an :class:`Adversarial` instance.
-        label : int
-            The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
-            an :class:`Adversarial` instance.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
         unpack : bool
-            If true, returns the adversarial input, otherwise returns
-            the Adversarial object.
+            If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         binary_search : bool or int
             Whether to perform a binary search over epsilon and stepsize,
             keeping their ratio constant and using their values to start
@@ -396,16 +386,14 @@ class L1BasicIterativeAttack(
             soon as an adversarial is found.
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         assert epsilon > 0
 
         yield from self._run(a, binary_search,
                              epsilon, stepsize, iterations,
                              random_start, return_early)
+
+
+L1BasicIterativeAttack.__call__.__doc__ = L1BasicIterativeAttack.as_generator.__doc__
 
 
 class L2BasicIterativeAttack(
@@ -421,30 +409,26 @@ class L2BasicIterativeAttack(
 
     """
 
-    @generator_call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 binary_search=True,
-                 epsilon=0.3,
-                 stepsize=0.05,
-                 iterations=10,
-                 random_start=False,
-                 return_early=True):
+    @generator_decorator
+    def as_generator(self, a,
+                     binary_search=True,
+                     epsilon=0.3,
+                     stepsize=0.05,
+                     iterations=10,
+                     random_start=False,
+                     return_early=True):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
 
         Parameters
         ----------
-        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, unperturbed input as a `numpy.ndarray` or
-            an :class:`Adversarial` instance.
-        label : int
-            The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
-            an :class:`Adversarial` instance.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
         unpack : bool
-            If true, returns the adversarial input, otherwise returns
-            the Adversarial object.
+            If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         binary_search : bool or int
             Whether to perform a binary search over epsilon and stepsize,
             keeping their ratio constant and using their values to start
@@ -469,16 +453,14 @@ class L2BasicIterativeAttack(
             soon as an adversarial is found.
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         assert epsilon > 0
 
         yield from self._run(a, binary_search,
                              epsilon, stepsize, iterations,
                              random_start, return_early)
+
+
+L2BasicIterativeAttack.__call__.__doc__ = L2BasicIterativeAttack.as_generator.__doc__
 
 
 class ProjectedGradientDescentAttack(
@@ -508,30 +490,26 @@ class ProjectedGradientDescentAttack(
 
     """
 
-    @generator_call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 binary_search=True,
-                 epsilon=0.3,
-                 stepsize=0.01,
-                 iterations=40,
-                 random_start=False,
-                 return_early=True):
+    @generator_decorator
+    def as_generator(self, a,
+                     binary_search=True,
+                     epsilon=0.3,
+                     stepsize=0.01,
+                     iterations=40,
+                     random_start=False,
+                     return_early=True):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
 
         Parameters
         ----------
-        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, unperturbed input as a `numpy.ndarray` or
-            an :class:`Adversarial` instance.
-        label : int
-            The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
-            an :class:`Adversarial` instance.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
         unpack : bool
-            If true, returns the adversarial input, otherwise returns
-            the Adversarial object.
+            If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         binary_search : bool or int
             Whether to perform a binary search over epsilon and stepsize,
             keeping their ratio constant and using their values to start
@@ -556,16 +534,14 @@ class ProjectedGradientDescentAttack(
             soon as an adversarial is found.
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         assert epsilon > 0
 
         yield from self._run(a, binary_search,
                              epsilon, stepsize, iterations,
                              random_start, return_early)
+
+
+ProjectedGradientDescentAttack.__call__.__doc__ = ProjectedGradientDescentAttack.as_generator.__doc__
 
 
 ProjectedGradientDescent = ProjectedGradientDescentAttack
@@ -592,30 +568,26 @@ class RandomStartProjectedGradientDescentAttack(
 
     """
 
-    @generator_call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 binary_search=True,
-                 epsilon=0.3,
-                 stepsize=0.01,
-                 iterations=40,
-                 random_start=True,
-                 return_early=True):
+    @generator_decorator
+    def as_generator(self, a,
+                     binary_search=True,
+                     epsilon=0.3,
+                     stepsize=0.01,
+                     iterations=40,
+                     random_start=True,
+                     return_early=True):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
 
         Parameters
         ----------
-        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, unperturbed input as a `numpy.ndarray` or
-            an :class:`Adversarial` instance.
-        label : int
-            The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
-            an :class:`Adversarial` instance.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
         unpack : bool
-            If true, returns the adversarial input, otherwise returns
-            the Adversarial object.
+            If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         binary_search : bool or int
             Whether to perform a binary search over epsilon and stepsize,
             keeping their ratio constant and using their values to start
@@ -640,16 +612,15 @@ class RandomStartProjectedGradientDescentAttack(
             soon as an adversarial is found.
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         assert epsilon > 0
 
         yield from self._run(a, binary_search,
                              epsilon, stepsize, iterations,
                              random_start, return_early)
+
+
+RandomStartProjectedGradientDescentAttack.__call__.__doc__ = \
+    RandomStartProjectedGradientDescentAttack.as_generator.__doc__
 
 
 RandomProjectedGradientDescent = RandomStartProjectedGradientDescentAttack
@@ -699,31 +670,27 @@ class MomentumIterativeAttack(
             *args, **kwargs)
         return success
 
-    @generator_call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 binary_search=True,
-                 epsilon=0.3,
-                 stepsize=0.06,
-                 iterations=10,
-                 decay_factor=1.0,
-                 random_start=False,
-                 return_early=True):
+    @generator_decorator
+    def as_generator(self, a,
+                     binary_search=True,
+                     epsilon=0.3,
+                     stepsize=0.06,
+                     iterations=10,
+                     decay_factor=1.0,
+                     random_start=False,
+                     return_early=True):
 
         """Momentum-based iterative gradient attack known as
         Momentum Iterative Method.
 
         Parameters
         ----------
-        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, unperturbed input as a `numpy.ndarray` or
-            an :class:`Adversarial` instance.
-        label : int
-            The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
-            an :class:`Adversarial` instance.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
         unpack : bool
-            If true, returns the adversarial input, otherwise returns
-            the Adversarial object.
+            If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         binary_search : bool
             Whether to perform a binary search over epsilon and stepsize,
             keeping their ratio constant and using their values to start
@@ -749,10 +716,6 @@ class MomentumIterativeAttack(
             Whether an individual gradient descent run should stop as
             soon as an adversarial is found.
         """
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
 
         assert epsilon > 0
 
@@ -761,6 +724,9 @@ class MomentumIterativeAttack(
         yield from self._run(a, binary_search,
                              epsilon, stepsize, iterations,
                              random_start, return_early)
+
+
+MomentumIterativeAttack.__call__.__doc__ = MomentumIterativeAttack.as_generator.__doc__
 
 
 MomentumIterativeMethod = MomentumIterativeAttack
