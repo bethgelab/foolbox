@@ -38,7 +38,7 @@ class YieldingAdversarial(Adversarial):
 
         self._total_prediction_calls += 1
         predictions = yield ('forward_one', x)
-        is_adversarial, is_best, distance = self.__is_adversarial(
+        is_adversarial, is_best, distance = self._Adversarial__is_adversarial(
             x, predictions, in_bounds)
 
         assert predictions.ndim == 1
@@ -79,7 +79,7 @@ class YieldingAdversarial(Adversarial):
                 in_bounds_i = True
             else:
                 in_bounds_i = self.in_bounds(inputs[i])
-            is_adversarial, is_best, distance = self.__is_adversarial(
+            is_adversarial, is_best, distance = self._Adversarial__is_adversarial(
                 inputs[i], predictions[i], in_bounds_i)
             if is_adversarial and greedy:
                 if return_details:
@@ -119,9 +119,9 @@ class YieldingAdversarial(Adversarial):
         assert self.has_gradient()
 
         if x is None:
-            x = self.__unperturbed
+            x = self._Adversarial__unperturbed
         if label is None:
-            label = self.__original_class
+            label = self._Adversarial__original_class
 
         assert not strict or self.in_bounds(x)
 
@@ -150,9 +150,9 @@ class YieldingAdversarial(Adversarial):
         assert self.has_gradient()
 
         if x is None:
-            x = self.__unperturbed
+            x = self._Adversarial__unperturbed
         if label is None:
-            label = self.__original_class
+            label = self._Adversarial__original_class
 
         in_bounds = self.in_bounds(x)
         assert not strict or in_bounds
@@ -160,7 +160,7 @@ class YieldingAdversarial(Adversarial):
         self._total_prediction_calls += 1
         self._total_gradient_calls += 1
         predictions, gradient = yield ('forward_and_gradient_one', x, label)
-        is_adversarial, is_best, distance = self.__is_adversarial(x, predictions, in_bounds)
+        is_adversarial, is_best, distance = self._Adversarial__is_adversarial(x, predictions, in_bounds)
 
         assert predictions.ndim == 1
         assert gradient.shape == x.shape
@@ -194,7 +194,7 @@ class YieldingAdversarial(Adversarial):
         assert gradient.ndim == 1
 
         if x is None:
-            x = self.__unperturbed
+            x = self._Adversarial__unperturbed
 
         assert not strict or self.in_bounds(x)
 
