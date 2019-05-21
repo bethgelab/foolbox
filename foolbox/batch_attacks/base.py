@@ -30,9 +30,8 @@ class BatchAttack(Attack):
             raise ValueError('The attack needs to be initialized with a distance')
 
         create_attack_fn = self.__class__
-        verbose = kwargs.get('verbose', False)
         advs = run_parallel(create_attack_fn, model, criterion, inputs, labels,
-                            distance=distance, threshold=threshold, verbose=verbose)
+                            distance=distance, threshold=threshold, **kwargs)
 
         if unpack:
             advs = [a.perturbed for a in advs]

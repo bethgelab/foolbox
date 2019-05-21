@@ -6,11 +6,11 @@ from .yielding_adversarial import YieldingAdversarial
 
 
 def run_sequential(create_attack_fn, model, criterion, inputs, labels,
-                   distance=MSE, threshold=None, verbose=False):
+                   distance=MSE, threshold=None, verbose=False, **kwargs):
     advs = [YieldingAdversarial(model, criterion, x, label,
-                                distance=distance, threshold=threshold, verbose=verbose)  # noqa: E501
+                                distance=distance, threshold=threshold, verbose=verbose)
             for x, label in zip(inputs, labels)]
-    attacks = [create_attack_fn().as_generator(adv) for adv in advs]
+    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv in advs]
 
     supported_methods = {
         'forward_one': model.forward_one,
@@ -35,11 +35,11 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
 
 
 def run_parallel(create_attack_fn, model, criterion, inputs, labels,
-                 distance=MSE, threshold=None, verbose=False):
+                 distance=MSE, threshold=None, verbose=False, **kwargs):
     advs = [YieldingAdversarial(model, criterion, x, label,
-                                distance=distance, threshold=threshold, verbose=verbose)  # noqa: E501
+                                distance=distance, threshold=threshold, verbose=verbose)
             for x, label in zip(inputs, labels)]
-    attacks = [create_attack_fn().as_generator(adv) for adv in advs]
+    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv in advs]
 
     predictions = [None for _ in attacks]
     gradients = []
