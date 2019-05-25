@@ -57,7 +57,8 @@ class Adversarial(object):
             original_class,
             distance=MSE,
             threshold=None,
-            verbose=False):
+            verbose=False,
+            strict=False):
 
         self.__model = model
         self.__criterion = criterion
@@ -81,6 +82,7 @@ class Adversarial(object):
 
         self._best_prediction_calls = 0
         self._best_gradient_calls = 0
+        self.strict=strict
 
         # check if the original image is already adversarial
         try:
@@ -234,9 +236,7 @@ class Adversarial(object):
         return is_adversarial, is_best, distance
 
     def target_class(self):
-        """Interface to criterion.target_class for attacks.
-
-        """
+        """Interface to criterion.target_class for attacks."""
         try:
             target_class = self.__criterion.target_class()
         except AttributeError:
@@ -257,6 +257,7 @@ class Adversarial(object):
 
     def in_bounds(self, input_):
         min_, max_ = self.bounds()
+        # print(input_.min(), input_.max(), min_, max_, min_ <= input_.min(), input_.max() <= max_, type(input_.min()), type(min_))
         return min_ <= input_.min() and input_.max() <= max_
 
     def channel_axis(self, batch):
@@ -287,7 +288,8 @@ class Adversarial(object):
         else:
             return True
 
-    def predictions(self, image, strict=True, return_details=False):
+
+    def predictions(self, image, strict=False, return_details=False):
         """Interface to model.predictions for attacks.
 
         Parameters
@@ -299,7 +301,12 @@ class Adversarial(object):
 
         """
         in_bounds = self.in_bounds(image)
-        assert not strict or in_bounds
+        # assert not strict or in_bounds
+        if strict and not in_bounds:
+            min_, max_ = self.bounds()
+            raise Exception("image not in bounds: ", " min: ", image.min(),
+                            " max: ", image.max(), " min_bound: ", min_,
+                            " max_bound: ", max_)
 
         self._total_prediction_calls += 1
         predictions = self.__model.predictions(image)

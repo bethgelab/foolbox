@@ -192,7 +192,7 @@ class CarliniWagnerL2Attack(Attack):
 
     @classmethod
     def loss_function(cls, const, a, x, logits, reconstructed_original,
-                      confidence, min_, max_):
+                      confidence, min_, max_, strict=False):
         """Returns the loss and the gradient of the loss w.r.t. x,
         assuming that logits = model(x)."""
 
@@ -219,7 +219,7 @@ class CarliniWagnerL2Attack(Attack):
         logits_diff_grad = np.zeros_like(logits)
         logits_diff_grad[c_minimize] = 1
         logits_diff_grad[c_maximize] = -1
-        is_adv_loss_grad = a.backward(logits_diff_grad, x)
+        is_adv_loss_grad = a.backward(logits_diff_grad, x, strict=strict)
         assert is_adv_loss >= 0
         if is_adv_loss == 0:
             is_adv_loss_grad = 0

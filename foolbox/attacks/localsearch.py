@@ -127,15 +127,16 @@ class MultiplePixelsAttack(Attack):
                 location.insert(channel_axis, slice(None))
                 location = tuple(location)
 
-                if i % 2 == 0:
+                if np.random.randint(0, 2) == 1:
                     value = min_
                 else:
                     value = max_
                 perturbed[location] = value
 
-            _, is_adv = a.predictions(perturbed)
-            if is_adv:
-                return
+                # check if the current number of perturbed pictures is enough
+                _, is_adv = a.predictions(perturbed)
+                if is_adv:
+                    return
 
 
 class LocalSearchAttack(Attack):
