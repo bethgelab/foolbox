@@ -22,7 +22,7 @@ from .adef_attack import ADefAttack
 from .spatial import SpatialAttack
 from .carlini_wagner import CarliniWagnerL2Attack
 from .decoupled_direction_norm import DecoupledDirectionNormL2Attack
-from .bapp import BoundaryAttackPlusPlus
+from .hop_skip_jump_attack import HopSkipJumpAttack, BoundaryAttackPlusPlus
 from .sparsefool import SparseFoolAttack
 
 from .iterative_projected_gradient import LinfinityBasicIterativeAttack, BasicIterativeMethod, BIM

@@ -1,13 +1,13 @@
 import numpy as np
 
-from foolbox.attacks import BoundaryAttackPlusPlus
+from foolbox.attacks import HopSkipJumpAttack, BoundaryAttackPlusPlus
 from foolbox.attacks import BlendedUniformNoiseAttack
 from foolbox.distances import Linf
 
 
 def test_attack(bn_adversarial):
     adv = bn_adversarial
-    attack = BoundaryAttackPlusPlus()
+    attack = HopSkipJumpAttack()
     attack(adv, iterations=20, verbose=True)
     assert adv.perturbed is not None
     assert adv.distance.value < np.inf
@@ -15,7 +15,7 @@ def test_attack(bn_adversarial):
 
 def test_attack_linf(bn_adversarial):
     adv = bn_adversarial
-    attack = BoundaryAttackPlusPlus(distance=Linf)
+    attack = HopSkipJumpAttack(distance=Linf)
     attack(adv, iterations=20, verbose=True)
     assert adv.perturbed is not None
     assert adv.distance.value < np.inf
@@ -23,7 +23,7 @@ def test_attack_linf(bn_adversarial):
 
 def test_attack_non_verbose(bn_adversarial):
     adv = bn_adversarial
-    attack = BoundaryAttackPlusPlus()
+    attack = HopSkipJumpAttack()
     attack(adv, iterations=20, verbose=False)
     assert adv.perturbed is not None
     assert adv.distance.value < np.inf
@@ -34,7 +34,7 @@ def test_attack_continue(bn_adversarial):
     attack1 = BlendedUniformNoiseAttack()
     attack1(adv)
     d1 = adv.distance.value
-    attack2 = BoundaryAttackPlusPlus()
+    attack2 = HopSkipJumpAttack()
     attack2(adv, iterations=20, verbose=True)
     assert adv.perturbed is not None
     assert adv.distance.value < np.inf
@@ -43,7 +43,7 @@ def test_attack_continue(bn_adversarial):
 
 def test_attack_targeted(bn_adversarial):
     adv = bn_adversarial
-    attack = BoundaryAttackPlusPlus()
+    attack = HopSkipJumpAttack()
     o = adv.unperturbed
     np.random.seed(2)
     starting_point = np.random.uniform(
@@ -65,7 +65,7 @@ def test_attack_targeted(bn_adversarial):
 
 def test_attack_linf_targeted(bn_adversarial):
     adv = bn_adversarial
-    attack = BoundaryAttackPlusPlus(distance=Linf)
+    attack = HopSkipJumpAttack(distance=Linf)
     o = adv.unperturbed
     np.random.seed(2)
     starting_point = np.random.uniform(
@@ -87,7 +87,7 @@ def test_attack_linf_targeted(bn_adversarial):
 
 def test_attack_gl(gl_bn_adversarial):
     adv = gl_bn_adversarial
-    attack = BoundaryAttackPlusPlus()
+    attack = HopSkipJumpAttack()
     attack(adv, iterations=200, verbose=True)
     assert adv.perturbed is not None
     assert adv.distance.value < np.inf
@@ -95,7 +95,14 @@ def test_attack_gl(gl_bn_adversarial):
 
 def test_attack_impossible(bn_impossible):
     adv = bn_impossible
-    attack = BoundaryAttackPlusPlus()
+    attack = HopSkipJumpAttack()
     attack(adv, iterations=200, verbose=True)
     assert adv.perturbed is None
     assert adv.distance.value == np.inf
+
+def test_attack_oldname(bn_adversarial):
+    adv = bn_adversarial
+    attack = BoundaryAttackPlusPlus()
+    attack(adv, iterations=20, verbose=True)
+    assert adv.perturbed is not None
+    assert adv.distance.value < np.inf
