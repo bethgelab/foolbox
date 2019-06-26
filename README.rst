@@ -23,7 +23,7 @@ Installation
 
 .. code-block:: bash
 
-   pip install foolbox
+   pip install foolbox --pre
 
 Foolbox requires Python 3.5 or newer (since Foolbox 2.0).
 
