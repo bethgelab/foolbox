@@ -35,6 +35,7 @@ Documentation
 -------------
 
 Documentation is available on readthedocs: http://foolbox.readthedocs.io/
+For the 2.0 beta, please go to https://foolbox.readthedocs.io/en/latest/
 
 Our paper describing Foolbox is on arXiv: https://arxiv.org/abs/1707.04131
 
