@@ -11,6 +11,7 @@ Distances
    MeanAbsoluteDistance
    Linfinity
    L0
+   ElasticNet
 
 Aliases
 -------
@@ -21,6 +22,7 @@ Aliases
    MSE
    MAE
    Linf
+   EN
 
 Base class
 ----------
@@ -210,3 +212,44 @@ class L0(Distance):
 
     def __str__(self):
         return 'L0 distance = {}'.format(self._value)
+
+
+class ElasticNet(Distance):
+    """Calculates the Elastic-Net distance between two inputs.
+    The Elastic-Net distance is a combination of the L2 and L1 distance.
+    """
+
+    def __init__(
+            self,
+            reference=None,
+            other=None,
+            bounds=None,
+            value=None,
+            l1_factor=1.0):
+
+        super(ElasticNet).__init__(reference, other, bounds, value)
+
+        self.l1_factor = l1_factor
+
+    def _calculate(self):
+        min_, max_ = self._bounds
+        n = self.reference.size
+        max_l2 = (max_ - min_)**2
+        max_l1 = (max_ - min_)
+
+        diff = (self.other - self.reference) / (max_ - min_)
+
+        mae_value = np.sum(np.abs(diff)).astype(np.float64) / max_l1
+        mse_value = np.vdot(diff, diff).astype(np.float64) / max_l2
+        value = self.l1_factor * mae_value + mse_value
+
+        gradient_mae = np.sign(diff) / max_l1
+        gradient_mse = diff / (max_l2 / 2)
+        gradient = gradient_mae + gradient_mse
+        return value, gradient
+
+    def __str__(self):
+        return 'normalized EN = {:.2e}'.format(self._value)
+
+
+EN = ElasticNet

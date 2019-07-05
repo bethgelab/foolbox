@@ -129,7 +129,7 @@ class EADAttack(Attack):
             for iteration in range(max_iterations):
                 # square-root learning rate decay
                 learning_rate = initial_learning_rate * \
-                                (1.0 - iteration / max_iterations)**0.5
+                    (1.0 - iteration / max_iterations)**0.5
 
                 # store x from previous iteration (k-1) as x^(k-1)
                 x_prev = x.copy()
@@ -147,7 +147,7 @@ class EADAttack(Attack):
 
                 x = self.project_shrinkage_thresholding(
                     y - learning_rate * gradient, att_original, regularization)
-                y = x + iteration/(iteration+3) * (x-x_prev)
+                y = x + iteration / (iteration + 3) * (x - x_prev)
 
                 if is_adv:
                     # this binary search step can be considered a success
