@@ -109,7 +109,7 @@ class EADAttack(BatchAttack):
             for iteration in range(max_iterations):
                 # square-root learning rate decay
                 learning_rate = initial_learning_rate * \
-                                (1.0 - iteration / max_iterations) ** 0.5
+                    (1.0 - iteration / max_iterations) ** 0.5
 
                 # store x from previous iteration (k-1) as x^(k-1)
                 x_prev = x.copy()
