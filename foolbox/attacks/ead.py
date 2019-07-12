@@ -10,19 +10,21 @@ from ..utils import onehot_like
 
 
 class EADAttack(Attack):
-    """The L2 version of the Carlini & Wagner attack.
-
-    This attack is described in [1]_. This implementation
-    is based on the reference implementation by Carlini [2]_.
-    For bounds ≠ (0, 1), it differs from [2]_ because we
-    normalize the squared L2 loss with the bounds.
+    """""Gradient based attack which uses an elastic-net regularization [1].
+    This implementation is based on the attacks description [1] and its
+    reference implementation [2].
 
     References
     ----------
-    .. [1] Nicholas Carlini, David Wagner: "Towards Evaluating the
-           Robustness of Neural Networks", https://arxiv.org/abs/1608.04644
-    .. [2] https://github.com/carlini/nn_robust_attacks
+    .. [1] Pin-Yu Chen (*), Yash Sharma (*), Huan Zhang, Jinfeng Yi,
+           Cho-Jui Hsieh, "EAD: Elastic-Net Attacks to Deep Neural
+           Networks via Adversarial Examples",
+           https://arxiv.org/abs/1709.04114
 
+    .. [2] Pin-Yu Chen (*), Yash Sharma (*), Huan Zhang, Jinfeng Yi,
+           Cho-Jui Hsieh, "Reference Implementation of 'EAD: Elastic-Net
+           Attacks to Deep Neural Networks via Adversarial Examples'",
+           https://github.com/ysharma1126/EAD_Attack/blob/master/en_attack.py
     """
 
     @call_decorator
@@ -31,21 +33,7 @@ class EADAttack(Attack):
                  confidence=0, initial_learning_rate=1e-2, regularization=1e-2,
                  initial_const=1e-2, abort_early=True):
 
-        """Gradient based attack which sues an elastic-net regularization [1].
-        This implementation is based on the attacks description [1] and its
-        reference implementation [2].
-
-        References
-        ----------
-        .. [1] Pin-Yu Chen (*), Yash Sharma (*), Huan Zhang, Jinfeng Yi,
-               Cho-Jui Hsieh, "EAD: Elastic-Net Attacks to Deep Neural
-               Networks via Adversarial Examples",
-               https://arxiv.org/abs/1709.04114
-
-        .. [2] Pin-Yu Chen (*), Yash Sharma (*), Huan Zhang, Jinfeng Yi,
-               Cho-Jui Hsieh, "Reference Implementation of 'EAD: Elastic-Net
-               Attacks to Deep Neural Networks via Adversarial Examples'",
-               https://github.com/ysharma1126/EAD_Attack/blob/master/en_attack.py
+        """Gradient based attack which sues an elastic-net regularization.
 
         Parameters
         ----------
@@ -134,9 +122,9 @@ class EADAttack(Attack):
                 # store x from previous iteration (k-1) as x^(k-1)
                 x_prev = x.copy()
 
-                logits, is_adv = a.forward_one(x)
+                logits, is_adv = a.forward_one(y)
                 loss, gradient = self.loss_function(
-                    const, a, x, logits, att_original,
+                    const, a, y, logits, att_original,
                     confidence, min_, max_)
 
                 logging.info('loss: {}; best overall distance: {}'.format(loss, a.distance))
@@ -146,8 +134,13 @@ class EADAttack(Attack):
                 assert gradient.shape == x.shape
 
                 x = self.project_shrinkage_thresholding(
-                    y - learning_rate * gradient, att_original, regularization)
-                y = x + iteration / (iteration + 3) * (x - x_prev)
+                    y - learning_rate * gradient, att_original, regularization,
+                    min_, max_)
+                y = x + iteration / (iteration + 3.0) * (x - x_prev)
+
+                # clip the slack variable to make sure that it is still
+                # in valid bounds for the model
+                y = np.clip(y, min_, max_)
 
                 if is_adv:
                     # this binary search step can be considered a success
@@ -177,7 +170,7 @@ class EADAttack(Attack):
                 const = (lower_bound + upper_bound) / 2
 
     @classmethod
-    def loss_function(cls, const, a, x, logits, reconstructed_original,
+    def loss_function(cls, const, a, x, logits, original,
                       confidence, min_, max_):
         """Returns the loss and the gradient of the loss w.r.t. x,
         assuming that logits = model(x)."""
@@ -198,7 +191,8 @@ class EADAttack(Attack):
         is_adv_loss = max(0, is_adv_loss)
 
         s = max_ - min_
-        squared_l2_distance = np.sum((x - reconstructed_original)**2) / s**2
+        squared_l2_distance = np.sum((x - original)**2) / s**2
+
         total_loss = squared_l2_distance + const * is_adv_loss
 
         # calculate the gradient of total_loss w.r.t. x
@@ -210,19 +204,25 @@ class EADAttack(Attack):
         if is_adv_loss == 0:
             is_adv_loss_grad = 0
 
-        squared_l2_distance_grad = (2 / s**2) * (x - reconstructed_original)
+        squared_l2_distance_grad = (2 / s**2) * (x - original)
 
         total_loss_grad = squared_l2_distance_grad + const * is_adv_loss_grad
         return total_loss, total_loss_grad
 
     @classmethod
-    def project_shrinkage_thresholding(cls, z, x0, regularization):
+    def project_shrinkage_thresholding(cls, z, x0, regularization, min_, max_):
         """Performs the element-wise projected shrinkage-thresholding
         operation"""
 
         projection = x0.copy()
-        projection[z - x0 > regularization] = np.min(z - regularization, 1)
-        projection[z - x0 < -regularization] = np.max(z + regularization, 0)
+
+        upper_mask = z - x0 > regularization
+        lower_mask = z - x0 < -regularization
+
+        projection[upper_mask] = np.minimum(z - regularization, max_)[
+            upper_mask]
+        projection[lower_mask] = np.maximum(z + regularization, min_)[
+            lower_mask]
 
         return projection
 
