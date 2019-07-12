@@ -227,9 +227,11 @@ class ElasticNet(Distance):
             value=None,
             l1_factor=1.0):
 
-        super(ElasticNet).__init__(reference, other, bounds, value)
-
+        # set L1 regularization factor before calling __init__ of super
+        # to make sure that the _calculate method can be called
         self.l1_factor = l1_factor
+
+        super().__init__(reference, other, bounds, value)
 
     def _calculate(self):
         min_, max_ = self._bounds
@@ -252,4 +254,15 @@ class ElasticNet(Distance):
         return 'normalized EN = {:.2e}'.format(self._value)
 
 
-EN = ElasticNet
+def EN(l1_factor=1.0):
+    """Creates a class definition that assigns ElasticNet a fixed l1_factor.
+        This class calculates the Elastic-Net distance between two inputs.
+        The Elastic-Net distance is a combination of the L2 and L1 distance.
+    """
+
+    def __init__(self, *kargs, **kwargs):
+        ElasticNet.__init__(self, *kargs, **kwargs, l1_factor=l1_factor)
+    name = f'EN_{l1_factor}'.replace('.', '')
+    newclass = type(name, (ElasticNet, Distance), {"__init__": __init__})
+
+    return newclass
