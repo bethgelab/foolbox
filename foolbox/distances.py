@@ -235,7 +235,6 @@ class ElasticNet(Distance):
 
     def _calculate(self):
         min_, max_ = self._bounds
-        n = self.reference.size
         max_l2 = (max_ - min_)**2
         max_l1 = (max_ - min_)
 
