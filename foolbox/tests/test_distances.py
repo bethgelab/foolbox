@@ -85,11 +85,23 @@ def test_l0():
         d.gradient
 
 
+def test_en():
+    en = distances.EN(0.1)
+    d = en(
+        np.array([0, .5]),
+        np.array([.7, .5]),
+        bounds=(0, 1))
+    assert d.value == approx(0.56)
+    with pytest.raises(NotImplementedError):
+        d.gradient
+
+
 @pytest.mark.parametrize('Distance', [
     distances.MeanSquaredDistance,
     distances.MeanAbsoluteDistance,
     distances.Linfinity,
     distances.L0,
+    distances.EN(1),
 ])
 def test_str_repr(Distance):
     """Tests that str and repr contain the value
