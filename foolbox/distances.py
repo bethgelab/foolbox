@@ -261,7 +261,7 @@ def EN(l1_factor=1.0):
 
     def __init__(self, *kargs, **kwargs):
         ElasticNet.__init__(self, *kargs, **kwargs, l1_factor=l1_factor)
-    name = f'EN_{l1_factor}'.replace('.', '')
+    name = 'EN_{}'.format(l1_factor).replace('.', '')
     newclass = type(name, (ElasticNet, Distance), {"__init__": __init__})
 
     return newclass
