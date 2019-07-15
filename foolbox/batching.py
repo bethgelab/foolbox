@@ -146,8 +146,7 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
     if not isinstance(distance, (list, tuple)):
         distance = [distance] * len(inputs)
     else:
-        assert len(distance) == len(
-            inputs), 'The number of distances must match the number of inputs.'  # noqa: E501
+        assert len(distance) == len(inputs), 'The number of distances must match the number of inputs.'  # noqa: E501
 
     advs = [YieldingAdversarial(model, _criterion, x, label,
                                 distance=_distance, threshold=threshold,
