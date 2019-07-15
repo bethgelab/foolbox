@@ -20,14 +20,14 @@ def test_run_parallel(bn_model, bn_criterion, bn_images, bn_labels):
 
 def test_run_parallel_invalid_arguments(bn_model, bn_criterion, bn_images,
                                         bn_labels):
-    bn_labels_wrong = bn_labels[[0]]
+    labels_wrong = bn_labels[[0]]
     criteria_wrong = [bn_criterion] * (len(bn_images) + 1)
     distances_wrong = [MSE] * (len(bn_images) + 1)
 
     # test too few labels
     with pytest.raises(AssertionError):
         run_parallel(Attack, bn_model, bn_criterion, bn_images,
-                     bn_labels_wrong)
+                     labels_wrong)
 
     # test too many criteria
     with pytest.raises(AssertionError):
@@ -36,8 +36,8 @@ def test_run_parallel_invalid_arguments(bn_model, bn_criterion, bn_images,
 
     # test too many distances
     with pytest.raises(AssertionError):
-        run_parallel(Attack, bn_model, distances_wrong, bn_images,
-                     bn_labels)
+        run_parallel(Attack, bn_model, bn_criterion, bn_images,
+                     bn_labels, distance=distances_wrong)
 
 
 def test_run_sequential(bn_model, bn_criterion, bn_images, bn_labels):
@@ -52,14 +52,14 @@ def test_run_sequential(bn_model, bn_criterion, bn_images, bn_labels):
 
 def test_run_sequential_invalid_arguments(bn_model, bn_criterion, bn_images,
                                           bn_labels):
-    bn_labels_wrong = bn_labels[[0]]
+    labels_wrong = bn_labels[[0]]
     criteria_wrong = [bn_criterion] * (len(bn_images) + 1)
     distances_wrong = [MSE] * (len(bn_images) + 1)
 
     # test too few labels
     with pytest.raises(AssertionError):
         run_sequential(Attack, bn_model, bn_criterion, bn_images,
-                       bn_labels_wrong)
+                       labels_wrong)
 
     # test too many criteria
     with pytest.raises(AssertionError):
@@ -68,5 +68,5 @@ def test_run_sequential_invalid_arguments(bn_model, bn_criterion, bn_images,
 
     # test too many distances
     with pytest.raises(AssertionError):
-        run_sequential(Attack, bn_model, distances_wrong, bn_images,
-                       bn_labels)
+        run_sequential(Attack, bn_model, bn_criterion, bn_images,
+                       bn_labels, distance=distances_wrong)
