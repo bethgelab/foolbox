@@ -107,6 +107,10 @@ Gradient-based attacks
    :members:
    :special-members:
 
+.. autoclass:: EADAttack
+   :members:
+   :special-members:
+
 .. autoclass:: DecoupledDirectionNormL2Attack
    :members:
    :special-members:

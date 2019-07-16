@@ -44,6 +44,7 @@
    IterativeGradientAttack
    IterativeGradientSignAttack
    CarliniWagnerL2Attack
+   EADAttack
    DecoupledDirectionNormL2Attack
    SparseFoolAttack
 
