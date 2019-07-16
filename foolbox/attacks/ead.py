@@ -10,7 +10,7 @@ from ..utils import onehot_like
 
 
 class EADAttack(Attack):
-    """""Gradient based attack which uses an elastic-net regularization [1].
+    """Gradient based attack which uses an elastic-net regularization [1].
     This implementation is based on the attacks description [1] and its
     reference implementation [2].
 
