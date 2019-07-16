@@ -15,7 +15,7 @@ class SingleStepGradientBaseAttack(Attack):
     def _gradient(self, a):
         raise NotImplementedError
 
-    def _run(self, a, epsilons, max_epsilon):
+    def _run(self, a, epsilons, max_epsilon, optimize_eps):
         if not a.has_gradient():
             return
 
@@ -30,20 +30,26 @@ class SingleStepGradientBaseAttack(Attack):
         else:
             decrease_if_first = False
 
-        for _ in range(2):  # to repeat with decreased epsilons if necessary
-            for i, epsilon in enumerate(epsilons):
-                perturbed = x + gradient * epsilon
-                perturbed = np.clip(perturbed, min_, max_)
+        if optimize_eps:
+            for _ in range(2):  # to repeat with decreased epsilons if necessary
+                for i, epsilon in enumerate(epsilons):
+                    perturbed = x + gradient * epsilon
+                    perturbed = np.clip(perturbed, min_, max_)
 
-                _, is_adversarial = a.forward_one(perturbed)
-                if is_adversarial:
-                    if decrease_if_first and i < 20:
-                        logging.info('repeating attack with smaller epsilons')
-                        break
-                    return
+                    _, is_adversarial = yield from a.forward_one(perturbed)
+                    if is_adversarial:
+                        if decrease_if_first and i < 20:
+                            logging.info('repeating attack with smaller epsilons')
+                            break
+                        return
 
-            max_epsilon = epsilons[i]
-            epsilons = np.linspace(0, max_epsilon, num=20 + 1)[1:]
+                max_epsilon = epsilons[i]
+                epsilons = np.linspace(0, max_epsilon, num=20 + 1)[1:]
+        else:
+            perturbed = x + gradient * max_epsilon
+            perturbed = np.clip(perturbed, min_, max_)
+            _, is_adversarial = yield from a.forward_one(perturbed)
+            return
 
 
 class GradientAttack(SingleStepGradientBaseAttack):
@@ -56,7 +62,7 @@ class GradientAttack(SingleStepGradientBaseAttack):
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=1000, max_epsilon=1):
+                 epsilons=1000, max_epsilon=1, optimize_eps=False):
 
         """Perturbs the input with the gradient of the loss w.r.t. the input,
         gradually increasing the magnitude until the input is misclassified.
@@ -87,7 +93,7 @@ class GradientAttack(SingleStepGradientBaseAttack):
         del label
         del unpack
 
-        return self._run(a, epsilons=epsilons, max_epsilon=max_epsilon)
+        return self._run(a, epsilons=epsilons, max_epsilon=max_epsilon, optimize_eps=optimize_eps)
 
     def _gradient(self, a):
         min_, max_ = a.bounds()
@@ -114,7 +120,7 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=1000, max_epsilon=1):
+                 epsilons=1000, max_epsilon=1, optimize_eps=False):
 
         """Adds the sign of the gradient to the input, gradually increasing
         the magnitude until the input is misclassified.
@@ -145,7 +151,7 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
         del label
         del unpack
 
-        return self._run(a, epsilons=epsilons, max_epsilon=max_epsilon)
+        return self._run(a, epsilons=epsilons, max_epsilon=max_epsilon, optimize_eps=optimize_eps)
 
     def _gradient(self, a):
         min_, max_ = a.bounds()
