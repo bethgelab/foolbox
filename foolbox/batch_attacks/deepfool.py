@@ -83,7 +83,7 @@ class DeepFoolAttack(BatchAttack):
         _label = a.original_class
 
         # define labels
-        logits, _ = a.forward_one(a.unperturbed)
+        logits, _ = yield from a.forward_one(a.unperturbed)
         labels = np.argsort(logits)[::-1]
         if subsample:
             # choose the top-k classes
@@ -163,16 +163,18 @@ class DeepFoolAttack(BatchAttack):
 
 
 class DeepFoolL2Attack(DeepFoolAttack):
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 steps=100, subsample=10):
-        return super(DeepFoolL2Attack, self).__call__(
-            input_or_adv, label=label, unpack=unpack,
+    @generator_decorator
+    def as_generator(self, a,
+                     steps=100, subsample=10):
+        yield from super(DeepFoolL2Attack, self).as_generator(
+            a,
             steps=steps, subsample=subsample, p=2)
 
 
 class DeepFoolLinfinityAttack(DeepFoolAttack):
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 steps=100, subsample=10):
-        return super(DeepFoolLinfinityAttack, self).__call__(
-            input_or_adv, label=label, unpack=unpack,
+    @generator_decorator
+    def as_generator(self, a,
+                     steps=100, subsample=10):
+        yield from super(DeepFoolLinfinityAttack, self).as_generator(
+            a,
             steps=steps, subsample=subsample, p=np.inf)
