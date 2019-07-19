@@ -116,7 +116,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
             self.constraint = 'linf'
 
         # Set binary search threshold.
-        self.shape = input_or_adv.unperturbed.shape
+        self.shape = a.unperturbed.shape
         self.d = np.prod(self.shape)
         if self.constraint == 'l2':
             self.theta = self.gamma / np.sqrt(self.d)

@@ -1,7 +1,6 @@
 import numpy as np
 
 from foolbox.batch_attacks import BoundaryAttackPlusPlus
-from foolbox.batch_attacks import BlendedUniformNoiseAttack
 from foolbox.distances import Linf
 
 

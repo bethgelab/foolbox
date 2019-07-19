@@ -3,7 +3,6 @@ import pytest
 
 from foolbox.batch_attacks import BoundaryAttack
 from foolbox.batch_attacks import DeepFoolAttack
-from foolbox.batch_attacks import BlendedUniformNoiseAttack
 
 
 def test_attack(bn_model, bn_criterion, bn_images, bn_labels):

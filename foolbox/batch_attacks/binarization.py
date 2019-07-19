@@ -6,7 +6,7 @@ from .base import BatchAttack
 from .base import generator_decorator
 
 
-class BinarizationRefinementAttack(Attack):
+class BinarizationRefinementAttack(BatchAttack):
     """For models that preprocess their inputs by binarizing the
     inputs, this attack can improve adversarials found by other
     attacks. It does os by utilizing information about the
