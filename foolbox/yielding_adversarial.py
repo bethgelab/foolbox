@@ -159,9 +159,9 @@ class YieldingAdversarial(Adversarial):
 
         self._total_prediction_calls += 1
         self._total_gradient_calls += 1
-        predictions, gradient = yield ('forward_and_gradient_one', x, label)
-        is_adversarial, is_best, distance = self._Adversarial__is_adversarial(x, predictions, in_bounds)
-
+        predictions, gradient  = yield ('forward_and_gradient_one', x, label)
+        is_adversarial, is_best, distance = self._Adversarial__is_adversarial(
+            x, predictions, in_bounds)
         assert predictions.ndim == 1
         assert gradient.shape == x.shape
         if return_details:

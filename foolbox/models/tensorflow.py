@@ -138,9 +138,19 @@ class TensorFlowModel(DifferentiableModel):
         x, dpdx = self._process_input(x)
         predictions, gradient = self._session.run(
             [self._logits, self._gradient],
-            feed_dict={self._inputs: x[np.newaxis], self._labels: np.asarray(label)[np.newaxis]})
+            feed_dict={self._inputs: x[np.newaxis],
+                       self._labels: np.asarray(label)[np.newaxis]})
         predictions = np.squeeze(predictions, axis=0)
         gradient = np.squeeze(gradient, axis=0)
+        gradient = self._process_gradient(dpdx, gradient)
+        return predictions, gradient
+
+    def forward_and_gradient(self, inputs, labels):
+        inputs, dpdx = self._process_input(inputs)
+        predictions, gradient = self._session.run(
+            [self._logits, self._gradient],
+            feed_dict={self._inputs: inputs,
+                       self._labels: labels})
         gradient = self._process_gradient(dpdx, gradient)
         return predictions, gradient
 

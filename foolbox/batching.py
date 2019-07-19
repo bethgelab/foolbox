@@ -158,7 +158,9 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
     predictions = [None for _ in attacks]
     gradients = []
     backwards = []
-    results = itertools.chain(predictions, gradients, backwards)
+    prediction_gradients = []
+    results = itertools.chain(predictions, gradients, backwards,
+                              prediction_gradients)
 
     while True:
         attacks_requesting_predictions = []
@@ -167,6 +169,8 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
         gradients_args = []
         attacks_requesting_backwards = []
         backwards_args = []
+        attacks_requesting_prediction_gradients = []
+        predictions_gradients_args = []
         for attack, result in zip(attacks, results):
             try:
                 x = attack.send(result)
@@ -183,15 +187,15 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
                 attacks_requesting_backwards.append(attack)
                 backwards_args.append(args)
             elif method == 'forward_and_gradient_one':
-                raise NotImplementedError('batching support for forward_and_'
-                                          'gradient_one not yet implemented; '
-                                          'please open an issue')
+                attacks_requesting_prediction_gradients.append(attack)
+                predictions_gradients_args.append(args)
             else:
                 assert False
         n_active_attacks = len(attacks_requesting_predictions) \
             + len(attacks_requesting_gradients) \
-            + len(attacks_requesting_backwards)
-        if n_active_attacks < len(predictions) + len(gradients) + len(backwards):  # noqa: E501
+            + len(attacks_requesting_backwards) \
+            + len(attacks_requesting_prediction_gradients)
+        if n_active_attacks < len(predictions) + len(gradients) + len(backwards) + len(prediction_gradients):  # noqa: E501
             # an attack completed in this iteration
             logging.info('{} of {} attacks completed'.format(len(advs) - n_active_attacks, len(advs)))  # noqa: E501
         if n_active_attacks == 0:
@@ -217,7 +221,23 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
             backwards = model.backward(*backwards_args)
         else:
             backwards = []
+        if len(attacks_requesting_prediction_gradients) > 0:
+            logging.debug('calling forward_and_gradient_one with {}'.format(len(attacks_requesting_prediction_gradients)))  # noqa: E501
 
-        attacks = itertools.chain(attacks_requesting_predictions, attacks_requesting_gradients, attacks_requesting_backwards)  # noqa: E501
-        results = itertools.chain(predictions, gradients, backwards)
+            predictions_gradients_args = map(np.stack,
+                                             zip(*predictions_gradients_args))
+
+            prediction_gradients = model.forward_and_gradient(
+                *predictions_gradients_args)
+
+            prediction_gradients = list(zip(*prediction_gradients))
+        else:
+            prediction_gradients = []
+
+        attacks = itertools.chain(attacks_requesting_predictions,
+                                  attacks_requesting_gradients,
+                                  attacks_requesting_backwards,
+                                  attacks_requesting_prediction_gradients)
+        results = itertools.chain(predictions, gradients, backwards,
+                                  prediction_gradients)
     return advs

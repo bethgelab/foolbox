@@ -77,6 +77,21 @@ class MXNetGluonModel(DifferentiableModel):
         gradient = self._process_gradient(dpdx, gradient)
         return predictions, gradient
 
+    def forward_and_gradient(self, inputs, labels):
+        import mxnet as mx
+        inputs, dpdx = self._process_input(inputs)
+        labels = mx.nd.array(labels, ctx=self._device)
+        data_array = mx.nd.array(inputs, ctx=self._device)
+        data_array.attach_grad()
+        with mx.autograd.record(train_mode=False):
+            logits = self._block(data_array)
+            loss = mx.nd.softmax_cross_entropy(logits, labels)
+        loss.backward(train_mode=False)
+        predictions = logits.asnumpy()
+        gradient = data_array.grad.asnumpy()
+        gradient = self._process_gradient(dpdx, gradient)
+        return predictions, gradient
+
     def gradient(self, inputs, labels):
         import mxnet as mx
         inputs, dpdx = self._process_input(inputs)
