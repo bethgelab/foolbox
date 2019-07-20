@@ -62,8 +62,8 @@ class SaliencyMapAttack(BatchAttack):
         if target_class is None:
             if num_random_targets == 0:
                 gradient_attack = GradientAttack()
-                gradient_attack(a)
-                adv_img = a.perturbed
+                adv_grad = yield from gradient_attack.as_generator(a)
+                adv_img = adv_grad.perturbed
                 if adv_img is None:  # pragma: no coverage
                     # using GradientAttack did not work,
                     # falling back to random target
@@ -72,7 +72,7 @@ class SaliencyMapAttack(BatchAttack):
                                  'class failed, falling back to a random target '
                                  'class')
                 else:
-                    logits, _ = yield a.forward_one(adv_img)
+                    logits, _ = yield from a.forward_one(adv_img)
                     target_class = np.argmax(logits)
                     target_classes = [target_class]
                     logging.info('Determined a target class using the '
@@ -128,7 +128,7 @@ class SaliencyMapAttack(BatchAttack):
 
             # TODO: stop if mask is all zero
             for step in range(max_iter):
-                _, is_adversarial = yield a.forward_one(perturbed)
+                _, is_adversarial = yield from a.forward_one(perturbed)
                 if is_adversarial:
                     return
 
@@ -158,7 +158,8 @@ class SaliencyMapAttack(BatchAttack):
         """
 
         # pixel influence on target class
-        alphas = yield from a.gradient_one(x, target) * mask
+        alphas = yield from a.gradient_one(x, target)
+        alphas *= mask
 
         # pixel influence on sum of residual classes
         # (don't evaluate if fast == True)
