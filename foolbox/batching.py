@@ -159,8 +159,11 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
     gradients = []
     backwards = []
     prediction_gradients = []
+
+    batched_predictions = []
     results = itertools.chain(predictions, gradients, backwards,
-                              prediction_gradients)
+                              prediction_gradients,
+                              batched_predictions)
 
     while True:
         attacks_requesting_predictions = []
@@ -171,12 +174,15 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
         backwards_args = []
         attacks_requesting_prediction_gradients = []
         predictions_gradients_args = []
+        attacks_requesting_batched_predictions = []
+        batched_predictions_args = []
         for attack, result in zip(attacks, results):
             try:
                 x = attack.send(result)
             except StopIteration:
                 continue
             method, args = x[0], x[1:]
+
             if method == 'forward_one':
                 attacks_requesting_predictions.append(attack)
                 predictions_args.append(args)
@@ -189,13 +195,17 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
             elif method == 'forward_and_gradient_one':
                 attacks_requesting_prediction_gradients.append(attack)
                 predictions_gradients_args.append(args)
+            elif method == 'forward':
+                attacks_requesting_batched_predictions.append(attack)
+                batched_predictions_args.append(args)
             else:
                 assert False
         n_active_attacks = len(attacks_requesting_predictions) \
             + len(attacks_requesting_gradients) \
             + len(attacks_requesting_backwards) \
-            + len(attacks_requesting_prediction_gradients)
-        if n_active_attacks < len(predictions) + len(gradients) + len(backwards) + len(prediction_gradients):  # noqa: E501
+            + len(attacks_requesting_prediction_gradients) \
+            + len(attacks_requesting_batched_predictions)
+        if n_active_attacks < len(predictions) + len(gradients) + len(backwards) + len(prediction_gradients) + len(batched_predictions):  # noqa: E501
             # an attack completed in this iteration
             logging.info('{} of {} attacks completed'.format(len(advs) - n_active_attacks, len(advs)))  # noqa: E501
         if n_active_attacks == 0:
@@ -207,6 +217,24 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
             predictions = model.forward(*predictions_args)
         else:
             predictions = []
+
+        if len(attacks_requesting_batched_predictions) > 0:
+            logging.debug('calling native forward with {}'.format(len(attacks_requesting_batched_predictions)))  # noqa: E501
+            batched_predictions_args = list(map(np.stack,
+                                                zip(*batched_predictions_args)))
+            batched_predictions_args = list(batched_predictions_args)
+            # get original shape (#attacks, batch size)
+            batch_shape = batched_predictions_args[0].shape
+            # merge individual batches into one super-batch
+            batched_predictions_args[0] = batched_predictions_args[0].reshape(
+                -1, *batch_shape[2:])
+
+            batched_predictions = model.forward(*batched_predictions_args)
+            # split super-batch back into individual batches
+            batched_predictions = batched_predictions.reshape(
+                *batch_shape[:2], -1)
+        else:
+            batched_predictions = []
 
         if len(attacks_requesting_gradients) > 0:
             logging.debug('calling gradient with {}'.format(len(attacks_requesting_gradients)))  # noqa: E501
@@ -237,7 +265,8 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
         attacks = itertools.chain(attacks_requesting_predictions,
                                   attacks_requesting_gradients,
                                   attacks_requesting_backwards,
-                                  attacks_requesting_prediction_gradients)
+                                  attacks_requesting_prediction_gradients,
+                                  attacks_requesting_batched_predictions)
         results = itertools.chain(predictions, gradients, backwards,
-                                  prediction_gradients)
+                                  prediction_gradients, batched_predictions)
     return advs

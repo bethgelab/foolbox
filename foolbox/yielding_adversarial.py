@@ -38,6 +38,11 @@ class YieldingAdversarial(Adversarial):
 
         self._total_prediction_calls += 1
         predictions = yield ('forward_one', x)
+
+        assert predictions is not None, 'Predictions is None; this happens if' \
+                                        ' you forget the `yield from` ' \
+                                        'preceding the forward() call.'
+
         is_adversarial, is_best, distance = self._Adversarial__is_adversarial(
             x, predictions, in_bounds)
 
@@ -66,6 +71,10 @@ class YieldingAdversarial(Adversarial):
 
         self._total_prediction_calls += len(inputs)
         predictions = yield ('forward', inputs)
+
+        assert predictions is not None, 'Prediction is None; this happens if ' \
+                                        'you forget the `yield from` ' \
+                                        'preceding the forward() call.'
 
         assert predictions.ndim == 2
         assert predictions.shape[0] == inputs.shape[0]
@@ -128,6 +137,10 @@ class YieldingAdversarial(Adversarial):
         self._total_gradient_calls += 1
         gradient = yield ('gradient_one', x, label)
 
+        assert gradient is not None, 'gradient is None; this happens if ' \
+                                     'you forget the `yield from` ' \
+                                     'preceding the forward() call.'
+
         assert gradient.shape == x.shape
         return gradient
 
@@ -159,7 +172,13 @@ class YieldingAdversarial(Adversarial):
 
         self._total_prediction_calls += 1
         self._total_gradient_calls += 1
-        predictions, gradient  = yield ('forward_and_gradient_one', x, label)
+        output = yield ('forward_and_gradient_one', x, label)
+
+        assert output is not None, 'Prediction is None; this happens if ' \
+                                   'you forget the `yield from` ' \
+                                   'preceding the forward() call.'
+        predictions, gradient = output
+
         is_adversarial, is_best, distance = self._Adversarial__is_adversarial(
             x, predictions, in_bounds)
         assert predictions.ndim == 1
@@ -200,6 +219,10 @@ class YieldingAdversarial(Adversarial):
 
         self._total_gradient_calls += 1
         gradient = yield ('backward_one', gradient, x)
+
+        assert gradient is not None, 'gradient is None; this happens if ' \
+                                     'you forget the `yield from` ' \
+                                     'preceding the forward() call.'
 
         assert gradient.shape == x.shape
         return gradient
