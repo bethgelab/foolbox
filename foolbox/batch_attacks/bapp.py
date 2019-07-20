@@ -128,7 +128,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
         if not verbose:
             print('run with verbose=True to see details')
 
-        return self.attack(
+        yield from self.attack(
             a,
             iterations=iterations)
 
@@ -168,7 +168,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
                 current_batch = x[self.batch_size * j:
                                   self.batch_size * (j + 1)]
                 current_batch = current_batch.astype(self.external_dtype)
-                out = yield from a.forward(current_batch, strict=False)[1]
+                _, out = yield from a.forward(current_batch, strict=False)
                 outs.append(out)
             outs = np.concatenate(outs, axis=0)
             return outs
@@ -197,7 +197,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
         # Find starting point
         # ===========================================================
 
-        self.initialize_starting_point(a)
+        yield from self.initialize_starting_point(a)
 
         if a.perturbed is None:
             warnings.warn(
@@ -219,7 +219,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
         t0 = time.time()
 
         # Project the initialization to the boundary.
-        perturbed, dist_post_update = self.binary_search_batch(
+        perturbed, dist_post_update = yield from self.binary_search_batch(
             original, np.expand_dims(perturbed, 0), decision_function)
 
         dist = self.compute_distance(perturbed, original)
@@ -245,7 +245,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
                                  self.max_num_evals]))
 
             # approximate gradient.
-            gradf = self.approximate_gradient(decision_function, perturbed,
+            gradf = yield from self.approximate_gradient(decision_function, perturbed,
                                               num_evals, delta)
 
             if self.constraint == 'linf':
@@ -260,7 +260,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
             # ===========================================================
             if self.stepsize_search == 'geometric_progression':
                 # find step size.
-                epsilon = self.geometric_progression_for_stepsize(
+                epsilon = yield from self.geometric_progression_for_stepsize(
                     perturbed, update, dist, decision_function, step)
 
                 # Update the sample.
@@ -268,7 +268,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
                                     self.clip_max)
 
                 # Binary search to return to the boundary.
-                perturbed, dist_post_update = self.binary_search_batch(
+                perturbed, dist_post_update = yield from self.binary_search_batch(
                     original, perturbed[None], decision_function)
 
             elif self.stepsize_search == 'grid_search':
@@ -283,7 +283,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
                 if np.sum(idx_perturbed) > 0:
                     # Select the perturbation that yields the minimum
                     # distance after binary search.
-                    perturbed, dist_post_update = self.binary_search_batch(
+                    perturbed, dist_post_update = yield from self.binary_search_batch(
                         original, perturbeds[idx_perturbed],
                         decision_function)
             t2 = time.time()
@@ -471,7 +471,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
         rv = (perturbed - sample) / delta
 
         # query the model.
-        decisions = decision_function(perturbed)
+        decisions = yield from decision_function(perturbed)
         decision_shape = [len(decisions)] + [1] * len(self.shape)
         fval = 2 * decisions.astype(self.internal_dtype).reshape(
             decision_shape) - 1.0
@@ -496,7 +496,8 @@ class BoundaryAttackPlusPlus(BatchAttack):
         while True:
             updated = np.clip(x + epsilon * update, self.clip_min,
                               self.clip_max)
-            success = decision_function(updated[None])[0]
+            out = yield from decision_function(updated[None])
+            success = out[0]
             if success:
                 break
             else:
