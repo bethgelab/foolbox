@@ -220,19 +220,20 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
 
         if len(attacks_requesting_batched_predictions) > 0:
             logging.debug('calling native forward with {}'.format(len(attacks_requesting_batched_predictions)))  # noqa: E501
-            batched_predictions_args = list(map(np.stack,
-                                                zip(*batched_predictions_args)))
-            batched_predictions_args = list(batched_predictions_args)
-            # get original shape (#attacks, batch size)
-            batch_shape = batched_predictions_args[0].shape
-            # merge individual batches into one super-batch
-            batched_predictions_args[0] = batched_predictions_args[0].reshape(
-                -1, *batch_shape[2:])
 
-            batched_predictions = model.forward(*batched_predictions_args)
+            # we are only interested in the first argument
+            inputs = [x[0] for x in batched_predictions_args]
+
+            # merge individual batches into one larger super-batch
+            batch_lengths = [len(x) for x in inputs]
+            batch_splits = np.cumsum(batch_lengths)
+            inputs = np.concatenate([x for x in inputs])
+
             # split super-batch back into individual batches
-            batched_predictions = batched_predictions.reshape(
-                *batch_shape[:2], -1)
+            batched_predictions = model.forward(inputs)
+            batched_predictions = np.split(batched_predictions, batch_splits,
+                                           axis=0)
+
         else:
             batched_predictions = []
 
