@@ -38,5 +38,5 @@ def test_attack_impossible(Attack, bn_model, bn_impossible_criterion, bn_images,
     attack = Attack(bn_model, bn_impossible_criterion)
     advs = attack(bn_images, bn_labels, unpack=False)
     for adv in advs:
-        assert adv.perturbed is not None
-        assert adv.distance.value < np.inf
+        assert adv.perturbed is None
+        assert adv.distance.value == np.inf
