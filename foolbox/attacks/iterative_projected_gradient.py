@@ -792,7 +792,7 @@ class AdamL1BasicIterativeAttack(
         IterativeProjectedGradientBaseAttack):
 
     """Modified version of the Basic Iterative Method
-    that minimizes the L1 distance.
+    that minimizes the L1 distance using the Adam optimizer.
 
     .. seealso:: :class:`LinfinityBasicIterativeAttack`
 
@@ -866,7 +866,7 @@ class AdamL2BasicIterativeAttack(
         IterativeProjectedGradientBaseAttack):
 
     """Modified version of the Basic Iterative Method
-    that minimizes the L2 distance.
+    that minimizes the L2 distance using the Adam optimizer.
 
     .. seealso:: :class:`LinfinityBasicIterativeAttack`
 
@@ -940,7 +940,7 @@ class AdamProjectedGradientDescentAttack(
         IterativeProjectedGradientBaseAttack):
 
     """The Projected Gradient Descent Attack
-    introduced in [1]_ without random start.
+    introduced in [1]_, [2]_ without random start using the Adam optimizer.
 
     When used without a random start, this attack
     is also known as Basic Iterative Method (BIM)
@@ -952,6 +952,9 @@ class AdamProjectedGradientDescentAttack(
            Dimitris Tsipras, Adrian Vladu, "Towards Deep Learning
            Models Resistant to Adversarial Attacks",
            https://arxiv.org/abs/1706.06083
+
+    .. [2] Nicholas Carlini, David Wagner: "Towards Evaluating the
+           Robustness of Neural Networks", https://arxiv.org/abs/1608.04644
 
     .. seealso::
 
@@ -1032,7 +1035,7 @@ class AdamRandomStartProjectedGradientDescentAttack(
         IterativeProjectedGradientBaseAttack):
 
     """The Projected Gradient Descent Attack
-    introduced in [1]_ with random start.
+    introduced in [1]_, [2]_ with random start using the Adam optimizer.
 
     References
     ----------
@@ -1040,6 +1043,9 @@ class AdamRandomStartProjectedGradientDescentAttack(
            Dimitris Tsipras, Adrian Vladu, "Towards Deep Learning
            Models Resistant to Adversarial Attacks",
            https://arxiv.org/abs/1706.06083
+
+    .. [2] Nicholas Carlini, David Wagner: "Towards Evaluating the
+           Robustness of Neural Networks", https://arxiv.org/abs/1608.04644
 
     .. seealso:: :class:`ProjectedGradientDescentAttack`
 
