@@ -33,3 +33,8 @@ from .iterative_projected_gradient import ProjectedGradientDescentAttack, Projec
 from .iterative_projected_gradient import RandomStartProjectedGradientDescentAttack, RandomProjectedGradientDescent, RandomPGD
 from .iterative_projected_gradient import MomentumIterativeAttack, MomentumIterativeMethod
 
+from .iterative_projected_gradient import AdamL1BasicIterativeAttack
+from .iterative_projected_gradient import AdamL2BasicIterativeAttack
+from .iterative_projected_gradient import AdamProjectedGradientDescentAttack, AdamProjectedGradientDescent, AdamPGD
+from .iterative_projected_gradient import AdamRandomStartProjectedGradientDescentAttack, AdamRandomProjectedGradientDescent, AdamRandomPGD
+

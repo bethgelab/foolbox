@@ -8,6 +8,11 @@ from foolbox.attacks import ProjectedGradientDescentAttack
 from foolbox.attacks import RandomStartProjectedGradientDescentAttack
 from foolbox.attacks import MomentumIterativeAttack
 
+from foolbox.attacks import AdamL1BasicIterativeAttack
+from foolbox.attacks import AdamL2BasicIterativeAttack
+from foolbox.attacks import AdamProjectedGradientDescentAttack
+from foolbox.attacks import AdamRandomStartProjectedGradientDescentAttack
+
 Attacks = [
     LinfinityBasicIterativeAttack,
     L1BasicIterativeAttack,
@@ -15,6 +20,10 @@ Attacks = [
     ProjectedGradientDescentAttack,
     RandomStartProjectedGradientDescentAttack,
     MomentumIterativeAttack,
+    AdamL1BasicIterativeAttack,
+    AdamL2BasicIterativeAttack,
+    AdamProjectedGradientDescentAttack,
+    AdamRandomStartProjectedGradientDescentAttack,
 ]
 
 
