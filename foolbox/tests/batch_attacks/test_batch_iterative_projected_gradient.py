@@ -8,6 +8,11 @@ from foolbox.batch_attacks import ProjectedGradientDescentAttack
 from foolbox.batch_attacks import RandomStartProjectedGradientDescentAttack
 from foolbox.batch_attacks import MomentumIterativeAttack
 
+from foolbox.batch_attacks import AdamL1BasicIterativeAttack
+from foolbox.batch_attacks import AdamL2BasicIterativeAttack
+from foolbox.batch_attacks import AdamProjectedGradientDescentAttack
+from foolbox.batch_attacks import AdamRandomStartProjectedGradientDescentAttack
+
 from foolbox.distances import Linfinity
 from foolbox.distances import MAE
 
@@ -18,6 +23,10 @@ Attacks = [
     ProjectedGradientDescentAttack,
     RandomStartProjectedGradientDescentAttack,
     MomentumIterativeAttack,
+    AdamL1BasicIterativeAttack,
+    AdamL2BasicIterativeAttack,
+    AdamProjectedGradientDescentAttack,
+    AdamRandomStartProjectedGradientDescentAttack,
 ]
 
 
