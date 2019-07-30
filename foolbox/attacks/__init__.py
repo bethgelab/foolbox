@@ -21,6 +21,7 @@ from .newtonfool import NewtonFoolAttack
 from .adef_attack import ADefAttack
 from .spatial import SpatialAttack
 from .carlini_wagner import CarliniWagnerL2Attack
+from .ead import EADAttack
 from .decoupled_direction_norm import DecoupledDirectionNormL2Attack
 from .hop_skip_jump_attack import HopSkipJumpAttack, BoundaryAttackPlusPlus
 from .sparsefool import SparseFoolAttack
@@ -31,3 +32,4 @@ from .iterative_projected_gradient import L2BasicIterativeAttack
 from .iterative_projected_gradient import ProjectedGradientDescentAttack, ProjectedGradientDescent, PGD
 from .iterative_projected_gradient import RandomStartProjectedGradientDescentAttack, RandomProjectedGradientDescent, RandomPGD
 from .iterative_projected_gradient import MomentumIterativeAttack, MomentumIterativeMethod
+

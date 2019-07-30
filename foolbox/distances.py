@@ -11,6 +11,7 @@ Distances
    MeanAbsoluteDistance
    Linfinity
    L0
+   ElasticNet
 
 Aliases
 -------
@@ -21,6 +22,7 @@ Aliases
    MSE
    MAE
    Linf
+   EN
 
 Base class
 ----------
@@ -210,3 +212,56 @@ class L0(Distance):
 
     def __str__(self):
         return 'L0 distance = {}'.format(self._value)
+
+
+class ElasticNet(Distance):
+    """Calculates the Elastic-Net distance between two inputs.
+    The Elastic-Net distance is a combination of the L2 and L1 distance.
+    """
+
+    def __init__(
+            self,
+            reference=None,
+            other=None,
+            bounds=None,
+            value=None,
+            l1_factor=1.0):
+
+        # set L1 regularization factor before calling __init__ of super
+        # to make sure that the _calculate method can be called
+        self.l1_factor = l1_factor
+
+        super().__init__(reference, other, bounds, value)
+
+    def _calculate(self):
+        min_, max_ = self._bounds
+        max_l2 = (max_ - min_)**2
+        max_l1 = (max_ - min_)
+
+        diff = (self.other - self.reference) / (max_ - min_)
+
+        mae_value = np.sum(np.abs(diff)).astype(np.float64) / max_l1
+        mse_value = np.vdot(diff, diff).astype(np.float64) / max_l2
+        value = self.l1_factor * mae_value + mse_value
+
+        gradient_mae = np.sign(diff) / max_l1
+        gradient_mse = diff / (max_l2 / 2)
+        gradient = gradient_mae + gradient_mse
+        return value, gradient
+
+    def __str__(self):
+        return 'normalized EN = {:.2e}'.format(self._value)
+
+
+def EN(l1_factor=1.0):
+    """Creates a class definition that assigns ElasticNet a fixed l1_factor.
+        This class calculates the Elastic-Net distance between two inputs.
+        The Elastic-Net distance is a combination of the L2 and L1 distance.
+    """
+
+    def __init__(self, *kargs, **kwargs):
+        ElasticNet.__init__(self, *kargs, **kwargs, l1_factor=l1_factor)
+    name = 'EN_{}'.format(l1_factor).replace('.', '')
+    newclass = type(name, (ElasticNet, Distance), {"__init__": __init__})
+
+    return newclass
