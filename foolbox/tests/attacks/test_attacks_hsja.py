@@ -107,5 +107,3 @@ def test_attack_oldname(bn_adversarial):
     attack(adv, iterations=20, verbose=True)
     assert adv.perturbed is not None
     assert adv.distance.value < np.inf
-
-
