@@ -100,6 +100,7 @@ def test_attack_impossible(bn_impossible):
     assert adv.perturbed is None
     assert adv.distance.value == np.inf
 
+
 def test_attack_oldname(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttackPlusPlus()
@@ -108,4 +109,3 @@ def test_attack_oldname(bn_adversarial):
     assert adv.distance.value < np.inf
 
 
-    
