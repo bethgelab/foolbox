@@ -532,22 +532,11 @@ class HopSkipJumpAttack(Attack):
         if self.verbose:
             print(*args, **kwargs)
 
-def BoundaryAttackPlusPlus(model=None, criterion=Misclassification(), 
-    distance=MSE, threshold=None):
+
+def BoundaryAttackPlusPlus(model=None, criterion=Misclassification(),
+                           distance=MSE, threshold=None):
     warn("BoundaryAttackPlusPlus is deprecated; use HopSkipJumpAttack.")
     return HopSkipJumpAttack(model, criterion, distance, threshold)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
