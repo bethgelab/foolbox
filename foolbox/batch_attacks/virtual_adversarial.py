@@ -8,7 +8,7 @@ from .base import generator_decorator
 
 
 class VirtualAdversarialAttack(BatchAttack):
-    """Calculates untargeted adversarial perturbations by performing a
+    """Calculate an untargeted adversarial perturbation by performing a
     approximated second order optimization step on the KL divergence between
     the unperturbed predictions and the predictions for the adversarial
     perturbation. This attack was introduced in [1]_.
