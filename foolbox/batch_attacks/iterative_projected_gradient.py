@@ -46,7 +46,7 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
 
     def _run(self, a, binary_search,
              epsilon, stepsize, iterations,
-             random_start, return_early):
+             random_start, return_early, gradient_kwargs={}):
         if not a.has_gradient():
             warnings.warn('applied gradient-based attack to model that'
                           ' does not provide gradients')
@@ -63,16 +63,19 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
                 k = int(binary_search)
             yield from self._run_binary_search(
                 a, epsilon, stepsize, iterations,
-                random_start, targeted, class_, return_early, k=k)
+                random_start, targeted, class_, return_early, k=k,
+                gradient_kwargs=gradient_kwargs)
             return
         else:
             success = yield from self._run_one(
                 a, epsilon, stepsize, iterations,
-                random_start, targeted, class_, return_early)
+                random_start, targeted, class_, return_early,
+                gradient_kwargs)
             return success
 
     def _run_binary_search(self, a, epsilon, stepsize, iterations,
-                           random_start, targeted, class_, return_early, k):
+                           random_start, targeted, class_, return_early, k,
+                           gradient_kwargs):
 
         factor = stepsize / epsilon
 
@@ -80,7 +83,8 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
             stepsize = factor * epsilon
             success = yield from self._run_one(
                 a, epsilon, stepsize, iterations,
-                random_start, targeted, class_, return_early)
+                random_start, targeted, class_, return_early,
+                gradient_kwargs)
             return success
 
         for i in range(k):
@@ -108,7 +112,8 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
                 logging.info('not successful for eps = {}'.format(epsilon))
 
     def _run_one(self, a, epsilon, stepsize, iterations,
-                 random_start, targeted, class_, return_early):
+                 random_start, targeted, class_, return_early,
+                 gradient_kwargs):
         min_, max_ = a.bounds()
         s = max_ - min_
 
@@ -128,7 +133,8 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
 
         success = False
         for _ in range(iterations):
-            gradient = yield from self._gradient(a, x, class_, strict=strict)
+            gradient = yield from self._gradient(a, x, class_, strict=strict,
+                                                 **gradient_kwargs)
             # non-strict only for the first call and
             # only if random_start is True
             strict = True
@@ -163,6 +169,43 @@ class LinfinityGradientMixin(object):
     def _gradient(self, a, x, class_, strict=True):
         gradient = yield from a.gradient_one(x, class_, strict=strict)
         gradient = np.sign(gradient)
+        min_, max_ = a.bounds()
+        gradient = (max_ - min_) * gradient
+        return gradient
+
+
+class SparseL1GradientMixin(object):
+    """Calculates a sparse L1 gradient introduced in [1]_.
+
+         References
+        ----------
+        .. [1] Florian Tramèr, Dan Boneh,
+               "Adversarial Training and Robustness for Multiple Perturbations",
+               https://arxiv.org/abs/1904.13000
+
+        """
+
+    def _gradient(self, a, x, class_, q, strict=True):
+        gradient = yield from a.gradient_one(x, class_, strict=strict)
+        # make gradient sparse
+        # mask all entries of the gradient that are part of the q'th percentile
+        # calculate how many entries are part of the q'th percentile
+        absolute_q = int(np.floor(np.prod(gradient.shape) * q))
+
+        abs_grad = np.abs(gradient)
+        sorted_abs_grad = np.sort(abs_grad.flatten())
+        gradient_threshold = sorted_abs_grad[absolute_q]
+        gradient_percentile_mask = abs_grad <= gradient_threshold
+        e = np.sign(gradient)
+        e[gradient_percentile_mask] = 0
+
+        # using mean to make range of epsilons comparable to Linf
+        normalization = np.mean(np.abs(e))
+        # make sure that we do not try to calculate 0/0
+        if normalization == 0:
+            normalization = 1
+
+        gradient = e / normalization
         min_, max_ = a.bounds()
         gradient = (max_ - min_) * gradient
         return gradient
@@ -394,6 +437,83 @@ class L1BasicIterativeAttack(
 
 
 L1BasicIterativeAttack.__call__.__doc__ = L1BasicIterativeAttack.as_generator.__doc__
+
+
+class SparseL1BasicIterativeAttack(
+        SparseL1GradientMixin,
+        L1ClippingMixin,
+        L1DistanceCheckMixin,
+        IterativeProjectedGradientBaseAttack):
+
+    """Sparse version of the Basic Iterative Method
+    that minimizes the L1 distance introduced in [1]_.
+
+     References
+    ----------
+    .. [1] Florian Tramèr, Dan Boneh,
+           "Adversarial Training and Robustness for Multiple Perturbations",
+           https://arxiv.org/abs/1904.13000
+
+    .. seealso:: :class:`L1BasicIterativeAttack`
+
+    """
+
+    @generator_decorator
+    def as_generator(self, a,
+                     q=0.80,
+                     binary_search=True,
+                     epsilon=0.3,
+                     stepsize=0.05,
+                     iterations=10,
+                     random_start=False,
+                     return_early=True):
+
+        """Sparse version of a gradient-based attack that minimizes the
+        L1 distance.
+
+        Parameters
+        ----------
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
+        unpack : bool
+            If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
+        q: float
+            Relative percentile to make gradients sparse (must be in [0, 1])
+        binary_search : bool or int
+            Whether to perform a binary search over epsilon and stepsize,
+            keeping their ratio constant and using their values to start
+            the search. If False, hyperparameters are not optimized.
+            Can also be an integer, specifying the number of binary
+            search steps (default 20).
+        epsilon : float
+            Limit on the perturbation size; if binary_search is True,
+            this value is only for initialization and automatically
+            adapted.
+        stepsize : float
+            Step size for gradient descent; if binary_search is True,
+            this value is only for initialization and automatically
+            adapted.
+        iterations : int
+            Number of iterations for each gradient descent run.
+        random_start : bool
+            Start the attack from a random point rather than from the
+            original input.
+        return_early : bool
+            Whether an individual gradient descent run should stop as
+            soon as an adversarial is found.
+        """
+
+        assert epsilon > 0
+
+        yield from self._run(a, binary_search,
+                             epsilon, stepsize, iterations,
+                             random_start, return_early,
+                             gradient_kwargs={'q': q})
+
+
+SparseL1BasicIterativeAttack.__call__.__doc__ = SparseL1BasicIterativeAttack.as_generator.__doc__
 
 
 class L2BasicIterativeAttack(
