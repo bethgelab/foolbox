@@ -201,9 +201,6 @@ class SparseL1GradientMixin(object):
 
         # using mean to make range of epsilons comparable to Linf
         normalization = np.mean(np.abs(e))
-        # make sure that we do not try to calculate 0/0
-        if normalization == 0:
-            normalization = 1
 
         gradient = e / normalization
         min_, max_ = a.bounds()
@@ -479,8 +476,8 @@ class SparseL1BasicIterativeAttack(
             Class labels of the inputs as a vector of integers in [0, number of classes).
         unpack : bool
             If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
-        q: float
-            Relative percentile to make gradients sparse (must be in [0, 1])
+        q : float
+            Relative percentile to make gradients sparse (must be in [0, 1))
         binary_search : bool or int
             Whether to perform a binary search over epsilon and stepsize,
             keeping their ratio constant and using their values to start
@@ -506,6 +503,8 @@ class SparseL1BasicIterativeAttack(
         """
 
         assert epsilon > 0
+
+        assert 0.0 <= q < 1.0, '`q` must be in [0, 1).'
 
         yield from self._run(a, binary_search,
                              epsilon, stepsize, iterations,
