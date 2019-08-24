@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from foolbox.batch_attacks import VirtualAdversarialAttack as Attack
+import pytest
 
 
 def test_untargeted_attack(bn_model, bn_criterion, bn_images, bn_labels):
@@ -9,6 +10,12 @@ def test_untargeted_attack(bn_model, bn_criterion, bn_images, bn_labels):
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf
+
+
+def test_attack_vanishing_xi(bn_model, bn_criterion, bn_images, bn_labels):
+    attack = Attack(bn_model, bn_criterion)
+    with pytest.raises(RuntimeError, match='xi'):
+        attack(bn_images, bn_labels, xi=1e-8, unpack=False)
 
 
 def test_targeted_attack(bn_model, bn_targeted_criterion, bn_images, bn_labels):

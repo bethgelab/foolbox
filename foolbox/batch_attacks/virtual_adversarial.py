@@ -5,6 +5,7 @@ import logging
 
 from .base import BatchAttack
 from .base import generator_decorator
+from ..utils import softmax
 
 
 class VirtualAdversarialAttack(BatchAttack):
@@ -21,8 +22,19 @@ class VirtualAdversarialAttack(BatchAttack):
            https://arxiv.org/abs/1412.6572
     """
 
+    def _clip_perturbation(self, a, perturbation, epsilon):
+        # using mean to make range of epsilons comparable to Linf
+        norm = np.sqrt(np.mean(np.square(perturbation)))
+        norm = max(1e-12, norm)  # avoid divsion by zero
+        min_, max_ = a.bounds()
+        s = max_ - min_
+        # clipping, i.e. only decreasing norm
+        factor = min(1, epsilon * s / norm)
+        return perturbation * factor
+
     @generator_decorator
-    def as_generator(self, a, xi=1e-6, iterations=2, epsilons=1000, max_epsilon=1):
+    def as_generator(self, a,
+                     xi=1e-5, iterations=1, epsilons=1000, max_epsilon=0.3):
         """
 
         Parameters
@@ -44,7 +56,6 @@ class VirtualAdversarialAttack(BatchAttack):
             that should be tried.
         max_epsilon : float
             Largest step size if epsilons is not an iterable.
-
         """
 
         assert a.target_class() is None, 'Virtual Adversarial is an ' \
@@ -72,20 +83,30 @@ class VirtualAdversarialAttack(BatchAttack):
             for i, epsilon in enumerate(epsilons):
                 # start with random vector as search vector
                 d = np.random.normal(0.0, 1.0, size=x.shape)
-                for _ in range(iterations):
+                for it in range(iterations):
                     # normalize proposal to be unit vector
                     d = xi * d / np.sqrt((d**2).sum())
 
-                    # use gradient of KL divergence as new search vector
-                    d = yield from a.backward_one(gradient=np.exp(logits),
-                                                  x=x + d, strict=False)
+                    logits_d, _ = yield from a.forward_one(x + d)
 
-                    d = xi * d / np.sqrt((d ** 2).sum())
+                    dl_dp = softmax(logits) - softmax(logits_d)
+
+                    # d = dl_dd = dl_dp * dp_dd
+                    # use gradient of KL divergence as new search vector
+                    d = yield from a.backward_one(
+                        gradient=dl_dp,
+                        x=x + d, strict=False
+                    )
+                    d = (max_ - min_) * d
+
+                    if np.allclose(np.sqrt((d**2).sum()), 0, atol=1e-16):
+                        raise RuntimeError('Gradient vanished; this can happen '
+                                           'if xi is too small.')
 
                 delta = d / np.sqrt((d**2).mean())
 
-                perturbed = x + delta * epsilon
-                perturbed = np.clip(perturbed, min_, max_)
+                perturbed = x + self._clip_perturbation(a, delta, epsilon)
+                perturbed = np.clip(perturbed, 0, 1)
 
                 _, is_adversarial = yield from a.forward_one(perturbed)
                 if is_adversarial:
