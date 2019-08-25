@@ -10,3 +10,5 @@ from .iterative_projected_gradient import L2BasicIterativeAttack
 from .iterative_projected_gradient import ProjectedGradientDescentAttack, ProjectedGradientDescent, PGD
 from .iterative_projected_gradient import RandomStartProjectedGradientDescentAttack, RandomProjectedGradientDescent, RandomPGD
 from .iterative_projected_gradient import MomentumIterativeAttack, MomentumIterativeMethod
+
+from .gen import GenAttack
