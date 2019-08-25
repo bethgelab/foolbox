@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 from foolbox.batch_attacks import VirtualAdversarialAttack as Attack
-import pytest
 
 
 def test_untargeted_attack(bn_model, bn_criterion, bn_images, bn_labels):
