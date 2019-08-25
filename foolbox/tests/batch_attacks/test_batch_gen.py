@@ -16,3 +16,11 @@ def test_attack(bn_model, bn_targeted_criterion, bn_images, bn_labels):
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf
+
+
+def test_attack_reduced(bn_model, bn_targeted_criterion, bn_images, bn_labels):
+    attack = Attack(bn_model, bn_targeted_criterion)
+    advs = attack(bn_images, bn_labels, unpack=False, search_shape=(3, 3, 10))
+    for adv in advs:
+        assert adv.perturbed is not None
+        assert adv.distance.value < np.inf

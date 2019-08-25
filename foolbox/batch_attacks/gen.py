@@ -1,7 +1,7 @@
 from __future__ import division
 import numpy as np
 import logging
-from scipy.misc import imresize
+from scipy.ndimage import zoom
 
 from .base import BatchAttack
 from .base import generator_decorator
@@ -26,7 +26,7 @@ class GenAttack(BatchAttack):
     @generator_decorator
     def as_generator(self, a,
                      generations=10, alpha=1.0, p=5e-2, N=10, tau=0.1,
-                     image_shape=None,
+                     search_shape=None,
                      epsilon=0.3, binary_search=20):
         """A black-box attack based on genetic algorithms.
         Can either try to find an adversarial perturbation for a fixed epsilon
@@ -52,7 +52,7 @@ class GenAttack(BatchAttack):
         tau: float
             Temperature for the softmax sampling used to determine the parents
             of the new crossover.
-        image_shape : tuple (default: None)
+        search_shape : tuple (default: None)
             Set this to a smaller image shape than the true shape to search in
             a smaller input space. The input will be scaled using a linear
             interpolation to match the required input shape of the model.
@@ -77,29 +77,34 @@ class GenAttack(BatchAttack):
                 k = int(binary_search)
             yield from self._run_binary_search(
                 a, epsilon, k,
-                generations, alpha, p, N, tau, image_shape,
+                generations, alpha, p, N, tau, search_shape,
             )
             return
         else:
             success = yield from self._run_one(
-                a, generations, alpha, p, N, tau, image_shape,
+                a, generations, alpha, p, N, tau, search_shape,
                 epsilon, epsilon)
             return success
 
     def _run_one(self, a,
-                 generations, alpha, p, N, tau, image_shape,
+                 generations, alpha, p, N, tau, search_shape,
                  epsilon):
 
         min_, max_ = a.bounds()
 
         x = a.unperturbed
 
-        search_shape = x.shape if image_shape is None else image_shape
+        search_shape = x.shape if search_shape is None else search_shape
+
+        assert len(search_shape) == len(x.shape), \
+            'search_shape must have the same rank as the original ' \
+            'image\'s shape'
 
         def get_perturbed(population_noises):
             if population_noises[0].shape != x.shape:
-                population_noises = np.array(
-                    [imresize(pop, size=x.shape) for pop in population_noises])
+                factors = [float(d[1]) / d[0] for d in zip(search_shape, x.shape)]
+                population_noises = zoom(population_noises, zoom=(1, *factors), order=2)
+                print(population_noises.shape)
 
             # project into epsilon ball and valid bounds
             return np.clip(np.clip(population_noises, -epsilon, epsilon) + x,
@@ -150,20 +155,21 @@ class GenAttack(BatchAttack):
                 parents_idx[1]]
 
             # determine new mutation in this generation
-            b = (np.random.uniform(0, 1, (N - 1, *x.shape)) < p).astype(
+            b = (np.random.uniform(0, 1, (N - 1, *search_shape)) < p).astype(
                 np.float32)
             mutation = b * np.random.uniform(-alpha * epsilon, +alpha * epsilon,
-                                             (N - 1, *population.shape[1:]))
+                                             (N - 1, *search_shape))
+
             next_population[1:] = crossover + mutation
 
         return False
 
     def _run_binary_search(self, a, epsilon, k,
-                           generations, alpha, p, N, tau, image_shape):
+                           generations, alpha, p, N, tau, search_shape):
 
         def try_epsilon(epsilon):
             success = yield from self._run_one(a, generations, alpha, p, N,
-                                               tau, image_shape, epsilon)
+                                               tau, search_shape, epsilon)
             return success
 
         for i in range(k):
