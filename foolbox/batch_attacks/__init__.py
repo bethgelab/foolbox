@@ -7,7 +7,7 @@ from .deepfool import DeepFoolAttack, DeepFoolL2Attack, DeepFoolLinfinityAttack
 from .saliency import SaliencyMapAttack
 from .blur import GaussianBlurAttack
 from .contrast import ContrastReductionAttack
-from .localsearch import SinglePixelAttack, LocalSearchAttack
+from .localsearch import SinglePixelAttack
 from .additive_noise import AdditiveNoiseAttack, AdditiveUniformNoiseAttack, AdditiveGaussianNoiseAttack
 from .blended_noise import BlendedUniformNoiseAttack
 from .saltandpepper import SaltAndPepperNoiseAttack
@@ -22,7 +22,6 @@ from .carlini_wagner import CarliniWagnerL2Attack
 from .ead import EADAttack
 from .decoupled_direction_norm import DecoupledDirectionNormL2Attack
 from .bapp import BoundaryAttackPlusPlus
-from .sparsefool import SparseFoolAttack
 
 from .iterative_projected_gradient import LinfinityBasicIterativeAttack, BasicIterativeMethod, BIM
 from .iterative_projected_gradient import L1BasicIterativeAttack
