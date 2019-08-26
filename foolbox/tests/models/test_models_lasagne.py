@@ -133,8 +133,8 @@ def test_lasagne_forward_gradient(num_classes):
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
         1e5 * (l2 - l1),
-        1e5 * epsilon * np.linalg.norm(g1.reshape(len(g1), -1, g1.shape[-1]),
-                                       axis=(1, 2)) ** 2,
+        1e4 * epsilon * (np.linalg.norm(g1.reshape(len(g1), -1),
+                                        axis=(-1)) ** 2).sum(),
         decimal=1)
 
 

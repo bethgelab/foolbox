@@ -126,13 +126,12 @@ def test_theano_gradient(num_classes):
     l1 = model._loss_fn(test_images - epsilon / 2 * g1, test_labels)
     l2 = model._loss_fn(test_images + epsilon / 2 * g1, test_labels)
 
-    assert np.all(1e5 * (l2 - l1) > 1)
+    assert 1e5 * (l2 - l1) > 1
 
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
         1e5 * (l2 - l1),
-        1e5 * epsilon * np.linalg.norm(g1.reshape(len(g1), -1, g1.shape[-1]),
-                                       axis=(1, 2)) ** 2,
+        1e5 * epsilon * np.linalg.norm(g1) ** 2,
         decimal=1)
 
 
@@ -177,8 +176,8 @@ def test_theano_forward_gradient(num_classes):
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
         1e5 * (l2 - l1),
-        1e5 * epsilon * np.linalg.norm(g1.reshape(len(g1), -1, g1.shape[-1]),
-                                       axis=(1, 2)) ** 2,
+        1e4 * epsilon * (np.linalg.norm(g1.reshape(len(g1), -1),
+                                        axis=(-1)) ** 2).sum(),
         decimal=1)
 
 
