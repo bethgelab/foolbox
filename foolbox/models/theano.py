@@ -95,7 +95,7 @@ class TheanoModel(DifferentiableModel):
         predictions, gradient = self._forward_and_gradient_fn(inputs, labels)
         gradient = gradient.astype(inputs.dtype)
         gradient = self._process_gradient(dpdx, gradient)
-        assert predictions.shape == (self.num_classes(),)
+        assert predictions.shape == (len(inputs), self.num_classes())
         assert gradient.shape == inputs_shape
         assert gradient.dtype == inputs.dtype
         return predictions, gradient

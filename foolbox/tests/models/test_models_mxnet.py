@@ -121,7 +121,7 @@ def test_model_forward_gradient(num_classes):
     test_labels = [7] * 5
 
     epsilon = 1e-2
-    _, g1 = model.forward_and_gradient_one(test_images, test_labels)
+    _, g1 = model.forward_and_gradient(test_images, test_labels)
     l1 = model._loss_fn(test_images - epsilon / 2 * g1, test_labels)
     l2 = model._loss_fn(test_images + epsilon / 2 * g1, test_labels)
 
