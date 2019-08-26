@@ -146,9 +146,15 @@ class TensorFlowEagerModel(DifferentiableModel):
     def _loss_fn(self, x, label):
         import tensorflow as tf
         x, _ = self._process_input(x)
-        inputs = x[np.newaxis]
-        inputs = tf.constant(inputs)
-        target = tf.constant([label])
+        labels = np.asarray(label)
+
+        if len(labels.shape) == 0:
+            # add batch dimension
+            labels = labels[np.newaxis]
+            x = x[np.newaxis]
+
+        inputs = tf.constant(x)
+        target = tf.constant(labels)
 
         predictions = self._model(inputs)
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(

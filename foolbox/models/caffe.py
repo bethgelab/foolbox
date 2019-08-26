@@ -84,8 +84,15 @@ class CaffeModel(DifferentiableModel):  # pragma: no cover
         raise NotImplementedError
 
     def _loss_fn(self, x, label):
-        logits = self.forward(x[None])
-        return utils.batch_crossentropy([label], logits)
+        label = np.array(label)
+
+        if len(label.shape) == 0:
+            # add batch dimension
+            label = label[np.newaxis]
+            x = x[np.newaxis]
+
+        logits = self.forward(x)
+        return utils.batch_crossentropy(label, logits)
 
     def _backward_one(self, gradient, x):
         input_shape = x.shape

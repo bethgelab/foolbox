@@ -161,6 +161,55 @@ def test_pytorch_model_gradient():
         decimal=1)
 
 
+def test_pytorch_model_forward_gradient():
+    import torch
+    import torch.nn as nn
+
+    num_classes = 1000
+    bounds = (0, 255)
+    channels = num_classes
+
+    class Net(nn.Module):
+
+        def __init__(self):
+            super(Net, self).__init__()
+
+        def forward(self, x):
+            x = torch.mean(x, 3)
+            x = torch.mean(x, 2)
+            logits = x
+            return logits
+
+    model = Net()
+    preprocessing = (np.arange(num_classes)[:, None, None],
+                     np.random.uniform(size=(channels, 5, 5)) + 1)
+
+    model = PyTorchModel(
+        model,
+        bounds=bounds,
+        num_classes=num_classes,
+        preprocessing=preprocessing)
+
+    epsilon = 1e-2
+
+    np.random.seed(23)
+    test_images = np.random.rand(5, channels, 5, 5).astype(np.float32)
+    test_labels = [7]*5
+
+    _, g1 = model.forward_and_gradient(test_images, test_labels)
+
+    l1 = model._loss_fn(test_images - epsilon / 2 * g1, test_labels)
+    l2 = model._loss_fn(test_images + epsilon / 2 * g1, test_labels)
+
+    assert 1e5 * (l2 - l1) > 1
+
+    # make sure that gradient is numerically correct
+    np.testing.assert_array_almost_equal(
+        1e5 * (l2 - l1),
+        1e5 * epsilon * np.linalg.norm(g1)**2,
+        decimal=1)
+
+
 @pytest.mark.parametrize('num_classes', [10, 1000])
 def test_pytorch_backward(num_classes):
     import torch

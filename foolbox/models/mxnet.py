@@ -186,8 +186,16 @@ class MXNetModel(DifferentiableModel):
     def _loss_fn(self, x, label):
         import mxnet as mx
         x, _ = self._process_input(x)
-        data_array = mx.nd.array(x[np.newaxis], ctx=self._device)
-        label_array = mx.nd.array(np.array([label]), ctx=self._device)
+
+        label = np.array(label)
+
+        if len(label.shape) == 0:
+            # add batch dimension
+            label = label[np.newaxis]
+            x = x[np.newaxis]
+
+        data_array = mx.nd.array(x, ctx=self._device)
+        label_array = mx.nd.array(label, ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
         self._args_map[self._label_sym.name] = label_array
         model = self._loss_sym.bind(

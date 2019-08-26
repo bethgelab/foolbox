@@ -177,6 +177,13 @@ class PyTorchModel(DifferentiableModel):
         target = np.array([label])
         target = torch.from_numpy(target).long().to(self.device)
         inputs = torch.from_numpy(x[None]).to(self.device)
+
+        # if x and label were already batched, make sure that we remove
+        # the added dimension again
+        if len(target.shape) == 2:
+            target = target[0]
+            inputs = inputs[0]
+
         predictions = self._model(inputs)
         ce = nn.CrossEntropyLoss()
         loss = ce(predictions, target)

@@ -198,6 +198,47 @@ def test_keras_model_gradients():
         1e5 * (l2 - l1),
         1e5 * eps * np.linalg.norm(g1)**2,
         decimal=1)
+    
+
+def test_keras_model_forward_gradients():
+    num_classes = 1000
+    bounds = (0, 255)
+    channels = num_classes
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        inputs = Input(shape=(5, 5, channels))
+        logits = GlobalAveragePooling2D(
+            data_format='channels_last')(inputs)
+
+        preprocessing = (np.arange(num_classes)[None, None],
+                         np.random.uniform(size=(5, 5, channels)) + 1)
+
+        model = KerasModel(
+            Model(inputs=inputs, outputs=logits),
+            bounds=bounds,
+            predicts='logits',
+            preprocessing=preprocessing)
+
+    eps = 1e-3
+
+    np.random.seed(22)
+    test_images = np.random.rand(5, 5, 5, channels).astype(np.float32)
+    test_labels = [7]*5
+
+    _, g1 = model.forward_and_gradient(test_images, test_labels)
+
+    test_label_array = np.array([test_labels])
+    l1 = model._loss_fn([test_images - eps / 2 * g1, test_label_array])[0]
+    l2 = model._loss_fn([test_images + eps / 2 * g1, test_label_array])[0]
+
+    assert 1e5 * (l2 - l1) > 1
+
+    # make sure that gradient is numerically correct
+    np.testing.assert_array_almost_equal(
+        1e5 * (l2 - l1),
+        1e5 * eps * np.linalg.norm(g1)**2,
+        decimal=1)
 
 
 @pytest.mark.parametrize('num_classes', [10, 1000])
