@@ -245,8 +245,9 @@ class BoundaryAttackPlusPlus(BatchAttack):
                                  self.max_num_evals]))
 
             # approximate gradient.
-            gradf = yield from self.approximate_gradient(decision_function, perturbed,
-                                              num_evals, delta)
+            gradf = yield from self.approximate_gradient(decision_function,
+                                                         perturbed, num_evals,
+                                                         delta)
 
             if self.constraint == 'linf':
                 update = np.sign(gradf)

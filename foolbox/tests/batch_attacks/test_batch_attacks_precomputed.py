@@ -22,6 +22,5 @@ def test_unknown_image(bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
 
     with pytest.raises(ValueError):
-        advs = attack(bn_images, bn_labels, unpack=False,
-                      candidate_inputs=input_images,
-                      candidate_outputs=output_images)
+        attack(bn_images, bn_labels, unpack=False,
+               candidate_inputs=input_images, candidate_outputs=output_images)

@@ -24,7 +24,7 @@ class PrecomputedAdversarialsAttack(BatchAttack):
 
     @generator_decorator
     def as_generator(self, a,
-                    candidate_inputs, candidate_outputs):
+                     candidate_inputs, candidate_outputs):
         """Attacks a model using precomputed adversarial candidates.
 
         Parameters
