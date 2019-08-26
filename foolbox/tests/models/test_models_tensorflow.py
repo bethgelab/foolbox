@@ -193,7 +193,7 @@ def test_tensorflow_forward_gradient(num_classes):
 
         np.random.seed(23)
         test_images = np.random.rand(5, 5, 5, channels).astype(np.float32)
-        test_labels = [7]*5
+        test_labels = [7] * 5
 
         _, g1 = model.forward_and_gradient(test_images, test_labels)
 

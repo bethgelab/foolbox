@@ -198,7 +198,7 @@ def test_keras_model_gradients():
         1e5 * (l2 - l1),
         1e5 * eps * np.linalg.norm(g1)**2,
         decimal=1)
-    
+
 
 def test_keras_model_forward_gradients():
     num_classes = 1000
@@ -224,7 +224,7 @@ def test_keras_model_forward_gradients():
 
     np.random.seed(22)
     test_images = np.random.rand(5, 5, 5, channels).astype(np.float32)
-    test_labels = [7]*5
+    test_labels = [7] * 5
 
     _, g1 = model.forward_and_gradient(test_images, test_labels)
 
