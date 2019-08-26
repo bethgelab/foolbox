@@ -115,7 +115,7 @@ def test_theano_forward_gradient(num_classes):
     # theano and lasagne calculate the cross-entropy from the probbilities
     # rather than combining softmax and cross-entropy calculation; they
     # therefore have lower numerical accuracy
-    epsilon = 1e-3
+    epsilon = 1e-4
 
     np.random.seed(23)
     test_images = np.random.rand(5, channels, 5, 5).astype(np.float32)
