@@ -118,3 +118,8 @@ Gradient-based attacks
 .. autoclass:: SparseFoolAttack
    :members:
    :special-members:
+
+.. autoclass:: SparseL1BasicIterativeAttack
+   :members:
+   :special-members:
+
