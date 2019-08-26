@@ -44,3 +44,7 @@ Decision-based attacks
 .. autoclass:: BoundaryAttackPlusPlus
    :members:
    :special-members:
+
+.. autoclass:: GenAttack
+   :members:
+   :special-members:
