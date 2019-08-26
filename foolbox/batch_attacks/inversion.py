@@ -35,5 +35,5 @@ class InversionAttack(BatchAttack):
             'This is an untargeted attack by design.'
 
         min_, max_ = a.bounds()
-        x = max_ - a.unperturbed
+        x = min_ + max_ - a.unperturbed
         yield from a.forward_one(x)
