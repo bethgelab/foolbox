@@ -232,8 +232,13 @@ def bn_image():
 @pytest.fixture
 def bn_images():
     np.random.seed(22)
-    image = np.random.uniform(size=(7, 5, 5, 10)).astype(np.float32)
-    return image
+    # To port the existing unit test to the batched mode we use the same
+    # random image multiple times
+    # TODO: Adjust the parameters in the unit test so that a batch of multiple
+    #   random images can be used
+    image = np.random.uniform(size=(1, 5, 5, 10)).astype(np.float32)
+    images = np.repeat(image, 7, axis=0)
+    return images
 
 
 @pytest.fixture

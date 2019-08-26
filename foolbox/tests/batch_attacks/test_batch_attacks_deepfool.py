@@ -73,16 +73,10 @@ def test_deepfool_auto_linf(bn_model, bn_criterion, bn_images, bn_labels):
 def test_deepfool_auto_mae(bn_model, bn_criterion, bn_images, bn_labels):
     attack = DeepFoolAttack(bn_model, bn_criterion, distance=MAE)
     with pytest.raises(NotImplementedError):
-        advs = attack(bn_images, bn_labels, unpack=False)
-    for adv in advs:
-        assert adv.perturbed is None
-        assert adv.distance.value == np.inf
+        attack(bn_images, bn_labels, unpack=False)
 
 
 def test_deepfool_auto_p0(bn_model, bn_criterion, bn_images, bn_labels):
     attack = DeepFoolAttack(bn_model, bn_criterion)
     with pytest.raises(ValueError):
-        advs = attack(bn_images, bn_labels, unpack=False, p=0)
-    for adv in advs:
-        assert adv.perturbed is None
-        assert adv.distance.value == np.inf
+        attack(bn_images, bn_labels, unpack=False, p=0)

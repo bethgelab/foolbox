@@ -52,7 +52,7 @@ class PointwiseAttack(BatchAttack):
 
         self._starting_point = starting_point
         self._initialization_attack = initialization_attack
-        self.initialize_starting_point(a)
+        yield from self.initialize_starting_point(a)
 
         if a.perturbed is None:
             warnings.warn(
@@ -191,4 +191,4 @@ class PointwiseAttack(BatchAttack):
             # instantiate if necessary
             init_attack = init_attack()
 
-        init_attack(a)
+        yield from init_attack.as_generator(a)

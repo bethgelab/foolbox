@@ -48,7 +48,7 @@ class AdditiveNoiseAttack(BatchAttack):
             perturbed = x + epsilon * noise
             perturbed = np.clip(perturbed, min_, max_)
 
-            _, is_adversarial = a.forward_one(perturbed)
+            _, is_adversarial = yield from a.forward_one(perturbed)
             if is_adversarial:
                 return
 

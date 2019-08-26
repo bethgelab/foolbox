@@ -201,7 +201,7 @@ class BoundaryAttack(BatchAttack):
         # Find starting point
         # ===========================================================
 
-        self.initialize_starting_point(a)
+        yield from self.initialize_starting_point(a)
 
         if a.perturbed is None:
             warnings.warn(
@@ -662,7 +662,7 @@ class BoundaryAttack(BatchAttack):
             # instantiate if necessary
             init_attack = init_attack()
 
-        init_attack(a)
+        yield from init_attack.as_generator(a)
 
     def log_step(self, step, distance, message='', always=False):
         if not always and step % self.log_every_n_steps != 0:
