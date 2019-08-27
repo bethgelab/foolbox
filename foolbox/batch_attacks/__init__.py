@@ -14,7 +14,6 @@ from .saltandpepper import SaltAndPepperNoiseAttack
 from .precomputed import PrecomputedAdversarialsAttack
 from .boundary_attack import BoundaryAttack
 from .pointwise import PointwiseAttack
-from .binarization import BinarizationRefinementAttack
 from .newtonfool import NewtonFoolAttack
 from .adef_attack import ADefAttack
 from .spatial import SpatialAttack
