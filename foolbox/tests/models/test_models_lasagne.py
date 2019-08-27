@@ -117,7 +117,7 @@ def test_lasagne_forward_gradient(num_classes):
     # theano and lasagne calculate the cross-entropy from the probbilities
     # rather than combining softmax and cross-entropy calculation; they
     # therefore have lower numerical accuracy
-    epsilon = 1e-5
+    epsilon = 1e-3
 
     np.random.seed(23)
     test_images = np.random.rand(5, channels, 5, 5).astype(np.float32)
@@ -128,13 +128,12 @@ def test_lasagne_forward_gradient(num_classes):
     l1 = model._loss_fn(test_images - epsilon / 2 * g1, test_labels)
     l2 = model._loss_fn(test_images + epsilon / 2 * g1, test_labels)
 
-    assert np.all(1e8 * (l2 - l1) > 1)
+    assert 1e5 * (l2 - l1) > 1
 
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
-        1e5 * (l2 - l1),
-        1e5 * epsilon * (np.linalg.norm(g1.reshape(len(g1), -1),
-                                        axis=(-1)) ** 2).sum(),
+        1e4 * (l2 - l1),
+        1e4 * epsilon * np.linalg.norm(g1)**2,
         decimal=1)
 
 
