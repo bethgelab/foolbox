@@ -187,8 +187,7 @@ class Adversarial(object):
     def reached_threshold(self):
         """Returns True if a threshold is given and the currently
         best adversarial distance is smaller than the threshold."""
-        return self.__threshold is not None \
-               and self.__best_distance <= self.__threshold
+        return self.__threshold is not None and self.__best_distance <= self.__threshold
 
     def __new_adversarial(self, x, predictions, in_bounds):
         x = x.copy()  # to prevent accidental inplace changes
@@ -227,8 +226,7 @@ class Adversarial(object):
         """
         is_adversarial = self.__criterion.is_adversarial(
             predictions, self.__original_class)
-        assert isinstance(is_adversarial, bool) or \
-               isinstance(is_adversarial, np.bool_)
+        assert isinstance(is_adversarial, bool) or isinstance(is_adversarial, np.bool_)
         if is_adversarial:
             is_best, distance = self.__new_adversarial(
                 x, predictions, in_bounds)
