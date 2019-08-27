@@ -490,6 +490,16 @@ def binarized_bn_label(bn_image):
     return label
 
 
+@pytest.fixture
+def binarized_bn_labels(bn_images):
+    images = bn_images
+    images = binarize(images, (1, 2))
+    means = np.mean(images, axis=(1, 2))
+    assert means.shape == (len(bn_images), 10)
+    label = np.argmax(means, axis=-1)
+    return label
+
+
 def binarized2_bn_model():
     """Creates a simple brightness model that does not require training.
 
