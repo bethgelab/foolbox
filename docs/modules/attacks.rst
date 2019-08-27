@@ -83,3 +83,4 @@
 
    BinarizationRefinementAttack
    PrecomputedAdversarialsAttack
+   InversionAttack
