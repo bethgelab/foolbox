@@ -118,3 +118,7 @@ Gradient-based attacks
 .. autoclass:: SparseFoolAttack
    :members:
    :special-members:
+
+.. autoclass:: VirtualAdversarialAttack
+   :members:
+   :special-members:
