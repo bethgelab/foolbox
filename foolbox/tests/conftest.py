@@ -74,7 +74,7 @@ def model(image):
     gradient = image
     model.forward_and_gradient_one = Mock(return_value=(predictions, gradient))
     model.forward_and_gradient = lambda inputs, _:  \
-        (np.array([predictions]*len(inputs)), np.array([gradient]*len(inputs)))
+        (np.array([predictions] * len(inputs)), np.array([gradient] * len(inputs)))
     model.gradient_one = Mock(return_value=gradient)
     model.backward_one = Mock(return_value=gradient)
     model.gradient = Mock(return_value=gradient[np.newaxis])
