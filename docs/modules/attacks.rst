@@ -74,6 +74,7 @@
    SaltAndPepperNoiseAttack
    BlendedUniformNoiseAttack
    BoundaryAttackPlusPlus
+   GenAttack
 
 
 .. rubric:: :doc:`attacks/other`
