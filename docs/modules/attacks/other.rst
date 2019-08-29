@@ -10,3 +10,7 @@ Other attacks
 .. autoclass:: PrecomputedAdversarialsAttack
    :members:
    :special-members:
+
+.. autoclass:: InversionAttack
+   :members:
+   :special-members:
