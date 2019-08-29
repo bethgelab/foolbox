@@ -187,15 +187,10 @@ class SparseL1GradientMixin(object):
 
     def _gradient(self, a, x, class_, q, strict=True):
         gradient = yield from a.gradient_one(x, class_, strict=strict)
-        # make gradient sparse
-        # mask all entries of the gradient that are part of the q'th percentile
-        # calculate how many entries are part of the q'th percentile
-        absolute_q = int(np.floor(np.prod(gradient.shape) * q))
 
+        # make gradient sparse
         abs_grad = np.abs(gradient)
-        sorted_abs_grad = np.sort(abs_grad.flatten())
-        gradient_threshold = sorted_abs_grad[absolute_q]
-        gradient_percentile_mask = abs_grad <= gradient_threshold
+        gradient_percentile_mask = abs_grad <= np.percentile(abs_grad.flatten(), q)
         e = np.sign(gradient)
         e[gradient_percentile_mask] = 0
 
@@ -457,7 +452,7 @@ class SparseL1BasicIterativeAttack(
 
     @generator_decorator
     def as_generator(self, a,
-                     q=0.80,
+                     q=80.0,
                      binary_search=True,
                      epsilon=0.3,
                      stepsize=0.05,
@@ -477,7 +472,7 @@ class SparseL1BasicIterativeAttack(
         unpack : bool
             If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         q : float
-            Relative percentile to make gradients sparse (must be in [0, 1))
+            Relative percentile to make gradients sparse (must be in [0, 100))
         binary_search : bool or int
             Whether to perform a binary search over epsilon and stepsize,
             keeping their ratio constant and using their values to start
@@ -504,7 +499,7 @@ class SparseL1BasicIterativeAttack(
 
         assert epsilon > 0
 
-        assert 0.0 <= q < 1.0, '`q` must be in [0, 1).'
+        assert 1.0 <= q <= 99.0, '`q` must be in [0, 100).'
 
         yield from self._run(a, binary_search,
                              epsilon, stepsize, iterations,
