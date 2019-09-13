@@ -152,8 +152,6 @@ class TensorFlowModel(DifferentiableModel):
             [self._logits, self._gradient],
             feed_dict={self._inputs: inputs,
                        self._labels: labels})
-        print('pred', predictions.shape)
-        print('inputs', inputs.shape)
         gradient = self._process_gradient(dpdx, gradient)
         return predictions, gradient
 
