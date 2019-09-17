@@ -32,7 +32,6 @@ class GenAttack(BatchAttack):
         Can either try to find an adversarial perturbation for a fixed epsilon
         distance or perform a binary search over epsilon values in order to find
         a minimal perturbation.
-
         Parameters
         ----------
         inputs : `numpy.ndarray`
@@ -65,7 +64,6 @@ class GenAttack(BatchAttack):
             Limit on the perturbation size; if binary_search is True,
             this value is only for initialization and automatically
             adapted.
-
         """
 
         assert a.target_class() is not None, 'GenAttack is a targeted attack.'
@@ -81,13 +79,13 @@ class GenAttack(BatchAttack):
             )
             return
         else:
-            success = yield from self._run_one(
+            yield from self._run_one(
                 a, generations, alpha, p, N, tau, search_shape,
-                epsilon, epsilon)
-            return success
+                epsilon)
+            return
 
     def _run_one(self, a,
-                 generations, alpha, p, N, tau, search_shape,
+                 generations, alpha, rho, N, tau, search_shape,
                  epsilon):
 
         min_, max_ = a.bounds()
@@ -102,38 +100,40 @@ class GenAttack(BatchAttack):
 
         def get_perturbed(population_noises):
             if population_noises[0].shape != x.shape:
-                factors = [float(d[1]) / d[0] for d in zip(search_shape, x.shape)]
-                population_noises = zoom(population_noises, zoom=(1, *factors), order=2)
-                print(population_noises.shape)
+                factors = [float(d[1]) / d[0] for d in
+                           zip(search_shape, x.shape)]
+                population_noises = zoom(population_noises, zoom=(1, *factors),
+                                         order=2)
 
             # project into epsilon ball and valid bounds
             return np.clip(np.clip(population_noises, -epsilon, epsilon) + x,
                            min_, max_)
 
-        population = np.random.uniform(-epsilon, +epsilon, (N, *search_shape))
+        population = np.random.uniform(-epsilon, +epsilon,
+                                       (N, *search_shape)).astype(x.dtype)
 
         for g in range(generations):
             x_perturbed = get_perturbed(population)
 
-            logits, is_adversarial = [], []
-            # TODO: Replace this with a single call to a.forward(...) one this
+            probs, is_adversarial = [], []
+            # TODO: Replace this with a single call to a.forward(...) once this
             #   is implemented
             for it in x_perturbed:
                 l, i = yield from a.forward_one(it)
-                logits.append(l)
+                probs.append(softmax(l))
                 is_adversarial.append(i)
-            logits = np.array(logits)
-            masked_logits = logits.copy()
-            logits[:, a.target_class()] = 0
+            probs = np.array(probs)
+            masked_probs = probs.copy()
+            masked_probs[:, a.target_class()] = 0
 
-            fitnesses = np.log(logits[:, a.target_class()] + 1e-30) - np.log(
-                np.sum(masked_logits, 1) + 1e-30)
+            fitnesses = np.log(probs[:, a.target_class()] + 1e-30) - np.log(
+                np.sum(masked_probs, 1) + 1e-30)
 
             # find elite member
             elite_idx = np.argmax(fitnesses)
 
-            # TODO: Does this make sense in our framework? We can just ignore this
-            #   and use the minimal distortion tracked by the adversarial class
+            # TODO: Does this make sense in our framework? We can just ignore
+            #  this and use the minimal distortion tracked by the a
 
             # elite member already is adversarial example
             if is_adversarial[elite_idx]:
@@ -149,18 +149,20 @@ class GenAttack(BatchAttack):
                 N, 2 * N - 2, replace=True, p=mutation_probabilities
             ).reshape(2, -1)
             p = fitnesses[parents_idx[0]] / \
-                (fitnesses[parents_idx[1]] + fitnesses[parents_idx[1]])
+                (fitnesses[parents_idx[0]] + fitnesses[parents_idx[1]])
             p = p.reshape(-1, *([1] * (len(population.shape) - 1)))
             crossover = p * population[parents_idx[0]] + (1 - p) * population[
                 parents_idx[1]]
 
             # determine new mutation in this generation
-            b = (np.random.uniform(0, 1, (N - 1, *search_shape)) < p).astype(
+            b = (np.random.uniform(0, 1, (N - 1, 1, 1, 1)) < rho).astype(
                 np.float32)
             mutation = b * np.random.uniform(-alpha * epsilon, +alpha * epsilon,
                                              (N - 1, *search_shape))
 
             next_population[1:] = crossover + mutation
+
+            population = next_population
 
         return False
 
