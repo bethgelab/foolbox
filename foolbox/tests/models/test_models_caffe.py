@@ -81,6 +81,58 @@ def test_caffe_model_gradient(tmpdir):
         decimal=1)
 
 
+def test_caffe_model_forward_gradient(tmpdir):
+    import caffe
+    from caffe import layers as L
+
+    bounds = (0, 255)
+    channels = num_classes = 1000
+
+    net_spec = caffe.NetSpec()
+    net_spec.data = L.Input(name="data",
+                            shape=dict(dim=[1, num_classes, 5, 5]))
+    net_spec.reduce_1 = L.Reduction(net_spec.data,
+                                    reduction_param={"operation": 4,
+                                                     "axis": 3})
+    net_spec.output = L.Reduction(net_spec.reduce_1,
+                                  reduction_param={"operation": 4,
+                                                   "axis": 2})
+    net_spec.label = L.Input(name="label",
+                             shape=dict(dim=[1]))
+    net_spec.loss = L.SoftmaxWithLoss(net_spec.output, net_spec.label)
+    wf = tmpdir.mkdir("test_models_caffe")\
+               .join("test_caffe_model_gradient_proto_{}.prototxt"
+                     .format(num_classes))
+    wf.write("force_backward: true\n" + str(net_spec.to_proto()))
+    preprocessing = (np.arange(num_classes)[:, None, None],
+                     np.random.uniform(size=(channels, 5, 5)) + 1)
+    net = caffe.Net(str(wf), caffe.TEST)
+    model = CaffeModel(
+        net,
+        bounds=bounds,
+        preprocessing=preprocessing)
+
+    epsilon = 1e-2
+
+    np.random.seed(23)
+    test_images = np.random.rand(5, channels, 5, 5).astype(np.float32)
+    test_labels = [7] * 5
+
+    _, g1 = model.forward_and_gradient_one(test_images, test_labels)
+
+    l1 = model._loss_fn(test_images - epsilon / 2 * g1, test_labels)
+    l2 = model._loss_fn(test_images + epsilon / 2 * g1, test_labels)
+
+    assert np.all(1e4 * (l2 - l1) > 1)
+
+    # make sure that gradient is numerically correct
+    np.testing.assert_array_almost_equal(
+        1e4 * (l2 - l1),
+        1e4 * epsilon * np.linalg.norm(g1.reshape(len(g1), -1, g1.shape[-1]),
+                                       axis=(1, 2)) ** 2,
+        decimal=1)
+
+
 @pytest.mark.parametrize("bn_model_caffe, num_classes",
                          [(10, 10), (1000, 1000)],
                          indirect=["bn_model_caffe"])
