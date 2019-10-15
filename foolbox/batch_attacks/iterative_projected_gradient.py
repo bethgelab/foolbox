@@ -207,7 +207,9 @@ class L1GradientMixin(object):
     def _gradient(self, a, x, class_, strict=True):
         gradient = yield from a.gradient_one(x, class_, strict=strict)
         # using mean to make range of epsilons comparable to Linf
-        gradient = gradient / np.mean(np.abs(gradient))
+        gradient_norm = np.mean(np.abs(gradient))
+        gradient_norm = max(1e-12, gradient_norm)
+        gradient = gradient / gradient_norm
         min_, max_ = a.bounds()
         gradient = (max_ - min_) * gradient
         return gradient
@@ -217,7 +219,9 @@ class L2GradientMixin(object):
     def _gradient(self, a, x, class_, strict=True):
         gradient = yield from a.gradient_one(x, class_, strict=strict)
         # using mean to make range of epsilons comparable to Linf
-        gradient = gradient / np.sqrt(np.mean(np.square(gradient)))
+        gradient_norm = np.sqrt(np.mean(np.square(gradient)))
+        gradient_norm = max(1e-12, gradient_norm)
+        gradient = gradient / gradient_norm
         min_, max_ = a.bounds()
         gradient = (max_ - min_) * gradient
         return gradient

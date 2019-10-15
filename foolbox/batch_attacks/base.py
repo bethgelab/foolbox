@@ -58,7 +58,7 @@ def generator_decorator(generator):
                 assert _ is None, 'decorated __call__ method must return None'
             except StopAttack:
                 # if a threshold is specified, StopAttack will be thrown
-                # when the treshold is reached; thus we can do early
+                # when the threshold is reached; thus we can do early
                 # stopping of the attack
                 logging.info('threshold reached, stopping attack')
 
