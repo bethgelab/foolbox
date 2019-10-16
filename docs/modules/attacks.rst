@@ -81,7 +81,7 @@
    AdditiveGaussianNoiseAttack
    SaltAndPepperNoiseAttack
    BlendedUniformNoiseAttack
-   BoundaryAttackPlusPlus
+   HopSkipJumpAttack
 
 
 .. rubric:: :doc:`attacks/other`
@@ -91,3 +91,4 @@
 
    BinarizationRefinementAttack
    PrecomputedAdversarialsAttack
+   InversionAttack

@@ -6,7 +6,8 @@ from .yielding_adversarial import YieldingAdversarial
 
 
 def run_sequential(create_attack_fn, model, criterion, inputs, labels,
-                   distance=MSE, threshold=None, verbose=False, **kwargs):
+                   distance=MSE, threshold=None, verbose=False,
+                   attack_kwargs=None):
     """
     Runs the same type of attack vor multiple inputs sequentially without
     batching them.
@@ -40,8 +41,10 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
         if the threshold has been reached.
     verbose : bool
         Whether the adversarial examples should be created in verbose mode.
-    kwargs : dict
-         The optional keywords passed to create_attack_fn.
+    attack_kwargs : dict or list of dict
+         The optional keywords passed to create_attack_fn. If a dict, the same
+         values will be used for all inputs; if a list, for each input a
+         different set of arguments will be used.
 
     Returns
     -------
@@ -62,12 +65,22 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
     else:
         assert len(distance) == len(inputs), 'The number of distances must match the number of inputs.'  # noqa: E501
 
+    if attack_kwargs is None:
+        attack_kwargs = {}
+
+    # if only one dict of kwargs has been passed use the same one for all inputs
+    if not isinstance(attack_kwargs, (list, tuple)):
+        attack_kwargs = [attack_kwargs] * len(inputs)
+    else:
+        assert len(attack_kwargs) == len(inputs), 'The number of attack_kwargs must match the number of inputs.'  # noqa: E501
+
     advs = [YieldingAdversarial(model, _criterion, x, label,
                                 distance=_distance, threshold=threshold,
                                 verbose=verbose)
             for _criterion, _distance, x, label in zip(criterion, distance,
                                                        inputs, labels)]
-    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv in advs]
+    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv, kwargs
+               in zip(advs, attack_kwargs)]
 
     supported_methods = {
         'forward_one': model.forward_one,
@@ -92,47 +105,50 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
 
 
 def run_parallel(create_attack_fn, model, criterion, inputs, labels,
-                 distance=MSE, threshold=None, verbose=False, **kwargs):
+                 distance=MSE, threshold=None, verbose=False,
+                 attack_kwargs=None):
     """
-        Runs the same type of attack vor multiple inputs in parallel by
-        batching them.
+    Runs the same type of attack vor multiple inputs in parallel by
+    batching them.
 
-        Parameters
-        ----------
-        create_attack_fn : a function returning an :class:`Attack` instance
-            The attack to use.
-        model : a :class:`Model` instance
-            The model that should be fooled by the adversarial.
-        criterion : a :class:`Criterion` class or list of :class:`Criterion` classes
-            The criterion/criteria that determine(s) which inputs are adversarial.
-        inputs :  a :class:`numpy.ndarray`
-            The unperturbed inputs to which the adversarial input should be as close
-            as possible.
-        labels :  a :class:`numpy.ndarray`
-            The ground-truth labels of the unperturbed inputs.
-        distance : a :class:`Distance` class or list of :class:`Distance` classes
-            The measure(s) used to quantify how close inputs are.
-        threshold : float or :class:`Distance`
-            If not None, the attack will stop as soon as the adversarial
-            perturbation has a size smaller than this threshold. Can be
-            an instance of the :class:`Distance` class passed to the distance
-            argument, or a float assumed to have the same unit as the
-            the given distance. If None, the attack will simply minimize
-            the distance as good as possible. Note that the threshold only
-            influences early stopping of the attack; the returned adversarial
-            does not necessarily have smaller perturbation size than this
-            threshold; the :class:`Adversarial`.`reached_threshold()` method can
-             be used to check
-            if the threshold has been reached.
-        verbose : bool
-            Whether the adversarial examples should be created in verbose mode.
-        kwargs : dict
-             The optional keywords passed to create_attack_fn.
+    Parameters
+    ----------
+    create_attack_fn : a function returning an :class:`Attack` instance
+        The attack to use.
+    model : a :class:`Model` instance
+        The model that should be fooled by the adversarial.
+    criterion : a :class:`Criterion` class or list of :class:`Criterion` classes
+        The criterion/criteria that determine(s) which inputs are adversarial.
+    inputs :  a :class:`numpy.ndarray`
+        The unperturbed inputs to which the adversarial input should be as close
+        as possible.
+    labels :  a :class:`numpy.ndarray`
+        The ground-truth labels of the unperturbed inputs.
+    distance : a :class:`Distance` class or list of :class:`Distance` classes
+        The measure(s) used to quantify how close inputs are.
+    threshold : float or :class:`Distance`
+        If not None, the attack will stop as soon as the adversarial
+        perturbation has a size smaller than this threshold. Can be
+        an instance of the :class:`Distance` class passed to the distance
+        argument, or a float assumed to have the same unit as the
+        the given distance. If None, the attack will simply minimize
+        the distance as good as possible. Note that the threshold only
+        influences early stopping of the attack; the returned adversarial
+        does not necessarily have smaller perturbation size than this
+        threshold; the :class:`Adversarial`.`reached_threshold()` method can
+         be used to check
+        if the threshold has been reached.
+    verbose : bool
+        Whether the adversarial examples should be created in verbose mode.
+    attack_kwargs : dict or list of dict
+        The optional keywords passed to create_attack_fn. If a dict, the  same
+        values will be used for all inputs; if a list, for each input a
+        different set of arguments will be used.
 
-        Returns
-        -------
-        The list of generated adversarial examples.
-        """
+    Returns
+    -------
+    The list of generated adversarial examples.
+    """
 
     assert len(inputs) == len(labels), 'The number of inputs must match the number of labels.'  # noqa: E501
 
@@ -148,17 +164,32 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
     else:
         assert len(distance) == len(inputs), 'The number of distances must match the number of inputs.'  # noqa: E501
 
+    if attack_kwargs is None:
+        attack_kwargs = {}
+
+    # if only one dict of kwargs has been passed use the same one for all inputs
+    if not isinstance(attack_kwargs, (list, tuple)):
+        attack_kwargs = [attack_kwargs] * len(inputs)
+    else:
+        assert len(attack_kwargs) == len(inputs), 'The number of attack_kwargs must match the number of inputs.'  # noqa: E501
+
     advs = [YieldingAdversarial(model, _criterion, x, label,
                                 distance=_distance, threshold=threshold,
                                 verbose=verbose)
             for _criterion, _distance, x, label in zip(criterion, distance,
                                                        inputs, labels)]
-    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv in advs]
+    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv, kwargs
+               in zip(advs, attack_kwargs)]
 
     predictions = [None for _ in attacks]
     gradients = []
     backwards = []
-    results = itertools.chain(predictions, gradients, backwards)
+    prediction_gradients = []
+
+    batched_predictions = []
+    results = itertools.chain(predictions, gradients, backwards,
+                              prediction_gradients,
+                              batched_predictions)
 
     while True:
         attacks_requesting_predictions = []
@@ -167,12 +198,17 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
         gradients_args = []
         attacks_requesting_backwards = []
         backwards_args = []
+        attacks_requesting_prediction_gradients = []
+        predictions_gradients_args = []
+        attacks_requesting_batched_predictions = []
+        batched_predictions_args = []
         for attack, result in zip(attacks, results):
             try:
                 x = attack.send(result)
             except StopIteration:
                 continue
             method, args = x[0], x[1:]
+
             if method == 'forward_one':
                 attacks_requesting_predictions.append(attack)
                 predictions_args.append(args)
@@ -183,15 +219,19 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
                 attacks_requesting_backwards.append(attack)
                 backwards_args.append(args)
             elif method == 'forward_and_gradient_one':
-                raise NotImplementedError('batching support for forward_and_'
-                                          'gradient_one not yet implemented; '
-                                          'please open an issue')
+                attacks_requesting_prediction_gradients.append(attack)
+                predictions_gradients_args.append(args)
+            elif method == 'forward':
+                attacks_requesting_batched_predictions.append(attack)
+                batched_predictions_args.append(args)
             else:
                 assert False
         n_active_attacks = len(attacks_requesting_predictions) \
             + len(attacks_requesting_gradients) \
-            + len(attacks_requesting_backwards)
-        if n_active_attacks < len(predictions) + len(gradients) + len(backwards):  # noqa: E501
+            + len(attacks_requesting_backwards) \
+            + len(attacks_requesting_prediction_gradients) \
+            + len(attacks_requesting_batched_predictions)
+        if n_active_attacks < len(predictions) + len(gradients) + len(backwards) + len(prediction_gradients) + len(batched_predictions):  # noqa: E501
             # an attack completed in this iteration
             logging.info('{} of {} attacks completed'.format(len(advs) - n_active_attacks, len(advs)))  # noqa: E501
         if n_active_attacks == 0:
@@ -203,6 +243,25 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
             predictions = model.forward(*predictions_args)
         else:
             predictions = []
+
+        if len(attacks_requesting_batched_predictions) > 0:
+            logging.debug('calling native forward with {}'.format(len(attacks_requesting_batched_predictions)))  # noqa: E501
+
+            # we are only interested in the first argument
+            inputs = [x[0] for x in batched_predictions_args]
+
+            # merge individual batches into one larger super-batch
+            batch_lengths = [len(x) for x in inputs]
+            batch_splits = np.cumsum(batch_lengths)
+            inputs = np.concatenate([x for x in inputs])
+
+            # split super-batch back into individual batches
+            batched_predictions = model.forward(inputs)
+            batched_predictions = np.split(batched_predictions, batch_splits,
+                                           axis=0)
+
+        else:
+            batched_predictions = []
 
         if len(attacks_requesting_gradients) > 0:
             logging.debug('calling gradient with {}'.format(len(attacks_requesting_gradients)))  # noqa: E501
@@ -217,7 +276,24 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
             backwards = model.backward(*backwards_args)
         else:
             backwards = []
+        if len(attacks_requesting_prediction_gradients) > 0:
+            logging.debug('calling forward_and_gradient_one with {}'.format(len(attacks_requesting_prediction_gradients)))  # noqa: E501
 
-        attacks = itertools.chain(attacks_requesting_predictions, attacks_requesting_gradients, attacks_requesting_backwards)  # noqa: E501
-        results = itertools.chain(predictions, gradients, backwards)
+            predictions_gradients_args = map(np.stack,
+                                             zip(*predictions_gradients_args))
+
+            prediction_gradients = model.forward_and_gradient(
+                *predictions_gradients_args)
+
+            prediction_gradients = list(zip(*prediction_gradients))
+        else:
+            prediction_gradients = []
+
+        attacks = itertools.chain(attacks_requesting_predictions,
+                                  attacks_requesting_gradients,
+                                  attacks_requesting_backwards,
+                                  attacks_requesting_prediction_gradients,
+                                  attacks_requesting_batched_predictions)
+        results = itertools.chain(predictions, gradients, backwards,
+                                  prediction_gradients, batched_predictions)
     return advs

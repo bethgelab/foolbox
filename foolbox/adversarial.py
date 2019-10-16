@@ -187,8 +187,7 @@ class Adversarial(object):
     def reached_threshold(self):
         """Returns True if a threshold is given and the currently
         best adversarial distance is smaller than the threshold."""
-        return self.__threshold is not None \
-            and self.__best_distance <= self.__threshold
+        return self.__threshold is not None and self.__best_distance <= self.__threshold
 
     def __new_adversarial(self, x, predictions, in_bounds):
         x = x.copy()  # to prevent accidental inplace changes
@@ -227,8 +226,7 @@ class Adversarial(object):
         """
         is_adversarial = self.__criterion.is_adversarial(
             predictions, self.__original_class)
-        assert isinstance(is_adversarial, bool) or \
-            isinstance(is_adversarial, np.bool_)
+        assert isinstance(is_adversarial, bool) or isinstance(is_adversarial, np.bool_)
         if is_adversarial:
             is_best, distance = self.__new_adversarial(
                 x, predictions, in_bounds)
@@ -404,7 +402,8 @@ class Adversarial(object):
         assert gradient.shape == x.shape
         return gradient
 
-    def forward_and_gradient_one(self, x=None, label=None, strict=True, return_details=False):
+    def forward_and_gradient_one(self, x=None, label=None, strict=True,
+                                 return_details=False):
         """Interface to model.forward_and_gradient_one for attacks.
 
         Parameters
@@ -433,7 +432,9 @@ class Adversarial(object):
         self._total_prediction_calls += 1
         self._total_gradient_calls += 1
         predictions, gradient = self.__model.forward_and_gradient_one(x, label)
-        is_adversarial, is_best, distance = self.__is_adversarial(x, predictions, in_bounds)
+        is_adversarial, is_best, distance = self.__is_adversarial(x,
+                                                                  predictions,
+                                                                  in_bounds)
 
         assert predictions.ndim == 1
         assert gradient.shape == x.shape
@@ -441,6 +442,55 @@ class Adversarial(object):
             return predictions, gradient, is_adversarial, is_best, distance
         else:
             return predictions, gradient, is_adversarial
+
+    def forward_and_gradient(self, x, label=None, strict=True,
+                             return_details=False):
+        """Interface to model.forward_and_gradient_one for attacks.
+
+        Parameters
+        ----------
+        x : `numpy.ndarray`
+            Multiple input with shape as expected by the model
+            (with the batch dimension).
+        label : `numpy.ndarray`
+            Labels used to calculate the loss that is differentiated.
+            Defaults to the original label.
+        strict : bool
+            Controls if the bounds for the pixel values should be checked.
+
+        """
+        assert self.has_gradient()
+
+        if label is None:
+            label = np.ones(len(x), dtype=np.int) * self.__original_class
+
+        in_bounds = self.in_bounds(x)
+        assert not strict or in_bounds
+
+        self._total_prediction_calls += len(x)
+        self._total_gradient_calls += len(x)
+        predictions, gradients = self.__model.forward_and_gradient(x, label)
+
+        assert predictions.ndim == 2
+        assert gradients.shape == x.shape
+
+        is_adversarials, is_bests, distances = [], [], []
+        for single_x, prediction in zip(x, predictions):
+            is_adversarial, is_best, distance = self.__is_adversarial(single_x,
+                                                                      prediction,
+                                                                      in_bounds)
+            is_adversarials.append(is_adversarial)
+            is_bests.append(is_best)
+            distances.append(distance)
+
+        is_adversarials = np.array(is_adversarials)
+        is_bests = np.array(is_bests)
+        distances = np.array(distances)
+
+        if return_details:
+            return predictions, gradients, is_adversarials, is_bests, distances
+        else:
+            return predictions, gradients, is_adversarials
 
     def backward_one(self, gradient, x=None, strict=True):
         """Interface to model.backward_one for attacks.

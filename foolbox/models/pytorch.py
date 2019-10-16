@@ -117,6 +117,35 @@ class PyTorchModel(DifferentiableModel):
 
         return predictions, grad
 
+    def forward_and_gradient(self, inputs, labels):
+        # lazy import
+        import torch
+        import torch.nn as nn
+
+        inputs_shape = inputs.shape
+        inputs, dpdx = self._process_input(inputs)
+        labels = np.array(labels)
+        labels = torch.from_numpy(labels).long().to(self.device)
+
+        inputs = torch.from_numpy(inputs).to(self.device)
+        inputs.requires_grad_()
+
+        predictions = self._model(inputs)
+        ce = nn.CrossEntropyLoss()
+        loss = ce(predictions, labels)
+        loss.backward()
+        grad = inputs.grad
+
+        predictions = predictions.detach().cpu().numpy()
+        assert predictions.ndim == 2
+        assert predictions.shape == (len(inputs), self.num_classes())
+
+        grad = grad.detach().cpu().numpy()
+        grad = self._process_gradient(dpdx, grad)
+        assert grad.shape == inputs_shape
+
+        return predictions, grad
+
     def gradient(self, inputs, labels):
         # lazy import
         import torch
@@ -148,6 +177,13 @@ class PyTorchModel(DifferentiableModel):
         target = np.array([label])
         target = torch.from_numpy(target).long().to(self.device)
         inputs = torch.from_numpy(x[None]).to(self.device)
+
+        # if x and label were already batched, make sure that we remove
+        # the added dimension again
+        if len(target.shape) == 2:
+            target = target[0]
+            inputs = inputs[0]
+
         predictions = self._model(inputs)
         ce = nn.CrossEntropyLoss()
         loss = ce(predictions, target)

@@ -98,6 +98,13 @@ def test_adversarial(model, criterion, image, label):
     assert gradient.shape == image.shape
     assert is_adversarial
 
+    images = image[np.newaxis]
+    predictions, gradient, is_adversarial, _, _ = adversarial.forward_and_gradient(
+        images, [label], return_details=True)
+    assert (predictions == first_predictions).all()
+    assert gradient.shape == images.shape
+    assert is_adversarial[0]
+
     predictions, gradient, is_adversarial = adversarial.forward_and_gradient_one()
     assert (predictions == first_predictions).all()
     assert gradient.shape == image.shape

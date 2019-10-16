@@ -275,6 +275,35 @@ class DifferentiableModel(Model):
         """
         return np.squeeze(self.backward(gradient[np.newaxis], x[np.newaxis]), axis=0)
 
+    @abstractmethod
+    def forward_and_gradient(self, inputs, labels):
+        """Takes inputs and labels and returns both the logits predicted by the underlying
+        model and the gradients of the cross-entropy loss w.r.t. the inputs.
+
+
+        Parameters
+        ----------
+        inputs : `numpy.ndarray`
+            Inputs with shape as expected by the model (with the batch dimension).
+        labels : `numpy.ndarray`
+            Array of the class label of the inputs as an integer in [0, number of classes).
+
+        Returns
+        -------
+        `numpy.ndarray`
+            Predicted logits with shape (batch size, number of classes).
+        `numpy.ndarray`
+            The gradient of the cross-entropy loss w.r.t. the input.
+
+        See Also
+        --------
+        :meth:`forward_one`
+        :meth:`gradient_one`
+
+        """
+
+        raise NotImplementedError
+
     def forward_and_gradient_one(self, x, label):
         """Takes a single input and label and returns both the logits predicted by the underlying
         model and the gradient of the cross-entropy loss w.r.t. the input.
