@@ -6,7 +6,8 @@ from .yielding_adversarial import YieldingAdversarial
 
 
 def run_sequential(create_attack_fn, model, criterion, inputs, labels,
-                   distance=MSE, threshold=None, verbose=False, **kwargs):
+                   distance=MSE, threshold=None, verbose=False,
+                   attack_kwargs=None):
     """
     Runs the same type of attack vor multiple inputs sequentially without
     batching them.
@@ -40,8 +41,10 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
         if the threshold has been reached.
     verbose : bool
         Whether the adversarial examples should be created in verbose mode.
-    kwargs : dict
-         The optional keywords passed to create_attack_fn.
+    attack_kwargs : dict or list of dict
+         The optional keywords passed to create_attack_fn. If a dict, the same
+         values will be used for all inputs; if a list, for each input a
+         different set of arguments will be used.
 
     Returns
     -------
@@ -62,12 +65,22 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
     else:
         assert len(distance) == len(inputs), 'The number of distances must match the number of inputs.'  # noqa: E501
 
+    if attack_kwargs is None:
+        attack_kwargs = {}
+
+    # if only one dict of kwargs has been passed use the same one for all inputs
+    if not isinstance(attack_kwargs, (list, tuple)):
+        attack_kwargs = [attack_kwargs] * len(inputs)
+    else:
+        assert len(attack_kwargs) == len(inputs), 'The number of attack_kwargs must match the number of inputs.'  # noqa: E501
+
     advs = [YieldingAdversarial(model, _criterion, x, label,
                                 distance=_distance, threshold=threshold,
                                 verbose=verbose)
             for _criterion, _distance, x, label in zip(criterion, distance,
                                                        inputs, labels)]
-    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv in advs]
+    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv, kwargs
+               in zip(advs, attack_kwargs)]
 
     supported_methods = {
         'forward_one': model.forward_one,
@@ -92,47 +105,50 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
 
 
 def run_parallel(create_attack_fn, model, criterion, inputs, labels,
-                 distance=MSE, threshold=None, verbose=False, **kwargs):
+                 distance=MSE, threshold=None, verbose=False,
+                 attack_kwargs=None):
     """
-        Runs the same type of attack vor multiple inputs in parallel by
-        batching them.
+    Runs the same type of attack vor multiple inputs in parallel by
+    batching them.
 
-        Parameters
-        ----------
-        create_attack_fn : a function returning an :class:`Attack` instance
-            The attack to use.
-        model : a :class:`Model` instance
-            The model that should be fooled by the adversarial.
-        criterion : a :class:`Criterion` class or list of :class:`Criterion` classes
-            The criterion/criteria that determine(s) which inputs are adversarial.
-        inputs :  a :class:`numpy.ndarray`
-            The unperturbed inputs to which the adversarial input should be as close
-            as possible.
-        labels :  a :class:`numpy.ndarray`
-            The ground-truth labels of the unperturbed inputs.
-        distance : a :class:`Distance` class or list of :class:`Distance` classes
-            The measure(s) used to quantify how close inputs are.
-        threshold : float or :class:`Distance`
-            If not None, the attack will stop as soon as the adversarial
-            perturbation has a size smaller than this threshold. Can be
-            an instance of the :class:`Distance` class passed to the distance
-            argument, or a float assumed to have the same unit as the
-            the given distance. If None, the attack will simply minimize
-            the distance as good as possible. Note that the threshold only
-            influences early stopping of the attack; the returned adversarial
-            does not necessarily have smaller perturbation size than this
-            threshold; the :class:`Adversarial`.`reached_threshold()` method can
-             be used to check
-            if the threshold has been reached.
-        verbose : bool
-            Whether the adversarial examples should be created in verbose mode.
-        kwargs : dict
-             The optional keywords passed to create_attack_fn.
+    Parameters
+    ----------
+    create_attack_fn : a function returning an :class:`Attack` instance
+        The attack to use.
+    model : a :class:`Model` instance
+        The model that should be fooled by the adversarial.
+    criterion : a :class:`Criterion` class or list of :class:`Criterion` classes
+        The criterion/criteria that determine(s) which inputs are adversarial.
+    inputs :  a :class:`numpy.ndarray`
+        The unperturbed inputs to which the adversarial input should be as close
+        as possible.
+    labels :  a :class:`numpy.ndarray`
+        The ground-truth labels of the unperturbed inputs.
+    distance : a :class:`Distance` class or list of :class:`Distance` classes
+        The measure(s) used to quantify how close inputs are.
+    threshold : float or :class:`Distance`
+        If not None, the attack will stop as soon as the adversarial
+        perturbation has a size smaller than this threshold. Can be
+        an instance of the :class:`Distance` class passed to the distance
+        argument, or a float assumed to have the same unit as the
+        the given distance. If None, the attack will simply minimize
+        the distance as good as possible. Note that the threshold only
+        influences early stopping of the attack; the returned adversarial
+        does not necessarily have smaller perturbation size than this
+        threshold; the :class:`Adversarial`.`reached_threshold()` method can
+         be used to check
+        if the threshold has been reached.
+    verbose : bool
+        Whether the adversarial examples should be created in verbose mode.
+    attack_kwargs : dict or list of dict
+        The optional keywords passed to create_attack_fn. If a dict, the  same
+        values will be used for all inputs; if a list, for each input a
+        different set of arguments will be used.
 
-        Returns
-        -------
-        The list of generated adversarial examples.
-        """
+    Returns
+    -------
+    The list of generated adversarial examples.
+    """
 
     assert len(inputs) == len(labels), 'The number of inputs must match the number of labels.'  # noqa: E501
 
@@ -148,12 +164,22 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
     else:
         assert len(distance) == len(inputs), 'The number of distances must match the number of inputs.'  # noqa: E501
 
+    if attack_kwargs is None:
+        attack_kwargs = {}
+
+    # if only one dict of kwargs has been passed use the same one for all inputs
+    if not isinstance(attack_kwargs, (list, tuple)):
+        attack_kwargs = [attack_kwargs] * len(inputs)
+    else:
+        assert len(attack_kwargs) == len(inputs), 'The number of attack_kwargs must match the number of inputs.'  # noqa: E501
+
     advs = [YieldingAdversarial(model, _criterion, x, label,
                                 distance=_distance, threshold=threshold,
                                 verbose=verbose)
             for _criterion, _distance, x, label in zip(criterion, distance,
                                                        inputs, labels)]
-    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv in advs]
+    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv, kwargs
+               in zip(advs, attack_kwargs)]
 
     predictions = [None for _ in attacks]
     gradients = []
