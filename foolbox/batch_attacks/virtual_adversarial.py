@@ -19,7 +19,7 @@ class VirtualAdversarialAttack(BatchAttack):
     .. [1] Takeru Miyato, Shin-ichi Maeda, Masanori Koyama, Ken Nakae,
            Shin Ishii,
            "Distributional Smoothing with Virtual Adversarial Training",
-           https://arxiv.org/abs/1412.6572
+           https://arxiv.org/abs/1507.00677
     """
 
     def _clip_perturbation(self, a, perturbation, epsilon):

@@ -11,6 +11,15 @@ def test_untargeted_attack(bn_model, bn_criterion, bn_images, bn_labels):
         assert adv.distance.value < np.inf
 
 
+def test_untargeted_attack_finer(bn_model, bn_criterion, bn_images, bn_labels):
+    attack = Attack(bn_model, bn_criterion)
+    advs = attack(bn_images, bn_labels, unpack=False,
+                  epsilons=2)
+    for adv in advs:
+        assert adv.perturbed is not None
+        assert adv.distance.value < np.inf
+
+
 def test_attack_vanishing_xi(bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
     with pytest.raises(RuntimeError, match='xi'):
