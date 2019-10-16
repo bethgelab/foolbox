@@ -31,6 +31,14 @@
    RandomStartProjectedGradientDescentAttack
    RandomProjectedGradientDescent
    RandomPGD
+   AdamL1BasicIterativeAttack
+   AdamL2BasicIterativeAttack
+   AdamProjectedGradientDescentAttack
+   AdamProjectedGradientDescent
+   AdamPGD
+   AdamRandomStartProjectedGradientDescentAttack
+   AdamRandomProjectedGradientDescent
+   AdamRandomPGD
    MomentumIterativeAttack
    MomentumIterativeMethod
    LBFGSAttack

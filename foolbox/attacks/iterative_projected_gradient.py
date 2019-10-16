@@ -9,6 +9,8 @@ from .base import call_decorator
 from .. import distances
 from ..utils import crossentropy
 from .. import nprng
+from ..optimizers import AdamOptimizer
+from ..optimizers import GDOptimizer
 
 
 class IterativeProjectedGradientBaseAttack(Attack):
@@ -27,6 +29,10 @@ class IterativeProjectedGradientBaseAttack(Attack):
 
     @abstractmethod
     def _clip_perturbation(self, a, noise, epsilon):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _create_optimizer(self, a):
         raise NotImplementedError
 
     @abstractmethod
@@ -65,8 +71,10 @@ class IterativeProjectedGradientBaseAttack(Attack):
                 a, epsilon, stepsize, iterations,
                 random_start, targeted, class_, return_early, k=k)
         else:
+            optimizer = self._create_optimizer(a, stepsize)
+
             return self._run_one(
-                a, epsilon, stepsize, iterations,
+                a, epsilon, optimizer, iterations,
                 random_start, targeted, class_, return_early)
 
     def _run_binary_search(self, a, epsilon, stepsize, iterations,
@@ -76,8 +84,10 @@ class IterativeProjectedGradientBaseAttack(Attack):
 
         def try_epsilon(epsilon):
             stepsize = factor * epsilon
+            optimizer = self._create_optimizer(a, stepsize)
+
             return self._run_one(
-                a, epsilon, stepsize, iterations,
+                a, epsilon, optimizer, iterations,
                 random_start, targeted, class_, return_early)
 
         for i in range(k):
@@ -102,7 +112,7 @@ class IterativeProjectedGradientBaseAttack(Attack):
                 bad = epsilon
                 logging.info('not successful for eps = {}'.format(epsilon))
 
-    def _run_one(self, a, epsilon, stepsize, iterations,
+    def _run_one(self, a, epsilon, optimizer, iterations,
                  random_start, targeted, class_, return_early):
         min_, max_ = a.bounds()
         s = max_ - min_
@@ -127,12 +137,12 @@ class IterativeProjectedGradientBaseAttack(Attack):
             # non-strict only for the first call and
             # only if random_start is True
             strict = True
-            if targeted:
+            if not targeted:
                 gradient = -gradient
 
             # untargeted: gradient ascent on cross-entropy to original class
             # targeted: gradient descent on cross-entropy to target class
-            x = x + stepsize * gradient
+            x = x + optimizer(gradient)
 
             x = original + self._clip_perturbation(a, x - original, epsilon)
 
@@ -152,6 +162,16 @@ class IterativeProjectedGradientBaseAttack(Attack):
                 else:
                     success = True
         return success
+
+
+class GDOptimizerMixin(object):
+    def _create_optimizer(self, a, stepsize):
+        return GDOptimizer(stepsize)
+
+
+class AdamOptimizerMixin(object):
+    def _create_optimizer(self, a, stepsize):
+        return AdamOptimizer(a.unperturbed.shape, stepsize)
 
 
 class LinfinityGradientMixin(object):
@@ -249,6 +269,7 @@ class LinfinityBasicIterativeAttack(
         LinfinityGradientMixin,
         LinfinityClippingMixin,
         LinfinityDistanceCheckMixin,
+        GDOptimizerMixin,
         IterativeProjectedGradientBaseAttack):
 
     """The Basic Iterative Method introduced in [1]_.
@@ -334,6 +355,7 @@ class L1BasicIterativeAttack(
         L1GradientMixin,
         L1ClippingMixin,
         L1DistanceCheckMixin,
+        GDOptimizerMixin,
         IterativeProjectedGradientBaseAttack):
 
     """Modified version of the Basic Iterative Method
@@ -407,6 +429,7 @@ class L2BasicIterativeAttack(
         L2GradientMixin,
         L2ClippingMixin,
         L2DistanceCheckMixin,
+        GDOptimizerMixin,
         IterativeProjectedGradientBaseAttack):
 
     """Modified version of the Basic Iterative Method
@@ -480,6 +503,7 @@ class ProjectedGradientDescentAttack(
         LinfinityGradientMixin,
         LinfinityClippingMixin,
         LinfinityDistanceCheckMixin,
+        GDOptimizerMixin,
         IterativeProjectedGradientBaseAttack):
 
     """The Projected Gradient Descent Attack
@@ -571,6 +595,7 @@ class RandomStartProjectedGradientDescentAttack(
         LinfinityGradientMixin,
         LinfinityClippingMixin,
         LinfinityDistanceCheckMixin,
+        GDOptimizerMixin,
         IterativeProjectedGradientBaseAttack):
 
     """The Projected Gradient Descent Attack
@@ -654,6 +679,7 @@ RandomPGD = RandomProjectedGradientDescent
 class MomentumIterativeAttack(
         LinfinityClippingMixin,
         LinfinityDistanceCheckMixin,
+        GDOptimizerMixin,
         IterativeProjectedGradientBaseAttack):
 
     """The Momentum Iterative Method attack
@@ -757,3 +783,334 @@ class MomentumIterativeAttack(
 
 
 MomentumIterativeMethod = MomentumIterativeAttack
+
+
+class AdamL1BasicIterativeAttack(
+        L1GradientMixin,
+        L1ClippingMixin,
+        L1DistanceCheckMixin,
+        AdamOptimizerMixin,
+        IterativeProjectedGradientBaseAttack):
+
+    """Modified version of the Basic Iterative Method
+    that minimizes the L1 distance using the Adam optimizer.
+
+    .. seealso:: :class:`LinfinityBasicIterativeAttack`
+
+    """
+
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 binary_search=True,
+                 epsilon=0.3,
+                 stepsize=0.05,
+                 iterations=10,
+                 random_start=False,
+                 return_early=True):
+
+        """Simple iterative gradient-based attack known as
+        Basic Iterative Method, Projected Gradient Descent or FGSM^k.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial input, otherwise returns
+            the Adversarial object.
+        binary_search : bool or int
+            Whether to perform a binary search over epsilon and stepsize,
+            keeping their ratio constant and using their values to start
+            the search. If False, hyperparameters are not optimized.
+            Can also be an integer, specifying the number of binary
+            search steps (default 20).
+        epsilon : float
+            Limit on the perturbation size; if binary_search is True,
+            this value is only for initialization and automatically
+            adapted.
+        stepsize : float
+            Step size for gradient descent; if binary_search is True,
+            this value is only for initialization and automatically
+            adapted.
+        iterations : int
+            Number of iterations for each gradient descent run.
+        random_start : bool
+            Start the attack from a random point rather than from the
+            original input.
+        return_early : bool
+            Whether an individual gradient descent run should stop as
+            soon as an adversarial is found.
+        """
+
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
+        assert epsilon > 0
+
+        self._run(a, binary_search,
+                  epsilon, stepsize, iterations,
+                  random_start, return_early)
+
+
+class AdamL2BasicIterativeAttack(
+        L2GradientMixin,
+        L2ClippingMixin,
+        L2DistanceCheckMixin,
+        AdamOptimizerMixin,
+        IterativeProjectedGradientBaseAttack):
+
+    """Modified version of the Basic Iterative Method
+    that minimizes the L2 distance using the Adam optimizer.
+
+    .. seealso:: :class:`LinfinityBasicIterativeAttack`
+
+    """
+
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 binary_search=True,
+                 epsilon=0.3,
+                 stepsize=0.05,
+                 iterations=10,
+                 random_start=False,
+                 return_early=True):
+
+        """Simple iterative gradient-based attack known as
+        Basic Iterative Method, Projected Gradient Descent or FGSM^k.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial input, otherwise returns
+            the Adversarial object.
+        binary_search : bool or int
+            Whether to perform a binary search over epsilon and stepsize,
+            keeping their ratio constant and using their values to start
+            the search. If False, hyperparameters are not optimized.
+            Can also be an integer, specifying the number of binary
+            search steps (default 20).
+        epsilon : float
+            Limit on the perturbation size; if binary_search is True,
+            this value is only for initialization and automatically
+            adapted.
+        stepsize : float
+            Step size for gradient descent; if binary_search is True,
+            this value is only for initialization and automatically
+            adapted.
+        iterations : int
+            Number of iterations for each gradient descent run.
+        random_start : bool
+            Start the attack from a random point rather than from the
+            original input.
+        return_early : bool
+            Whether an individual gradient descent run should stop as
+            soon as an adversarial is found.
+        """
+
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
+        assert epsilon > 0
+
+        self._run(a, binary_search,
+                  epsilon, stepsize, iterations,
+                  random_start, return_early)
+
+
+class AdamProjectedGradientDescentAttack(
+        LinfinityGradientMixin,
+        LinfinityClippingMixin,
+        LinfinityDistanceCheckMixin,
+        AdamOptimizerMixin,
+        IterativeProjectedGradientBaseAttack):
+
+    """The Projected Gradient Descent Attack
+    introduced in [1]_, [2]_ without random start using the Adam optimizer.
+
+    When used without a random start, this attack
+    is also known as Basic Iterative Method (BIM)
+    or FGSM^k.
+
+    References
+    ----------
+    .. [1] Aleksander Madry, Aleksandar Makelov, Ludwig Schmidt,
+           Dimitris Tsipras, Adrian Vladu, "Towards Deep Learning
+           Models Resistant to Adversarial Attacks",
+           https://arxiv.org/abs/1706.06083
+
+    .. [2] Nicholas Carlini, David Wagner: "Towards Evaluating the
+           Robustness of Neural Networks", https://arxiv.org/abs/1608.04644
+
+    .. seealso::
+
+       :class:`LinfinityBasicIterativeAttack` and
+       :class:`RandomStartProjectedGradientDescentAttack`
+
+    """
+
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 binary_search=True,
+                 epsilon=0.3,
+                 stepsize=0.01,
+                 iterations=40,
+                 random_start=False,
+                 return_early=True):
+
+        """Simple iterative gradient-based attack known as
+        Basic Iterative Method, Projected Gradient Descent or FGSM^k.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial input, otherwise returns
+            the Adversarial object.
+        binary_search : bool or int
+            Whether to perform a binary search over epsilon and stepsize,
+            keeping their ratio constant and using their values to start
+            the search. If False, hyperparameters are not optimized.
+            Can also be an integer, specifying the number of binary
+            search steps (default 20).
+        epsilon : float
+            Limit on the perturbation size; if binary_search is True,
+            this value is only for initialization and automatically
+            adapted.
+        stepsize : float
+            Step size for gradient descent; if binary_search is True,
+            this value is only for initialization and automatically
+            adapted.
+        iterations : int
+            Number of iterations for each gradient descent run.
+        random_start : bool
+            Start the attack from a random point rather than from the
+            original input.
+        return_early : bool
+            Whether an individual gradient descent run should stop as
+            soon as an adversarial is found.
+        """
+
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
+        assert epsilon > 0
+
+        self._run(a, binary_search,
+                  epsilon, stepsize, iterations,
+                  random_start, return_early)
+
+
+AdamProjectedGradientDescent = AdamProjectedGradientDescentAttack
+AdamPGD = AdamProjectedGradientDescent
+
+
+class AdamRandomStartProjectedGradientDescentAttack(
+        LinfinityGradientMixin,
+        LinfinityClippingMixin,
+        LinfinityDistanceCheckMixin,
+        AdamOptimizerMixin,
+        IterativeProjectedGradientBaseAttack):
+
+    """The Projected Gradient Descent Attack
+    introduced in [1]_, [2]_ with random start using the Adam optimizer.
+
+    References
+    ----------
+    .. [1] Aleksander Madry, Aleksandar Makelov, Ludwig Schmidt,
+           Dimitris Tsipras, Adrian Vladu, "Towards Deep Learning
+           Models Resistant to Adversarial Attacks",
+           https://arxiv.org/abs/1706.06083
+
+    .. [2] Nicholas Carlini, David Wagner: "Towards Evaluating the
+           Robustness of Neural Networks", https://arxiv.org/abs/1608.04644
+
+    .. seealso:: :class:`ProjectedGradientDescentAttack`
+
+    """
+
+    @call_decorator
+    def __call__(self, input_or_adv, label=None, unpack=True,
+                 binary_search=True,
+                 epsilon=0.3,
+                 stepsize=0.01,
+                 iterations=40,
+                 random_start=True,
+                 return_early=True):
+
+        """Simple iterative gradient-based attack known as
+        Basic Iterative Method, Projected Gradient Descent or FGSM^k.
+
+        Parameters
+        ----------
+        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
+            The original, unperturbed input as a `numpy.ndarray` or
+            an :class:`Adversarial` instance.
+        label : int
+            The reference label of the original input. Must be passed
+            if `a` is a `numpy.ndarray`, must not be passed if `a` is
+            an :class:`Adversarial` instance.
+        unpack : bool
+            If true, returns the adversarial input, otherwise returns
+            the Adversarial object.
+        binary_search : bool or int
+            Whether to perform a binary search over epsilon and stepsize,
+            keeping their ratio constant and using their values to start
+            the search. If False, hyperparameters are not optimized.
+            Can also be an integer, specifying the number of binary
+            search steps (default 20).
+        epsilon : float
+            Limit on the perturbation size; if binary_search is True,
+            this value is only for initialization and automatically
+            adapted.
+        stepsize : float
+            Step size for gradient descent; if binary_search is True,
+            this value is only for initialization and automatically
+            adapted.
+        iterations : int
+            Number of iterations for each gradient descent run.
+        random_start : bool
+            Start the attack from a random point rather than from the
+            original input.
+        return_early : bool
+            Whether an individual gradient descent run should stop as
+            soon as an adversarial is found.
+        """
+
+        a = input_or_adv
+        del input_or_adv
+        del label
+        del unpack
+
+        assert epsilon > 0
+
+        self._run(a, binary_search,
+                  epsilon, stepsize, iterations,
+                  random_start, return_early)
+
+
+AdamRandomProjectedGradientDescent = AdamRandomStartProjectedGradientDescentAttack  # noqa: E501
+AdamRandomPGD = AdamRandomProjectedGradientDescent
