@@ -30,3 +30,4 @@ from .iterative_projected_gradient import RandomStartProjectedGradientDescentAtt
 from .iterative_projected_gradient import MomentumIterativeAttack, MomentumIterativeMethod
 
 from .inversion import InversionAttack
+from .binarization import BinarizationRefinementAttack

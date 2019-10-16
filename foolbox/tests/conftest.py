@@ -36,7 +36,7 @@ from foolbox.criteria import TargetClass
 from foolbox.criteria import OriginalClassProbability
 from foolbox.models import TensorFlowModel
 from foolbox.models import PyTorchModel
-from foolbox.models import CaffeModel
+# from foolbox.models import CaffeModel
 from foolbox.models import ModelWithoutGradients
 from foolbox.models import ModelWithEstimatedGradients
 from foolbox import Adversarial
@@ -564,3 +564,13 @@ def binarized2_bn_label(bn_image):
     assert mean.shape == (10,)
     label = np.argmax(mean)
     return label
+
+
+@pytest.fixture
+def binarized2_bn_labels(bn_images):
+    images = bn_images
+    images = binarize(images, (1, 2), included_in='lower')
+    means = np.mean(images, axis=(1, 2))
+    assert means.shape == (len(images), 10)
+    labels = np.argmax(means, -1)
+    return labels
