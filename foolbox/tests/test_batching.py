@@ -23,6 +23,7 @@ def test_run_parallel_invalid_arguments(bn_model, bn_criterion, bn_images,
     labels_wrong = bn_labels[[0]]
     criteria_wrong = [bn_criterion] * (len(bn_images) + 1)
     distances_wrong = [MSE] * (len(bn_images) + 1)
+    attack_kwargs_wrong = [{'max_epsilon': 1}] * (len(bn_images) + 1)
 
     # test too few labels
     with pytest.raises(AssertionError):
@@ -38,6 +39,11 @@ def test_run_parallel_invalid_arguments(bn_model, bn_criterion, bn_images,
     with pytest.raises(AssertionError):
         run_parallel(Attack, bn_model, bn_criterion, bn_images,
                      bn_labels, distance=distances_wrong)
+
+    # test too many kwargs
+    with pytest.raises(AssertionError):
+        run_parallel(Attack, bn_model, bn_criterion, bn_images,
+                     bn_labels, attack_kwargs=attack_kwargs_wrong)
 
 
 def test_run_sequential(bn_model, bn_criterion, bn_images, bn_labels):
@@ -55,6 +61,7 @@ def test_run_sequential_invalid_arguments(bn_model, bn_criterion, bn_images,
     labels_wrong = bn_labels[[0]]
     criteria_wrong = [bn_criterion] * (len(bn_images) + 1)
     distances_wrong = [MSE] * (len(bn_images) + 1)
+    attack_kwargs_wrong = [{'max_epsilon': 1}] * (len(bn_images) + 1)
 
     # test too few labels
     with pytest.raises(AssertionError):
@@ -70,3 +77,8 @@ def test_run_sequential_invalid_arguments(bn_model, bn_criterion, bn_images,
     with pytest.raises(AssertionError):
         run_sequential(Attack, bn_model, bn_criterion, bn_images,
                        bn_labels, distance=distances_wrong)
+
+    # test too many kwargs
+    with pytest.raises(AssertionError):
+        run_sequential(Attack, bn_model, bn_criterion, bn_images,
+                       bn_labels, attack_kwargs=attack_kwargs_wrong)

@@ -41,6 +41,6 @@ Decision-based attacks
    :members:
    :special-members:
 
-.. autoclass:: BoundaryAttackPlusPlus
+.. autoclass:: HopSkipJumpAttack
    :members:
    :special-members:

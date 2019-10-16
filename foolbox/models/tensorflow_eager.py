@@ -99,6 +99,31 @@ class TensorFlowEagerModel(DifferentiableModel):
 
         return predictions, grad
 
+    def forward_and_gradient(self, inputs, labels):
+        import tensorflow as tf
+        inputs_shape = inputs.shape
+        inputs, dpdx = self._process_input(inputs)
+        inputs = tf.constant(inputs)
+        labels = tf.constant(labels)
+
+        with tf.GradientTape() as tape:
+            tape.watch(inputs)
+            predictions = self._model(inputs)
+            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
+                labels=labels, logits=predictions)
+
+        grad = tape.gradient(loss, inputs)
+
+        predictions = predictions.numpy()
+        assert predictions.ndim == 2
+        assert predictions.shape == (len(inputs), self.num_classes())
+
+        grad = grad.numpy()
+        grad = self._process_gradient(dpdx, grad)
+        assert grad.shape == inputs_shape
+
+        return predictions, grad
+
     def gradient(self, inputs, labels):
         import tensorflow as tf
         input_shape = inputs.shape
@@ -121,9 +146,15 @@ class TensorFlowEagerModel(DifferentiableModel):
     def _loss_fn(self, x, label):
         import tensorflow as tf
         x, _ = self._process_input(x)
-        inputs = x[np.newaxis]
-        inputs = tf.constant(inputs)
-        target = tf.constant([label])
+        labels = np.asarray(label)
+
+        if len(labels.shape) == 0:
+            # add batch dimension
+            labels = labels[np.newaxis]
+            x = x[np.newaxis]
+
+        inputs = tf.constant(x)
+        target = tf.constant(labels)
 
         predictions = self._model(inputs)
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(

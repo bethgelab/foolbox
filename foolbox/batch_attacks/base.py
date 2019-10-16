@@ -31,7 +31,8 @@ class BatchAttack(Attack):
 
         create_attack_fn = self.__class__
         advs = run_parallel(create_attack_fn, model, criterion, inputs, labels,
-                            distance=distance, threshold=threshold, **kwargs)
+                            distance=distance, threshold=threshold,
+                            attack_kwargs=kwargs)
 
         if unpack:
             advs = [a.perturbed for a in advs]
@@ -58,7 +59,7 @@ def generator_decorator(generator):
                 assert _ is None, 'decorated __call__ method must return None'
             except StopAttack:
                 # if a threshold is specified, StopAttack will be thrown
-                # when the treshold is reached; thus we can do early
+                # when the threshold is reached; thus we can do early
                 # stopping of the attack
                 logging.info('threshold reached, stopping attack')
 

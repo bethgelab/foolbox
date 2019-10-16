@@ -31,6 +31,14 @@
    RandomStartProjectedGradientDescentAttack
    RandomProjectedGradientDescent
    RandomPGD
+   AdamL1BasicIterativeAttack
+   AdamL2BasicIterativeAttack
+   AdamProjectedGradientDescentAttack
+   AdamProjectedGradientDescent
+   AdamPGD
+   AdamRandomStartProjectedGradientDescentAttack
+   AdamRandomProjectedGradientDescent
+   AdamRandomPGD
    MomentumIterativeAttack
    MomentumIterativeMethod
    LBFGSAttack
@@ -73,7 +81,7 @@
    AdditiveGaussianNoiseAttack
    SaltAndPepperNoiseAttack
    BlendedUniformNoiseAttack
-   BoundaryAttackPlusPlus
+   HopSkipJumpAttack
 
 
 .. rubric:: :doc:`attacks/other`
@@ -83,3 +91,4 @@
 
    BinarizationRefinementAttack
    PrecomputedAdversarialsAttack
+   InversionAttack
