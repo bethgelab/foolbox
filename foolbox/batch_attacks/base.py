@@ -31,7 +31,8 @@ class BatchAttack(Attack):
 
         create_attack_fn = self.__class__
         advs = run_parallel(create_attack_fn, model, criterion, inputs, labels,
-                            distance=distance, threshold=threshold, **kwargs)
+                            distance=distance, threshold=threshold,
+                            attack_kwargs=kwargs)
 
         if unpack:
             advs = [a.perturbed for a in advs]
