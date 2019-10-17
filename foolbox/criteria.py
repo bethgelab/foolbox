@@ -44,7 +44,6 @@ Criteria can be combined to create a new criterion:
 >>> criterion5 = criterion2 & criterion3
 
 """
-import sys
 import abc
 from abc import abstractmethod
 import numpy as np

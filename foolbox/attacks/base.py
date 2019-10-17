@@ -1,7 +1,6 @@
 import warnings
 import logging
 import functools
-import sys
 import abc
 from abc import abstractmethod
 

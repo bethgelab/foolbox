@@ -37,7 +37,6 @@ implement the :meth:`_calculate` method.
 
 """
 from __future__ import division
-import sys
 import abc
 from abc import abstractmethod
 import functools
