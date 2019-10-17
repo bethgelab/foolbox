@@ -43,6 +43,10 @@ Gradient-based attacks
    :members:
    :special-members:
 
+.. autoclass:: PGD
+   :members:
+   :special-members:
+
 .. autoclass:: RandomStartProjectedGradientDescentAttack
    :members:
    :special-members:
@@ -52,6 +56,38 @@ Gradient-based attacks
    :special-members:
 
 .. autoclass:: RandomPGD
+   :members:
+   :special-members:
+
+.. autoclass:: AdamL1BasicIterativeAttack
+   :members:
+   :special-members:
+
+.. autoclass:: AdamL2BasicIterativeAttack
+   :members:
+   :special-members:
+
+.. autoclass:: AdamProjectedGradientDescentAttack
+   :members:
+   :special-members:
+
+.. autoclass:: AdamProjectedGradientDescent
+   :members:
+   :special-members:
+
+.. autoclass:: AdamPGD
+   :members:
+   :special-members:
+
+.. autoclass:: AdamRandomStartProjectedGradientDescentAttack
+   :members:
+   :special-members:
+
+.. autoclass:: AdamRandomProjectedGradientDescent
+   :members:
+   :special-members:
+
+.. autoclass:: AdamRandomPGD
    :members:
    :special-members:
 
@@ -123,3 +159,6 @@ Gradient-based attacks
    :members:
    :special-members:
 
+.. autoclass:: VirtualAdversarialAttack
+   :members:
+   :special-members:
