@@ -526,7 +526,7 @@ class SparseL1BasicIterativeAttack(
 
         assert epsilon > 0
 
-        assert 1.0 <= q <= 99.0, '`q` must be in [0, 100).'
+        assert 0 <= q < 100.0, '`q` must be in [0, 100).'
 
         yield from self._run(a, binary_search,
                              epsilon, stepsize, iterations,
