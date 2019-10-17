@@ -23,7 +23,7 @@ from .spatial import SpatialAttack
 from .carlini_wagner import CarliniWagnerL2Attack
 from .ead import EADAttack
 from .decoupled_direction_norm import DecoupledDirectionNormL2Attack
-from .bapp import BoundaryAttackPlusPlus
+from .hop_skip_jump_attack import HopSkipJumpAttack, BoundaryAttackPlusPlus
 from .sparsefool import SparseFoolAttack
 
 from .iterative_projected_gradient import LinfinityBasicIterativeAttack, BasicIterativeMethod, BIM
@@ -32,4 +32,9 @@ from .iterative_projected_gradient import L2BasicIterativeAttack
 from .iterative_projected_gradient import ProjectedGradientDescentAttack, ProjectedGradientDescent, PGD
 from .iterative_projected_gradient import RandomStartProjectedGradientDescentAttack, RandomProjectedGradientDescent, RandomPGD
 from .iterative_projected_gradient import MomentumIterativeAttack, MomentumIterativeMethod
+
+from .iterative_projected_gradient import AdamL1BasicIterativeAttack
+from .iterative_projected_gradient import AdamL2BasicIterativeAttack
+from .iterative_projected_gradient import AdamProjectedGradientDescentAttack, AdamProjectedGradientDescent, AdamPGD
+from .iterative_projected_gradient import AdamRandomStartProjectedGradientDescentAttack, AdamRandomProjectedGradientDescent, AdamRandomPGD
 

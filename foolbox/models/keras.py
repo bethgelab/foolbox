@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 
 import numpy as np
 import logging
@@ -111,6 +110,16 @@ class KerasModel(DifferentiableModel):
         gradient = self._process_gradient(dpdx, gradient)
         assert predictions.shape == (self.num_classes(),)
         assert gradient.shape == input_shape
+        return predictions, gradient
+
+    def forward_and_gradient(self, inputs, labels):
+        inputs_shape = inputs.shape
+        inputs, dpdx = self._process_input(inputs)
+        labels = np.asarray(labels)
+        predictions, gradient = self._forward_and_gradient_fn([inputs, labels])
+        gradient = self._process_gradient(dpdx, gradient)
+        assert predictions.shape == (len(inputs), self.num_classes())
+        assert gradient.shape == inputs_shape
         return predictions, gradient
 
     def gradient(self, inputs, labels):

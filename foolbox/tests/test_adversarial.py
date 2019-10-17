@@ -4,12 +4,7 @@ from foolbox import Adversarial
 from foolbox.distances import MSE
 import foolbox
 
-import sys
-if sys.version_info > (3, 2):
-    from unittest.mock import Mock
-else:
-    # for Python2.7 compatibility
-    from mock import Mock
+from unittest.mock import Mock
 
 
 # def test_adversarial(bn_model, bn_criterion, bn_image, bn_label):
@@ -97,6 +92,13 @@ def test_adversarial(model, criterion, image, label):
     assert (predictions == first_predictions).all()
     assert gradient.shape == image.shape
     assert is_adversarial
+
+    images = image[np.newaxis]
+    predictions, gradient, is_adversarial, _, _ = adversarial.forward_and_gradient(
+        images, [label], return_details=True)
+    assert (predictions == first_predictions).all()
+    assert gradient.shape == images.shape
+    assert is_adversarial[0]
 
     predictions, gradient, is_adversarial = adversarial.forward_and_gradient_one()
     assert (predictions == first_predictions).all()

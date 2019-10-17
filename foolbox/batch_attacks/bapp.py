@@ -1,18 +1,17 @@
-from __future__ import print_function
-from __future__ import division
+
 
 import warnings
 import time
 import sys
 
-from .base import Attack
-from .base import call_decorator
+from .base import BatchAttack
+from .base import generator_decorator
 from ..distances import MSE, Linf
 import numpy as np
 import math
 
 
-class BoundaryAttackPlusPlus(Attack):
+class BoundaryAttackPlusPlus(BatchAttack):
     """A powerful adversarial attack that requires neither gradients
     nor probabilities.
 
@@ -38,22 +37,18 @@ class BoundaryAttackPlusPlus(Attack):
 
     """
 
-    @call_decorator
-    def __call__(
-            self,
-            input_or_adv,
-            label=None,
-            unpack=True,
-            iterations=64,
-            initial_num_evals=100,
-            max_num_evals=10000,
-            stepsize_search='grid_search',
-            gamma=0.01,
-            starting_point=None,
-            batch_size=256,
-            internal_dtype=np.float64,
-            log_every_n_steps=1,
-            verbose=False):
+    @generator_decorator
+    def as_generator(self, a,
+                     iterations=64,
+                     initial_num_evals=100,
+                     max_num_evals=10000,
+                     stepsize_search='grid_search',
+                     gamma=0.01,
+                     starting_point=None,
+                     batch_size=256,
+                     internal_dtype=np.float64,
+                     log_every_n_steps=1,
+                     verbose=False):
         """Applies Boundary Attack++.
 
         Parameters
@@ -120,7 +115,7 @@ class BoundaryAttackPlusPlus(Attack):
             self.constraint = 'linf'
 
         # Set binary search threshold.
-        self.shape = input_or_adv.unperturbed.shape
+        self.shape = a.unperturbed.shape
         self.d = np.prod(self.shape)
         if self.constraint == 'l2':
             self.theta = self.gamma / np.sqrt(self.d)
@@ -132,8 +127,8 @@ class BoundaryAttackPlusPlus(Attack):
         if not verbose:
             print('run with verbose=True to see details')
 
-        return self.attack(
-            input_or_adv,
+        yield from self.attack(
+            a,
             iterations=iterations)
 
     def attack(
@@ -172,7 +167,7 @@ class BoundaryAttackPlusPlus(Attack):
                 current_batch = x[self.batch_size * j:
                                   self.batch_size * (j + 1)]
                 current_batch = current_batch.astype(self.external_dtype)
-                out = a.forward(current_batch, strict=False)[1]
+                _, out = yield from a.forward(current_batch, strict=False)
                 outs.append(out)
             outs = np.concatenate(outs, axis=0)
             return outs
@@ -201,7 +196,7 @@ class BoundaryAttackPlusPlus(Attack):
         # Find starting point
         # ===========================================================
 
-        self.initialize_starting_point(a)
+        yield from self.initialize_starting_point(a)
 
         if a.perturbed is None:
             warnings.warn(
@@ -223,7 +218,7 @@ class BoundaryAttackPlusPlus(Attack):
         t0 = time.time()
 
         # Project the initialization to the boundary.
-        perturbed, dist_post_update = self.binary_search_batch(
+        perturbed, dist_post_update = yield from self.binary_search_batch(
             original, np.expand_dims(perturbed, 0), decision_function)
 
         dist = self.compute_distance(perturbed, original)
@@ -249,8 +244,9 @@ class BoundaryAttackPlusPlus(Attack):
                                  self.max_num_evals]))
 
             # approximate gradient.
-            gradf = self.approximate_gradient(decision_function, perturbed,
-                                              num_evals, delta)
+            gradf = yield from self.approximate_gradient(decision_function,
+                                                         perturbed, num_evals,
+                                                         delta)
 
             if self.constraint == 'linf':
                 update = np.sign(gradf)
@@ -264,14 +260,15 @@ class BoundaryAttackPlusPlus(Attack):
             # ===========================================================
             if self.stepsize_search == 'geometric_progression':
                 # find step size.
-                epsilon = self.geometric_progression_for_stepsize(
+                epsilon = yield from self.geometric_progression_for_stepsize(
                     perturbed, update, dist, decision_function, step)
 
                 # Update the sample.
-                perturbed = np.clip(perturbed + epsilon * update, self.clip_min, self.clip_max)
+                perturbed = np.clip(perturbed + epsilon * update, self.clip_min,
+                                    self.clip_max)
 
                 # Binary search to return to the boundary.
-                perturbed, dist_post_update = self.binary_search_batch(
+                perturbed, dist_post_update = yield from self.binary_search_batch(
                     original, perturbed[None], decision_function)
 
             elif self.stepsize_search == 'grid_search':
@@ -281,12 +278,12 @@ class BoundaryAttackPlusPlus(Attack):
                 perturbeds = perturbed + epsilons.reshape(
                     epsilons_shape) * update
                 perturbeds = np.clip(perturbeds, self.clip_min, self.clip_max)
-                idx_perturbed = decision_function(perturbeds)
+                idx_perturbed = yield from decision_function(perturbeds)
 
                 if np.sum(idx_perturbed) > 0:
                     # Select the perturbation that yields the minimum
                     # distance after binary search.
-                    perturbed, dist_post_update = self.binary_search_batch(
+                    perturbed, dist_post_update = yield from self.binary_search_batch(
                         original, perturbeds[idx_perturbed],
                         decision_function)
             t2 = time.time()
@@ -335,9 +332,10 @@ class BoundaryAttackPlusPlus(Attack):
             return
 
         if starting_point is not None:
-            a.forward_one(starting_point)
+            yield from a.forward_one(starting_point)
             assert a.perturbed is not None, (
-                'Invalid starting point provided. Please provide a starting point that is adversarial.')
+                'Invalid starting point provided. Please provide a starting '
+                'point that is adversarial.')
             return
 
         """
@@ -351,7 +349,7 @@ class BoundaryAttackPlusPlus(Attack):
         while True:
             random_noise = np.random.uniform(self.clip_min, self.clip_max,
                                              size=self.shape)
-            _, success = a.forward_one(
+            _, success = yield from a.forward_one(
                 random_noise.astype(self.external_dtype))
             num_evals += 1
             if success:
@@ -365,7 +363,8 @@ class BoundaryAttackPlusPlus(Attack):
         while high - low > 0.001:
             mid = (high + low) / 2.0
             blended = (1 - mid) * a.unperturbed + mid * random_noise
-            _, success = a.forward_one(blended.astype(self.external_dtype))
+            _, success = yield from a.forward_one(blended.astype(
+                self.external_dtype))
             if success:
                 high = mid
             else:
@@ -385,7 +384,8 @@ class BoundaryAttackPlusPlus(Attack):
             projected = (1 - alphas) * unperturbed + \
                 alphas * perturbed_inputs
         elif self.constraint == 'linf':
-            projected = np.clip(perturbed_inputs, unperturbed - alphas, unperturbed + alphas)
+            projected = np.clip(perturbed_inputs, unperturbed - alphas,
+                                unperturbed + alphas)
         return projected
 
     def binary_search_batch(self, unperturbed, perturbed_inputs,
@@ -418,7 +418,7 @@ class BoundaryAttackPlusPlus(Attack):
                                       mids)
 
             # Update highs and lows based on model decisions.
-            decisions = decision_function(mid_inputs)
+            decisions = yield from decision_function(mid_inputs)
             lows = np.where(decisions == 0, mids, lows)
             highs = np.where(decisions == 1, mids, highs)
 
@@ -471,7 +471,7 @@ class BoundaryAttackPlusPlus(Attack):
         rv = (perturbed - sample) / delta
 
         # query the model.
-        decisions = decision_function(perturbed)
+        decisions = yield from decision_function(perturbed)
         decision_shape = [len(decisions)] + [1] * len(self.shape)
         fval = 2 * decisions.astype(self.internal_dtype).reshape(
             decision_shape) - 1.0
@@ -494,8 +494,10 @@ class BoundaryAttackPlusPlus(Attack):
         """
         epsilon = dist / np.sqrt(current_iteration)
         while True:
-            updated = np.clip(x + epsilon * update, self.clip_min, self.clip_max)
-            success = decision_function(updated[None])[0]
+            updated = np.clip(x + epsilon * update, self.clip_min,
+                              self.clip_max)
+            out = yield from decision_function(updated[None])
+            success = out[0]
             if success:
                 break
             else:

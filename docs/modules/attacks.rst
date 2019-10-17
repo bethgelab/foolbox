@@ -31,6 +31,14 @@
    RandomStartProjectedGradientDescentAttack
    RandomProjectedGradientDescent
    RandomPGD
+   AdamL1BasicIterativeAttack
+   AdamL2BasicIterativeAttack
+   AdamProjectedGradientDescentAttack
+   AdamProjectedGradientDescent
+   AdamPGD
+   AdamRandomStartProjectedGradientDescentAttack
+   AdamRandomProjectedGradientDescent
+   AdamRandomPGD
    MomentumIterativeAttack
    MomentumIterativeMethod
    LBFGSAttack
@@ -47,7 +55,8 @@
    EADAttack
    DecoupledDirectionNormL2Attack
    SparseFoolAttack
-
+   SparseL1BasicIterativeAttack
+   VirtualAdversarialAttack
 
 .. rubric:: :doc:`attacks/score`
 
@@ -75,6 +84,7 @@
    BlendedUniformNoiseAttack
    BoundaryAttackPlusPlus
    GenAttack
+   HopSkipJumpAttack
 
 
 .. rubric:: :doc:`attacks/other`
@@ -84,3 +94,4 @@
 
    BinarizationRefinementAttack
    PrecomputedAdversarialsAttack
+   InversionAttack

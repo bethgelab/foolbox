@@ -35,6 +35,10 @@ def test_diff_wrapper(bn_model, bn_image, bn_label):
                   model2.forward_and_gradient_one(x, la)[0])
     assert np.all(model1.forward_and_gradient_one(x, la)[1] ==
                   model2.forward_and_gradient_one(x, la)[1])
+    assert np.all(model1.forward_and_gradient(np.array([x]), [la])[0] ==
+                  model2.forward_and_gradient(np.array([x]), [la])[0])
+    assert np.all(model1.forward_and_gradient(np.array([x]), [la])[1] ==
+                  model2.forward_and_gradient(np.array([x]), [la])[1])
     g = model1.forward_one(x)
     assert np.all(model1.backward_one(g, x) == model2.backward_one(g, x))
 
@@ -60,6 +64,12 @@ def test_composite_model(gl_bn_model, bn_model, bn_image, bn_label):
         assert np.all(
             bn_model.forward_and_gradient_one(bn_image, bn_label)[1] ==
             model.forward_and_gradient_one(bn_image, bn_label)[1])
+        assert np.all(
+            bn_model.forward_and_gradient(np.array([bn_image]), [bn_label])[0] ==
+            model.forward_and_gradient(np.array([bn_image]), [bn_label])[0])
+        assert np.all(
+            bn_model.forward_and_gradient(np.array([bn_image]), [bn_label])[1] ==
+            model.forward_and_gradient(np.array([bn_image]), [bn_label])[1])
 
 
 def test_estimate_gradient_wrapper(eg_bn_adversarial, bn_image):
@@ -68,6 +78,10 @@ def test_estimate_gradient_wrapper(eg_bn_adversarial, bn_image):
     g = eg_bn_adversarial.gradient_one(bn_image)
     set_seeds(22)
     p2, g2, ia2 = eg_bn_adversarial.forward_and_gradient_one(bn_image)
-    assert np.all(p == p2)
-    assert np.all(g == g2)
-    assert ia == ia2
+    set_seeds(22)
+    p3, g3, ia3 = eg_bn_adversarial.forward_and_gradient(np.array([bn_image]))
+    p3, g3, ia3 = p3[0], g3[0], ia3[0]
+
+    assert np.all(p == p2) and np.all(p == p3)
+    assert np.all(g == g2) and np.all(g == g3)
+    assert ia == ia2 == ia3

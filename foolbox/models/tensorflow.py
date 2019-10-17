@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 
 import numpy as np
 import logging
@@ -61,7 +60,8 @@ class TensorFlowModel(DifferentiableModel):
             labels = tf.placeholder(tf.int64, (None,), name='labels')
             self._labels = labels
 
-            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels, logits=logits)
+            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels,
+                                                                  logits=logits)
             loss = tf.reduce_sum(loss)
             self._loss = loss
 
@@ -138,9 +138,19 @@ class TensorFlowModel(DifferentiableModel):
         x, dpdx = self._process_input(x)
         predictions, gradient = self._session.run(
             [self._logits, self._gradient],
-            feed_dict={self._inputs: x[np.newaxis], self._labels: np.asarray(label)[np.newaxis]})
+            feed_dict={self._inputs: x[np.newaxis],
+                       self._labels: np.asarray(label)[np.newaxis]})
         predictions = np.squeeze(predictions, axis=0)
         gradient = np.squeeze(gradient, axis=0)
+        gradient = self._process_gradient(dpdx, gradient)
+        return predictions, gradient
+
+    def forward_and_gradient(self, inputs, labels):
+        inputs, dpdx = self._process_input(inputs)
+        predictions, gradient = self._session.run(
+            [self._logits, self._gradient],
+            feed_dict={self._inputs: inputs,
+                       self._labels: labels})
         gradient = self._process_gradient(dpdx, gradient)
         return predictions, gradient
 
@@ -156,11 +166,20 @@ class TensorFlowModel(DifferentiableModel):
 
     def _loss_fn(self, x, label):
         x, dpdx = self._process_input(x)
+        labels = np.asarray(label)
+
+        if len(labels.shape) == 0:
+            # add batch dimension
+            labels = labels[np.newaxis]
+            x = x[np.newaxis]
+
+        print(x.shape, labels.shape)
+
         loss = self._session.run(
             self._loss,
             feed_dict={
-                self._inputs: x[np.newaxis],
-                self._labels: np.asarray(label)[np.newaxis]})
+                self._inputs: x,
+                self._labels: labels})
         return loss
 
     def backward(self, gradient, inputs):

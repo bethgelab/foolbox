@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 
 import numpy as np
 from .base import Model
@@ -58,6 +57,9 @@ class DifferentiableModelWrapper(ModelWrapper, DifferentiableModel):
     def forward_and_gradient_one(self, x, label):
         return self.wrapped_model.forward_and_gradient_one(x, label)
 
+    def forward_and_gradient(self, x, label):
+        return self.wrapped_model.forward_and_gradient(x, label)
+
     def gradient(self, inputs, labels):
         return self.wrapped_model.gradient(inputs, labels)
 
@@ -97,6 +99,11 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
         predictions = self.forward_one(x)
         gradient = self.gradient_one(x, label)
         return predictions, gradient
+
+    def forward_and_gradient(self, inputs, labels):
+        predictions = self.forward(inputs)
+        gradients = self.gradient(inputs, labels)
+        return predictions, gradients
 
     def _gradient_one(self, x, label):
         pred_fn = self.forward
@@ -153,6 +160,11 @@ class CompositeModel(DifferentiableModel):
         predictions = self.forward_model.forward_one(x)
         gradient = self.backward_model.gradient_one(x, label)
         return predictions, gradient
+
+    def forward_and_gradient(self, inputs, labels):
+        predictions = self.forward_model.forward(inputs)
+        gradients = self.backward_model.gradient(inputs, labels)
+        return predictions, gradients
 
     def gradient(self, inputs, labels):
         return self.backward_model.gradient(inputs, labels)

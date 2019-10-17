@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 
 from .base import DifferentiableModel
 
@@ -77,6 +76,21 @@ class MXNetGluonModel(DifferentiableModel):
         gradient = self._process_gradient(dpdx, gradient)
         return predictions, gradient
 
+    def forward_and_gradient(self, inputs, labels):
+        import mxnet as mx
+        inputs, dpdx = self._process_input(inputs)
+        labels = mx.nd.array(labels, ctx=self._device)
+        data_array = mx.nd.array(inputs, ctx=self._device)
+        data_array.attach_grad()
+        with mx.autograd.record(train_mode=False):
+            logits = self._block(data_array)
+            loss = mx.nd.softmax_cross_entropy(logits, labels)
+        loss.backward(train_mode=False)
+        predictions = logits.asnumpy()
+        gradient = data_array.grad.asnumpy()
+        gradient = self._process_gradient(dpdx, gradient)
+        return predictions, gradient
+
     def gradient(self, inputs, labels):
         import mxnet as mx
         inputs, dpdx = self._process_input(inputs)
@@ -94,8 +108,16 @@ class MXNetGluonModel(DifferentiableModel):
     def _loss_fn(self, x, label):
         import mxnet as mx
         x, _ = self._process_input(x)
-        label = mx.nd.array([label], ctx=self._device)
-        data_array = mx.nd.array(x[np.newaxis], ctx=self._device)
+
+        label = np.array(label)
+
+        if len(label.shape) == 0:
+            # add batch dimension
+            label = label[np.newaxis]
+            x = x[np.newaxis]
+
+        label = mx.nd.array(label, ctx=self._device)
+        data_array = mx.nd.array(x, ctx=self._device)
         data_array.attach_grad()
         with mx.autograd.record(train_mode=False):
             logits = self._block(data_array)

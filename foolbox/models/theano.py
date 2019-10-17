@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 
 import warnings
 import numpy as np
@@ -77,7 +76,8 @@ class TheanoModel(DifferentiableModel):
         input_shape = x.shape
         x, dpdx = self._process_input(x)
         label = np.array(label, dtype=np.int32)
-        predictions, gradient = self._forward_and_gradient_fn(x[np.newaxis], label[np.newaxis])
+        predictions, gradient = self._forward_and_gradient_fn(x[np.newaxis],
+                                                              label[np.newaxis])
         gradient = gradient.astype(x.dtype)
         predictions = np.squeeze(predictions, axis=0)
         gradient = np.squeeze(gradient, axis=0)
@@ -85,6 +85,18 @@ class TheanoModel(DifferentiableModel):
         assert predictions.shape == (self.num_classes(),)
         assert gradient.shape == input_shape
         assert gradient.dtype == x.dtype
+        return predictions, gradient
+
+    def forward_and_gradient(self, inputs, labels):
+        inputs_shape = inputs.shape
+        inputs, dpdx = self._process_input(inputs)
+        labels = np.array(labels, dtype=np.int32)
+        predictions, gradient = self._forward_and_gradient_fn(inputs, labels)
+        gradient = gradient.astype(inputs.dtype)
+        gradient = self._process_gradient(dpdx, gradient)
+        assert predictions.shape == (len(inputs), self.num_classes())
+        assert gradient.shape == inputs_shape
+        assert gradient.dtype == inputs.dtype
         return predictions, gradient
 
     def _gradient_one(self, x, label):

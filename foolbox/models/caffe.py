@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 
 import numpy as np
 import warnings
@@ -60,6 +59,23 @@ class CaffeModel(DifferentiableModel):  # pragma: no cover
 
         return predictions, grad
 
+    def forward_and_gradient(self, inputs, labels):
+        inputs_shape = inputs.shape
+
+        inputs, dpdx = self._process_input(inputs)
+        self.net.blobs[self.data_blob_name].data[:] = inputs
+        self.net.blobs[self.label_blob_name].data[:] = labels
+
+        self.net.forward()
+        predictions = self.net.blobs[self.output_blob_name].data
+
+        grad_data = self.net.backward(diffs=[self.data_blob_name])
+        grad = grad_data[self.data_blob_name]
+        grad = self._process_gradient(dpdx, grad)
+        assert grad.shape == inputs_shape
+
+        return predictions, grad
+
     def gradient(self, inputs, labels):
         if inputs.shape[0] == labels.shape[0] == 1:
             _, g = self.forward_and_gradient_one(inputs[0], labels[0])
@@ -67,8 +83,15 @@ class CaffeModel(DifferentiableModel):  # pragma: no cover
         raise NotImplementedError
 
     def _loss_fn(self, x, label):
-        logits = self.forward(x[None])
-        return utils.batch_crossentropy([label], logits)
+        label = np.array(label)
+
+        if len(label.shape) == 0:
+            # add batch dimension
+            label = label[np.newaxis]
+            x = x[np.newaxis]
+
+        logits = self.forward(x)
+        return utils.batch_crossentropy(label, logits)
 
     def _backward_one(self, gradient, x):
         input_shape = x.shape

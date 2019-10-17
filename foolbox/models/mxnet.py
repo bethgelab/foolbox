@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 
 import numpy as np
 
@@ -130,6 +129,36 @@ class MXNetModel(DifferentiableModel):
         gradient = self._process_gradient(dpdx, gradient)
         return np.squeeze(logits, axis=0), np.squeeze(gradient, axis=0)
 
+    def forward_and_gradient(self, inputs, labels):
+        import mxnet as mx
+        labels = np.asarray(labels)
+        inputs, dpdx = self._process_input(inputs)
+        data_array = mx.nd.array(inputs, ctx=self._device)
+        label_array = mx.nd.array(labels, ctx=self._device)
+        self._args_map[self._data_sym.name] = data_array
+        self._args_map[self._label_sym.name] = label_array
+
+        grad_array = mx.nd.zeros(inputs.shape, ctx=self._device)
+        grad_map = {self._data_sym.name: grad_array}
+
+        logits_loss = mx.sym.Group([self._logits_sym, self._loss_sym])
+        model = logits_loss.bind(
+            ctx=self._device,
+            args=self._args_map,
+            args_grad=grad_map,
+            grad_req='write',
+            aux_states=self._aux_map)
+        model.forward(is_train=False)
+        logits_array = model.outputs[0]
+        model.backward([
+            mx.nd.zeros(logits_array.shape),
+            mx.nd.array(np.array([1]))
+        ])
+        logits = logits_array.asnumpy()
+        gradient = grad_array.asnumpy()
+        gradient = self._process_gradient(dpdx, gradient)
+        return logits, gradient
+
     def gradient(self, inputs, labels):
         import mxnet as mx
         inputs, dpdx = self._process_input(inputs)
@@ -156,8 +185,16 @@ class MXNetModel(DifferentiableModel):
     def _loss_fn(self, x, label):
         import mxnet as mx
         x, _ = self._process_input(x)
-        data_array = mx.nd.array(x[np.newaxis], ctx=self._device)
-        label_array = mx.nd.array(np.array([label]), ctx=self._device)
+
+        label = np.array(label)
+
+        if len(label.shape) == 0:
+            # add batch dimension
+            label = label[np.newaxis]
+            x = x[np.newaxis]
+
+        data_array = mx.nd.array(x, ctx=self._device)
+        label_array = mx.nd.array(label, ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
         self._args_map[self._label_sym.name] = label_array
         model = self._loss_sym.bind(

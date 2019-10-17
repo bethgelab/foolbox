@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import division
 
 import warnings
 import threading
@@ -8,7 +6,6 @@ import time
 import sys
 import collections
 
-# requires Python 3.2 or newer, or a backport for Python 2
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import Executor
 from concurrent.futures import Future

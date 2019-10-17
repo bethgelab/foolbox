@@ -1,14 +1,7 @@
-from __future__ import absolute_import
 
 import numpy as np
-import sys
 import abc
-abstractmethod = abc.abstractmethod
-
-if sys.version_info >= (3, 4):
-    ABC = abc.ABC
-else:  # pragma: no cover
-    ABC = abc.ABCMeta('ABC', (), {})
+from abc import abstractmethod
 
 
 def _create_preprocessing_fn(params):
@@ -47,7 +40,7 @@ def _create_preprocessing_fn(params):
     return preprocessing
 
 
-class Model(ABC):
+class Model(abc.ABC):
     """Base class to provide attacks with a unified interface to models.
 
     The :class:`Model` class represents a model and provides a
@@ -274,6 +267,35 @@ class DifferentiableModel(Model):
 
         """
         return np.squeeze(self.backward(gradient[np.newaxis], x[np.newaxis]), axis=0)
+
+    @abstractmethod
+    def forward_and_gradient(self, inputs, labels):
+        """Takes inputs and labels and returns both the logits predicted by the underlying
+        model and the gradients of the cross-entropy loss w.r.t. the inputs.
+
+
+        Parameters
+        ----------
+        inputs : `numpy.ndarray`
+            Inputs with shape as expected by the model (with the batch dimension).
+        labels : `numpy.ndarray`
+            Array of the class label of the inputs as an integer in [0, number of classes).
+
+        Returns
+        -------
+        `numpy.ndarray`
+            Predicted logits with shape (batch size, number of classes).
+        `numpy.ndarray`
+            The gradient of the cross-entropy loss w.r.t. the input.
+
+        See Also
+        --------
+        :meth:`forward_one`
+        :meth:`gradient_one`
+
+        """
+
+        raise NotImplementedError
 
     def forward_and_gradient_one(self, x, label):
         """Takes a single input and label and returns both the logits predicted by the underlying

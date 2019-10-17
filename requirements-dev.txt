@@ -10,3 +10,5 @@ python-coveralls>=2.9.1
 pillow>=4.1.1
 responses>=0.9.0
 mxnet>=1.4.1
+randomgen>=1.14.4
+mypy>=0.511
