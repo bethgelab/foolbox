@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import numpy as np
 from itertools import product
 from scipy.ndimage import rotate, shift
