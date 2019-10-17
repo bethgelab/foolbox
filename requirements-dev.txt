@@ -13,3 +13,4 @@ mxnet>=1.4.1
 randomgen>=1.14.4
 mypy>=0.511
 pre-commit>=1.18.3
+black>=19.3b0

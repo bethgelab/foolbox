@@ -55,6 +55,7 @@ install:
     - pip install -e .
 script:
     - flake8
+    - black --check --verbose .
     - pytest --collect-only
       # tf eager cannot be run in the same process as standard tf
     - pytest --ignore=foolbox/tests/models/test_models_tensorflow_eager.py --ignore=foolbox/tests/models/test_models_caffe.py
