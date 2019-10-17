@@ -99,12 +99,13 @@ Finally, the result can be plotted like this:
 .. image:: https://github.com/bethgelab/foolbox/raw/master/example.png
 
 
-Interfaces for a range of other deeplearning packages such as TensorFlow,
+Interfaces for a range of other deeplearning packages such as TensorFlow 1 and 2,
 PyTorch, Theano, Lasagne and MXNet are available, e.g.
 
 .. code-block:: python
 
    model = foolbox.models.TensorFlowModel(images, logits, bounds=(0, 255))
+   model = foolbox.models.TensorFlowEagerModel(model, bounds=(0, 255))
    model = foolbox.models.PyTorchModel(torchmodel, bounds=(0, 255), num_classes=1000)
    # etc.
 
