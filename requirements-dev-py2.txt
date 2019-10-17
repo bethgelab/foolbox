@@ -1,3 +1,0 @@
--r requirements-dev.txt
-randomgen==1.16.3
-mock>=2.0.0
