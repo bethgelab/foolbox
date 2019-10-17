@@ -78,7 +78,6 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
             success = yield from self._run_one(
                 a, epsilon, optimizer, iterations,
                 random_start, targeted, class_, return_early)
-
             return success
 
     def _run_binary_search(self, a, epsilon, stepsize, iterations,
@@ -94,7 +93,6 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
             success = yield from self._run_one(
                 a, epsilon, optimizer, iterations,
                 random_start, targeted, class_, return_early)
-
             return success
 
         for i in range(k):
