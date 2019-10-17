@@ -77,7 +77,8 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
 
             success = yield from self._run_one(
                 a, epsilon, optimizer, iterations,
-                random_start, targeted, class_, return_early)
+                random_start, targeted, class_, return_early,
+                gradient_kwargs)
             return success
 
     def _run_binary_search(self, a, epsilon, stepsize, iterations,
@@ -92,7 +93,8 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
 
             success = yield from self._run_one(
                 a, epsilon, optimizer, iterations,
-                random_start, targeted, class_, return_early)
+                random_start, targeted, class_, return_early,
+                gradient_kwargs)
             return success
 
         for i in range(k):
@@ -459,6 +461,7 @@ class SparseL1BasicIterativeAttack(
         SparseL1GradientMixin,
         L1ClippingMixin,
         L1DistanceCheckMixin,
+        GDOptimizerMixin,
         IterativeProjectedGradientBaseAttack):
 
     """Sparse version of the Basic Iterative Method
