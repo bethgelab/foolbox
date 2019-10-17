@@ -39,20 +39,14 @@ implement the :meth:`_calculate` method.
 from __future__ import division
 import sys
 import abc
-abstractmethod = abc.abstractmethod
-
-if sys.version_info >= (3, 4):
-    ABC = abc.ABC
-else:  # pragma: no cover
-    ABC = abc.ABCMeta('ABC', (), {})
-
+from abc import abstractmethod
 import functools
 import numpy as np
 from numbers import Number
 
 
 @functools.total_ordering
-class Distance(ABC):
+class Distance(abc.ABC):
     """Base class for distances.
 
     This class should be subclassed when implementing

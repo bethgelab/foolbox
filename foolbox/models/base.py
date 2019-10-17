@@ -3,12 +3,7 @@ from __future__ import absolute_import
 import numpy as np
 import sys
 import abc
-abstractmethod = abc.abstractmethod
-
-if sys.version_info >= (3, 4):
-    ABC = abc.ABC
-else:  # pragma: no cover
-    ABC = abc.ABCMeta('ABC', (), {})
+from abc import abstractmethod
 
 
 def _create_preprocessing_fn(params):
@@ -47,7 +42,7 @@ def _create_preprocessing_fn(params):
     return preprocessing
 
 
-class Model(ABC):
+class Model(abc.ABC):
     """Base class to provide attacks with a unified interface to models.
 
     The :class:`Model` class represents a model and provides a

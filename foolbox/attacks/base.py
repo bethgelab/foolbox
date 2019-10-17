@@ -3,12 +3,7 @@ import logging
 import functools
 import sys
 import abc
-abstractmethod = abc.abstractmethod
-
-if sys.version_info >= (3, 4):
-    ABC = abc.ABC
-else:  # pragma: no cover
-    ABC = abc.ABCMeta('ABC', (), {})
+from abc import abstractmethod
 
 from ..adversarial import Adversarial
 from ..yielding_adversarial import YieldingAdversarial
@@ -17,7 +12,7 @@ from ..criteria import Misclassification
 from ..distances import MSE
 
 
-class Attack(ABC):
+class Attack(abc.ABC):
     """Abstract base class for adversarial attacks.
 
     The :class:`Attack` class represents an adversarial attack that searches

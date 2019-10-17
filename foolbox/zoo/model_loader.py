@@ -1,15 +1,10 @@
 import sys
 import importlib
-
 import abc
-abstractmethod = abc.abstractmethod
-if sys.version_info >= (3, 4):
-    ABC = abc.ABC
-else:  # pragma: no cover
-    ABC = abc.ABCMeta('ABC', (), {})
+from abc import abstractmethod
 
 
-class ModelLoader(ABC):
+class ModelLoader(abc.ABC):
 
     @abstractmethod
     def load(self, path, module_name='foolbox_model', **kwargs):
