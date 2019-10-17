@@ -24,7 +24,7 @@ Attacks = [
     ProjectedGradientDescentAttack,
     RandomStartProjectedGradientDescentAttack,
     MomentumIterativeAttack,
-    SparseL1BasicIterativeAttack
+    SparseL1BasicIterativeAttack,
     AdamL1BasicIterativeAttack,
     AdamL2BasicIterativeAttack,
     AdamProjectedGradientDescentAttack,
