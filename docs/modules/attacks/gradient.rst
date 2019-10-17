@@ -155,6 +155,10 @@ Gradient-based attacks
    :members:
    :special-members:
 
+.. autoclass:: SparseL1BasicIterativeAttack
+   :members:
+   :special-members:
+
 .. autoclass:: VirtualAdversarialAttack
    :members:
    :special-members:

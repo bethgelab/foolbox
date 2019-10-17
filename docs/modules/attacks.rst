@@ -55,6 +55,7 @@
    EADAttack
    DecoupledDirectionNormL2Attack
    SparseFoolAttack
+   SparseL1BasicIterativeAttack
    VirtualAdversarialAttack
 
 .. rubric:: :doc:`attacks/score`
