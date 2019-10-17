@@ -493,7 +493,7 @@ def binarized_bn_label(bn_image):
 @pytest.fixture
 def binarized_bn_labels(bn_images):
     images = bn_images
-    images = binarize(images, (1, 2))
+    images = binarize(images, (0, 1))
     means = np.mean(images, axis=(1, 2))
     assert means.shape == (len(bn_images), 10)
     label = np.argmax(means, axis=-1)
@@ -569,7 +569,7 @@ def binarized2_bn_label(bn_image):
 @pytest.fixture
 def binarized2_bn_labels(bn_images):
     images = bn_images
-    images = binarize(images, (1, 2), included_in='lower')
+    images = binarize(images, (0, 1), included_in='lower')
     means = np.mean(images, axis=(1, 2))
     assert means.shape == (len(images), 10)
     labels = np.argmax(means, -1)

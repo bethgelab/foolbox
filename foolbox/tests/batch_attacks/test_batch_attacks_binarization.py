@@ -9,10 +9,13 @@ def test_attack(bn_model, bn_criterion, bn_images, binarized_bn_labels):
     attack = GradientAttack(bn_model, bn_criterion)
     advs = attack(bn_images, binarized_bn_labels, unpack=False)
 
+    for adv in advs:
+        assert adv.perturbed is not None
+
     attack = BinarizationRefinementAttack(bn_model, bn_criterion)
     advs2 = attack(
         bn_images, binarized_bn_labels, unpack=False,
-        attack_kwargs=[{'starting_point': adv.perturbed} for adv in advs]
+        individual_kwargs=[{'starting_point': adv.perturbed} for adv in advs]
     )
 
     for adv1, adv2 in zip(advs, advs2):
@@ -37,7 +40,7 @@ def test_attack_fail(bn_model, bn_criterion, bn_images, bn_labels):
     with pytest.raises(AssertionError) as e:
         attack(
             bn_images, bn_labels,
-            attack_kwargs=[{'starting_point': adv.perturbed} for adv in advs])
+            individual_kwargs=[{'starting_point': adv.perturbed} for adv in advs])
     assert 'threshold does not match' in str(e.value)
 
 
@@ -57,7 +60,7 @@ def test_attack2(bn_model, bn_criterion, bn_images, binarized2_bn_labels):
     attack = BinarizationRefinementAttack(bn_model, bn_criterion)
     advs2 = attack(
         bn_images, binarized2_bn_labels, unpack=False,
-        attack_kwargs=[{'starting_point': adv.perturbed} for adv in advs]
+        individual_kwargs=[{'starting_point': adv.perturbed} for adv in advs]
     )
 
     for adv1, adv2 in zip(advs, advs2):
@@ -80,6 +83,6 @@ def test_attack_wrong_arg(bn_model, bn_criterion, bn_images, binarized2_bn_label
     with pytest.raises(ValueError):
         attack(
             bn_images, binarized2_bn_labels, unpack=False,
-            attack_kwargs=[{'starting_point': adv.perturbed,
-                            'included_in': 'blabla'} for adv in advs]
+            individual_kwargs=[{'starting_point': adv.perturbed} for adv in advs],
+            included_in='blabla'
         )

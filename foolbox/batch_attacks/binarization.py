@@ -24,7 +24,7 @@ class BinarizationRefinementAttack(BatchAttack):
 
         """For models that preprocess their inputs by binarizing the
         inputs, this attack can improve adversarials found by other
-        attacks. It does os by utilizing information about the
+        attacks. It does this by utilizing information about the
         binarization and mapping values to the corresponding value in
         the clean input or to the right side of the threshold.
 
@@ -51,7 +51,7 @@ class BinarizationRefinementAttack(BatchAttack):
 
         """
 
-        self._initialize_starting_point(a, starting_point)
+        yield from self._initialize_starting_point(a, starting_point)
 
         if a.perturbed is None:
             warnings.warn(
@@ -111,7 +111,7 @@ class BinarizationRefinementAttack(BatchAttack):
 
         logging.info('distance before the {}: {}'.format(
             self.__class__.__name__, a.distance))
-        _, is_adversarial = a.forward_one(p)
+        _, is_adversarial = yield from a.forward_one(p)
         assert is_adversarial, ('The specified threshold does not'
                                 ' match what is done by the model.')
         logging.info('distance after the {}: {}'.format(
@@ -126,7 +126,7 @@ class BinarizationRefinementAttack(BatchAttack):
             return
 
         if starting_point is not None:
-            a.forward_one(starting_point)
+            yield from a.forward_one(starting_point)
             assert a.perturbed is not None, (
                 'Invalid starting point provided. Please provide a starting point that is adversarial.')
             return
