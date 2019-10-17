@@ -36,7 +36,6 @@ implement the :meth:`_calculate` method.
    Distance
 
 """
-from __future__ import division
 import abc
 from abc import abstractmethod
 import functools

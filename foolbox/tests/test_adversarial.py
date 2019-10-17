@@ -4,12 +4,7 @@ from foolbox import Adversarial
 from foolbox.distances import MSE
 import foolbox
 
-import sys
-if sys.version_info > (3, 2):
-    from unittest.mock import Mock
-else:
-    # for Python2.7 compatibility
-    from mock import Mock
+from unittest.mock import Mock
 
 
 # def test_adversarial(bn_model, bn_criterion, bn_image, bn_label):
