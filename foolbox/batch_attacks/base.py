@@ -10,7 +10,7 @@ from ..batching import run_parallel
 
 
 class BatchAttack(Attack):
-    def __call__(self, inputs, labels, unpack=True, **kwargs):
+    def __call__(self, inputs, labels, unpack=True, individual_kwargs=None, **kwargs):
         assert isinstance(inputs, np.ndarray)
         assert isinstance(labels, np.ndarray)
 
@@ -32,7 +32,8 @@ class BatchAttack(Attack):
         create_attack_fn = self.__class__
         advs = run_parallel(create_attack_fn, model, criterion, inputs, labels,
                             distance=distance, threshold=threshold,
-                            attack_kwargs=kwargs)
+                            individual_kwargs=individual_kwargs,
+                            **kwargs)
 
         if unpack:
             advs = [a.perturbed for a in advs]
