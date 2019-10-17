@@ -45,6 +45,9 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
          The optional keywords passed to create_attack_fn that should be
          different for each of the input samples. For each input a different
          set of arguments will be used.
+    kwargs : dict
+        The optional keywords passed to create_attack_fn that are common for
+        every element in the batch.
 
     Returns
     -------
@@ -147,6 +150,9 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
          The optional keywords passed to create_attack_fn that should be
          different for each of the input samples. For each input a different
          set of arguments will be used.
+    kwargs : dict
+        The optional keywords passed to create_attack_fn that are common for
+        every element in the batch.
 
     Returns
     -------
