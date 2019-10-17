@@ -2,9 +2,9 @@ import pytest
 import numpy as np
 import tensorflow as tf
 
-tf.enable_eager_execution()
-
 from foolbox.models import TensorFlowEagerModel
+
+tf.enable_eager_execution()
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])

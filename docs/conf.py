@@ -38,7 +38,7 @@ sys.modules["theano.tensor"] = Mock()
 sys.modules["torch"] = Mock()
 sys.modules["randomstate"] = Mock()
 
-import foolbox
+import foolbox  # noqa: E402
 
 
 # -- General configuration ------------------------------------------------

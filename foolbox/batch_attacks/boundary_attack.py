@@ -169,7 +169,7 @@ class BoundaryAttack(BatchAttack):
             with DummyExecutor() as pool:
                 yield from self._apply_inner(pool, *args, **kwargs)
 
-    def _apply_inner(
+    def _apply_inner(  # noqa: C901
         self, pool, a, iterations, tune_batch_size, threaded_rnd, threaded_gen
     ):
 

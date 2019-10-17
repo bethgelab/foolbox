@@ -138,7 +138,7 @@ def run_sequential(
     return advs
 
 
-def run_parallel(
+def run_parallel(  # noqa: C901
     create_attack_fn,
     model,
     criterion,

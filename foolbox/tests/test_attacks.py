@@ -1,11 +1,4 @@
-import sys
-
-if sys.version_info > (3, 2):
-    from unittest.mock import Mock
-else:
-    # for Python2.7 compatibility
-    from mock import Mock
-
+from unittest.mock import Mock
 import pytest
 
 from foolbox import attacks

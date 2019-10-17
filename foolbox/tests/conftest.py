@@ -6,26 +6,12 @@
 # according to test order seems to solve it
 import tensorflow
 
-print(tensorflow.__version__)
 # import theano
-# print(theano.__version__)
 # import mxnet
-# print(mxnet.__version__)
 # import keras
-# print(keras.__version__)
 import torch
 
-print(torch.__version__)
-
-
-import sys
-
-if sys.version_info > (3, 2):
-    from unittest.mock import Mock
-else:
-    # for Python2.7 compatibility
-    from mock import Mock
-
+from unittest.mock import Mock
 from os.path import join
 from os.path import dirname
 from contextlib import contextmanager
@@ -53,6 +39,12 @@ from foolbox.utils import binarize
 import logging
 
 logging.getLogger().setLevel(logging.DEBUG)
+
+print(tensorflow.__version__)
+# print(theano.__version__)
+# print(mxnet.__version__)
+# print(keras.__version__)
+print(torch.__version__)
 
 
 @pytest.fixture
