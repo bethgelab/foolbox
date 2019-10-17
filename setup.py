@@ -1,7 +1,6 @@
 from setuptools import setup
 from setuptools import find_packages
 from os.path import join, dirname
-import io
 
 with open(join(dirname(__file__), 'foolbox/VERSION')) as f:
     version = f.read().strip()

@@ -4,7 +4,6 @@ from foolbox import Adversarial
 from foolbox.distances import MSE
 import foolbox
 
-import sys
 from unittest.mock import Mock
 
 
