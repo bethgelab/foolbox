@@ -7,7 +7,7 @@ from .yielding_adversarial import YieldingAdversarial
 
 def run_sequential(create_attack_fn, model, criterion, inputs, labels,
                    distance=MSE, threshold=None, verbose=False,
-                   attack_kwargs=None):
+                   individual_kwargs=None, **kwargs):
     """
     Runs the same type of attack vor multiple inputs sequentially without
     batching them.
@@ -41,10 +41,13 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
         if the threshold has been reached.
     verbose : bool
         Whether the adversarial examples should be created in verbose mode.
-    attack_kwargs : dict or list of dict
-         The optional keywords passed to create_attack_fn. If a dict, the same
-         values will be used for all inputs; if a list, for each input a
-         different set of arguments will be used.
+    individual_kwargs : list of dict
+         The optional keywords passed to create_attack_fn that should be
+         different for each of the input samples. For each input a different
+         set of arguments will be used.
+    kwargs : dict
+        The optional keywords passed to create_attack_fn that are common for
+        every element in the batch.
 
     Returns
     -------
@@ -65,14 +68,17 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
     else:
         assert len(distance) == len(inputs), 'The number of distances must match the number of inputs.'  # noqa: E501
 
-    if attack_kwargs is None:
-        attack_kwargs = {}
-
-    # if only one dict of kwargs has been passed use the same one for all inputs
-    if not isinstance(attack_kwargs, (list, tuple)):
-        attack_kwargs = [attack_kwargs] * len(inputs)
+    if individual_kwargs is None:
+        individual_kwargs = [kwargs] * len(inputs)
     else:
-        assert len(attack_kwargs) == len(inputs), 'The number of attack_kwargs must match the number of inputs.'  # noqa: E501
+        assert isinstance(individual_kwargs, (
+        list, tuple)), 'Individual_kwargs must be a list or None.'  # noqa: E501
+        assert len(individual_kwargs) == len(
+            inputs), 'The number of individual_kwargs must match the number of inputs.'  # noqa: E501
+
+        for i in range(len(individual_kwargs)):
+            assert isinstance(individual_kwargs[i], dict)
+            individual_kwargs[i] = {**kwargs, **individual_kwargs[i]}
 
     advs = [YieldingAdversarial(model, _criterion, x, label,
                                 distance=_distance, threshold=threshold,
@@ -80,7 +86,7 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
             for _criterion, _distance, x, label in zip(criterion, distance,
                                                        inputs, labels)]
     attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv, kwargs
-               in zip(advs, attack_kwargs)]
+               in zip(advs, individual_kwargs)]
 
     supported_methods = {
         'forward_one': model.forward_one,
@@ -106,7 +112,7 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
 
 def run_parallel(create_attack_fn, model, criterion, inputs, labels,
                  distance=MSE, threshold=None, verbose=False,
-                 attack_kwargs=None):
+                 individual_kwargs=None, **kwargs):
     """
     Runs the same type of attack vor multiple inputs in parallel by
     batching them.
@@ -140,10 +146,13 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
         if the threshold has been reached.
     verbose : bool
         Whether the adversarial examples should be created in verbose mode.
-    attack_kwargs : dict or list of dict
-        The optional keywords passed to create_attack_fn. If a dict, the  same
-        values will be used for all inputs; if a list, for each input a
-        different set of arguments will be used.
+    individual_kwargs : list of dict
+         The optional keywords passed to create_attack_fn that should be
+         different for each of the input samples. For each input a different
+         set of arguments will be used.
+    kwargs : dict
+        The optional keywords passed to create_attack_fn that are common for
+        every element in the batch.
 
     Returns
     -------
@@ -164,14 +173,18 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
     else:
         assert len(distance) == len(inputs), 'The number of distances must match the number of inputs.'  # noqa: E501
 
-    if attack_kwargs is None:
-        attack_kwargs = {}
-
-    # if only one dict of kwargs has been passed use the same one for all inputs
-    if not isinstance(attack_kwargs, (list, tuple)):
-        attack_kwargs = [attack_kwargs] * len(inputs)
+    if individual_kwargs is None:
+        individual_kwargs = [kwargs] * len(inputs)
     else:
-        assert len(attack_kwargs) == len(inputs), 'The number of attack_kwargs must match the number of inputs.'  # noqa: E501
+        assert isinstance(individual_kwargs, (
+            list,
+            tuple)), 'Individual_kwargs must be a list or None.'  # noqa: E501
+        assert len(individual_kwargs) == len(
+            inputs), 'The number of individual_kwargs must match the number of inputs.'  # noqa: E501
+
+        for i in range(len(individual_kwargs)):
+            assert isinstance(individual_kwargs[i], dict)
+            individual_kwargs[i] = {**kwargs, **individual_kwargs[i]}
 
     advs = [YieldingAdversarial(model, _criterion, x, label,
                                 distance=_distance, threshold=threshold,
@@ -179,7 +192,7 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
             for _criterion, _distance, x, label in zip(criterion, distance,
                                                        inputs, labels)]
     attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv, kwargs
-               in zip(advs, attack_kwargs)]
+               in zip(advs, individual_kwargs)]
 
     predictions = [None for _ in attacks]
     gradients = []
