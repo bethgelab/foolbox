@@ -22,6 +22,7 @@ from .ead import EADAttack
 from .decoupled_direction_norm import DecoupledDirectionNormL2Attack
 from .bapp import BoundaryAttackPlusPlus
 from .inversion import InversionAttack
+from .virtual_adversarial import VirtualAdversarialAttack
 
 from .iterative_projected_gradient import LinfinityBasicIterativeAttack, BasicIterativeMethod, BIM
 from .iterative_projected_gradient import L1BasicIterativeAttack
