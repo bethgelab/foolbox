@@ -6,8 +6,7 @@ from foolbox.batch_attacks import BoundaryAttack
 
 def test_attack(bn_model, bn_criterion, bn_images, bn_labels):
     attack = BoundaryAttack(bn_model, bn_criterion)
-    advs = attack(bn_images, bn_labels, unpack=False, iterations=200,
-                  verbose=True)
+    advs = attack(bn_images, bn_labels, unpack=False, iterations=200, verbose=True)
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf
@@ -15,8 +14,7 @@ def test_attack(bn_model, bn_criterion, bn_images, bn_labels):
 
 def test_attack_non_verbose(bn_model, bn_criterion, bn_images, bn_labels):
     attack = BoundaryAttack(bn_model, bn_criterion)
-    advs = attack(bn_images, bn_labels, unpack=False, iterations=200,
-                  verbose=False)
+    advs = attack(bn_images, bn_labels, unpack=False, iterations=200, verbose=False)
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf
@@ -40,16 +38,22 @@ def test_attack_continue(bn_adversarial):
 def test_attack_parameters(bn_model, bn_criterion, bn_images, bn_labels):
     attack = BoundaryAttack(bn_model, bn_criterion)
     np.random.seed(2)
-    starting_point = np.random.uniform(
-        0, 1, size=bn_images[0].shape).astype(bn_images.dtype)
-    advs = attack(bn_images, bn_labels, unpack=False, iterations=200,
-                  starting_point=starting_point,
-                  log_every_n_steps=2,
-                  tune_batch_size=False,
-                  threaded_rnd=False,
-                  threaded_gen=False,
-                  alternative_generator=True,
-                  verbose=True)
+    starting_point = np.random.uniform(0, 1, size=bn_images[0].shape).astype(
+        bn_images.dtype
+    )
+    advs = attack(
+        bn_images,
+        bn_labels,
+        unpack=False,
+        iterations=200,
+        starting_point=starting_point,
+        log_every_n_steps=2,
+        tune_batch_size=False,
+        threaded_rnd=False,
+        threaded_gen=False,
+        alternative_generator=True,
+        verbose=True,
+    )
 
     for adv in advs:
         assert adv.perturbed is not None
@@ -58,8 +62,14 @@ def test_attack_parameters(bn_model, bn_criterion, bn_images, bn_labels):
 
 def test_attack_parameters2(bn_model, bn_criterion, bn_images, bn_labels):
     attack = BoundaryAttack(bn_model, bn_criterion)
-    advs = attack(bn_images, bn_labels, unpack=False, iterations=200,
-                  alternative_generator=True, verbose=True)
+    advs = attack(
+        bn_images,
+        bn_labels,
+        unpack=False,
+        iterations=200,
+        alternative_generator=True,
+        verbose=True,
+    )
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf
@@ -69,15 +79,21 @@ def test_attack_parameters2(bn_model, bn_criterion, bn_images, bn_labels):
 def test_attack_parameters3(bn_model, bn_criterion, bn_images, bn_labels):
     attack = BoundaryAttack(bn_model, bn_criterion)
     np.random.seed(2)
-    starting_point = np.random.uniform(
-        0, 1, size=bn_images[0].shape).astype(bn_images.dtype)
-    advs = attack(bn_images, bn_labels, unpack=False, iterations=200,
-                  starting_point=starting_point,
-                  log_every_n_steps=2,
-                  tune_batch_size=30,
-                  threaded_rnd=False,
-                  threaded_gen=False,
-                  verbose=True)
+    starting_point = np.random.uniform(0, 1, size=bn_images[0].shape).astype(
+        bn_images.dtype
+    )
+    advs = attack(
+        bn_images,
+        bn_labels,
+        unpack=False,
+        iterations=200,
+        starting_point=starting_point,
+        log_every_n_steps=2,
+        tune_batch_size=30,
+        threaded_rnd=False,
+        threaded_gen=False,
+        verbose=True,
+    )
 
     for adv in advs:
         assert adv.perturbed is not None
@@ -86,18 +102,15 @@ def test_attack_parameters3(bn_model, bn_criterion, bn_images, bn_labels):
 
 def test_attack_gl(gl_bn_model, bn_criterion, bn_images, bn_labels):
     attack = BoundaryAttack(gl_bn_model, bn_criterion)
-    advs = attack(bn_images, bn_labels, unpack=False, iterations=200,
-                  verbose=True)
+    advs = attack(bn_images, bn_labels, unpack=False, iterations=200, verbose=True)
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf
 
 
-def test_attack_impossible(bn_model, bn_impossible_criterion, bn_images,
-                           bn_labels):
+def test_attack_impossible(bn_model, bn_impossible_criterion, bn_images, bn_labels):
     attack = BoundaryAttack(bn_model, bn_impossible_criterion)
-    advs = attack(bn_images, bn_labels, unpack=False, iterations=200,
-                  verbose=True)
+    advs = attack(bn_images, bn_labels, unpack=False, iterations=200, verbose=True)
     for adv in advs:
         assert adv.perturbed is None
         assert adv.distance.value == np.inf

@@ -8,7 +8,11 @@ from .saliency import SaliencyMapAttack
 from .blur import GaussianBlurAttack
 from .contrast import ContrastReductionAttack
 from .localsearch import SinglePixelAttack
-from .additive_noise import AdditiveNoiseAttack, AdditiveUniformNoiseAttack, AdditiveGaussianNoiseAttack
+from .additive_noise import (
+    AdditiveNoiseAttack,
+    AdditiveUniformNoiseAttack,
+    AdditiveGaussianNoiseAttack,
+)
 from .blended_noise import BlendedUniformNoiseAttack
 from .saltandpepper import SaltAndPepperNoiseAttack
 from .precomputed import PrecomputedAdversarialsAttack
@@ -25,15 +29,38 @@ from .inversion import InversionAttack
 from .virtual_adversarial import VirtualAdversarialAttack
 from .inversion import InversionAttack
 
-from .iterative_projected_gradient import LinfinityBasicIterativeAttack, BasicIterativeMethod, BIM
+from .iterative_projected_gradient import (
+    LinfinityBasicIterativeAttack,
+    BasicIterativeMethod,
+    BIM,
+)
 from .iterative_projected_gradient import L1BasicIterativeAttack
 from .iterative_projected_gradient import L2BasicIterativeAttack
-from .iterative_projected_gradient import ProjectedGradientDescentAttack, ProjectedGradientDescent, PGD
-from .iterative_projected_gradient import RandomStartProjectedGradientDescentAttack, RandomProjectedGradientDescent, RandomPGD
-from .iterative_projected_gradient import MomentumIterativeAttack, MomentumIterativeMethod
+from .iterative_projected_gradient import (
+    ProjectedGradientDescentAttack,
+    ProjectedGradientDescent,
+    PGD,
+)
+from .iterative_projected_gradient import (
+    RandomStartProjectedGradientDescentAttack,
+    RandomProjectedGradientDescent,
+    RandomPGD,
+)
+from .iterative_projected_gradient import (
+    MomentumIterativeAttack,
+    MomentumIterativeMethod,
+)
 from .iterative_projected_gradient import SparseL1BasicIterativeAttack
 
 from .iterative_projected_gradient import AdamL1BasicIterativeAttack
 from .iterative_projected_gradient import AdamL2BasicIterativeAttack
-from .iterative_projected_gradient import AdamProjectedGradientDescentAttack, AdamProjectedGradientDescent, AdamPGD
-from .iterative_projected_gradient import AdamRandomStartProjectedGradientDescentAttack, AdamRandomProjectedGradientDescent, AdamRandomPGD
+from .iterative_projected_gradient import (
+    AdamProjectedGradientDescentAttack,
+    AdamProjectedGradientDescent,
+    AdamPGD,
+)
+from .iterative_projected_gradient import (
+    AdamRandomStartProjectedGradientDescentAttack,
+    AdamRandomProjectedGradientDescent,
+    AdamRandomPGD,
+)

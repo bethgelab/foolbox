@@ -32,15 +32,19 @@ Attacks = [
 ]
 
 
-def test_attack_no_binary_search_and_no_return_early(bn_model, bn_criterion, bn_images, bn_labels):
+def test_attack_no_binary_search_and_no_return_early(
+    bn_model, bn_criterion, bn_images, bn_labels
+):
     attack = LinfinityBasicIterativeAttack(bn_model, bn_criterion, distance=Linfinity)
-    advs = attack(bn_images, bn_labels, unpack=False, binary_search=False, return_early=False)
+    advs = attack(
+        bn_images, bn_labels, unpack=False, binary_search=False, return_early=False
+    )
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_attack_linf(Attack, bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
     advs = attack(bn_images, bn_labels, unpack=False, binary_search=10)
@@ -49,7 +53,7 @@ def test_attack_linf(Attack, bn_model, bn_criterion, bn_images, bn_labels):
         assert adv.distance.value < np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_attack_l2(Attack, bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
     advs = attack(bn_images, bn_labels, unpack=False)
@@ -58,7 +62,7 @@ def test_attack_l2(Attack, bn_model, bn_criterion, bn_images, bn_labels):
         assert adv.distance.value < np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_attack_l1(Attack, bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion, distance=MAE)
     advs = attack(bn_images, bn_labels, unpack=False)
@@ -67,7 +71,7 @@ def test_attack_l1(Attack, bn_model, bn_criterion, bn_images, bn_labels):
         assert adv.distance.value < np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_targeted_attack(Attack, bn_model, bn_targeted_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_targeted_criterion)
     advs = attack(bn_images, bn_labels, unpack=False)
@@ -76,7 +80,7 @@ def test_targeted_attack(Attack, bn_model, bn_targeted_criterion, bn_images, bn_
         assert adv.distance.value < np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_attack_gl(Attack, gl_bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(gl_bn_model, bn_criterion)
     advs = attack(bn_images, bn_labels, unpack=False)
@@ -85,8 +89,10 @@ def test_attack_gl(Attack, gl_bn_model, bn_criterion, bn_images, bn_labels):
         assert adv.distance.value == np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
-def test_attack_impossible(Attack, bn_model, bn_impossible_criterion, bn_images, bn_labels):
+@pytest.mark.parametrize("Attack", Attacks)
+def test_attack_impossible(
+    Attack, bn_model, bn_impossible_criterion, bn_images, bn_labels
+):
     attack = Attack(bn_model, bn_impossible_criterion)
     advs = attack(bn_images, bn_labels, unpack=False)
     for adv in advs:

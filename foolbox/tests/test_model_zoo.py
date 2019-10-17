@@ -11,7 +11,7 @@ from os.path import join, dirname
 def unload_foolbox_model_module():
     # reload foolbox_model from scratch for every run
     # to ensure atomic tests without side effects
-    module_names = ['foolbox_model', 'model']
+    module_names = ["foolbox_model", "model"]
     for module_name in module_names:
         if module_name in sys.modules:
             del sys.modules[module_name]
@@ -22,7 +22,7 @@ test_data = [
     # ('https://github.com/bethgelab/AnalysisBySynthesis.git', (1, 28, 28)),
     # ('https://github.com/bethgelab/convex_adversarial.git', (1, 28, 28)),
     # ('https://github.com/bethgelab/mnist_challenge.git', 784)
-    (join('file://', dirname(__file__), 'data/model_repo'), (3, 224, 224))
+    (join("file://", dirname(__file__), "data/model_repo"), (3, 224, 224))
 ]
 
 
@@ -49,4 +49,4 @@ def test_loading_model(url, dim):
 
 def test_non_default_module_throws_error():
     with pytest.raises(RuntimeError):
-        ModelLoader.get(key='other')
+        ModelLoader.get(key="other")

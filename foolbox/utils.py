@@ -86,7 +86,7 @@ def batch_crossentropy(label, logits):
     return ces
 
 
-def binarize(x, values, threshold=None, included_in='upper'):
+def binarize(x, values, threshold=None, included_in="upper"):
     """Binarizes the values of x.
 
     Parameters
@@ -103,13 +103,13 @@ def binarize(x, values, threshold=None, included_in='upper'):
     lower, upper = values
 
     if threshold is None:
-        threshold = (lower + upper) / 2.
+        threshold = (lower + upper) / 2.0
 
     x = x.copy()
-    if included_in == 'lower':
+    if included_in == "lower":
         x[x <= threshold] = lower
         x[x > threshold] = upper
-    elif included_in == 'upper':
+    elif included_in == "upper":
         x[x < threshold] = lower
         x[x >= threshold] = upper
     else:
@@ -117,7 +117,7 @@ def binarize(x, values, threshold=None, included_in='upper'):
     return x
 
 
-def imagenet_example(shape=(224, 224), data_format='channels_last'):
+def imagenet_example(shape=(224, 224), data_format="channels_last"):
     """ Returns an example image and its imagenet class label.
 
     Parameters
@@ -138,23 +138,29 @@ def imagenet_example(shape=(224, 224), data_format='channels_last'):
     NOTE: This function is deprecated and will be removed in the future.
     """
     assert len(shape) == 2
-    assert data_format in ['channels_first', 'channels_last']
+    assert data_format in ["channels_first", "channels_last"]
 
     from PIL import Image
-    path = os.path.join(os.path.dirname(__file__), 'example.png')
+
+    path = os.path.join(os.path.dirname(__file__), "example.png")
     image = Image.open(path)
     image = image.resize(shape)
     image = np.asarray(image, dtype=np.float32)
     image = image[:, :, :3]
     assert image.shape == shape + (3,)
-    if data_format == 'channels_first':
+    if data_format == "channels_first":
         image = np.transpose(image, (2, 0, 1))
     return image, 282
 
 
-def samples(dataset='imagenet', index=0, batchsize=1, shape=(224, 224),
-            data_format='channels_last'):
-    ''' Returns a batch of example images and the corresponding labels
+def samples(
+    dataset="imagenet",
+    index=0,
+    batchsize=1,
+    shape=(224, 224),
+    data_format="channels_last",
+):
+    """ Returns a batch of example images and the corresponding labels
 
     Parameters
     ----------
@@ -179,31 +185,31 @@ def samples(dataset='imagenet', index=0, batchsize=1, shape=(224, 224),
     labels : array of int
         The labels associated with the images.
 
-    '''
+    """
     from PIL import Image
 
     images, labels = [], []
     basepath = os.path.dirname(__file__)
-    samplepath = os.path.join(basepath, 'data')
+    samplepath = os.path.join(basepath, "data")
     files = os.listdir(samplepath)
 
     for idx in range(index, index + batchsize):
         i = idx % 20
 
         # get filename and label
-        file = [n for n in files if '{}_{:02d}_'.format(dataset, i) in n][0]
-        label = int(file.split('.')[0].split('_')[-1])
+        file = [n for n in files if "{}_{:02d}_".format(dataset, i) in n][0]
+        label = int(file.split(".")[0].split("_")[-1])
 
         # open file
         path = os.path.join(samplepath, file)
         image = Image.open(path)
 
-        if dataset == 'imagenet':
+        if dataset == "imagenet":
             image = image.resize(shape)
 
         image = np.asarray(image, dtype=np.float32)
 
-        if dataset != 'mnist' and data_format == 'channels_first':
+        if dataset != "mnist" and data_format == "channels_first":
             image = np.transpose(image, (2, 0, 1))
 
         images.append(image)

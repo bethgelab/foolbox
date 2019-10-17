@@ -9,8 +9,7 @@ class ContrastReductionAttack(BatchAttack):
     """Reduces the contrast of the input until it is misclassified."""
 
     @generator_decorator
-    def as_generator(self, a,
-                     epsilons=1000):
+    def as_generator(self, a, epsilons=1000):
 
         """Reduces the contrast of the input until it is misclassified.
 

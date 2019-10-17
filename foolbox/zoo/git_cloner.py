@@ -2,7 +2,7 @@ from git import Repo
 import logging
 from .common import sha256_hash, home_directory_path, path_exists
 
-FOLDER = '.foolbox_zoo'
+FOLDER = ".foolbox_zoo"
 
 
 class GitCloneError(RuntimeError):
@@ -24,7 +24,8 @@ def clone(git_uri):
         _clone_repo(git_uri, local_path)
     else:
         logging.info(  # pragma: no cover
-            "Git repository already exists locally.")  # pragma: no cover
+            "Git repository already exists locally."
+        )  # pragma: no cover
 
     return local_path
 

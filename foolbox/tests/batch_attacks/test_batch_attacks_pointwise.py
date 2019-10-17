@@ -14,10 +14,10 @@ def test_attack(bn_model, bn_criterion, bn_images, bn_labels):
 def test_attack_startingpoint(bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
     np.random.seed(2)
-    starting_point = np.random.uniform(
-        0, 1, size=bn_images[0].shape).astype(bn_images.dtype)
-    advs = attack(bn_images, bn_labels, unpack=False,
-                  starting_point=starting_point)
+    starting_point = np.random.uniform(0, 1, size=bn_images[0].shape).astype(
+        bn_images.dtype
+    )
+    advs = attack(bn_images, bn_labels, unpack=False, starting_point=starting_point)
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf
@@ -48,8 +48,7 @@ def test_attack_gl(gl_bn_model, bn_criterion, bn_images, bn_labels):
         assert adv.distance.value < np.inf
 
 
-def test_attack_impossible(bn_model, bn_impossible_criterion, bn_images,
-                           bn_labels):
+def test_attack_impossible(bn_model, bn_impossible_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_impossible_criterion)
     advs = attack(bn_images, bn_labels, unpack=False)
     for adv in advs:

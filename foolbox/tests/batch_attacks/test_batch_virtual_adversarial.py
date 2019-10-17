@@ -13,8 +13,7 @@ def test_untargeted_attack(bn_model, bn_criterion, bn_images, bn_labels):
 
 def test_untargeted_attack_finer(bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
-    advs = attack(bn_images, bn_labels, unpack=False,
-                  epsilons=2)
+    advs = attack(bn_images, bn_labels, unpack=False, epsilons=2)
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf
@@ -22,7 +21,7 @@ def test_untargeted_attack_finer(bn_model, bn_criterion, bn_images, bn_labels):
 
 def test_attack_vanishing_xi(bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
-    with pytest.raises(RuntimeError, match='xi'):
+    with pytest.raises(RuntimeError, match="xi"):
         attack(bn_images, bn_labels, xi=1e-8, unpack=False)
 
 
@@ -34,7 +33,9 @@ def test_targeted_attack(bn_model, bn_targeted_criterion, bn_images, bn_labels):
 
 def test_attack_eps(bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
-    advs = attack(bn_images, bn_labels, unpack=False, epsilons=np.linspace(0., 1., 100)[1:])
+    advs = attack(
+        bn_images, bn_labels, unpack=False, epsilons=np.linspace(0.0, 1.0, 100)[1:]
+    )
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf

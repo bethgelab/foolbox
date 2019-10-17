@@ -1,4 +1,3 @@
-
 import numpy as np
 import warnings
 from .base import DifferentiableModel
@@ -6,23 +5,28 @@ from .. import utils
 
 
 class CaffeModel(DifferentiableModel):  # pragma: no cover
-    def __init__(self,
-                 net,
-                 bounds,
-                 channel_axis=1,
-                 preprocessing=(0, 1),
-                 data_blob_name="data",
-                 label_blob_name="label",
-                 output_blob_name="output"):
-        super(CaffeModel, self).__init__(bounds=bounds,
-                                         channel_axis=channel_axis,
-                                         preprocessing=preprocessing)
+    def __init__(
+        self,
+        net,
+        bounds,
+        channel_axis=1,
+        preprocessing=(0, 1),
+        data_blob_name="data",
+        label_blob_name="label",
+        output_blob_name="output",
+    ):
+        super(CaffeModel, self).__init__(
+            bounds=bounds, channel_axis=channel_axis, preprocessing=preprocessing
+        )
 
-        warnings.warn('Caffe was superseeded by Caffe2 and now PyTorch 1.0,'
-                      ' thus Caffe support in Foolbox will be removed',
-                      DeprecationWarning)
+        warnings.warn(
+            "Caffe was superseeded by Caffe2 and now PyTorch 1.0,"
+            " thus Caffe support in Foolbox will be removed",
+            DeprecationWarning,
+        )
 
         import caffe
+
         self.net = net
         assert isinstance(net, caffe.Net)
         assert data_blob_name in self.net.blobs
@@ -99,8 +103,9 @@ class CaffeModel(DifferentiableModel):  # pragma: no cover
         self.net.blobs[self.data_blob_name].data[:] = x
         self.net.forward()
         self.net.blobs[self.output_blob_name].diff[...] = gradient
-        grad_data = self.net.backward(start=self.output_blob_name,
-                                      diffs=[self.data_blob_name])
+        grad_data = self.net.backward(
+            start=self.output_blob_name, diffs=[self.data_blob_name]
+        )
         grad = grad_data[self.data_blob_name][0]
         grad = self._process_gradient(dpdx, grad)
         assert grad.shape == input_shape

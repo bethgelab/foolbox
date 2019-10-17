@@ -15,7 +15,7 @@ class GDOptimizer:
     def __init__(self, learning_rate):
         self._learning_rate = learning_rate
 
-    def __call__(self, gradient, ):
+    def __call__(self, gradient):
         """Updates internal parameters of the optimizer and returns
         the change that should be applied to the variable.
 
@@ -39,8 +39,7 @@ class AdamOptimizer:
 
     """
 
-    def __init__(self, shape, learning_rate,
-                 beta1=0.9, beta2=0.999, epsilon=10e-8):
+    def __init__(self, shape, learning_rate, beta1=0.9, beta2=0.999, epsilon=10e-8):
         """Updates internal parameters of the optimizer and returns
         the change that should be applied to the variable.
 
@@ -82,10 +81,10 @@ class AdamOptimizer:
         self.t += 1
 
         self.m = self._beta1 * self.m + (1 - self._beta1) * gradient
-        self.v = self._beta2 * self.v + (1 - self._beta2) * gradient**2
+        self.v = self._beta2 * self.v + (1 - self._beta2) * gradient ** 2
 
-        bias_correction_1 = 1 - self._beta1**self.t
-        bias_correction_2 = 1 - self._beta2**self.t
+        bias_correction_1 = 1 - self._beta1 ** self.t
+        bias_correction_2 = 1 - self._beta2 ** self.t
 
         m_hat = self.m / bias_correction_1
         v_hat = self.v / bias_correction_2

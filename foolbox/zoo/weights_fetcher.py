@@ -7,7 +7,7 @@ import logging
 
 from .common import sha256_hash, home_directory_path, path_exists
 
-FOLDER = '.foolbox_zoo/weights'
+FOLDER = ".foolbox_zoo/weights"
 
 
 def fetch_weights(weights_uri, unzip=False):
@@ -56,9 +56,9 @@ def fetch_weights(weights_uri, unzip=False):
 
 def _filename_from_uri(url):
     # get last part of the URI, i.e. file-name
-    filename = url.split('/')[-1]
+    filename = url.split("/")[-1]
     # remove query params if exist
-    filename = filename.split('?')[0]
+    filename = filename.split("?")[0]
     return filename
 
 
@@ -70,7 +70,7 @@ def _download(file_path, url, directory):
     # to check whether updated weights are available?
     r = requests.get(url, stream=True)
     if r.status_code == 200:
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             r.raw.decode_content = True
             shutil.copyfileobj(r.raw, f)
     else:
@@ -79,22 +79,23 @@ def _download(file_path, url, directory):
 
 def _extract(directory, filename):
     file_path = os.path.join(directory, filename)
-    extracted_folder = filename.rsplit('.', 1)[0]
+    extracted_folder = filename.rsplit(".", 1)[0]
     extracted_folder = os.path.join(directory, extracted_folder)
 
     if not os.path.exists(extracted_folder):
         logging.info("Extracting weights package to %s", extracted_folder)
         os.makedirs(extracted_folder)
-        if '.zip' in file_path:
-            zip_ref = zipfile.ZipFile(file_path, 'r')
+        if ".zip" in file_path:
+            zip_ref = zipfile.ZipFile(file_path, "r")
             zip_ref.extractall(extracted_folder)
             zip_ref.close()
-        elif '.tar.gz' in file_path:  # pragma: no cover
-            tar_ref = tarfile.TarFile.open(file_path, 'r')
+        elif ".tar.gz" in file_path:  # pragma: no cover
+            tar_ref = tarfile.TarFile.open(file_path, "r")
             tar_ref.extractall(extracted_folder)
             tar_ref.close()
     else:
-        logging.info("Extraced folder already exists: %s",
-                     extracted_folder)  # pragma: no cover
+        logging.info(
+            "Extraced folder already exists: %s", extracted_folder
+        )  # pragma: no cover
 
     return extracted_folder

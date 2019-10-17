@@ -34,7 +34,7 @@ def test_attack_fail(bn_adversarial):
     attack = BinarizationRefinementAttack()
     with pytest.raises(AssertionError) as e:
         attack(adv)
-    assert 'thresholding does not match' in str(e.value)
+    assert "thresholding does not match" in str(e.value)
 
 
 def test_attack_noinit(binarized_bn_adversarial):
@@ -54,8 +54,9 @@ def test_attack_sp(binarized_bn_adversarial):
     v1 = adv.distance.value
 
     attack = BinarizationRefinementAttack(adv._model)
-    adv = attack(adv.unperturbed, adv.original_class,
-                 starting_point=adv.perturbed, unpack=False)
+    adv = attack(
+        adv.unperturbed, adv.original_class, starting_point=adv.perturbed, unpack=False
+    )
     v2 = adv.distance.value
 
     assert v2 < v1 < np.inf
@@ -74,7 +75,7 @@ def test_attack2(binarized2_bn_adversarial):
     v1 = adv.distance.value
 
     attack = BinarizationRefinementAttack()
-    attack(adv, included_in='lower')
+    attack(adv, included_in="lower")
     v2 = adv.distance.value
 
     assert v2 < v1 < np.inf
@@ -93,4 +94,4 @@ def test_attack_wrong_arg(binarized_bn_adversarial):
 
     attack = BinarizationRefinementAttack()
     with pytest.raises(ValueError):
-        attack(adv, included_in='blabla')
+        attack(adv, included_in="blabla")

@@ -23,11 +23,18 @@ class SpatialAttack(BatchAttack):
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     do_rotations=True, do_translations=True,
-                     x_shift_limits=(-5, 5), y_shift_limits=(-5, 5),
-                     angular_limits=(-5, 5), granularity=10,
-                     random_sampling=False, abort_early=True):
+    def as_generator(
+        self,
+        a,
+        do_rotations=True,
+        do_translations=True,
+        x_shift_limits=(-5, 5),
+        y_shift_limits=(-5, 5),
+        angular_limits=(-5, 5),
+        granularity=10,
+        random_sampling=False,
+        abort_early=True,
+    ):
 
         """Adversarially chosen rotations and translations.
 
@@ -81,8 +88,9 @@ class SpatialAttack(BatchAttack):
 
         def crop_center(img):
             # crop center of the image (of the size of the original image)
-            start = tuple(map(lambda a, da: (a - da) // 2, img.shape,
-                              a.unperturbed.shape))
+            start = tuple(
+                map(lambda a, da: (a - da) // 2, img.shape, a.unperturbed.shape)
+            )
             end = tuple(map(operator.add, start, a.unperturbed.shape))
             slices = tuple(map(slice, start, end))
             return img[slices]
@@ -101,15 +109,17 @@ class SpatialAttack(BatchAttack):
                 xy_shift = (x_shift, y_shift, 0)
                 axes = (0, 1)
             else:  # pragma: no cover
-                raise ValueError('SpatialAttack only supports models '
-                                 'and inputs with NCHW or NHWC format')
+                raise ValueError(
+                    "SpatialAttack only supports models "
+                    "and inputs with NCHW or NHWC format"
+                )
 
             # rotate image (increases size)
             x = a.unperturbed
             x = rotate(x, angle=angle, axes=axes, reshape=True, order=1)
 
             # translate image
-            x = shift(x, shift=xy_shift, mode='constant')
+            x = shift(x, shift=xy_shift, mode="constant")
 
             # crop center
             x = crop_center(x)

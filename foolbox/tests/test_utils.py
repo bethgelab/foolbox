@@ -13,8 +13,8 @@ from foolbox.utils import samples
 def test_softmax():
     predictions = np.array([0.1, 0.5, 0.7, 0.4])
     probabilities = softmax(predictions)
-    assert not np.sum(predictions) == approx(1.)
-    assert np.sum(probabilities) == approx(1.)
+    assert not np.sum(predictions) == approx(1.0)
+    assert np.sum(probabilities) == approx(1.0)
 
 
 def test_crossentropy():
@@ -34,8 +34,8 @@ def test_imagenet_example():
 
 
 def test_imagenet_example_channels_first():
-    image, label = imagenet_example(data_format='channels_first')
-    image2, _ = imagenet_example(data_format='channels_last')
+    image, label = imagenet_example(data_format="channels_first")
+    image2, _ = imagenet_example(data_format="channels_last")
     assert 0 <= label < 1000
     assert isinstance(label, int)
     assert image.shape == (3, 224, 224)
@@ -46,8 +46,7 @@ def test_imagenet_example_channels_first():
 
 
 def test_samples_imagenet():
-    images, labels = samples(dataset='imagenet',
-                             batchsize=5)
+    images, labels = samples(dataset="imagenet", batchsize=5)
     assert 0 <= labels[0] < 1000
     assert images.shape[0] == 5
     assert isinstance(labels[0], np.integer)
@@ -56,9 +55,9 @@ def test_samples_imagenet():
 
 
 def test_samples_imagenet_channels_first():
-    images, labels = samples(dataset='imagenet',
-                             batchsize=5,
-                             data_format='channels_first')
+    images, labels = samples(
+        dataset="imagenet", batchsize=5, data_format="channels_first"
+    )
     assert 0 <= labels[0] < 1000
     assert images.shape[0] == 5
     assert isinstance(labels[0], np.integer)
@@ -67,7 +66,7 @@ def test_samples_imagenet_channels_first():
 
 
 def test_samples_mnist():
-    images, labels = samples(dataset='mnist', batchsize=5)
+    images, labels = samples(dataset="mnist", batchsize=5)
     assert 0 <= labels[0] < 10
     assert images.shape[0] == 5
     assert isinstance(labels[0], np.integer)
@@ -76,7 +75,7 @@ def test_samples_mnist():
 
 
 def test_samples_cifar10():
-    images, labels = samples(dataset='cifar10', batchsize=5)
+    images, labels = samples(dataset="cifar10", batchsize=5)
     assert 0 <= labels[0] < 10
     assert images.shape[0] == 5
     assert isinstance(labels[0], np.integer)
@@ -85,7 +84,7 @@ def test_samples_cifar10():
 
 
 def test_samples_cifar100():
-    images, labels = samples(dataset='cifar100', batchsize=5)
+    images, labels = samples(dataset="cifar100", batchsize=5)
     assert 0 <= labels[0] < 100
     assert images.shape[0] == 5
     assert isinstance(labels[0], np.integer)
@@ -94,7 +93,7 @@ def test_samples_cifar100():
 
 
 def test_samples_fashionMNIST():
-    images, labels = samples(dataset='fashionMNIST', batchsize=5)
+    images, labels = samples(dataset="fashionMNIST", batchsize=5)
     assert 0 <= labels[0] < 10
     assert images.shape[0] == 5
     assert isinstance(labels[0], np.integer)
@@ -107,7 +106,7 @@ def test_binarize():
     x1 = binarize(x, (-2, 2), 0.5)
     assert np.all(abs(x1) == 2)
     with pytest.raises(ValueError):
-        binarize(x, (-2, 2), 0.5, included_in='blabla')
+        binarize(x, (-2, 2), 0.5, included_in="blabla")
 
 
 def test_onehot_like():

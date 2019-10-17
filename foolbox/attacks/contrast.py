@@ -9,8 +9,7 @@ class ContrastReductionAttack(Attack):
     """Reduces the contrast of the input until it is misclassified."""
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=1000):
+    def __call__(self, input_or_adv, label=None, unpack=True, epsilons=1000):
 
         """Reduces the contrast of the input until it is misclassified.
 

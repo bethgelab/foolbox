@@ -1,4 +1,3 @@
-
 import numpy as np
 from collections import Iterable
 import abc
@@ -16,13 +15,17 @@ class IterativeGradientBaseAttack(BatchAttack):
         raise NotImplementedError
 
     def _run(self, a, epsilons, max_epsilon, steps):
-        logging.warning('Please consider using the L2BasicIterativeAttack,'
-                        ' the LinfinityBasicIterativeAttack or one of its'
-                        ' other variants such as the ProjectedGradientDescent'
-                        ' attack.')
+        logging.warning(
+            "Please consider using the L2BasicIterativeAttack,"
+            " the LinfinityBasicIterativeAttack or one of its"
+            " other variants such as the ProjectedGradientDescent"
+            " attack."
+        )
         if not a.has_gradient():
-            logging.fatal('Applied gradient-based attack to model that '
-                          'does not provide gradients.')
+            logging.fatal(
+                "Applied gradient-based attack to model that "
+                "does not provide gradients."
+            )
             return
 
         x = a.unperturbed
@@ -54,8 +57,7 @@ class IterativeGradientAttack(IterativeGradientBaseAttack):
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     epsilons=100, max_epsilon=1, steps=10):
+    def as_generator(self, a, epsilons=100, max_epsilon=1, steps=10):
 
         """Like GradientAttack but with several steps for each epsilon.
 
@@ -82,8 +84,7 @@ class IterativeGradientAttack(IterativeGradientBaseAttack):
 
         """
 
-        yield from self._run(a, epsilons=epsilons, max_epsilon=max_epsilon,
-                             steps=steps)
+        yield from self._run(a, epsilons=epsilons, max_epsilon=max_epsilon, steps=steps)
 
     def _gradient(self, a, x):
         min_, max_ = a.bounds()
@@ -99,8 +100,7 @@ class IterativeGradientSignAttack(IterativeGradientBaseAttack):
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     epsilons=100, max_epsilon=1, steps=10):
+    def as_generator(self, a, epsilons=100, max_epsilon=1, steps=10):
 
         """Like GradientSignAttack but with several steps for each epsilon.
 
@@ -127,8 +127,7 @@ class IterativeGradientSignAttack(IterativeGradientBaseAttack):
 
         """
 
-        yield from self._run(a, epsilons=epsilons, max_epsilon=max_epsilon,
-                             steps=steps)
+        yield from self._run(a, epsilons=epsilons, max_epsilon=max_epsilon, steps=steps)
 
     def _gradient(self, a, x):
         min_, max_ = a.bounds()

@@ -23,10 +23,16 @@ class CarliniWagnerL2Attack(BatchAttack):
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     binary_search_steps=5, max_iterations=1000,
-                     confidence=0, learning_rate=5e-3,
-                     initial_const=1e-2, abort_early=True):
+    def as_generator(
+        self,
+        a,
+        binary_search_steps=5,
+        max_iterations=1000,
+        confidence=0,
+        learning_rate=5e-3,
+        initial_const=1e-2,
+        abort_early=True,
+    ):
 
         """The L2 version of the Carlini & Wagner attack.
 
@@ -63,8 +69,10 @@ class CarliniWagnerL2Attack(BatchAttack):
         """
 
         if not a.has_gradient():
-            logging.fatal('Applied gradient-based attack to model that '
-                          'does not provide gradients.')
+            logging.fatal(
+                "Applied gradient-based attack to model that "
+                "does not provide gradients."
+            )
             return
 
         min_, max_ = a.bounds()
@@ -113,13 +121,15 @@ class CarliniWagnerL2Attack(BatchAttack):
         upper_bound = np.inf
 
         for binary_search_step in range(binary_search_steps):
-            if binary_search_step == binary_search_steps - 1 and \
-                    binary_search_steps >= 10:
+            if (
+                binary_search_step == binary_search_steps - 1
+                and binary_search_steps >= 10
+            ):
                 # in the last binary search step, use the upper_bound instead
                 # TODO: find out why... it's not obvious why this is useful
                 const = min(1e10, upper_bound)
 
-            logging.info('starting optimization with const = {}'.format(const))
+            logging.info("starting optimization with const = {}".format(const))
 
             att_perturbation = np.zeros_like(att_original)
 
@@ -133,10 +143,12 @@ class CarliniWagnerL2Attack(BatchAttack):
                 x, dxdp = to_model_space(att_original + att_perturbation)
                 logits, is_adv = yield from a.forward_one(x)
                 loss, dldx = yield from self.loss_function(
-                    const, a, x, logits, reconstructed_original,
-                    confidence, min_, max_)
+                    const, a, x, logits, reconstructed_original, confidence, min_, max_
+                )
 
-                logging.info('loss: {}; best overall distance: {}'.format(loss, a.distance))
+                logging.info(
+                    "loss: {}; best overall distance: {}".format(loss, a.distance)
+                )
 
                 # backprop the gradient of the loss w.r.t. x further
                 # to get the gradient of the loss w.r.t. att_perturbation
@@ -155,19 +167,19 @@ class CarliniWagnerL2Attack(BatchAttack):
                     # but optimization continues to minimize perturbation size
                     found_adv = True
 
-                if abort_early and \
-                        iteration % (np.ceil(max_iterations / 10)) == 0:
+                if abort_early and iteration % (np.ceil(max_iterations / 10)) == 0:
                     # after each tenth of the iterations, check progress
-                    if not (loss <= .9999 * loss_at_previous_check):
+                    if not (loss <= 0.9999 * loss_at_previous_check):
                         break  # stop Adam if there has not been progress
                     loss_at_previous_check = loss
 
             if found_adv:
-                logging.info('found adversarial with const = {}'.format(const))
+                logging.info("found adversarial with const = {}".format(const))
                 upper_bound = const
             else:
-                logging.info('failed to find adversarial '
-                             'with const = {}'.format(const))
+                logging.info(
+                    "failed to find adversarial " "with const = {}".format(const)
+                )
                 lower_bound = const
 
             if upper_bound == np.inf:
@@ -178,8 +190,9 @@ class CarliniWagnerL2Attack(BatchAttack):
                 const = (lower_bound + upper_bound) / 2
 
     @classmethod
-    def loss_function(cls, const, a, x, logits, reconstructed_original,
-                      confidence, min_, max_):
+    def loss_function(
+        cls, const, a, x, logits, reconstructed_original, confidence, min_, max_
+    ):
         """Returns the loss and the gradient of the loss w.r.t. x,
         assuming that logits = model(x)."""
 
@@ -199,7 +212,7 @@ class CarliniWagnerL2Attack(BatchAttack):
         is_adv_loss = max(0, is_adv_loss)
 
         s = max_ - min_
-        squared_l2_distance = np.sum((x - reconstructed_original)**2) / s**2
+        squared_l2_distance = np.sum((x - reconstructed_original) ** 2) / s ** 2
         total_loss = squared_l2_distance + const * is_adv_loss
 
         # calculate the gradient of total_loss w.r.t. x
@@ -211,7 +224,7 @@ class CarliniWagnerL2Attack(BatchAttack):
         if is_adv_loss == 0:
             is_adv_loss_grad = 0
 
-        squared_l2_distance_grad = (2 / s**2) * (x - reconstructed_original)
+        squared_l2_distance_grad = (2 / s ** 2) * (x - reconstructed_original)
 
         total_loss_grad = squared_l2_distance_grad + const * is_adv_loss_grad
         return total_loss, total_loss_grad
@@ -243,8 +256,7 @@ class AdamOptimizer:
         self.v = np.zeros(shape)
         self.t = 0
 
-    def __call__(self, gradient, learning_rate,
-                 beta1=0.9, beta2=0.999, epsilon=10e-8):
+    def __call__(self, gradient, learning_rate, beta1=0.9, beta2=0.999, epsilon=10e-8):
         """Updates internal parameters of the optimizer and returns
         the change that should be applied to the variable.
 
@@ -268,10 +280,10 @@ class AdamOptimizer:
         self.t += 1
 
         self.m = beta1 * self.m + (1 - beta1) * gradient
-        self.v = beta2 * self.v + (1 - beta2) * gradient**2
+        self.v = beta2 * self.v + (1 - beta2) * gradient ** 2
 
-        bias_correction_1 = 1 - beta1**self.t
-        bias_correction_2 = 1 - beta2**self.t
+        bias_correction_1 = 1 - beta1 ** self.t
+        bias_correction_2 = 1 - beta2 ** self.t
 
         m_hat = self.m / bias_correction_1
         v_hat = self.v / bias_correction_2

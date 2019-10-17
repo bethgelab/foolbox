@@ -2,7 +2,7 @@ from .git_cloner import clone
 from .model_loader import ModelLoader
 
 
-def get_model(url, module_name='foolbox_model', **kwargs):
+def get_model(url, module_name="foolbox_model", **kwargs):
     """
 
     Provides utilities to download foolbox-compatible robust models

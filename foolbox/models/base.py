@@ -1,4 +1,3 @@
-
 import numpy as np
 import abc
 from abc import abstractmethod
@@ -13,20 +12,28 @@ def _create_preprocessing_fn(params):
         return x
 
     if np.all(mean == 0) and np.all(std == 1):
+
         def preprocessing(x):
             return x, identity
+
     elif np.all(std == 1):
+
         def preprocessing(x):
             _mean = mean.astype(x.dtype)
             return x - _mean, identity
+
     elif np.all(mean == 0):
+
         def preprocessing(x):
             _std = std.astype(x.dtype)
 
             def grad(dmdp):
                 return dmdp / _std
+
             return x / _std, grad
+
     else:
+
         def preprocessing(x):
             _mean = mean.astype(x.dtype)
             _std = std.astype(x.dtype)
@@ -35,6 +42,7 @@ def _create_preprocessing_fn(params):
 
             def grad(dmdp):
                 return dmdp / _std
+
             return result, grad
 
     return preprocessing
@@ -88,7 +96,7 @@ class Model(abc.ABC):
 
     def _process_input(self, x):
         p, grad = self._preprocessing(x)
-        if hasattr(p, 'dtype'):
+        if hasattr(p, "dtype"):
             assert p.dtype == x.dtype
         p = np.asarray(p, dtype=x.dtype)
         assert callable(grad)
@@ -103,8 +111,10 @@ class Model(abc.ABC):
         dmdp: gradient of model w.r.t. preprocessed input
         """
         if backward is None:  # pragma: no cover
-            raise ValueError('Your preprocessing function does not provide'
-                             ' an (approximate) gradient')
+            raise ValueError(
+                "Your preprocessing function does not provide"
+                " an (approximate) gradient"
+            )
         dmdx = backward(dmdp)
         assert dmdx.dtype == dmdp.dtype
         return dmdx
@@ -218,7 +228,9 @@ class DifferentiableModel(Model):
         :meth:`gradient`
 
         """
-        return np.squeeze(self.gradient(x[np.newaxis], np.asarray(label)[np.newaxis]), axis=0)
+        return np.squeeze(
+            self.gradient(x[np.newaxis], np.asarray(label)[np.newaxis]), axis=0
+        )
 
     @abstractmethod
     def backward(self, gradient, inputs):

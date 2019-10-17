@@ -1,4 +1,3 @@
-
 import numpy as np
 from collections import Iterable
 import logging
@@ -38,7 +37,7 @@ class SingleStepGradientBaseAttack(BatchAttack):
                 _, is_adversarial = yield from a.forward_one(perturbed)
                 if is_adversarial:
                     if decrease_if_first and i < 20:
-                        logging.info('repeating attack with smaller epsilons')
+                        logging.info("repeating attack with smaller epsilons")
                         break
                     return
 

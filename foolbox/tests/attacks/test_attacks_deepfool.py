@@ -5,14 +5,10 @@ from foolbox.attacks import DeepFoolAttack
 from foolbox.attacks import DeepFoolL2Attack
 from foolbox.attacks import DeepFoolLinfinityAttack
 
-Attacks = [
-    DeepFoolAttack,
-    DeepFoolL2Attack,
-    DeepFoolLinfinityAttack,
-]
+Attacks = [DeepFoolAttack, DeepFoolL2Attack, DeepFoolLinfinityAttack]
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_attack(Attack, bn_adversarial):
     adv = bn_adversarial
     attack = Attack()
@@ -21,7 +17,7 @@ def test_attack(Attack, bn_adversarial):
     assert adv.distance.value < np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_attack_gl(Attack, gl_bn_adversarial):
     adv = gl_bn_adversarial
     attack = Attack()
@@ -30,7 +26,7 @@ def test_attack_gl(Attack, gl_bn_adversarial):
     assert adv.distance.value == np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_targeted_attack(Attack, bn_targeted_adversarial):
     adv = bn_targeted_adversarial
     attack = Attack()
@@ -39,7 +35,7 @@ def test_targeted_attack(Attack, bn_targeted_adversarial):
     assert adv.distance.value == np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_subsample(Attack, bn_adversarial):
     adv = bn_adversarial
     attack = Attack()
@@ -48,7 +44,7 @@ def test_subsample(Attack, bn_adversarial):
     assert adv.distance.value < np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_attack_impossible(Attack, bn_impossible):
     adv = bn_impossible
     attack = Attack()

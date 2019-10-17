@@ -1,4 +1,3 @@
-
 import numpy as np
 from collections import Iterable
 import abc
@@ -16,10 +15,12 @@ class IterativeGradientBaseAttack(Attack):
         raise NotImplementedError
 
     def _run(self, a, epsilons, max_epsilon, steps):
-        logging.warning('Please consider using the L2BasicIterativeAttack,'
-                        ' the LinfinityBasicIterativeAttack or one of its'
-                        ' other variants such as the ProjectedGradientDescent'
-                        ' attack.')
+        logging.warning(
+            "Please consider using the L2BasicIterativeAttack,"
+            " the LinfinityBasicIterativeAttack or one of its"
+            " other variants such as the ProjectedGradientDescent"
+            " attack."
+        )
         if not a.has_gradient():
             return
 
@@ -52,8 +53,15 @@ class IterativeGradientAttack(IterativeGradientBaseAttack):
     """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=100, max_epsilon=1, steps=10):
+    def __call__(
+        self,
+        input_or_adv,
+        label=None,
+        unpack=True,
+        epsilons=100,
+        max_epsilon=1,
+        steps=10,
+    ):
 
         """Like GradientAttack but with several steps for each epsilon.
 
@@ -101,8 +109,15 @@ class IterativeGradientSignAttack(IterativeGradientBaseAttack):
     """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=100, max_epsilon=1, steps=10):
+    def __call__(
+        self,
+        input_or_adv,
+        label=None,
+        unpack=True,
+        epsilons=100,
+        max_epsilon=1,
+        steps=10,
+    ):
 
         """Like GradientSignAttack but with several steps for each epsilon.
 

@@ -20,22 +20,23 @@
 import os
 import sys
 from unittest.mock import Mock
-sys.path.insert(0, os.path.abspath('..'))
+
+sys.path.insert(0, os.path.abspath(".."))
 
 # mock imports, see https://stackoverflow.com/q/15889621
 # autodoc_mock_imports = ['tensorflow'] does not seem to work
-sys.modules['numpy'] = Mock()
-sys.modules['numpy.linalg'] = Mock()
-sys.modules['scipy'] = Mock()
-sys.modules['scipy.optimize'] = Mock()
-sys.modules['scipy.interpolate'] = Mock()
-sys.modules['scipy.ndimage'] = Mock()
-sys.modules['scipy.ndimage.filters'] = Mock()
-sys.modules['tensorflow'] = Mock()
-sys.modules['theano'] = Mock()
-sys.modules['theano.tensor'] = Mock()
-sys.modules['torch'] = Mock()
-sys.modules['randomstate'] = Mock()
+sys.modules["numpy"] = Mock()
+sys.modules["numpy.linalg"] = Mock()
+sys.modules["scipy"] = Mock()
+sys.modules["scipy.optimize"] = Mock()
+sys.modules["scipy.interpolate"] = Mock()
+sys.modules["scipy.ndimage"] = Mock()
+sys.modules["scipy.ndimage.filters"] = Mock()
+sys.modules["tensorflow"] = Mock()
+sys.modules["theano"] = Mock()
+sys.modules["theano.tensor"] = Mock()
+sys.modules["torch"] = Mock()
+sys.modules["randomstate"] = Mock()
 
 import foolbox
 
@@ -50,34 +51,34 @@ import foolbox
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.doctest',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.linkcode',
-    'numpydoc',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.doctest",
+    "sphinx.ext.coverage",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.linkcode",
+    "numpydoc",
 ]
 
 # see http://stackoverflow.com/q/12206334/562769
 numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = 'Foolbox'
-copyright = '2017, Jonas Rauber & Wieland Brendel'
-author = 'Jonas Rauber & Wieland Brendel'
+project = "Foolbox"
+copyright = "2017, Jonas Rauber & Wieland Brendel"
+author = "Jonas Rauber & Wieland Brendel"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -99,10 +100,10 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
@@ -113,23 +114,24 @@ def linkcode_resolve(domain, info):
     def find_source():
         # try to find the file and line number, based on code from numpy:
         # https://github.com/numpy/numpy/blob/master/doc/source/conf.py#L286
-        obj = sys.modules[info['module']]
-        for part in info['fullname'].split('.'):
+        obj = sys.modules[info["module"]]
+        for part in info["fullname"].split("."):
             obj = getattr(obj, part)
         import inspect
         import os
+
         fn = inspect.getsourcefile(obj)
         fn = os.path.relpath(fn, start=os.path.dirname(foolbox.__file__))
         source, lineno = inspect.getsourcelines(obj)
         return fn, lineno, lineno + len(source) - 1
 
-    if domain != 'py' or not info['module']:
+    if domain != "py" or not info["module"]:
         return None
     try:
-        filename = 'foolbox/%s#L%d-L%d' % find_source()
+        filename = "foolbox/%s#L%d-L%d" % find_source()
     except Exception:
-        filename = info['module'].replace('.', '/') + '.py'
-    tag = 'master'
+        filename = info["module"].replace(".", "/") + ".py"
+    tag = "master"
     url = "https://github.com/bethgelab/foolbox/blob/%s/%s"
     return url % (tag, filename)
 
@@ -141,14 +143,14 @@ def linkcode_resolve(domain, info):
 #
 # html_theme = 'alabaster'
 
-if os.environ.get('READTHEDOCS') != 'True':
+if os.environ.get("READTHEDOCS") != "True":
     try:
         import sphinx_rtd_theme
     except ImportError:
         pass  # assume we have sphinx >= 1.3
     else:
         html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-    html_theme = 'sphinx_rtd_theme'
+    html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -159,13 +161,13 @@ if os.environ.get('READTHEDOCS') != 'True':
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Foolboxdoc'
+htmlhelp_basename = "Foolboxdoc"
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -173,27 +175,29 @@ htmlhelp_basename = 'Foolboxdoc'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    'papersize': 'letterpaper',
-
+    "papersize": "letterpaper",
     # The font size ('10pt', '11pt' or '12pt').
     #
-    'pointsize': '10pt',
-
+    "pointsize": "10pt",
     # Additional stuff for the LaTeX preamble.
     #
-    'preamble': '',
-
+    "preamble": "",
     # Latex figure (float) alignment
     #
-    'figure_align': 'htbp',
+    "figure_align": "htbp",
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Foolbox.tex', 'Foolbox Documentation',
-     'Jonas Rauber \\& Wieland Brendel', 'manual'),
+    (
+        master_doc,
+        "Foolbox.tex",
+        "Foolbox Documentation",
+        "Jonas Rauber \\& Wieland Brendel",
+        "manual",
+    )
 ]
 
 
@@ -201,10 +205,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'foolbox', 'Foolbox Documentation',
-     [author], 1)
-]
+man_pages = [(master_doc, "foolbox", "Foolbox Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output -------------------------------------------
@@ -213,7 +214,13 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Foolbox', 'Foolbox Documentation',
-     author, 'Foolbox', 'One line description of project.',
-     'Miscellaneous'),
+    (
+        master_doc,
+        "Foolbox",
+        "Foolbox Documentation",
+        author,
+        "Foolbox",
+        "One line description of project.",
+        "Miscellaneous",
+    )
 ]

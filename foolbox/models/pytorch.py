@@ -1,4 +1,3 @@
-
 import numpy as np
 import warnings
 
@@ -30,26 +29,26 @@ class PyTorchModel(DifferentiableModel):
     """
 
     def __init__(
-            self,
-            model,
-            bounds,
-            num_classes,
-            channel_axis=1,
-            device=None,
-            preprocessing=(0, 1)):
+        self,
+        model,
+        bounds,
+        num_classes,
+        channel_axis=1,
+        device=None,
+        preprocessing=(0, 1),
+    ):
 
         # lazy import
         import torch
 
-        super(PyTorchModel, self).__init__(bounds=bounds,
-                                           channel_axis=channel_axis,
-                                           preprocessing=preprocessing)
+        super(PyTorchModel, self).__init__(
+            bounds=bounds, channel_axis=channel_axis, preprocessing=preprocessing
+        )
 
         self._num_classes = num_classes
 
         if device is None:
-            self.device = torch.device(
-                "cuda:0" if torch.cuda.is_available() else "cpu")
+            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         elif isinstance(device, str):
             self.device = torch.device(device)
         else:
@@ -58,9 +57,10 @@ class PyTorchModel(DifferentiableModel):
 
         if model.training:
             warnings.warn(
-                'The PyTorch model is in training mode and therefore might'
-                ' not be deterministic. Call the eval() method to set it in'
-                ' evaluation mode if this is not intended.')
+                "The PyTorch model is in training mode and therefore might"
+                " not be deterministic. Call the eval() method to set it in"
+                " evaluation mode if this is not intended."
+            )
 
     def forward(self, inputs):
         # lazy import

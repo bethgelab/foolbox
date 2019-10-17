@@ -147,7 +147,7 @@ class CombinedCriteria(Criterion):
 
         """
         names = (criterion.name() for criterion in self._criteria)
-        return '__'.join(sorted(names))
+        return "__".join(sorted(names))
 
     def is_adversarial(self, predictions, label):
         for criterion in self._criteria:
@@ -172,7 +172,7 @@ class Misclassification(Criterion):
     """
 
     def name(self):
-        return 'Top1Misclassification'
+        return "Top1Misclassification"
 
     def is_adversarial(self, predictions, label):
         top1 = np.argmax(predictions)
@@ -198,7 +198,7 @@ class ConfidentMisclassification(Criterion):
         self.p = p
 
     def name(self):
-        return '{}-{:.04f}'.format(self.__class__.__name__, self.p)
+        return "{}-{:.04f}".format(self.__class__.__name__, self.p)
 
     def is_adversarial(self, predictions, label):
         top1 = np.argmax(predictions)
@@ -235,10 +235,10 @@ class TopKMisclassification(Criterion):
         self.k = k
 
     def name(self):
-        return 'Top{}Misclassification'.format(self.k)
+        return "Top{}Misclassification".format(self.k)
 
     def is_adversarial(self, predictions, label):
-        topk = np.argsort(predictions)[-self.k:]
+        topk = np.argsort(predictions)[-self.k :]
         return label not in topk
 
 
@@ -266,7 +266,7 @@ class TargetClass(Criterion):
         return self._target_class
 
     def name(self):
-        return '{}-{}'.format(self.__class__.__name__, self.target_class())
+        return "{}-{}".format(self.__class__.__name__, self.target_class())
 
     def is_adversarial(self, predictions, label):
         top1 = np.argmax(predictions)
@@ -297,7 +297,7 @@ class OriginalClassProbability(Criterion):
         self.p = p
 
     def name(self):
-        return '{}-{:.04f}'.format(self.__class__.__name__, self.p)
+        return "{}-{:.04f}".format(self.__class__.__name__, self.p)
 
     def is_adversarial(self, predictions, label):
         probabilities = softmax(predictions)
@@ -336,8 +336,9 @@ class TargetClassProbability(Criterion):
         return self._target_class
 
     def name(self):
-        return '{}-{}-{:.04f}'.format(
-            self.__class__.__name__, self.target_class(), self.p)
+        return "{}-{}-{:.04f}".format(
+            self.__class__.__name__, self.target_class(), self.p
+        )
 
     def is_adversarial(self, predictions, label):
         probabilities = softmax(predictions)

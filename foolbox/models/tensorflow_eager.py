@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from .base import DifferentiableModel
@@ -27,21 +26,17 @@ class TensorFlowEagerModel(DifferentiableModel):
     """
 
     def __init__(
-            self,
-            model,
-            bounds,
-            num_classes=None,
-            channel_axis=3,
-            preprocessing=(0, 1)):
+        self, model, bounds, num_classes=None, channel_axis=3, preprocessing=(0, 1)
+    ):
 
         # delay import until class is instantiated
         import tensorflow as tf
+
         assert tf.executing_eagerly()
 
         super(TensorFlowEagerModel, self).__init__(
-            bounds=bounds,
-            channel_axis=channel_axis,
-            preprocessing=preprocessing)
+            bounds=bounds, channel_axis=channel_axis, preprocessing=preprocessing
+        )
 
         self._model = model
 
@@ -50,13 +45,15 @@ class TensorFlowEagerModel(DifferentiableModel):
                 num_classes = model.output_shape[-1]
             except AttributeError:
                 raise ValueError(
-                    'Please specify num_classes manually or '
-                    'provide a model with an output_shape attribute')
+                    "Please specify num_classes manually or "
+                    "provide a model with an output_shape attribute"
+                )
 
         self._num_classes = num_classes
 
     def forward(self, inputs):
         import tensorflow as tf
+
         inputs, _ = self._process_input(inputs)
         n = len(inputs)
         inputs = tf.constant(inputs)
@@ -72,6 +69,7 @@ class TensorFlowEagerModel(DifferentiableModel):
 
     def forward_and_gradient_one(self, x, label):
         import tensorflow as tf
+
         input_shape = x.shape
         x, dpdx = self._process_input(x)
         inputs = x[np.newaxis]
@@ -82,7 +80,8 @@ class TensorFlowEagerModel(DifferentiableModel):
             tape.watch(inputs)
             predictions = self._model(inputs)
             loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                labels=target, logits=predictions)
+                labels=target, logits=predictions
+            )
 
         grad = tape.gradient(loss, inputs)
 
@@ -100,6 +99,7 @@ class TensorFlowEagerModel(DifferentiableModel):
 
     def forward_and_gradient(self, inputs, labels):
         import tensorflow as tf
+
         inputs_shape = inputs.shape
         inputs, dpdx = self._process_input(inputs)
         inputs = tf.constant(inputs)
@@ -109,7 +109,8 @@ class TensorFlowEagerModel(DifferentiableModel):
             tape.watch(inputs)
             predictions = self._model(inputs)
             loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                labels=labels, logits=predictions)
+                labels=labels, logits=predictions
+            )
 
         grad = tape.gradient(loss, inputs)
 
@@ -125,6 +126,7 @@ class TensorFlowEagerModel(DifferentiableModel):
 
     def gradient(self, inputs, labels):
         import tensorflow as tf
+
         input_shape = inputs.shape
         inputs, dpdx = self._process_input(inputs)
         inputs = tf.constant(inputs)
@@ -134,7 +136,8 @@ class TensorFlowEagerModel(DifferentiableModel):
             tape.watch(inputs)
             predictions = self._model(inputs)
             loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                labels=target, logits=predictions)
+                labels=target, logits=predictions
+            )
 
         gradient = tape.gradient(loss, inputs)
         gradient = gradient.numpy()
@@ -144,6 +147,7 @@ class TensorFlowEagerModel(DifferentiableModel):
 
     def _loss_fn(self, x, label):
         import tensorflow as tf
+
         x, _ = self._process_input(x)
         labels = np.asarray(label)
 
@@ -157,12 +161,14 @@ class TensorFlowEagerModel(DifferentiableModel):
 
         predictions = self._model(inputs)
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            labels=target, logits=predictions)
+            labels=target, logits=predictions
+        )
         loss = loss.numpy()
         return loss
 
     def backward(self, gradient, inputs):
         import tensorflow as tf
+
         input_shape = inputs.shape
         inputs, dpdx = self._process_input(inputs)
         inputs = tf.constant(inputs)

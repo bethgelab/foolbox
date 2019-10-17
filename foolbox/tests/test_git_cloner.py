@@ -24,9 +24,9 @@ def test_wrong_git_uri():
 
 
 def _expected_path(git_uri):
-    home = os.path.expanduser('~')
+    home = os.path.expanduser("~")
     m = hashlib.sha256()
     m.update(git_uri.encode())
     hash = m.hexdigest()
-    expected_path = os.path.join(home, '.foolbox_zoo', hash)
+    expected_path = os.path.join(home, ".foolbox_zoo", hash)
     return expected_path

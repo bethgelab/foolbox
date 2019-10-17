@@ -5,7 +5,7 @@ from foolbox.attacks import ApproximateLBFGSAttack as Attack
 
 def test_name():
     attack = Attack()
-    assert 'Approx' in attack.name()
+    assert "Approx" in attack.name()
 
 
 def test_attack(bn_adversarial):

@@ -24,8 +24,9 @@ class DeepFoolAttack(Attack):
     """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 steps=100, subsample=10, p=None):
+    def __call__(
+        self, input_or_adv, label=None, unpack=True, steps=100, subsample=10, p=None
+    ):
 
         """Simple and close to optimal gradient-based
         adversarial attack.
@@ -62,7 +63,7 @@ class DeepFoolAttack(Attack):
             return
 
         if a.target_class() is not None:
-            logging.fatal('DeepFool is an untargeted adversarial attack.')
+            logging.fatal("DeepFool is an untargeted adversarial attack.")
             return
 
         if p is None:
@@ -72,10 +73,12 @@ class DeepFoolAttack(Attack):
             elif a._distance == Linfinity:
                 p = np.inf
             else:
-                raise NotImplementedError('Please choose a distance measure'
-                                          ' for which DeepFool is implemented'
-                                          ' or specify manually which norm'
-                                          ' to optimize.')
+                raise NotImplementedError(
+                    "Please choose a distance measure"
+                    " for which DeepFool is implemented"
+                    " or specify manually which norm"
+                    " to optimize."
+                )
 
         if not (1 <= p <= np.inf):
             raise ValueError
@@ -90,15 +93,13 @@ class DeepFoolAttack(Attack):
         labels = np.argsort(logits)[::-1]
         if subsample:
             # choose the top-k classes
-            logging.info('Only testing the top-{} classes'.format(subsample))
+            logging.info("Only testing the top-{} classes".format(subsample))
             assert isinstance(subsample, int)
             labels = labels[:subsample]
 
         def get_residual_labels(logits):
             """Get all labels with p < p[original_class]"""
-            return [
-                k for k in labels
-                if logits[k] < logits[_label]]
+            return [k for k in labels if logits[k] < logits[_label]]
 
         perturbed = a.unperturbed
         min_, max_ = a.bounds()
@@ -121,9 +122,7 @@ class DeepFoolAttack(Attack):
             # we use a numerically stable implementation of the cross-entropy
             # and expect that the deep learning frameworks also use such a
             # stable implemenation to calculate the gradient
-            losses = [
-                -crossentropy(logits=logits, label=k)
-                for k in residual_labels]
+            losses = [-crossentropy(logits=logits, label=k) for k in residual_labels]
             grads = [a.gradient_one(perturbed, label=k) for k in residual_labels]
 
             # compute optimal direction (and loss difference)
@@ -132,11 +131,9 @@ class DeepFoolAttack(Attack):
 
             # calculate distances
             if p == 2:
-                distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8)
-                             for dl, dg in diffs]
+                distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8) for dl, dg in diffs]
             elif p == np.inf:
-                distances = [abs(dl) / (np.sum(np.abs(dg)) + 1e-8)
-                             for dl, dg in diffs]
+                distances = [abs(dl) / (np.sum(np.abs(dg)) + 1e-8) for dl, dg in diffs]
             else:  # pragma: no cover
                 assert False
 
@@ -147,10 +144,9 @@ class DeepFoolAttack(Attack):
             # apply perturbation
             # the (-dg) corrects the sign, gradient here is -gradient of paper
             if p == 2:
-                perturbation = abs(df) / (np.linalg.norm(dg) + 1e-8)**2 * (-dg)
+                perturbation = abs(df) / (np.linalg.norm(dg) + 1e-8) ** 2 * (-dg)
             elif p == np.inf:
-                perturbation = abs(df) / (np.sum(np.abs(dg)) + 1e-8) \
-                    * np.sign(-dg)
+                perturbation = abs(df) / (np.sum(np.abs(dg)) + 1e-8) * np.sign(-dg)
             else:  # pragma: no cover
                 assert False
 
@@ -165,16 +161,24 @@ class DeepFoolAttack(Attack):
 
 
 class DeepFoolL2Attack(DeepFoolAttack):
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 steps=100, subsample=10):
+    def __call__(self, input_or_adv, label=None, unpack=True, steps=100, subsample=10):
         return super(DeepFoolL2Attack, self).__call__(
-            input_or_adv, label=label, unpack=unpack,
-            steps=steps, subsample=subsample, p=2)
+            input_or_adv,
+            label=label,
+            unpack=unpack,
+            steps=steps,
+            subsample=subsample,
+            p=2,
+        )
 
 
 class DeepFoolLinfinityAttack(DeepFoolAttack):
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 steps=100, subsample=10):
+    def __call__(self, input_or_adv, label=None, unpack=True, steps=100, subsample=10):
         return super(DeepFoolLinfinityAttack, self).__call__(
-            input_or_adv, label=label, unpack=unpack,
-            steps=steps, subsample=subsample, p=np.inf)
+            input_or_adv,
+            label=label,
+            unpack=unpack,
+            steps=steps,
+            subsample=subsample,
+            p=np.inf,
+        )

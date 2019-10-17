@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from .base import DifferentiableModel
@@ -34,21 +33,21 @@ class MXNetModel(DifferentiableModel):
     """
 
     def __init__(
-            self,
-            data,
-            logits,
-            args,
-            ctx,
-            num_classes,
-            bounds,
-            channel_axis=1,
-            aux_states=None,
-            preprocessing=(0, 1)):
+        self,
+        data,
+        logits,
+        args,
+        ctx,
+        num_classes,
+        bounds,
+        channel_axis=1,
+        aux_states=None,
+        preprocessing=(0, 1),
+    ):
 
         super(MXNetModel, self).__init__(
-            bounds=bounds,
-            channel_axis=channel_axis,
-            preprocessing=preprocessing)
+            bounds=bounds, channel_axis=channel_axis, preprocessing=preprocessing
+        )
 
         import mxnet as mx
 
@@ -59,14 +58,15 @@ class MXNetModel(DifferentiableModel):
         self._data_sym = data
         self._logits_sym = logits
 
-        labels = mx.symbol.Variable('labels')
+        labels = mx.symbol.Variable("labels")
         self._label_sym = labels
 
         # workaround for https://github.com/apache/incubator-mxnet/issues/6874
         # loss = mx.symbol.softmax_cross_entropy(logits, label)
         log_softmax = mx.sym.log_softmax(logits)
         loss = mx.sym.sum(
-            mx.sym.one_hot(indices=labels, depth=num_classes) * log_softmax)
+            mx.sym.one_hot(indices=labels, depth=num_classes) * log_softmax
+        )
         loss = mx.sym.make_loss(loss)
         self._loss_sym = loss
 
@@ -75,25 +75,29 @@ class MXNetModel(DifferentiableModel):
 
         # move all parameters to correct device
         for k in self._args_map.keys():
-            self._args_map[k] = \
-                self._args_map[k].as_in_context(ctx)      # pragma: no cover
+            self._args_map[k] = self._args_map[k].as_in_context(ctx)  # pragma: no cover
 
         if aux_states is not None:
-            for k in self._aux_map.keys():                # pragma: no cover
-                self._aux_map[k] = \
-                    self._aux_map[k].as_in_context(ctx)   # pragma: no cover
+            for k in self._aux_map.keys():  # pragma: no cover
+                self._aux_map[k] = self._aux_map[k].as_in_context(
+                    ctx
+                )  # pragma: no cover
 
     def num_classes(self):
         return self._num_classes
 
     def forward(self, inputs):
         import mxnet as mx
+
         inputs, _ = self._process_input(inputs)
         data_array = mx.nd.array(inputs, ctx=self._device)
         self._args_map[self._data_sym.name] = data_array
         model = self._logits_sym.bind(
-            ctx=self._device, args=self._args_map, grad_req='null',
-            aux_states=self._aux_map)
+            ctx=self._device,
+            args=self._args_map,
+            grad_req="null",
+            aux_states=self._aux_map,
+        )
         model.forward(is_train=False)
         logits_array = model.outputs[0]
         logits = logits_array.asnumpy()
@@ -101,6 +105,7 @@ class MXNetModel(DifferentiableModel):
 
     def forward_and_gradient_one(self, x, label):
         import mxnet as mx
+
         label = np.asarray(label)
         x, dpdx = self._process_input(x)
         data_array = mx.nd.array(x[np.newaxis], ctx=self._device)
@@ -116,14 +121,12 @@ class MXNetModel(DifferentiableModel):
             ctx=self._device,
             args=self._args_map,
             args_grad=grad_map,
-            grad_req='write',
-            aux_states=self._aux_map)
+            grad_req="write",
+            aux_states=self._aux_map,
+        )
         model.forward(is_train=False)
         logits_array = model.outputs[0]
-        model.backward([
-            mx.nd.zeros(logits_array.shape),
-            mx.nd.array(np.array([1]))
-        ])
+        model.backward([mx.nd.zeros(logits_array.shape), mx.nd.array(np.array([1]))])
         logits = logits_array.asnumpy()
         gradient = grad_array.asnumpy()
         gradient = self._process_gradient(dpdx, gradient)
@@ -131,6 +134,7 @@ class MXNetModel(DifferentiableModel):
 
     def forward_and_gradient(self, inputs, labels):
         import mxnet as mx
+
         labels = np.asarray(labels)
         inputs, dpdx = self._process_input(inputs)
         data_array = mx.nd.array(inputs, ctx=self._device)
@@ -146,14 +150,12 @@ class MXNetModel(DifferentiableModel):
             ctx=self._device,
             args=self._args_map,
             args_grad=grad_map,
-            grad_req='write',
-            aux_states=self._aux_map)
+            grad_req="write",
+            aux_states=self._aux_map,
+        )
         model.forward(is_train=False)
         logits_array = model.outputs[0]
-        model.backward([
-            mx.nd.zeros(logits_array.shape),
-            mx.nd.array(np.array([1]))
-        ])
+        model.backward([mx.nd.zeros(logits_array.shape), mx.nd.array(np.array([1]))])
         logits = logits_array.asnumpy()
         gradient = grad_array.asnumpy()
         gradient = self._process_gradient(dpdx, gradient)
@@ -161,6 +163,7 @@ class MXNetModel(DifferentiableModel):
 
     def gradient(self, inputs, labels):
         import mxnet as mx
+
         inputs, dpdx = self._process_input(inputs)
         data_array = mx.nd.array(inputs, ctx=self._device)
         label_array = mx.nd.array(labels, ctx=self._device)
@@ -174,8 +177,9 @@ class MXNetModel(DifferentiableModel):
             ctx=self._device,
             args=self._args_map,
             args_grad=grad_map,
-            grad_req='write',
-            aux_states=self._aux_map)
+            grad_req="write",
+            aux_states=self._aux_map,
+        )
         model.forward(is_train=False)
         model.backward()
         gradient = grad_array.asnumpy()
@@ -184,6 +188,7 @@ class MXNetModel(DifferentiableModel):
 
     def _loss_fn(self, x, label):
         import mxnet as mx
+
         x, _ = self._process_input(x)
 
         label = np.array(label)
@@ -198,8 +203,11 @@ class MXNetModel(DifferentiableModel):
         self._args_map[self._data_sym.name] = data_array
         self._args_map[self._label_sym.name] = label_array
         model = self._loss_sym.bind(
-            ctx=self._device, args=self._args_map, grad_req='null',
-            aux_states=self._aux_map)
+            ctx=self._device,
+            args=self._args_map,
+            grad_req="null",
+            aux_states=self._aux_map,
+        )
         model.forward(is_train=False)
         loss_array = model.outputs[0]
         loss = loss_array.asnumpy()[0]
@@ -221,13 +229,13 @@ class MXNetModel(DifferentiableModel):
             ctx=self._device,
             args=self._args_map,
             args_grad=grad_map,
-            grad_req='write',
-            aux_states=self._aux_map)
+            grad_req="write",
+            aux_states=self._aux_map,
+        )
 
         logits.forward(is_train=False)
 
-        gradient_pre_array = mx.nd.array(
-            gradient, ctx=self._device)
+        gradient_pre_array = mx.nd.array(gradient, ctx=self._device)
         logits.backward(gradient_pre_array)
 
         gradient = grad_array.asnumpy()

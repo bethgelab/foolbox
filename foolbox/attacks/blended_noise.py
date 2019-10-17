@@ -15,8 +15,9 @@ class BlendedUniformNoiseAttack(Attack):
     """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=1000, max_directions=1000):
+    def __call__(
+        self, input_or_adv, label=None, unpack=True, epsilons=1000, max_directions=1000
+    ):
 
         """Blends the input with a uniform noise input until it is misclassified.
 
@@ -49,24 +50,28 @@ class BlendedUniformNoiseAttack(Attack):
         min_, max_ = a.bounds()
 
         if a.perturbed is not None:  # pragma: no cover
-            warnings.warn('BlendedUniformNoiseAttack started with'
-                          ' previously found adversarial.')
+            warnings.warn(
+                "BlendedUniformNoiseAttack started with"
+                " previously found adversarial."
+            )
 
         for j in range(max_directions):
             # random noise inputs tend to be classified into the same class,
             # so we might need to make very many draws if the original class
             # is that one
-            random = nprng.uniform(
-                min_, max_, size=x.shape).astype(x.dtype)
+            random = nprng.uniform(min_, max_, size=x.shape).astype(x.dtype)
             _, is_adversarial = a.forward_one(random)
             if is_adversarial:
-                logging.info('Found adversarial input after {} '
-                             'attempts'.format(j + 1))
+                logging.info(
+                    "Found adversarial input after {} " "attempts".format(j + 1)
+                )
                 break
         else:
             # never breaked
-            warnings.warn('BlendedUniformNoiseAttack failed to draw a'
-                          ' random input that is adversarial.')
+            warnings.warn(
+                "BlendedUniformNoiseAttack failed to draw a"
+                " random input that is adversarial."
+            )
 
         if not isinstance(epsilons, Iterable):
             epsilons = np.linspace(0, 1, num=epsilons + 1)[1:]

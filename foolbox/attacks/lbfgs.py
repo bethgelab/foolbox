@@ -1,4 +1,3 @@
-
 import logging
 
 import numpy as np
@@ -32,23 +31,28 @@ class LBFGSAttack(Attack):
     """
 
     def __init__(self, *args, **kwargs):
-        if 'approximate_gradient' in kwargs:
-            self._approximate_gradient = kwargs['approximate_gradient']
-            del kwargs['approximate_gradient']
+        if "approximate_gradient" in kwargs:
+            self._approximate_gradient = kwargs["approximate_gradient"]
+            del kwargs["approximate_gradient"]
             super(LBFGSAttack, self).__init__(*args, **kwargs)
         else:
             self._approximate_gradient = False
             super(LBFGSAttack, self).__init__(*args, **kwargs)
 
     def name(self):
-        prefix = 'Approximate' if self._approximate_gradient else ''
-        return '{}{}'.format(prefix, self.__class__.__name__)
+        prefix = "Approximate" if self._approximate_gradient else ""
+        return "{}{}".format(prefix, self.__class__.__name__)
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilon=1e-5,
-                 num_random_targets=0,
-                 maxiter=150):
+    def __call__(
+        self,
+        input_or_adv,
+        label=None,
+        unpack=True,
+        epsilon=1e-5,
+        num_random_targets=0,
+        maxiter=150,
+    ):
 
         """Uses L-BFGS-B to minimize the distance between the input and the
         adversarial as well as the cross-entropy between the predictions for
@@ -99,13 +103,19 @@ class LBFGSAttack(Attack):
                     # using GradientAttack did not work,
                     # falling back to random target
                     num_random_targets = 1
-                    logging.warning('Using GradientAttack to determine a target class failed,'
-                                    ' falling back to a random target class')
+                    logging.warning(
+                        "Using GradientAttack to determine a target class failed,"
+                        " falling back to a random target class"
+                    )
                 else:
                     logits, _ = a.forward_one(adv_img)
                     target_class = np.argmax(logits)
                     target_classes = [target_class]
-                    logging.info('Determined a target class using the GradientAttack: {}'.format(target_class))
+                    logging.info(
+                        "Determined a target class using the GradientAttack: {}".format(
+                            target_class
+                        )
+                    )
 
             if num_random_targets > 0:
 
@@ -119,13 +129,14 @@ class LBFGSAttack(Attack):
                 # remove original class from samples
                 # should be more efficient than other approaches, see
                 # https://github.com/numpy/numpy/issues/2764
-                target_classes = rng.sample(
-                    range(num_classes), num_random_targets + 1)
+                target_classes = rng.sample(range(num_classes), num_random_targets + 1)
                 target_classes = [t for t in target_classes if t != original_class]
                 target_classes = target_classes[:num_random_targets]
 
                 str_target_classes = [str(t) for t in target_classes]
-                logging.info('Random target classes: {}'.format(', '.join(str_target_classes)))
+                logging.info(
+                    "Random target classes: {}".format(", ".join(str_target_classes))
+                )
         else:
             target_classes = [target_class]
 
@@ -133,12 +144,14 @@ class LBFGSAttack(Attack):
         a._reset()
 
         for i, target_class in enumerate(target_classes):
-            self._optimize(
-                a, target_class,
-                epsilon=epsilon, maxiter=maxiter)
+            self._optimize(a, target_class, epsilon=epsilon, maxiter=maxiter)
 
             if len(target_classes) > 1:  # pragma: no coverage
-                logging.info('Best adversarial distance after {} target classes: {}'.format(i + 1, a.distance))
+                logging.info(
+                    "Best adversarial distance after {} target classes: {}".format(
+                        i + 1, a.distance
+                    )
+                )
 
     def _optimize(self, a, target_class, epsilon, maxiter):
         x0 = a.unperturbed
@@ -179,7 +192,8 @@ class LBFGSAttack(Attack):
 
             def crossentropy(x):
                 logits, gradient, _ = a.forward_and_gradient_one(
-                    x.reshape(shape), target_class, strict=False)
+                    x.reshape(shape), target_class, strict=False
+                )
                 gradient = gradient.reshape(-1)
                 ce = utils_ce(logits=logits, label=target_class)
                 return ce, gradient
@@ -204,14 +218,18 @@ class LBFGSAttack(Attack):
                 bounds=bounds,
                 m=15,
                 maxiter=maxiter,
-                epsilon=approx_grad_eps)
+                epsilon=approx_grad_eps,
+            )
 
             logging.info(d)
 
             # LBFGS-B does not always exactly respect the boundaries
-            if np.amax(x) > max_ or np.amin(x) < min_:   # pragma: no coverage
-                logging.info('Input out of bounds (min, max = {}, {}). Performing manual clip.'.format(
-                    np.amin(x), np.amax(x)))
+            if np.amax(x) > max_ or np.amin(x) < min_:  # pragma: no coverage
+                logging.info(
+                    "Input out of bounds (min, max = {}, {}). Performing manual clip.".format(
+                        np.amin(x), np.amax(x)
+                    )
+                )
                 x = np.clip(x, min_, max_)
 
             _, is_adversarial = a.forward_one(x.reshape(shape).astype(dtype))
@@ -222,13 +240,17 @@ class LBFGSAttack(Attack):
         for i in range(30):
             c = 2 * c
             is_adversarial = lbfgsb(c)
-            logging.info('Tested c = {:.4e}: {}'.format(
-                c,
-                ('adversarial' if is_adversarial else 'not adversarial')))
+            logging.info(
+                "Tested c = {:.4e}: {}".format(
+                    c, ("adversarial" if is_adversarial else "not adversarial")
+                )
+            )
             if is_adversarial:
                 break
         else:  # pragma: no cover
-            logging.info('Could not find an adversarial; maybe the model returns wrong gradients')
+            logging.info(
+                "Could not find an adversarial; maybe the model returns wrong gradients"
+            )
             return
 
         # binary search
@@ -237,11 +259,14 @@ class LBFGSAttack(Attack):
         while c_high - c_low >= epsilon:
             c_half = (c_low + c_high) / 2
             is_adversarial = lbfgsb(c_half)
-            logging.info('Tested c = {:.4e}: {} ({:.4e}, {:.4e})'.format(
-                c_half,
-                ('adversarial' if is_adversarial else 'not adversarial'),
-                c_low,
-                c_high))
+            logging.info(
+                "Tested c = {:.4e}: {} ({:.4e}, {:.4e})".format(
+                    c_half,
+                    ("adversarial" if is_adversarial else "not adversarial"),
+                    c_low,
+                    c_high,
+                )
+            )
             if is_adversarial:
                 c_high = c_half
             else:
@@ -254,6 +279,6 @@ class ApproximateLBFGSAttack(LBFGSAttack):
     """
 
     def __init__(self, *args, **kwargs):
-        assert 'approximate_gradient' not in kwargs
-        kwargs['approximate_gradient'] = True
+        assert "approximate_gradient" not in kwargs
+        kwargs["approximate_gradient"] = True
         super(ApproximateLBFGSAttack, self).__init__(*args, **kwargs)

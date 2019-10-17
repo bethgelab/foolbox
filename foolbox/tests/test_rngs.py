@@ -6,7 +6,7 @@ from foolbox import rng
 from foolbox import nprng
 
 
-@pytest.mark.parametrize('rng', [rng, nprng])
+@pytest.mark.parametrize("rng", [rng, nprng])
 def test_rng(rng):
     random.seed(66)
     np.random.seed(77)

@@ -1,4 +1,3 @@
-
 import numpy as np
 from collections import Iterable
 import logging
@@ -33,8 +32,7 @@ class VirtualAdversarialAttack(BatchAttack):
         return perturbation * factor
 
     @generator_decorator
-    def as_generator(self, a,
-                     xi=1e-5, iterations=1, epsilons=1000, max_epsilon=0.3):
+    def as_generator(self, a, xi=1e-5, iterations=1, epsilons=1000, max_epsilon=0.3):
         """
 
         Parameters
@@ -58,11 +56,13 @@ class VirtualAdversarialAttack(BatchAttack):
             Largest step size if epsilons is not an iterable.
         """
 
-        assert a.target_class() is None, 'Virtual Adversarial is an ' \
-                                         'untargeted adversarial attack.'
+        assert a.target_class() is None, (
+            "Virtual Adversarial is an " "untargeted adversarial attack."
+        )
 
-        yield from self._run(a, xi=xi, iterations=iterations,
-                             epsilons=epsilons, max_epsilon=max_epsilon)
+        yield from self._run(
+            a, xi=xi, iterations=iterations, epsilons=epsilons, max_epsilon=max_epsilon
+        )
 
     def _run(self, a, xi, iterations, epsilons, max_epsilon):
         if not a.has_gradient():
@@ -85,7 +85,7 @@ class VirtualAdversarialAttack(BatchAttack):
                 d = np.random.normal(0.0, 1.0, size=x.shape)
                 for it in range(iterations):
                     # normalize proposal to be unit vector
-                    d = xi * d / np.sqrt((d**2).sum())
+                    d = xi * d / np.sqrt((d ** 2).sum())
 
                     logits_d, _ = yield from a.forward_one(x + d)
 
@@ -93,17 +93,15 @@ class VirtualAdversarialAttack(BatchAttack):
 
                     # d = dl_dd = dl_dp * dp_dd
                     # use gradient of KL divergence as new search vector
-                    d = yield from a.backward_one(
-                        gradient=dl_dp,
-                        x=x + d, strict=False
-                    )
+                    d = yield from a.backward_one(gradient=dl_dp, x=x + d, strict=False)
                     d = (max_ - min_) * d
 
-                    if np.allclose(np.sqrt((d**2).sum()), 0, atol=1e-16):
-                        raise RuntimeError('Gradient vanished; this can happen '
-                                           'if xi is too small.')
+                    if np.allclose(np.sqrt((d ** 2).sum()), 0, atol=1e-16):
+                        raise RuntimeError(
+                            "Gradient vanished; this can happen " "if xi is too small."
+                        )
 
-                delta = d / np.sqrt((d**2).mean())
+                delta = d / np.sqrt((d ** 2).mean())
 
                 perturbed = x + self._clip_perturbation(a, delta, epsilon)
                 perturbed = np.clip(perturbed, 0, 1)
@@ -111,7 +109,7 @@ class VirtualAdversarialAttack(BatchAttack):
                 _, is_adversarial = yield from a.forward_one(perturbed)
                 if is_adversarial:
                     if decrease_if_first and i < 20:
-                        logging.info('repeating attack with smaller epsilons')
+                        logging.info("repeating attack with smaller epsilons")
                         break
                     return
 
@@ -119,4 +117,6 @@ class VirtualAdversarialAttack(BatchAttack):
             epsilons = np.linspace(0, max_epsilon, num=20 + 1)[1:]
 
 
-VirtualAdversarialAttack.__call__.__doc__ = VirtualAdversarialAttack.as_generator.__doc__
+VirtualAdversarialAttack.__call__.__doc__ = (
+    VirtualAdversarialAttack.as_generator.__doc__
+)

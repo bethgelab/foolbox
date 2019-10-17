@@ -8,16 +8,18 @@ params = [
     (0, 255),
     (128, 1),
     (128, 255),
-    (0., 1.),
-    (0., 255.),
-    (128., 1.),
-    (128., 255.),
-    (np.array([1., 2., 3.], dtype=np.float64),
-     np.array([1., 2., 3.], dtype=np.float64)),
+    (0.0, 1.0),
+    (0.0, 255.0),
+    (128.0, 1.0),
+    (128.0, 255.0),
+    (
+        np.array([1.0, 2.0, 3.0], dtype=np.float64),
+        np.array([1.0, 2.0, 3.0], dtype=np.float64),
+    ),
 ]
 
 
-@pytest.mark.parametrize('params', params)
+@pytest.mark.parametrize("params", params)
 def test_preprocessing(params, image):
     image_copy = image.copy()
     preprocessing = _create_preprocessing_fn(params)

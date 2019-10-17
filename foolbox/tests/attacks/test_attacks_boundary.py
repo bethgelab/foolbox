@@ -39,8 +39,7 @@ def test_attack_parameters(bn_adversarial):
     attack = BoundaryAttack()
     o = adv.unperturbed
     np.random.seed(2)
-    starting_point = np.random.uniform(
-        0, 1, size=o.shape).astype(o.dtype)
+    starting_point = np.random.uniform(0, 1, size=o.shape).astype(o.dtype)
     attack(
         adv,
         iterations=200,
@@ -50,7 +49,8 @@ def test_attack_parameters(bn_adversarial):
         threaded_rnd=False,
         threaded_gen=False,
         alternative_generator=True,
-        verbose=True)
+        verbose=True,
+    )
     assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
@@ -58,11 +58,7 @@ def test_attack_parameters(bn_adversarial):
 def test_attack_parameters2(bn_adversarial):
     adv = bn_adversarial
     attack = BoundaryAttack()
-    attack(
-        adv,
-        iterations=200,
-        alternative_generator=True,
-        verbose=True)
+    attack(adv, iterations=200, alternative_generator=True, verbose=True)
     assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
@@ -73,8 +69,7 @@ def test_attack_parameters3(bn_adversarial):
     attack = BoundaryAttack()
     o = adv.unperturbed
     np.random.seed(2)
-    starting_point = np.random.uniform(
-        0, 1, size=o.shape).astype(o.dtype)
+    starting_point = np.random.uniform(0, 1, size=o.shape).astype(o.dtype)
     attack(
         adv,
         iterations=200,
@@ -83,7 +78,8 @@ def test_attack_parameters3(bn_adversarial):
         tune_batch_size=30,
         threaded_rnd=False,
         threaded_gen=False,
-        verbose=True)
+        verbose=True,
+    )
     assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 

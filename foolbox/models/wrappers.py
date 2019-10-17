@@ -1,4 +1,3 @@
-
 import numpy as np
 from .base import Model
 from .base import DifferentiableModel
@@ -20,8 +19,8 @@ class ModelWrapper(Model):
 
     def __init__(self, model):
         super(ModelWrapper, self).__init__(
-            bounds=model.bounds(),
-            channel_axis=model.channel_axis())
+            bounds=model.bounds(), channel_axis=model.channel_axis()
+        )
 
         self.wrapped_model = model
 
@@ -71,6 +70,7 @@ class ModelWithoutGradients(ModelWrapper):
     """Turns a model into a model without gradients.
 
     """
+
     pass
 
 
@@ -89,8 +89,7 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
     """
 
     def __init__(self, model, gradient_estimator):
-        super(ModelWithEstimatedGradients, self).__init__(
-            model=model)
+        super(ModelWithEstimatedGradients, self).__init__(model=model)
 
         assert callable(gradient_estimator)
         self._gradient_estimator = gradient_estimator
@@ -142,9 +141,7 @@ class CompositeModel(DifferentiableModel):
         num_classes = forward_model.num_classes()
         assert num_classes == backward_model.num_classes()
 
-        super(CompositeModel, self).__init__(
-            bounds=bounds,
-            channel_axis=channel_axis)
+        super(CompositeModel, self).__init__(bounds=bounds, channel_axis=channel_axis)
 
         self.forward_model = forward_model
         self.backward_model = backward_model

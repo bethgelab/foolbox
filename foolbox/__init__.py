@@ -1,6 +1,6 @@
 from os.path import join, dirname
 
-with open(join(dirname(__file__), 'VERSION')) as f:
+with open(join(dirname(__file__), "VERSION")) as f:
     __version__ = f.read().strip()
 
 from .rngs import rng  # noqa: F401

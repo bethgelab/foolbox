@@ -46,19 +46,19 @@ def test_attack_targeted(bn_adversarial):
     attack = HopSkipJumpAttack()
     o = adv.unperturbed
     np.random.seed(2)
-    starting_point = np.random.uniform(
-        0, 1, size=o.shape).astype(o.dtype)
+    starting_point = np.random.uniform(0, 1, size=o.shape).astype(o.dtype)
     attack(
         adv,
         iterations=21,
         starting_point=starting_point,
         log_every_n_steps=2,
         gamma=0.01,
-        stepsize_search='geometric_progression',
+        stepsize_search="geometric_progression",
         batch_size=128,
         initial_num_evals=200,
         max_num_evals=20000,
-        verbose=True)
+        verbose=True,
+    )
     assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 
@@ -68,19 +68,19 @@ def test_attack_linf_targeted(bn_adversarial):
     attack = HopSkipJumpAttack(distance=Linf)
     o = adv.unperturbed
     np.random.seed(2)
-    starting_point = np.random.uniform(
-        0, 1, size=o.shape).astype(o.dtype)
+    starting_point = np.random.uniform(0, 1, size=o.shape).astype(o.dtype)
     attack(
         adv,
         iterations=21,
         starting_point=starting_point,
         log_every_n_steps=2,
         gamma=0.01,
-        stepsize_search='grid_search',
+        stepsize_search="grid_search",
         batch_size=128,
         initial_num_evals=200,
         max_num_evals=20000,
-        verbose=True)
+        verbose=True,
+    )
     assert adv.perturbed is not None
     assert adv.distance.value < np.inf
 

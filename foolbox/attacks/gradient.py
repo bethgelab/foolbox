@@ -1,4 +1,3 @@
-
 import numpy as np
 from collections import Iterable
 import logging
@@ -38,7 +37,7 @@ class SingleStepGradientBaseAttack(Attack):
                 _, is_adversarial = a.forward_one(perturbed)
                 if is_adversarial:
                     if decrease_if_first and i < 20:
-                        logging.info('repeating attack with smaller epsilons')
+                        logging.info("repeating attack with smaller epsilons")
                         break
                     return
 
@@ -55,8 +54,9 @@ class GradientAttack(SingleStepGradientBaseAttack):
     """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=1000, max_epsilon=1):
+    def __call__(
+        self, input_or_adv, label=None, unpack=True, epsilons=1000, max_epsilon=1
+    ):
 
         """Perturbs the input with the gradient of the loss w.r.t. the input,
         gradually increasing the magnitude until the input is misclassified.
@@ -113,8 +113,9 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
     """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=1000, max_epsilon=1):
+    def __call__(
+        self, input_or_adv, label=None, unpack=True, epsilons=1000, max_epsilon=1
+    ):
 
         """Adds the sign of the gradient to the input, gradually increasing
         the magnitude until the input is misclassified.

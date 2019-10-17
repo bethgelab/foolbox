@@ -1,4 +1,3 @@
-
 import warnings
 import threading
 import queue
@@ -50,25 +49,26 @@ class BoundaryAttack(Attack):
 
     @call_decorator
     def __call__(
-            self,
-            input_or_adv,
-            label=None,
-            unpack=True,
-            iterations=5000,
-            max_directions=25,
-            starting_point=None,
-            initialization_attack=None,
-            log_every_n_steps=1,
-            spherical_step=1e-2,
-            source_step=1e-2,
-            step_adaptation=1.5,
-            batch_size=1,
-            tune_batch_size=True,
-            threaded_rnd=True,
-            threaded_gen=True,
-            alternative_generator=False,
-            internal_dtype=np.float64,
-            verbose=False):
+        self,
+        input_or_adv,
+        label=None,
+        unpack=True,
+        iterations=5000,
+        max_directions=25,
+        starting_point=None,
+        initialization_attack=None,
+        log_every_n_steps=1,
+        spherical_step=1e-2,
+        source_step=1e-2,
+        step_adaptation=1.5,
+        batch_size=1,
+        tune_batch_size=True,
+        threaded_rnd=True,
+        threaded_gen=True,
+        alternative_generator=False,
+        internal_dtype=np.float64,
+        verbose=False,
+    ):
 
         """Applies the Boundary Attack.
 
@@ -137,7 +137,7 @@ class BoundaryAttack(Attack):
         self.verbose = verbose
 
         if not verbose:
-            print('run with verbose=True to see details')
+            print("run with verbose=True to see details")
 
         if alternative_generator:
             self.generate_candidate = self.generate_candidate_alternative
@@ -149,23 +149,21 @@ class BoundaryAttack(Attack):
             iterations=iterations,
             tune_batch_size=tune_batch_size,
             threaded_rnd=threaded_rnd,
-            threaded_gen=threaded_gen)
+            threaded_gen=threaded_gen,
+        )
 
-    def _apply_outer(
-            self,
-            *args,
-            **kwargs):
+    def _apply_outer(self, *args, **kwargs):
 
         # ===========================================================
         # Start optional threads for parallel candidate generation
         # ===========================================================
 
-        if kwargs['threaded_gen'] is True:
+        if kwargs["threaded_gen"] is True:
             # default value if True, but allow users to pass a number instead
-            kwargs['threaded_gen'] = 13
+            kwargs["threaded_gen"] = 13
 
-        if kwargs['threaded_gen']:
-            n = kwargs['threaded_gen']
+        if kwargs["threaded_gen"]:
+            n = kwargs["threaded_gen"]
             with ThreadPoolExecutor(max_workers=n) as pool:
                 return self._apply_inner(pool, *args, **kwargs)
         else:
@@ -173,13 +171,8 @@ class BoundaryAttack(Attack):
                 return self._apply_inner(pool, *args, **kwargs)
 
     def _apply_inner(
-            self,
-            pool,
-            a,
-            iterations,
-            tune_batch_size,
-            threaded_rnd,
-            threaded_gen):
+        self, pool, a, iterations, tune_batch_size, threaded_rnd, threaded_gen
+    ):
 
         self.t_initial = time.time()
 
@@ -192,8 +185,7 @@ class BoundaryAttack(Attack):
         assert self.internal_dtype in [np.float32, np.float64]
         assert external_dtype in [np.float32, np.float64]
 
-        assert not (external_dtype == np.float64 and
-                    self.internal_dtype == np.float32)
+        assert not (external_dtype == np.float64 and self.internal_dtype == np.float32)
 
         a.set_distance_dtype(self.internal_dtype)
 
@@ -205,9 +197,10 @@ class BoundaryAttack(Attack):
 
         if a.perturbed is None:
             warnings.warn(
-                'Initialization failed. If the criterion is targeted,'
-                ' it might be necessary to pass an explicit starting'
-                ' point or targeted initialization attack.')
+                "Initialization failed. If the criterion is targeted,"
+                " it might be necessary to pass an explicit starting"
+                " point or targeted initialization attack."
+            )
             return
 
         assert a.perturbed.dtype == external_dtype
@@ -217,7 +210,7 @@ class BoundaryAttack(Attack):
         # ===========================================================
 
         # make sure repeated warnings are shown
-        warnings.simplefilter('always', UserWarning)
+        warnings.simplefilter("always", UserWarning)
 
         # get bounds
         bounds = a.bounds()
@@ -233,8 +226,10 @@ class BoundaryAttack(Attack):
 
         # make sure step size is valid
         self.printv(
-            'Initial spherical_step = {:.2f}, source_step = {:.2f}'.format(
-                self.spherical_step, self.source_step))
+            "Initial spherical_step = {:.2f}, source_step = {:.2f}".format(
+                self.spherical_step, self.source_step
+            )
+        )
 
         # ===========================================================
         # intialize stats
@@ -247,17 +242,15 @@ class BoundaryAttack(Attack):
         self.stats_fail = 0
         self.stats_generator_duration = np.zeros((self.max_directions,))
         self.stats_prediction_duration = np.zeros((self.max_directions,))
-        self.stats_spherical_prediction_duration \
-            = np.zeros((self.max_directions,))
+        self.stats_spherical_prediction_duration = np.zeros((self.max_directions,))
         self.stats_hyperparameter_update_duration = 0
 
         # counters
-        self.stats_generator_calls \
-            = np.zeros((self.max_directions,), dtype=np.int)
-        self.stats_prediction_calls \
-            = np.zeros((self.max_directions,), dtype=np.int)
-        self.stats_spherical_prediction_calls \
-            = np.zeros((self.max_directions,), dtype=np.int)
+        self.stats_generator_calls = np.zeros((self.max_directions,), dtype=np.int)
+        self.stats_prediction_calls = np.zeros((self.max_directions,), dtype=np.int)
+        self.stats_spherical_prediction_calls = np.zeros(
+            (self.max_directions,), dtype=np.int
+        )
         self.stats_numerical_problems = 0
 
         # recent successes
@@ -280,30 +273,34 @@ class BoundaryAttack(Attack):
             try:
                 import randomgen
             except ImportError:  # pragma: no cover
-                raise ImportError('To use the BoundaryAttack,'
-                                  ' please install the randomgen'
-                                  ' module (e.g. pip install randomgen)')
+                raise ImportError(
+                    "To use the BoundaryAttack,"
+                    " please install the randomgen"
+                    " module (e.g. pip install randomgen)"
+                )
 
             def sample_std_normal(thread_id, shape, dtype):
                 # create a thread-specifc RNG
                 rng = randomgen.RandomGenerator(
-                    randomgen.Xoroshiro128(seed=20 + thread_id))
+                    randomgen.Xoroshiro128(seed=20 + thread_id)
+                )
 
                 t = threading.currentThread()
-                while getattr(t, 'do_run', True):
-                    rnd_normal = rng.standard_normal(
-                        size=shape, dtype=dtype)
+                while getattr(t, "do_run", True):
+                    rnd_normal = rng.standard_normal(size=shape, dtype=dtype)
                     rnd_normal_queue.put(rnd_normal)
 
-            self.printv('Using {} threads to create random numbers'.format(
-                threaded_rnd))
+            self.printv(
+                "Using {} threads to create random numbers".format(threaded_rnd)
+            )
 
             # start threads that sample from std normal distribution
             rnd_normal_threads = []
             for thread_id in range(threaded_rnd):
                 rnd_normal_thread = threading.Thread(
                     target=sample_std_normal,
-                    args=(thread_id, original.shape, original.dtype))
+                    args=(thread_id, original.shape, original.dtype),
+                )
                 rnd_normal_thread.start()
                 rnd_normal_threads.append(rnd_normal_thread)
         else:
@@ -335,23 +332,24 @@ class BoundaryAttack(Attack):
                 self.log_step(step - 1, distance, always=True)
                 if resetted:
                     self.printv(
-                        'Looks like attack has converged after {} steps,'
-                        ' {} remaining'.format(step, convergence_steps))
+                        "Looks like attack has converged after {} steps,"
+                        " {} remaining".format(step, convergence_steps)
+                    )
                     convergence_steps -= 1
                     if convergence_steps == 0:
                         break
                 else:
                     resetted = True
                     self.printv(
-                        'Looks like attack has converged after' +
-                        ' {} steps'.format(step) +
-                        ' for the first time. Resetting steps to be sure.')
+                        "Looks like attack has converged after"
+                        + " {} steps".format(step)
+                        + " for the first time. Resetting steps to be sure."
+                    )
                     self.spherical_step = 1e-2
                     self.source_step = 1e-2
-            elif (convergence_steps <
-                    initial_convergence_steps):  # pragma: no cover
+            elif convergence_steps < initial_convergence_steps:  # pragma: no cover
                 self.log_step(step - 1, distance, always=True)
-                warnings.warn('Attack has not converged!')
+                warnings.warn("Attack has not converged!")
                 convergence_steps = initial_convergence_steps
                 resetted = False
 
@@ -361,8 +359,7 @@ class BoundaryAttack(Attack):
 
             if tune_batch_size and step == self.next_tuning_step:
                 if not stats_initialized:
-                    self.initialize_stats(
-                        a, pool, external_dtype, generation_args)
+                    self.initialize_stats(a, pool, external_dtype, generation_args)
                     stats_initialized = True
 
                     # during initialization, predictions are performed
@@ -371,8 +368,9 @@ class BoundaryAttack(Attack):
                     #     assert a.distance.value < distance.value
                     if a.distance.value < distance.value:
                         self.printv(
-                            'During initialization, a better adversarial'
-                            ' has been found. Continuing from there.')
+                            "During initialization, a better adversarial"
+                            " has been found. Continuing from there."
+                        )
                         perturbed = a.perturbed.astype(self.internal_dtype)
                         distance = a.distance
                         # becaue we are resetting perturbed, it's important
@@ -384,8 +382,9 @@ class BoundaryAttack(Attack):
             # Create a generator for new candidates
             # ===========================================================
 
-            unnormalized_source_direction, source_direction, source_norm \
-                = self.prepare_generate_candidates(original, perturbed)
+            unnormalized_source_direction, source_direction, source_norm = self.prepare_generate_candidates(
+                original, perturbed
+            )
 
             generation_args = (
                 rnd_normal_queue,
@@ -397,7 +396,8 @@ class BoundaryAttack(Attack):
                 source_norm,
                 self.spherical_step,
                 self.source_step,
-                self.internal_dtype)
+                self.internal_dtype,
+            )
 
             # ===========================================================
             # Try to find a better adversarial
@@ -414,7 +414,8 @@ class BoundaryAttack(Attack):
             t = time.time()
             futures = [
                 pool.submit(self.generate_candidate, *generation_args)
-                for _ in range(self.batch_size)]
+                for _ in range(self.batch_size)
+            ]
             t = time.time() - t
             self.stats_generator_duration[self.batch_size - 1] += t
 
@@ -442,19 +443,16 @@ class BoundaryAttack(Attack):
                 # sample a batch of candidates
                 candidates = np.empty(batch_shape, dtype=original.dtype)
                 if do_spherical:
-                    spherical_candidates = np.empty(
-                        batch_shape, dtype=original.dtype)
+                    spherical_candidates = np.empty(batch_shape, dtype=original.dtype)
 
                 for j in range(current_batch_size):
                     t = time.time()
-                    candidate, spherical_candidate \
-                        = futures[j].result()
+                    candidate, spherical_candidate = futures[j].result()
                     if do_spherical:
                         spherical_candidates[j] = spherical_candidate
                     candidates[j] = candidate
                     t = time.time() - t
-                    self.stats_generator_duration[
-                        current_batch_size - 1] += t
+                    self.stats_generator_duration[current_batch_size - 1] += t
                     self.stats_generator_calls[current_batch_size - 1] += 1
 
                 # for the next batch
@@ -462,7 +460,8 @@ class BoundaryAttack(Attack):
                     t = time.time()
                     futures = [
                         pool.submit(self.generate_candidate, *generation_args)
-                        for _ in range(next_batch_size)]
+                        for _ in range(next_batch_size)
+                    ]
                     t = time.time() - t
                     self.stats_generator_duration[next_batch_size - 1] += t
                 else:
@@ -472,23 +471,23 @@ class BoundaryAttack(Attack):
                 if do_spherical:
                     t = time.time()
                     _, batch_is_adversarial = a.forward(
-                        spherical_candidates.astype(external_dtype),
-                        strict=False)
+                        spherical_candidates.astype(external_dtype), strict=False
+                    )
                     t = time.time() - t
 
                     assert batch_is_adversarial.shape == (current_batch_size,)
 
                     self.stats_spherical_prediction_duration[
-                        current_batch_size - 1] += t
-                    self.stats_spherical_prediction_calls[
-                        current_batch_size - 1] += 1
+                        current_batch_size - 1
+                    ] += t
+                    self.stats_spherical_prediction_calls[current_batch_size - 1] += 1
 
                     indices = []
                     for j in range(current_batch_size):
-                        spherical_is_adversarial \
-                            = batch_is_adversarial[j]
+                        spherical_is_adversarial = batch_is_adversarial[j]
                         self.stats_spherical_adversarial.appendleft(
-                            spherical_is_adversarial)
+                            spherical_is_adversarial
+                        )
                         if spherical_is_adversarial:
                             indices.append(j)
 
@@ -504,15 +503,14 @@ class BoundaryAttack(Attack):
 
                     t = time.time()
                     _, batch_is_adversarial = a.forward(
-                        candidates.astype(external_dtype),
-                        strict=False)
+                        candidates.astype(external_dtype), strict=False
+                    )
                     t = time.time() - t
                     # TODO: use t
 
                     assert batch_is_adversarial.shape == (len(indices),)
 
-                    self.stats_step_adversarial.extendleft(
-                        batch_is_adversarial)
+                    self.stats_step_adversarial.extendleft(batch_is_adversarial)
 
                     for j in range(len(indices)):
                         is_adversarial = batch_is_adversarial[j]
@@ -531,14 +529,15 @@ class BoundaryAttack(Attack):
                 else:
                     # check if one of the candidates is adversarial
                     t = time.time()
-                    _, is_adversarial, adv_index, is_best, candidate_distance \
-                        = a.forward(
-                            candidates.astype(external_dtype), greedy=True,
-                            strict=False, return_details=True)
+                    _, is_adversarial, adv_index, is_best, candidate_distance = a.forward(
+                        candidates.astype(external_dtype),
+                        greedy=True,
+                        strict=False,
+                        return_details=True,
+                    )
                     t = time.time() - t
                     self.stats_prediction_duration[self.batch_size - 1] += t
-                    self.stats_prediction_calls[
-                        self.batch_size - 1] += 1
+                    self.stats_prediction_calls[self.batch_size - 1] += 1
 
                     if is_adversarial:
                         new_perturbed = candidates[adv_index]
@@ -555,21 +554,23 @@ class BoundaryAttack(Attack):
             # Handle the new adversarial
             # ===========================================================
 
-            message = ''
+            message = ""
             if new_perturbed is not None:
                 if not new_distance < distance:
                     # assert not is_best  # consistency with adversarial object
                     self.stats_numerical_problems += 1
-                    warnings.warn('Internal inconsistency, probably caused by '
-                                  'numerical errors')
+                    warnings.warn(
+                        "Internal inconsistency, probably caused by " "numerical errors"
+                    )
                 else:
                     # assert is_best  # consistency with adversarial object
                     # Jonas 24.10.2017: this can be violated because spherical
                     # step can be better and adv (numerical issues)
                     abs_improvement = distance.value - new_distance.value
                     rel_improvement = abs_improvement / distance.value
-                    message = 'd. reduced by {:.2f}% ({:.4e})'.format(
-                        rel_improvement * 100, abs_improvement)
+                    message = "d. reduced by {:.2f}% ({:.4e})".format(
+                        rel_improvement * 100, abs_improvement
+                    )
 
                     # update the variables
                     perturbed = new_perturbed
@@ -589,13 +590,12 @@ class BoundaryAttack(Attack):
             # ===========================================================
 
             t_step = time.time() - t_step
-            message += ' (took {:.5f} seconds)'.format(t_step)
+            message += " (took {:.5f} seconds)".format(t_step)
             self.log_step(step, distance, message)
             sys.stdout.flush()
 
             if self.stats_numerical_problems > 1000:  # pragma: no cover
-                warnings.warn('Too many intenral inconsistencies,'
-                              ' aborting attack.')
+                warnings.warn("Too many intenral inconsistencies," " aborting attack.")
                 break
 
         # ===========================================================
@@ -631,30 +631,34 @@ class BoundaryAttack(Attack):
 
         if a.perturbed is not None:
             print(
-                'Attack is applied to a previously found adversarial.'
-                ' Continuing search for better adversarials.')
+                "Attack is applied to a previously found adversarial."
+                " Continuing search for better adversarials."
+            )
             if starting_point is not None:  # pragma: no cover
                 warnings.warn(
-                    'Ignoring starting_point parameter because the attack'
-                    ' is applied to a previously found adversarial.')
+                    "Ignoring starting_point parameter because the attack"
+                    " is applied to a previously found adversarial."
+                )
             if init_attack is not None:  # pragma: no cover
                 warnings.warn(
-                    'Ignoring initialization_attack parameter because the'
-                    ' attack is applied to a previously found adversarial.')
+                    "Ignoring initialization_attack parameter because the"
+                    " attack is applied to a previously found adversarial."
+                )
             return
 
         if starting_point is not None:
             a.forward_one(starting_point)
-            assert a.perturbed is not None, (
-                'Invalid starting point provided. Please provide a starting point that is adversarial.')
+            assert (
+                a.perturbed is not None
+            ), "Invalid starting point provided. Please provide a starting point that is adversarial."
             return
 
         if init_attack is None:
             init_attack = BlendedUniformNoiseAttack
             self.printv(
-                'Neither starting_point nor initialization_attack given.'
-                ' Falling back to {} for initialization.'.format(
-                    init_attack.__name__))
+                "Neither starting_point nor initialization_attack given."
+                " Falling back to {} for initialization.".format(init_attack.__name__)
+            )
 
         if issubclass(init_attack, Attack):
             # instantiate if necessary
@@ -662,15 +666,14 @@ class BoundaryAttack(Attack):
 
         init_attack(a)
 
-    def log_step(self, step, distance, message='', always=False):
+    def log_step(self, step, distance, message="", always=False):
         if not always and step % self.log_every_n_steps != 0:
             return
-        print('Step {}: {:.5e}, stepsizes = {:.1e}/{:.1e}: {}'.format(
-            step,
-            distance.value,
-            self.spherical_step,
-            self.source_step,
-            message))
+        print(
+            "Step {}: {:.5e}, stepsizes = {:.1e}/{:.1e}: {}".format(
+                step, distance.value, self.spherical_step, self.source_step, message
+            )
+        )
 
     @staticmethod
     def prepare_generate_candidates(original, perturbed):
@@ -681,25 +684,28 @@ class BoundaryAttack(Attack):
 
     @staticmethod
     def generate_candidate_default(
-            rnd_normal_queue,
-            bounds,
-            original,
-            perturbed,
-            unnormalized_source_direction,
-            source_direction,
-            source_norm,
-            spherical_step,
-            source_step,
-            internal_dtype,
-            rng=None):
+        rnd_normal_queue,
+        bounds,
+        original,
+        perturbed,
+        unnormalized_source_direction,
+        source_direction,
+        source_norm,
+        spherical_step,
+        source_step,
+        internal_dtype,
+        rng=None,
+    ):
 
         if rng is None:
             try:
                 import randomgen
             except ImportError:  # pragma: no cover
-                raise ImportError('To use the BoundaryAttack,'
-                                  ' please install the randomgen'
-                                  ' module (e.g. pip install randomgen)')
+                raise ImportError(
+                    "To use the BoundaryAttack,"
+                    " please install the randomgen"
+                    " module (e.g. pip install randomgen)"
+                )
             rng = randomgen.RandomGenerator()
 
         # ===========================================================
@@ -720,8 +726,7 @@ class BoundaryAttack(Attack):
         # randomgen's rnd is faster and more flexible than numpy's if
         # has a dtype argument and supports the much faster Ziggurat method
         if rnd_normal_queue is None:
-            perturbation = rng.standard_normal(
-                size=shape, dtype=original.dtype)
+            perturbation = rng.standard_normal(size=shape, dtype=original.dtype)
         else:
             perturbation = rnd_normal_queue.get()
 
@@ -735,7 +740,7 @@ class BoundaryAttack(Attack):
         perturbation -= dot * source_direction
         perturbation *= spherical_step * source_norm / norm(perturbation)
 
-        D = 1 / np.sqrt(spherical_step**2 + 1)
+        D = 1 / np.sqrt(spherical_step ** 2 + 1)
         direction = perturbation - unnormalized_source_direction
         spherical_candidate = original + D * direction
 
@@ -777,25 +782,28 @@ class BoundaryAttack(Attack):
 
     @staticmethod
     def generate_candidate_alternative(
-            rnd_normal_queue,
-            bounds,
-            original,
-            perturbed,
-            unnormalized_source_direction,
-            source_direction,
-            source_norm,
-            spherical_step,
-            source_step,
-            internal_dtype,
-            rng=None):
+        rnd_normal_queue,
+        bounds,
+        original,
+        perturbed,
+        unnormalized_source_direction,
+        source_direction,
+        source_norm,
+        spherical_step,
+        source_step,
+        internal_dtype,
+        rng=None,
+    ):
 
         if rng is None:
             try:
                 import randomgen
             except ImportError:  # pragma: no cover
-                raise ImportError('To use the BoundaryAttack,'
-                                  ' please install the randomgen'
-                                  ' module (e.g. pip install randomgen)')
+                raise ImportError(
+                    "To use the BoundaryAttack,"
+                    " please install the randomgen"
+                    " module (e.g. pip install randomgen)"
+                )
             rng = randomgen.RandomGenerator()
 
         # ===========================================================
@@ -816,8 +824,7 @@ class BoundaryAttack(Attack):
         # randomgen's rnd is faster and more flexible than numpy's if
         # has a dtype argument and supports the much faster Ziggurat method
         if rnd_normal_queue is None:
-            perturbation = rng.standard_normal(
-                size=shape, dtype=original.dtype)
+            perturbation = rng.standard_normal(size=shape, dtype=original.dtype)
         else:
             perturbation = rnd_normal_queue.get()
 
@@ -829,8 +836,7 @@ class BoundaryAttack(Attack):
         # ===========================================================
 
         perturbation *= spherical_step * source_norm / norm(perturbation)
-        perturbation -= np.vdot(perturbation, source_direction) \
-            * source_direction
+        perturbation -= np.vdot(perturbation, source_direction) * source_direction
 
         spherical_perturbation = perturbed + perturbation
         np.clip(spherical_perturbation, min_, max_, out=spherical_perturbation)
@@ -843,13 +849,10 @@ class BoundaryAttack(Attack):
             diff_norm = spherical_norm - source_norm
             if np.abs(diff_norm) / source_norm <= refinement_threshold:
                 break
-            spherical_perturbation -= diff_norm / spherical_norm \
-                * spherical_source_direction
-            np.clip(
-                spherical_perturbation,
-                min_,
-                max_,
-                out=spherical_perturbation)
+            spherical_perturbation -= (
+                diff_norm / spherical_norm * spherical_source_direction
+            )
+            np.clip(spherical_perturbation, min_, max_, out=spherical_perturbation)
         else:  # pragma: no cover
             refinements += 1
 
@@ -875,9 +878,11 @@ class BoundaryAttack(Attack):
         return data
 
     def initialize_stats(self, a, pool, external_dtype, generation_args):
-        self.printv('Initializing generation and prediction'
-                    ' time measurements. This can take a few'
-                    ' seconds.')
+        self.printv(
+            "Initializing generation and prediction"
+            " time measurements. This can take a few"
+            " seconds."
+        )
 
         _next = self.generate_candidate(*generation_args)
         candidate, spherical_candidate = _next
@@ -892,7 +897,8 @@ class BoundaryAttack(Attack):
             t = time.time()
             futures = [
                 pool.submit(self.generate_candidate, *generation_args)
-                for _ in range(batch_size)]
+                for _ in range(batch_size)
+            ]
             t = time.time() - t
             self.stats_generator_duration[batch_size - 1] += t
 
@@ -917,22 +923,22 @@ class BoundaryAttack(Attack):
 
             for i in range(n):
                 t = time.time()
-                _, is_adversarial, adv_index, is_best, candidate_distance \
-                    = a.forward(
-                        batch.astype(external_dtype), greedy=True,
-                        strict=False, return_details=True)
+                _, is_adversarial, adv_index, is_best, candidate_distance = a.forward(
+                    batch.astype(external_dtype),
+                    greedy=True,
+                    strict=False,
+                    return_details=True,
+                )
                 t = time.time() - t
 
                 self.stats_prediction_duration[batch_size - 1] += t
                 self.stats_prediction_calls[batch_size - 1] += 1
 
                 t = time.time()
-                _, _ = a.forward(
-                    batch.astype(external_dtype), strict=False)
+                _, _ = a.forward(batch.astype(external_dtype), strict=False)
                 t = time.time() - t
 
-                self.stats_spherical_prediction_duration[batch_size - 1] \
-                    += t
+                self.stats_spherical_prediction_duration[batch_size - 1] += t
                 self.stats_spherical_prediction_calls[batch_size - 1] += 1
 
     def log_time(self):
@@ -940,24 +946,36 @@ class BoundaryAttack(Attack):
 
         rel_generate = self.stats_generator_duration.sum() / t_total
         rel_prediction = self.stats_prediction_duration.sum() / t_total
-        rel_spherical \
-            = self.stats_spherical_prediction_duration.sum() / t_total
+        rel_spherical = self.stats_spherical_prediction_duration.sum() / t_total
         rel_hyper = self.stats_hyperparameter_update_duration / t_total
-        rel_remaining = 1 - rel_generate - rel_prediction \
-            - rel_spherical - rel_hyper
+        rel_remaining = 1 - rel_generate - rel_prediction - rel_spherical - rel_hyper
 
-        self.printv('Time since beginning: {:.5f}'.format(t_total))
-        self.printv('   {:2.1f}% for generation ({:.5f})'.format(
-            rel_generate * 100, self.stats_generator_duration.sum()))
-        self.printv('   {:2.1f}% for spherical prediction ({:.5f})'.format(
-            rel_spherical * 100,
-            self.stats_spherical_prediction_duration.sum()))
-        self.printv('   {:2.1f}% for prediction ({:.5f})'.format(
-            rel_prediction * 100, self.stats_prediction_duration.sum()))
-        self.printv('   {:2.1f}% for hyperparameter update ({:.5f})'.format(
-            rel_hyper * 100, self.stats_hyperparameter_update_duration))
-        self.printv('   {:2.1f}% for the rest ({:.5f})'.format(
-            rel_remaining * 100, rel_remaining * t_total))
+        self.printv("Time since beginning: {:.5f}".format(t_total))
+        self.printv(
+            "   {:2.1f}% for generation ({:.5f})".format(
+                rel_generate * 100, self.stats_generator_duration.sum()
+            )
+        )
+        self.printv(
+            "   {:2.1f}% for spherical prediction ({:.5f})".format(
+                rel_spherical * 100, self.stats_spherical_prediction_duration.sum()
+            )
+        )
+        self.printv(
+            "   {:2.1f}% for prediction ({:.5f})".format(
+                rel_prediction * 100, self.stats_prediction_duration.sum()
+            )
+        )
+        self.printv(
+            "   {:2.1f}% for hyperparameter update ({:.5f})".format(
+                rel_hyper * 100, self.stats_hyperparameter_update_duration
+            )
+        )
+        self.printv(
+            "   {:2.1f}% for the rest ({:.5f})".format(
+                rel_remaining * 100, rel_remaining * t_total
+            )
+        )
 
     def init_batch_size_tuning(self, tune_batch_size):
         if not tune_batch_size:
@@ -973,15 +991,16 @@ class BoundaryAttack(Attack):
 
         self.next_tuning_step = 1 + self.steps_to_next_tuning
         assert self.next_tuning_step > 1, (
-            'Estimating the optimal batch size cannot be done'
-            ' before the first step.')
+            "Estimating the optimal batch size cannot be done" " before the first step."
+        )
 
         if self.steps_to_next_tuning < 50:
-            warnings.warn('Batch size tuning after so few steps'
-                          ' is not very reliable.')
+            warnings.warn(
+                "Batch size tuning after so few steps" " is not very reliable."
+            )
 
     def tune_batch_size(self, a):
-        self.printv('Estimating optimal batch size')
+        self.printv("Estimating optimal batch size")
 
         max_directions = self.max_directions
 
@@ -998,15 +1017,18 @@ class BoundaryAttack(Attack):
         T_generate = self.stats_generator_duration / self.stats_generator_calls
 
         # how long does it take to get predictions of a batch
-        T_prediction = self.stats_prediction_duration \
-            / self.stats_prediction_calls
+        T_prediction = self.stats_prediction_duration / self.stats_prediction_calls
 
-        self.printv('current estimate of the time to generate a candidate'
-                    ' depending on the batch size:')
+        self.printv(
+            "current estimate of the time to generate a candidate"
+            " depending on the batch size:"
+        )
         self.printv(T_generate / np.arange(1, max_directions + 1))
 
-        self.printv('current estimate of the time to get predictions for a'
-                    ' candidate depending on the batch size:')
+        self.printv(
+            "current estimate of the time to get predictions for a"
+            " candidate depending on the batch size:"
+        )
         self.printv(T_prediction / np.arange(1, max_directions + 1))
 
         # how often did we need to use the corresponding
@@ -1016,7 +1038,7 @@ class BoundaryAttack(Attack):
 
         s = sum(frequencies)
 
-        self.printv('Relative frequencies for failing and success after k')
+        self.printv("Relative frequencies for failing and success after k")
         self.printv(np.asarray(frequencies) / s)
 
         for batch_size in range(1, max_directions + 1):
@@ -1045,9 +1067,11 @@ class BoundaryAttack(Attack):
             step_duration[batch_size - 1] = t_total
 
             self.printv(
-                'Using batch size {:3d}, an average step would have taken'
-                ' {:.5f} = {:.5f} + {:.5f} seconds'.format(
-                    batch_size, t_total / s, t_generate / s, t_prediction / s))
+                "Using batch size {:3d}, an average step would have taken"
+                " {:.5f} = {:.5f} + {:.5f} seconds".format(
+                    batch_size, t_total / s, t_generate / s, t_prediction / s
+                )
+            )
 
         # ===========================================================
         # determine the best batch size and print comparisons
@@ -1056,23 +1080,30 @@ class BoundaryAttack(Attack):
         best_batch_size = np.argmin(step_duration) + 1
         worst_batch_size = np.argmax(step_duration) + 1
 
-        self.printv('batch size was {}, optimal batch size would have'
-                    ' been {}'.format(self.batch_size, best_batch_size))
+        self.printv(
+            "batch size was {}, optimal batch size would have"
+            " been {}".format(self.batch_size, best_batch_size)
+        )
 
         best_step_duration = step_duration[best_batch_size - 1]
-        self.printv('setting batch size to {}: expected step duration:'
-                    ' {:.5f}'.format(best_batch_size, best_step_duration / s))
+        self.printv(
+            "setting batch size to {}: expected step duration:"
+            " {:.5f}".format(best_batch_size, best_step_duration / s)
+        )
 
         for name, value in (
-                ('old', self.batch_size),
-                ('worst', worst_batch_size),
-                ('smallest', 1),
-                ('largest', max_directions)):
+            ("old", self.batch_size),
+            ("worst", worst_batch_size),
+            ("smallest", 1),
+            ("largest", max_directions),
+        ):
 
             improvement = step_duration[value - 1] / best_step_duration
 
-            self.printv('improvement compared to {} batch size'
-                        ' ({}): {:.1f}x'.format(name, value, improvement))
+            self.printv(
+                "improvement compared to {} batch size"
+                " ({}): {:.1f}x".format(name, value, improvement)
+            )
 
         change = best_batch_size - self.batch_size
 
@@ -1085,8 +1116,11 @@ class BoundaryAttack(Attack):
                 self.steps_to_next_tuning //= 2
 
         self.next_tuning_step += self.steps_to_next_tuning
-        self.printv('next batch size tuning in {} steps, after step {}'.format(
-            self.steps_to_next_tuning, self.next_tuning_step - 1))
+        self.printv(
+            "next batch size tuning in {} steps, after step {}".format(
+                self.steps_to_next_tuning, self.next_tuning_step - 1
+            )
+        )
 
         # finally, set the new batch size
         self.batch_size = best_batch_size
@@ -1100,8 +1134,10 @@ class BoundaryAttack(Attack):
         def is_full(deque):
             return len(deque) == deque.maxlen
 
-        if not (is_full(self.stats_spherical_adversarial) or
-                is_full(self.stats_step_adversarial)):
+        if not (
+            is_full(self.stats_spherical_adversarial)
+            or is_full(self.stats_step_adversarial)
+        ):
             # updated step size recently, not doing anything now
             return
 
@@ -1119,26 +1155,25 @@ class BoundaryAttack(Attack):
         def log(message):
             _p_spherical = p_spherical
             if _p_spherical is None:  # pragma: no cover
-                _p_spherical = -1.
+                _p_spherical = -1.0
 
             _p_step = p_step
             if _p_step is None:
-                _p_step = -1.
+                _p_step = -1.0
 
-            self.printv('  {} {:.2f} ({:3d}), {:.2f} ({:2d})'.format(
-                message,
-                _p_spherical,
-                n_spherical,
-                _p_step,
-                n_step))
+            self.printv(
+                "  {} {:.2f} ({:3d}), {:.2f} ({:2d})".format(
+                    message, _p_spherical, n_spherical, _p_step, n_step
+                )
+            )
 
         if is_full(self.stats_spherical_adversarial):
             if p_spherical > 0.5:
-                message = 'Boundary too linear, increasing steps:    '
+                message = "Boundary too linear, increasing steps:    "
                 self.spherical_step *= self.step_adaptation
                 self.source_step *= self.step_adaptation
             elif p_spherical < 0.2:
-                message = 'Boundary too non-linear, decreasing steps:'
+                message = "Boundary too non-linear, decreasing steps:"
                 self.spherical_step /= self.step_adaptation
                 self.source_step /= self.step_adaptation
             else:
@@ -1150,10 +1185,10 @@ class BoundaryAttack(Attack):
 
         if is_full(self.stats_step_adversarial):
             if p_step > 0.5:
-                message = 'Success rate too high, increasing source step:'
+                message = "Success rate too high, increasing source step:"
                 self.source_step *= self.step_adaptation
             elif p_step < 0.2:
-                message = 'Success rate too low, decreasing source step: '
+                message = "Success rate too low, decreasing source step: "
                 self.source_step /= self.step_adaptation
             else:
                 message = None
@@ -1173,7 +1208,6 @@ class BoundaryAttack(Attack):
 
 
 class DummyExecutor(Executor):
-
     def __init__(self):
         self._shutdown = False
         self._shutdownLock = threading.Lock()
@@ -1181,8 +1215,7 @@ class DummyExecutor(Executor):
     def submit(self, fn, *args, **kwargs):
         with self._shutdownLock:
             if self._shutdown:  # pragma: no cover
-                raise RuntimeError(
-                    'cannot schedule new futures after shutdown')
+                raise RuntimeError("cannot schedule new futures after shutdown")
 
             f = Future()
             try:

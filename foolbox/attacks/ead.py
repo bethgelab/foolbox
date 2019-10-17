@@ -25,10 +25,19 @@ class EADAttack(Attack):
     """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 binary_search_steps=5, max_iterations=1000,
-                 confidence=0, initial_learning_rate=1e-2, regularization=1e-2,
-                 initial_const=1e-2, abort_early=True):
+    def __call__(
+        self,
+        input_or_adv,
+        label=None,
+        unpack=True,
+        binary_search_steps=5,
+        max_iterations=1000,
+        confidence=0,
+        initial_learning_rate=1e-2,
+        regularization=1e-2,
+        initial_const=1e-2,
+        abort_early=True,
+    ):
 
         """Gradient based attack which sues an elastic-net regularization.
 
@@ -78,8 +87,10 @@ class EADAttack(Attack):
         del unpack
 
         if not a.has_gradient():
-            logging.fatal('Applied gradient-based attack to model that '
-                          'does not provide gradients.')
+            logging.fatal(
+                "Applied gradient-based attack to model that "
+                "does not provide gradients."
+            )
             return
 
         min_, max_ = a.bounds()
@@ -95,13 +106,15 @@ class EADAttack(Attack):
         upper_bound = np.inf
 
         for binary_search_step in range(binary_search_steps):
-            if binary_search_step == binary_search_steps - 1 and \
-                    binary_search_steps >= 10:
+            if (
+                binary_search_step == binary_search_steps - 1
+                and binary_search_steps >= 10
+            ):
                 # in the last binary search step, use the upper_bound instead
                 # TODO: find out why... it's not obvious why this is useful
                 const = min(1e10, upper_bound)
 
-            logging.info('starting optimization with const = {}'.format(const))
+            logging.info("starting optimization with const = {}".format(const))
 
             x = att_original.copy()
             # corresponds to x^(k-1)
@@ -113,26 +126,33 @@ class EADAttack(Attack):
 
             for iteration in range(max_iterations):
                 # square-root learning rate decay
-                learning_rate = initial_learning_rate * \
-                    (1.0 - iteration / max_iterations)**0.5
+                learning_rate = (
+                    initial_learning_rate * (1.0 - iteration / max_iterations) ** 0.5
+                )
 
                 # store x from previous iteration (k-1) as x^(k-1)
                 x_prev = x.copy()
 
                 logits, is_adv = a.forward_one(y)
                 loss, gradient = self.loss_function(
-                    const, a, y, logits, att_original,
-                    confidence, min_, max_)
+                    const, a, y, logits, att_original, confidence, min_, max_
+                )
 
-                logging.info('loss: {}; best overall distance: {}'.format(loss, a.distance))
+                logging.info(
+                    "loss: {}; best overall distance: {}".format(loss, a.distance)
+                )
 
                 # backprop the gradient of the loss w.r.t. x further
                 # to get the gradient of the loss w.r.t. att_perturbation
                 assert gradient.shape == x.shape
 
                 x = self.project_shrinkage_thresholding(
-                    y - learning_rate * gradient, att_original, regularization,
-                    min_, max_)
+                    y - learning_rate * gradient,
+                    att_original,
+                    regularization,
+                    min_,
+                    max_,
+                )
                 y = x + iteration / (iteration + 3.0) * (x - x_prev)
 
                 # clip the slack variable to make sure that it is still
@@ -144,19 +164,19 @@ class EADAttack(Attack):
                     # but optimization continues to minimize perturbation size
                     found_adv = True
 
-                if abort_early and \
-                        iteration % (np.ceil(max_iterations / 10)) == 0:
+                if abort_early and iteration % (np.ceil(max_iterations / 10)) == 0:
                     # after each tenth of the iterations, check progress
-                    if not (loss <= .9999 * loss_at_previous_check):
+                    if not (loss <= 0.9999 * loss_at_previous_check):
                         break  # stop Adam if there has not been progress
                     loss_at_previous_check = loss
 
             if found_adv:
-                logging.info('found adversarial with const = {}'.format(const))
+                logging.info("found adversarial with const = {}".format(const))
                 upper_bound = const
             else:
-                logging.info('failed to find adversarial '
-                             'with const = {}'.format(const))
+                logging.info(
+                    "failed to find adversarial " "with const = {}".format(const)
+                )
                 lower_bound = const
 
             if upper_bound == np.inf:
@@ -167,8 +187,7 @@ class EADAttack(Attack):
                 const = (lower_bound + upper_bound) / 2
 
     @classmethod
-    def loss_function(cls, const, a, x, logits, original,
-                      confidence, min_, max_):
+    def loss_function(cls, const, a, x, logits, original, confidence, min_, max_):
         """Returns the loss and the gradient of the loss w.r.t. x,
         assuming that logits = model(x)."""
 
@@ -188,7 +207,7 @@ class EADAttack(Attack):
         is_adv_loss = max(0, is_adv_loss)
 
         s = max_ - min_
-        squared_l2_distance = np.sum((x - original)**2) / s**2
+        squared_l2_distance = np.sum((x - original) ** 2) / s ** 2
 
         total_loss = squared_l2_distance + const * is_adv_loss
 
@@ -201,7 +220,7 @@ class EADAttack(Attack):
         if is_adv_loss == 0:
             is_adv_loss_grad = 0
 
-        squared_l2_distance_grad = (2 / s**2) * (x - original)
+        squared_l2_distance_grad = (2 / s ** 2) * (x - original)
 
         total_loss_grad = squared_l2_distance_grad + const * is_adv_loss_grad
         return total_loss, total_loss_grad
@@ -216,10 +235,8 @@ class EADAttack(Attack):
         upper_mask = z - x0 > regularization
         lower_mask = z - x0 < -regularization
 
-        projection[upper_mask] = np.minimum(z - regularization, max_)[
-            upper_mask]
-        projection[lower_mask] = np.maximum(z + regularization, min_)[
-            lower_mask]
+        projection[upper_mask] = np.minimum(z - regularization, max_)[upper_mask]
+        projection[lower_mask] = np.maximum(z + regularization, min_)[lower_mask]
 
         return projection
 

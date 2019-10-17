@@ -24,8 +24,7 @@ class DeepFoolAttack(BatchAttack):
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     steps=100, subsample=10, p=None):
+    def as_generator(self, a, steps=100, subsample=10, p=None):
 
         """Simple and close to optimal gradient-based
         adversarial attack.
@@ -54,12 +53,14 @@ class DeepFoolAttack(BatchAttack):
         """
 
         if not a.has_gradient():
-            logging.fatal('Applied gradient-based attack to model that '
-                          'does not provide gradients.')
+            logging.fatal(
+                "Applied gradient-based attack to model that "
+                "does not provide gradients."
+            )
             return
 
         if a.target_class() is not None:
-            logging.fatal('DeepFool is an untargeted adversarial attack.')
+            logging.fatal("DeepFool is an untargeted adversarial attack.")
             return
 
         if p is None:
@@ -69,10 +70,12 @@ class DeepFoolAttack(BatchAttack):
             elif a._distance == Linfinity:
                 p = np.inf
             else:
-                raise NotImplementedError('Please choose a distance measure'
-                                          ' for which DeepFool is implemented'
-                                          ' or specify manually which norm'
-                                          ' to optimize.')
+                raise NotImplementedError(
+                    "Please choose a distance measure"
+                    " for which DeepFool is implemented"
+                    " or specify manually which norm"
+                    " to optimize."
+                )
 
         if not (1 <= p <= np.inf):
             raise ValueError
@@ -87,7 +90,7 @@ class DeepFoolAttack(BatchAttack):
         labels = np.argsort(logits)[::-1]
         if subsample:
             # choose the top-k classes
-            logging.info('Only testing the top-{} classes'.format(subsample))
+            logging.info("Only testing the top-{} classes".format(subsample))
             assert isinstance(subsample, int)
             labels = labels[:subsample]
 
@@ -99,8 +102,7 @@ class DeepFoolAttack(BatchAttack):
         min_, max_ = a.bounds()
 
         for step in range(steps):
-            logits, grad, is_adv = yield from a.forward_and_gradient_one(
-                perturbed)
+            logits, grad, is_adv = yield from a.forward_and_gradient_one(perturbed)
             if is_adv:
                 return
 
@@ -117,8 +119,7 @@ class DeepFoolAttack(BatchAttack):
             # we use a numerically stable implementation of the cross-entropy
             # and expect that the deep learning frameworks also use such a
             # stable implemenation to calculate the gradient
-            losses = [-crossentropy(logits=logits, label=k)
-                      for k in residual_labels]
+            losses = [-crossentropy(logits=logits, label=k) for k in residual_labels]
             grads = []
             for k in residual_labels:
                 g = yield from a.gradient_one(perturbed, label=k)
@@ -130,11 +131,9 @@ class DeepFoolAttack(BatchAttack):
 
             # calculate distances
             if p == 2:
-                distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8)
-                             for dl, dg in diffs]
+                distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8) for dl, dg in diffs]
             elif p == np.inf:
-                distances = [abs(dl) / (np.sum(np.abs(dg)) + 1e-8)
-                             for dl, dg in diffs]
+                distances = [abs(dl) / (np.sum(np.abs(dg)) + 1e-8) for dl, dg in diffs]
             else:  # pragma: no cover
                 assert False
 
@@ -145,10 +144,9 @@ class DeepFoolAttack(BatchAttack):
             # apply perturbation
             # the (-dg) corrects the sign, gradient here is -gradient of paper
             if p == 2:
-                perturbation = abs(df) / (np.linalg.norm(dg) + 1e-8)**2 * (-dg)
+                perturbation = abs(df) / (np.linalg.norm(dg) + 1e-8) ** 2 * (-dg)
             elif p == np.inf:
-                perturbation = abs(df) / (np.sum(np.abs(dg)) + 1e-8) \
-                    * np.sign(-dg)
+                perturbation = abs(df) / (np.sum(np.abs(dg)) + 1e-8) * np.sign(-dg)
             else:  # pragma: no cover
                 assert False
 
@@ -164,17 +162,15 @@ class DeepFoolAttack(BatchAttack):
 
 class DeepFoolL2Attack(DeepFoolAttack):
     @generator_decorator
-    def as_generator(self, a,
-                     steps=100, subsample=10):
+    def as_generator(self, a, steps=100, subsample=10):
         yield from super(DeepFoolL2Attack, self).as_generator(
-            a,
-            steps=steps, subsample=subsample, p=2)
+            a, steps=steps, subsample=subsample, p=2
+        )
 
 
 class DeepFoolLinfinityAttack(DeepFoolAttack):
     @generator_decorator
-    def as_generator(self, a,
-                     steps=100, subsample=10):
+    def as_generator(self, a, steps=100, subsample=10):
         yield from super(DeepFoolLinfinityAttack, self).as_generator(
-            a,
-            steps=steps, subsample=subsample, p=np.inf)
+            a, steps=steps, subsample=subsample, p=np.inf
+        )
