@@ -44,21 +44,14 @@ Criteria can be combined to create a new criterion:
 >>> criterion5 = criterion2 & criterion3
 
 """
-import sys
 import abc
-abstractmethod = abc.abstractmethod
-
-if sys.version_info >= (3, 4):
-    ABC = abc.ABC
-else:  # pragma: no cover
-    ABC = abc.ABCMeta('ABC', (), {})
-
+from abc import abstractmethod
 import numpy as np
 
 from .utils import softmax
 
 
-class Criterion(ABC):
+class Criterion(abc.ABC):
     """Base class for criteria that define what is adversarial.
 
     The :class:`Criterion` class represents a criterion used to
