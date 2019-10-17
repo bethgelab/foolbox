@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from .base import BatchAttack
 from .base import generator_decorator
