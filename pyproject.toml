@@ -14,5 +14,8 @@ exclude = '''
   | buck-out
   | build
   | dist
+
+  # specific to Foolbox
+  | foolbox/tests/data/model_repo
 )/
 '''
