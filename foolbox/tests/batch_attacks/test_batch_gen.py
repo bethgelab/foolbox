@@ -6,7 +6,7 @@ from foolbox.batch_attacks import GenAttack as Attack
 
 def test_untargeted_attack(bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
-    with pytest.raises(AssertionError, match='targeted'):
+    with pytest.raises(AssertionError, match="targeted"):
         attack(bn_images, bn_labels, unpack=False)
 
 
