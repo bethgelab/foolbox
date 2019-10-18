@@ -58,13 +58,13 @@ def generator_decorator(generator):
         assert isinstance(a, YieldingAdversarial)
 
         if a.distance.value == 0.0:
-            warnings.warn(
+            logging.info(
                 "Not running the attack because the original input"
                 " is already misclassified and the adversarial thus"
                 " has a distance of 0."
             )
         elif a.reached_threshold():
-            warnings.warn(
+            logging.info(
                 "Not running the attack because the given treshold"
                 " is already reached"
             )
