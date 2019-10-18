@@ -117,7 +117,7 @@ def binarize(x, values, threshold=None, included_in="upper"):
     return x
 
 
-def imagenet_example(shape=(224, 224), data_format="channels_last"):
+def imagenet_example(shape=(224, 224), data_format="channels_last", bounds=(0, 255)):
     """ Returns an example image and its imagenet class label.
 
     Parameters
@@ -126,6 +126,8 @@ def imagenet_example(shape=(224, 224), data_format="channels_last"):
         The shape of the returned image.
     data_format : str
         "channels_first" or "channels_last"
+    bounds : tuple
+        smallest and largest allowed pixel value
 
     Returns
     -------
@@ -150,6 +152,8 @@ def imagenet_example(shape=(224, 224), data_format="channels_last"):
     assert image.shape == shape + (3,)
     if data_format == "channels_first":
         image = np.transpose(image, (2, 0, 1))
+    if bounds != (0, 255):
+        image = image / 255 * (bounds[1] - bounds[0]) + bounds[0]
     return image, 282
 
 
@@ -159,6 +163,7 @@ def samples(
     batchsize=1,
     shape=(224, 224),
     data_format="channels_last",
+    bounds=(0, 255),
 ):
     """ Returns a batch of example images and the corresponding labels
 
@@ -176,6 +181,8 @@ def samples(
         The shape of the returned image (only relevant for Imagenet).
     data_format : str
         "channels_first" or "channels_last"
+    bounds : tuple
+        smallest and largest allowed pixel value
 
     Returns
     -------
@@ -215,8 +222,11 @@ def samples(
         images.append(image)
         labels.append(label)
 
-    labels = np.array(labels)
     images = np.stack(images)
+    labels = np.array(labels)
+
+    if bounds != (0, 255):
+        images = images / 255 * (bounds[1] - bounds[0]) + bounds[0]
     return images, labels
 
 
