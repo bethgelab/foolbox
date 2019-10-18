@@ -29,6 +29,7 @@ from .bapp import BoundaryAttackPlusPlus
 from .inversion import InversionAttack
 from .virtual_adversarial import VirtualAdversarialAttack
 from .inversion import InversionAttack
+from .binarization import BinarizationRefinementAttack
 from .gen import GenAttack
 from .hop_skip_jump_attack import HopSkipJumpAttack, BoundaryAttackPlusPlus
 
