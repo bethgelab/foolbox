@@ -122,7 +122,7 @@ class LocalSearchAttack(Attack):
 
         assert 0 <= r <= 2
 
-        if a.target_class() is not None:
+        if a.target_class is not None:
             # TODO: check if this algorithm can be used as a targeted attack
             return
 

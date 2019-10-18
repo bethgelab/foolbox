@@ -207,10 +207,10 @@ class CarliniWagnerL2Attack(Attack):
         """Returns the loss and the gradient of the loss w.r.t. x,
         assuming that logits = model(x)."""
 
-        targeted = a.target_class() is not None
+        targeted = a.target_class is not None
         if targeted:
-            c_minimize = cls.best_other_class(logits, a.target_class())
-            c_maximize = a.target_class()
+            c_minimize = cls.best_other_class(logits, a.target_class)
+            c_maximize = a.target_class
         else:
             c_minimize = a.original_class
             c_maximize = cls.best_other_class(logits, a.original_class)

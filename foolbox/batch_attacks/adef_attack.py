@@ -214,7 +214,7 @@ class ADefAttack(BatchAttack):
 
         # image_original is not updated, but kept as a copy
         image_original = a.unperturbed.copy()
-        target_class = a.target_class()
+        target_class = a.target_class
         targeted = target_class is not None
         original_label = a.original_class
 

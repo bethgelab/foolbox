@@ -24,7 +24,7 @@ def test_adversarial(model, criterion, image, label):
     assert adversarial.distance == MSE(value=np.inf)
     assert adversarial.unperturbed is image
     assert adversarial.original_class == label
-    assert adversarial.target_class() is None
+    assert adversarial.target_class is None
     assert adversarial.normalized_distance(image) == MSE(value=0)
     assert adversarial.normalized_distance(image).value == 0
 
@@ -56,7 +56,7 @@ def test_adversarial(model, criterion, image, label):
     assert adversarial.distance == MSE(value=0)
     assert adversarial.unperturbed is image
     assert adversarial.original_class == label
-    assert adversarial.target_class() is None
+    assert adversarial.target_class is None
     assert adversarial.normalized_distance(image) == MSE(value=0)
     assert adversarial.normalized_distance(image).value == 0
 

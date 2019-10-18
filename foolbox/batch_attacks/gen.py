@@ -74,7 +74,7 @@ class GenAttack(BatchAttack):
             adapted.
         """
 
-        assert a.target_class() is not None, "GenAttack is a targeted attack."
+        assert a.target_class is not None, "GenAttack is a targeted attack."
 
         if binary_search:
             if isinstance(binary_search, bool):
@@ -129,9 +129,9 @@ class GenAttack(BatchAttack):
                 is_adversarial.append(i)
             probs = np.array(probs)
             masked_probs = probs.copy()
-            masked_probs[:, a.target_class()] = 0
+            masked_probs[:, a.target_class] = 0
 
-            fitnesses = np.log(probs[:, a.target_class()] + 1e-30) - np.log(
+            fitnesses = np.log(probs[:, a.target_class] + 1e-30) - np.log(
                 np.sum(masked_probs, 1) + 1e-30
             )
 

@@ -67,7 +67,7 @@ class SaliencyMapAttack(Attack):
 
         original_class = a.original_class
 
-        target_class = a.target_class()
+        target_class = a.target_class
         if target_class is None:
             if num_random_targets == 0:
                 gradient_attack = GradientAttack()

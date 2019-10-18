@@ -71,9 +71,9 @@ class DecoupledDirectionNormL2Attack(Attack):
 
         min_, max_ = a.bounds()
         s = max_ - min_
-        if a.target_class() is not None:
+        if a.target_class is not None:
             multiplier = -1
-            attack_class = a.target_class()
+            attack_class = a.target_class
         else:
             multiplier = 1
             attack_class = a.original_class

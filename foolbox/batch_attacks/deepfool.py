@@ -59,7 +59,7 @@ class DeepFoolAttack(BatchAttack):
             )
             return
 
-        if a.target_class() is not None:
+        if a.target_class is not None:
             logging.fatal("DeepFool is an untargeted adversarial attack.")
             return
 

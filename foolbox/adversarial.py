@@ -233,6 +233,7 @@ class Adversarial(object):
             distance = None
         return is_adversarial, is_best, distance
 
+    @property
     def target_class(self):
         """Interface to criterion.target_class for attacks.
 
