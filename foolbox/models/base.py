@@ -1,12 +1,33 @@
 import numpy as np
 import abc
 from abc import abstractmethod
+import collections
 
 
 def _create_preprocessing_fn(params):
-    mean, std = params
+    if isinstance(params, collections.Mapping):
+        mean = params.get("mean", 0)
+        std = params.get("std", 1)
+        axis = params.get("axis", None)
+    else:
+        mean, std = params
+        axis = None
+
     mean = np.asarray(mean)
     std = np.asarray(std)
+
+    mean = np.atleast_1d(mean)
+    std = np.atleast_1d(std)
+
+    if axis is not None:
+        assert mean.ndim == 1, "If axis is specified, mean should be 1-dimensional"
+        assert std.ndim == 1, "If axis is specified, std should be 1-dimensional"
+        assert (
+            axis < 0
+        ), "axis must be negative integer, with -1 representing the last axis"
+        s = (1,) * (abs(axis) - 1)
+        mean = mean.reshape(mean.shape + s)
+        std = std.reshape(std.shape + s)
 
     def identity(x):
         return x
