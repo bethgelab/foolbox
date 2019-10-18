@@ -18,9 +18,7 @@ class BinarizationRefinementAttack(BatchAttack):
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     starting_point=None,
-                     threshold=None, included_in='upper'):
+    def as_generator(self, a, starting_point=None, threshold=None, included_in="upper"):
 
         """For models that preprocess their inputs by binarizing the
         inputs, this attack can improve adversarials found by other
@@ -55,9 +53,10 @@ class BinarizationRefinementAttack(BatchAttack):
 
         if a.perturbed is None:
             warnings.warn(
-                'This attack can only be applied to an adversarial'
-                ' found by another attack, either by calling it with'
-                ' an Adversarial object or by passing a starting_point')
+                "This attack can only be applied to an adversarial"
+                " found by another attack, either by calling it with"
+                " an Adversarial object or by passing a starting_point"
+            )
             return
 
         assert a.perturbed.dtype == a.unperturbed.dtype
@@ -68,22 +67,23 @@ class BinarizationRefinementAttack(BatchAttack):
         min_, max_ = a.bounds()
 
         if threshold is None:
-            threshold = (min_ + max_) / 2.
+            threshold = (min_ + max_) / 2.0
 
         threshold = dtype.type(threshold)
-        offset = dtype.type(1.)
+        offset = dtype.type(1.0)
 
-        if included_in == 'lower':
+        if included_in == "lower":
             lower = threshold
             upper = np.nextafter(threshold, threshold + offset)
-        elif included_in == 'upper':
+        elif included_in == "upper":
             lower = np.nextafter(threshold, threshold - offset)
             upper = threshold
         else:
             raise ValueError('included_in must be "lower" or "upper"')
 
-        logging.info('Intervals: [{}, {}] and [{}, {}]'.format(
-            min_, lower, upper, max_))
+        logging.info(
+            "Intervals: [{}, {}] and [{}, {}]".format(min_, lower, upper, max_)
+        )
 
         assert type(lower) == dtype.type
         assert type(upper) == dtype.type
@@ -109,24 +109,29 @@ class BinarizationRefinementAttack(BatchAttack):
 
         assert not np.any(np.isnan(p))
 
-        logging.info('distance before the {}: {}'.format(
-            self.__class__.__name__, a.distance))
+        logging.info(
+            "distance before the {}: {}".format(self.__class__.__name__, a.distance)
+        )
         _, is_adversarial = yield from a.forward_one(p)
-        assert is_adversarial, ('The specified threshold does not'
-                                ' match what is done by the model.')
-        logging.info('distance after the {}: {}'.format(
-            self.__class__.__name__, a.distance))
+        assert is_adversarial, (
+            "The specified threshold does not" " match what is done by the model."
+        )
+        logging.info(
+            "distance after the {}: {}".format(self.__class__.__name__, a.distance)
+        )
 
     def _initialize_starting_point(self, a, starting_point):
         if a.perturbed is not None:
             if starting_point is not None:  # pragma: no cover
                 warnings.warn(
-                    'Ignoring starting_point because the attack'
-                    ' is applied to a previously found adversarial.')
+                    "Ignoring starting_point because the attack"
+                    " is applied to a previously found adversarial."
+                )
             return
 
         if starting_point is not None:
             yield from a.forward_one(starting_point)
-            assert a.perturbed is not None, (
-                'Invalid starting point provided. Please provide a starting point that is adversarial.')
+            assert (
+                a.perturbed is not None
+            ), "Invalid starting point provided. Please provide a starting point that is adversarial."
             return

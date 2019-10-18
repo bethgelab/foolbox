@@ -25,6 +25,7 @@ from foolbox.criteria import TargetClass
 from foolbox.criteria import OriginalClassProbability
 from foolbox.models import TensorFlowModel
 from foolbox.models import PyTorchModel
+
 # from foolbox.models import CaffeModel
 from foolbox.models import ModelWithoutGradients
 from foolbox.models import ModelWithEstimatedGradients
@@ -460,7 +461,7 @@ def binarized_bn_model():
 
 # binarized_bn_model is also needed as a function, so we create the
 # fixture separately
-@pytest.fixture(name="bn_model")
+@pytest.fixture(name="binarized_bn_model")
 def binarized_bn_model_fixture():
     cm_model = contextmanager(binarized_bn_model)
     with cm_model() as model:
@@ -494,8 +495,9 @@ def binarized_bn_labels(bn_images):
     images = binarize(images, (0, 1))
     means = np.mean(images, axis=(1, 2))
     assert means.shape == (len(bn_images), 10)
-    label = np.argmax(means, axis=-1)
-    return label
+    labels = np.argmax(means, axis=-1)
+    assert labels.shape == (len(bn_images),)
+    return labels
 
 
 def binarized2_bn_model():
@@ -569,7 +571,7 @@ def binarized2_bn_label(bn_image):
 @pytest.fixture
 def binarized2_bn_labels(bn_images):
     images = bn_images
-    images = binarize(images, (0, 1), included_in='lower')
+    images = binarize(images, (0, 1), included_in="lower")
     means = np.mean(images, axis=(1, 2))
     assert means.shape == (len(images), 10)
     labels = np.argmax(means, -1)
