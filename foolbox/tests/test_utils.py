@@ -52,6 +52,19 @@ def test_samples_imagenet():
     assert isinstance(labels[0], np.integer)
     assert images.shape == (5, 224, 224, 3)
     assert images.dtype == np.float32
+    assert 0 <= images.min() <= 5
+    assert 250 < images.max() <= 255
+
+
+def test_samples_imagenet_bounds():
+    images, labels = samples(dataset="imagenet", batchsize=5, bounds=(0, 1))
+    assert 0 <= labels[0] < 1000
+    assert images.shape[0] == 5
+    assert isinstance(labels[0], np.integer)
+    assert images.shape == (5, 224, 224, 3)
+    assert images.dtype == np.float32
+    assert np.all(images >= 0)
+    assert np.all(images <= 1)
 
 
 def test_samples_imagenet_channels_first():
@@ -72,6 +85,21 @@ def test_samples_mnist():
     assert isinstance(labels[0], np.integer)
     assert images.shape == (5, 28, 28)
     assert images.dtype == np.float32
+    assert 0 <= images.min() <= 5
+    assert 250 < images.max() <= 255
+
+
+def test_samples_mnist_bounds():
+    images, labels = samples(dataset="mnist", batchsize=5, bounds=(-1, 1))
+    assert 0 <= labels[0] < 10
+    assert images.shape[0] == 5
+    assert isinstance(labels[0], np.integer)
+    assert images.shape == (5, 28, 28)
+    assert images.dtype == np.float32
+    assert np.all(images >= -1)
+    assert np.all(images <= 1)
+    assert images.min() < 0
+    assert images.max() > 0
 
 
 def test_samples_cifar10():
