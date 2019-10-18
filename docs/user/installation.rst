@@ -15,6 +15,17 @@ You can install the latest stable release of Foolbox from PyPI using `pip`:
 
 Make sure that `pip` installs packages for Python 3, otherwise you might need to use `pip3` instead of `pip`.
 
+Pre-release versions
+====================
+
+You can install the latest stable release of Foolbox from PyPI using `pip`:
+
+.. code-block:: bash
+
+   pip install foolbox --pre
+
+Make sure that `pip` installs packages for Python 3, otherwise you might need to use `pip3` instead of `pip`.
+
 Development version
 ===================
 
@@ -43,8 +54,8 @@ You can than add it as a remote:
 
 .. code-block:: bash
 
-   git remote rename origin upstream
-   git remote add origin https://github.com/<your-github-name>/foolbox.git
+   git remote add fork git@github.com/<your-github-name>/foolbox.git
 
 You can now commit your changes, push them to your fork and create a pull-request to
-contribute them to Foolbox.
+contribute them to Foolbox. See :ref:`development` for more information on the
+necessary tools and conventions.
