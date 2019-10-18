@@ -23,7 +23,7 @@ class ModelLoader(abc.ABC):
         if key is None:
             return DefaultLoader()
         else:
-            raise RuntimeError("No model loader for: %s".format(key))
+            raise RuntimeError("No model loader for: {}".format(key))
 
     @staticmethod
     def _import_module(path, module_name="foolbox_model"):

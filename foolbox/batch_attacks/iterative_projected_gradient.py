@@ -23,7 +23,7 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
     """
 
     @abstractmethod
-    def _gradient(self, a, x, class_, strict=True):
+    def _gradient(self, a, x, class_, strict=True, gradient_args={}):
         raise NotImplementedError
 
     @abstractmethod
@@ -31,7 +31,7 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
         raise NotImplementedError
 
     @abstractmethod
-    def _create_optimizer(self, a):
+    def _create_optimizer(self, a, stepsize):
         raise NotImplementedError
 
     @abstractmethod
@@ -58,7 +58,7 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
         iterations,
         random_start,
         return_early,
-        gradient_kwargs={},
+        gradient_args={},
     ):
         if not a.has_gradient():
             warnings.warn(
@@ -86,7 +86,7 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
                 class_,
                 return_early,
                 k=k,
-                gradient_kwargs=gradient_kwargs,
+                gradient_args=gradient_args,
             )
             return
         else:
@@ -101,7 +101,7 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
                 targeted,
                 class_,
                 return_early,
-                gradient_kwargs,
+                gradient_args,
             )
             return success
 
@@ -116,7 +116,7 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
         class_,
         return_early,
         k,
-        gradient_kwargs,
+        gradient_args,
     ):
 
         factor = stepsize / epsilon
@@ -134,7 +134,7 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
                 targeted,
                 class_,
                 return_early,
-                gradient_kwargs,
+                gradient_args,
             )
             return success
 
@@ -172,7 +172,7 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
         targeted,
         class_,
         return_early,
-        gradient_kwargs,
+        gradient_args,
     ):
         min_, max_ = a.bounds()
         s = max_ - min_
@@ -194,7 +194,7 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
         success = False
         for _ in range(iterations):
             gradient = yield from self._gradient(
-                a, x, class_, strict=strict, **gradient_kwargs
+                a, x, class_, strict=strict, gradient_args=gradient_args
             )
             # non-strict only for the first call and
             # only if random_start is True
@@ -238,7 +238,7 @@ class AdamOptimizerMixin(object):
 
 
 class LinfinityGradientMixin(object):
-    def _gradient(self, a, x, class_, strict=True):
+    def _gradient(self, a, x, class_, strict=True, gradient_args={}):
         gradient = yield from a.gradient_one(x, class_, strict=strict)
         gradient = np.sign(gradient)
         min_, max_ = a.bounds()
@@ -257,7 +257,9 @@ class SparseL1GradientMixin(object):
 
         """
 
-    def _gradient(self, a, x, class_, q, strict=True):
+    def _gradient(self, a, x, class_, strict=True, gradient_args={}):
+        q = gradient_args["q"]
+
         gradient = yield from a.gradient_one(x, class_, strict=strict)
 
         # make gradient sparse
@@ -276,7 +278,7 @@ class SparseL1GradientMixin(object):
 
 
 class L1GradientMixin(object):
-    def _gradient(self, a, x, class_, strict=True):
+    def _gradient(self, a, x, class_, strict=True, gradient_args={}):
         gradient = yield from a.gradient_one(x, class_, strict=strict)
         # using mean to make range of epsilons comparable to Linf
         gradient_norm = np.mean(np.abs(gradient))
@@ -288,7 +290,7 @@ class L1GradientMixin(object):
 
 
 class L2GradientMixin(object):
-    def _gradient(self, a, x, class_, strict=True):
+    def _gradient(self, a, x, class_, strict=True, gradient_args={}):
         gradient = yield from a.gradient_one(x, class_, strict=strict)
         # using mean to make range of epsilons comparable to Linf
         gradient_norm = np.sqrt(np.mean(np.square(gradient)))
@@ -608,7 +610,7 @@ class SparseL1BasicIterativeAttack(
             iterations,
             random_start,
             return_early,
-            gradient_kwargs={"q": q},
+            gradient_args={"q": q},
         )
 
 
@@ -887,7 +889,7 @@ class MomentumIterativeAttack(
 
     """
 
-    def _gradient(self, a, x, class_, strict=True):
+    def _gradient(self, a, x, class_, strict=True, gradient_args={}):
         # get current gradient
         gradient = yield from a.gradient_one(x, class_, strict=strict)
         gradient = gradient / max(1e-12, np.mean(np.abs(gradient)))
