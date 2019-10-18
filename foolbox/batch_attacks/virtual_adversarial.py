@@ -57,7 +57,7 @@ class VirtualAdversarialAttack(BatchAttack):
         """
 
         assert a.target_class is None, (
-            "Virtual Adversarial is an " "untargeted adversarial attack."
+            "Virtual Adversarial is an untargeted adversarial attack."
         )
 
         yield from self._run(
@@ -82,29 +82,30 @@ class VirtualAdversarialAttack(BatchAttack):
         for _ in range(2):  # to repeat with decreased epsilons if necessary
             for i, epsilon in enumerate(epsilons):
                 # start with random vector as search vector
-                d = np.random.normal(0.0, 1.0, size=x.shape)
+                d = np.random.normal(0.0, 1.0, size=x.shape).astype(x.dtype)
                 for it in range(iterations):
                     # normalize proposal to be unit vector
                     d = xi * d / np.sqrt((d ** 2).sum())
 
-                    logits_d, _ = yield from a.forward_one(x + d)
+                    logits_d, _ = yield from a.forward_one(x + d, strict=False)
 
                     dl_dp = softmax(logits) - softmax(logits_d)
 
                     # d = dl_dd = dl_dp * dp_dd
                     # use gradient of KL divergence as new search vector
-                    d = yield from a.backward_one(gradient=dl_dp, x=x + d, strict=False)
+                    d = yield from a.backward_one(gradient=dl_dp, x=x + d,
+                                                  strict=False)
                     d = (max_ - min_) * d
 
                     if np.allclose(np.sqrt((d ** 2).sum()), 0, atol=1e-16):
                         raise RuntimeError(
-                            "Gradient vanished; this can happen " "if xi is too small."
+                            "Gradient vanished; this can happen if xi is too small."
                         )
 
                 delta = d / np.sqrt((d ** 2).mean())
 
                 perturbed = x + self._clip_perturbation(a, delta, epsilon)
-                perturbed = np.clip(perturbed, 0, 1)
+                perturbed = np.clip(perturbed, min_, max_)
 
                 _, is_adversarial = yield from a.forward_one(perturbed)
                 if is_adversarial:
