@@ -18,13 +18,13 @@ class PrecomputedAdversarialsAttack(BatchAttack):
         # if we run into numerical problems with this approach, we might
         # need to add a very tiny threshold here
         if mses[index] > 0:
-            raise ValueError('Could not find a precomputed adversarial for '
-                             'this input')
+            raise ValueError(
+                "Could not find a precomputed adversarial for " "this input"
+            )
         return outputs[index]
 
     @generator_decorator
-    def as_generator(self, a,
-                     candidate_inputs, candidate_outputs):
+    def as_generator(self, a, candidate_inputs, candidate_outputs):
         """Attacks a model using precomputed adversarial candidates.
 
         Parameters
@@ -48,6 +48,5 @@ class PrecomputedAdversarialsAttack(BatchAttack):
         assert candidate_inputs.shape == candidate_outputs.shape
 
         x = a.unperturbed
-        adversarial = self._get_output(a, x, candidate_inputs,
-                                       candidate_outputs)
+        adversarial = self._get_output(a, x, candidate_inputs, candidate_outputs)
         yield from a.forward_one(adversarial)

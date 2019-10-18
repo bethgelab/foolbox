@@ -19,9 +19,9 @@ class DecoupledDirectionNormL2Attack(BatchAttack):
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     steps=100, gamma=0.05, initial_norm=1, quantize=True,
-                     levels=256):
+    def as_generator(
+        self, a, steps=100, gamma=0.05, initial_norm=1, quantize=True, levels=256
+    ):
         """The Decoupled Direction and Norm L2 adversarial attack.
 
         Parameters
@@ -53,8 +53,10 @@ class DecoupledDirectionNormL2Attack(BatchAttack):
         """
 
         if not a.has_gradient():
-            logging.fatal('Applied gradient-based attack to model that '
-                          'does not provide gradients.')
+            logging.fatal(
+                "Applied gradient-based attack to model that "
+                "does not provide gradients."
+            )
             return
 
         min_, max_ = a.bounds()
@@ -71,7 +73,8 @@ class DecoupledDirectionNormL2Attack(BatchAttack):
 
         for i in range(steps):
             logits, grad, is_adv = yield from a.forward_and_gradient_one(
-                unperturbed + perturbation, attack_class, strict=True)
+                unperturbed + perturbation, attack_class, strict=True
+            )
 
             # renorm gradient and handle 0-norm gradient
             grad_norm = np.linalg.norm(grad)
@@ -81,19 +84,18 @@ class DecoupledDirectionNormL2Attack(BatchAttack):
             grad *= s / grad_norm
 
             # udpate perturbation
-            lr = cosine_learning_rate(i, steps, 1., 0.01)
+            lr = cosine_learning_rate(i, steps, 1.0, 0.01)
             perturbation += lr * multiplier * grad
 
             # update norm value and renorm perturbation accordingly
-            norm *= (1 - (2 * is_adv - 1) * gamma)
+            norm *= 1 - (2 * is_adv - 1) * gamma
             perturbation *= s * norm / np.linalg.norm(perturbation)
             if quantize:
                 perturbation = (perturbation - min_) / s
                 perturbation = np.round(perturbation * (levels - 1))
-                perturbation /= (levels - 1)
+                perturbation /= levels - 1
                 perturbation = perturbation * s + min_
-            perturbation = np.clip(perturbation, min_ - unperturbed,
-                                   max_ - unperturbed)
+            perturbation = np.clip(perturbation, min_ - unperturbed, max_ - unperturbed)
 
 
 def cosine_learning_rate(current_step, max_steps, init_lr, final_lr):

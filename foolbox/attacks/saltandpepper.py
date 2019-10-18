@@ -11,8 +11,9 @@ class SaltAndPepperNoiseAttack(Attack):
     """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=100, repetitions=10):
+    def __call__(
+        self, input_or_adv, label=None, unpack=True, epsilons=100, repetitions=10
+    ):
 
         """Increases the amount of salt and pepper noise until the input is misclassified.
 

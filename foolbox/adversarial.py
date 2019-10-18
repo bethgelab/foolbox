@@ -13,6 +13,7 @@ from .distances import MSE
 class StopAttack(Exception):
     """Exception thrown to request early stopping of an attack
     if a given (optional!) threshold is reached."""
+
     pass
 
 
@@ -50,14 +51,15 @@ class Adversarial(object):
     """
 
     def __init__(
-            self,
-            model,
-            criterion,
-            unperturbed,
-            original_class,
-            distance=MSE,
-            threshold=None,
-            verbose=False):
+        self,
+        model,
+        criterion,
+        unperturbed,
+        original_class,
+        distance=MSE,
+        threshold=None,
+        verbose=False,
+    ):
 
         self.__model = model
         self.__criterion = criterion
@@ -92,7 +94,7 @@ class Adversarial(object):
             # if a threshold is specified and the unperturbed input is
             # misclassified, this can already cause a StopAttack
             # exception
-            assert self.distance.value == 0.
+            assert self.distance.value == 0.0
 
     def _reset(self):
         self.__best_adversarial = None
@@ -159,8 +161,7 @@ class Adversarial(object):
 
     def set_distance_dtype(self, dtype):
         assert dtype >= self.__unperturbed.dtype
-        self.__unperturbed_for_distance = self.__unperturbed.astype(
-            dtype, copy=False)
+        self.__unperturbed_for_distance = self.__unperturbed.astype(dtype, copy=False)
 
     def reset_distance_dtype(self):
         self.__unperturbed_for_distance = self.__unperturbed
@@ -179,10 +180,7 @@ class Adversarial(object):
             The distance between the given input and the original input.
 
         """
-        return self.__distance(
-            self.__unperturbed_for_distance,
-            x,
-            bounds=self.bounds())
+        return self.__distance(self.__unperturbed_for_distance, x, bounds=self.bounds())
 
     def reached_threshold(self):
         """Returns True if a threshold is given and the currently
@@ -195,7 +193,7 @@ class Adversarial(object):
         if in_bounds and self.__best_distance > distance:
             # new best adversarial
             if self.verbose:
-                print('new best adversarial: {}'.format(distance))
+                print("new best adversarial: {}".format(distance))
 
             self.__best_adversarial = x
             self.__best_distance = distance
@@ -225,11 +223,11 @@ class Adversarial(object):
 
         """
         is_adversarial = self.__criterion.is_adversarial(
-            predictions, self.__original_class)
+            predictions, self.__original_class
+        )
         assert isinstance(is_adversarial, bool) or isinstance(is_adversarial, np.bool_)
         if is_adversarial:
-            is_best, distance = self.__new_adversarial(
-                x, predictions, in_bounds)
+            is_best, distance = self.__new_adversarial(x, predictions, in_bounds)
         else:
             is_best = False
             distance = None
@@ -310,7 +308,8 @@ class Adversarial(object):
         self._total_prediction_calls += 1
         predictions = self.__model.forward_one(x)
         is_adversarial, is_best, distance = self.__is_adversarial(
-            x, predictions, in_bounds)
+            x, predictions, in_bounds
+        )
 
         assert predictions.ndim == 1
         if return_details:
@@ -351,7 +350,8 @@ class Adversarial(object):
             else:
                 in_bounds_i = self.in_bounds(inputs[i])
             is_adversarial, is_best, distance = self.__is_adversarial(
-                inputs[i], predictions[i], in_bounds_i)
+                inputs[i], predictions[i], in_bounds_i
+            )
             if is_adversarial and greedy:
                 if return_details:
                     return predictions, is_adversarial, i, is_best, distance
@@ -402,8 +402,9 @@ class Adversarial(object):
         assert gradient.shape == x.shape
         return gradient
 
-    def forward_and_gradient_one(self, x=None, label=None, strict=True,
-                                 return_details=False):
+    def forward_and_gradient_one(
+        self, x=None, label=None, strict=True, return_details=False
+    ):
         """Interface to model.forward_and_gradient_one for attacks.
 
         Parameters
@@ -432,9 +433,9 @@ class Adversarial(object):
         self._total_prediction_calls += 1
         self._total_gradient_calls += 1
         predictions, gradient = self.__model.forward_and_gradient_one(x, label)
-        is_adversarial, is_best, distance = self.__is_adversarial(x,
-                                                                  predictions,
-                                                                  in_bounds)
+        is_adversarial, is_best, distance = self.__is_adversarial(
+            x, predictions, in_bounds
+        )
 
         assert predictions.ndim == 1
         assert gradient.shape == x.shape
@@ -443,8 +444,7 @@ class Adversarial(object):
         else:
             return predictions, gradient, is_adversarial
 
-    def forward_and_gradient(self, x, label=None, strict=True,
-                             return_details=False):
+    def forward_and_gradient(self, x, label=None, strict=True, return_details=False):
         """Interface to model.forward_and_gradient_one for attacks.
 
         Parameters
@@ -476,9 +476,9 @@ class Adversarial(object):
 
         is_adversarials, is_bests, distances = [], [], []
         for single_x, prediction in zip(x, predictions):
-            is_adversarial, is_best, distance = self.__is_adversarial(single_x,
-                                                                      prediction,
-                                                                      in_bounds)
+            is_adversarial, is_best, distance = self.__is_adversarial(
+                single_x, prediction, in_bounds
+            )
             is_adversarials.append(is_adversarial)
             is_bests.append(is_best)
             distances.append(distance)

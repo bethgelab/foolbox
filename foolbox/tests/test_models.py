@@ -14,9 +14,7 @@ def test_abstract_differentiable_model():
 
 
 def test_base_model():
-
     class TestModel(models.Model):
-
         def forward(self, inputs):
             pass
 

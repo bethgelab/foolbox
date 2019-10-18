@@ -49,7 +49,7 @@ class SLSQPAttack(Attack):
 
         x0 = nprng.uniform(min_, max_, size=x.shape)
         bounds = [(min_, max_)] * n
-        options = {'maxiter': 500}
+        options = {"maxiter": 500}
 
         def fun(x, *args):
             """Objective function with derivative"""
@@ -60,24 +60,20 @@ class SLSQPAttack(Attack):
             """Equality constraint"""
             _, is_adv = a.forward_one(x.reshape(shape).astype(dtype))
             if is_adv:
-                return 0.
+                return 0.0
             else:
-                return 1.
+                return 1.0
 
-        constraints = [
-            {
-                'type': 'eq',
-                'fun': eq_constraint,
-            }
-        ]
+        constraints = [{"type": "eq", "fun": eq_constraint}]
 
         result = so.minimize(
             fun,
             x0,
-            method='SLSQP',
+            method="SLSQP",
             jac=True,
             bounds=bounds,
             constraints=constraints,
-            options=options)
+            options=options,
+        )
 
         a.forward_one(result.x.reshape(shape).astype(dtype))

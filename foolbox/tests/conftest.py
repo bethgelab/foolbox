@@ -5,24 +5,13 @@
 # first import tensorflow, then pytorch and then
 # according to test order seems to solve it
 import tensorflow
-print(tensorflow.__version__)
+
 # import theano
-# print(theano.__version__)
 # import mxnet
-# print(mxnet.__version__)
 # import keras
-# print(keras.__version__)
 import torch
-print(torch.__version__)
 
-
-import sys
-if sys.version_info > (3, 2):
-    from unittest.mock import Mock
-else:
-    # for Python2.7 compatibility
-    from mock import Mock
-
+from unittest.mock import Mock
 from os.path import join
 from os.path import dirname
 from contextlib import contextmanager
@@ -48,12 +37,19 @@ from foolbox.gradient_estimators import EvolutionaryStrategiesGradientEstimator
 from foolbox.utils import binarize
 
 import logging
+
 logging.getLogger().setLevel(logging.DEBUG)
+
+print(tensorflow.__version__)
+# print(theano.__version__)
+# print(mxnet.__version__)
+# print(keras.__version__)
+print(torch.__version__)
 
 
 @pytest.fixture
 def image():
-    image = Image.open(join(dirname(__file__), 'data/example.jpg'))
+    image = Image.open(join(dirname(__file__), "data/example.jpg"))
     image = np.asarray(image, dtype=np.float32)
     assert image.shape == (224, 224, 3)
     return image
@@ -66,15 +62,17 @@ def label():
 
 @pytest.fixture
 def model(image):
-    predictions = np.array([1., 0., 0.5] * 111 + [2.] + [0.3, 0.5, 1.1] * 222)
+    predictions = np.array([1.0, 0.0, 0.5] * 111 + [2.0] + [0.3, 0.5, 1.1] * 222)
     model = Mock()
     model.bounds = Mock(return_value=(0, 255))
     model.forward_one = Mock(return_value=predictions)
     model.forward = Mock(return_value=predictions[np.newaxis])
     gradient = image
     model.forward_and_gradient_one = Mock(return_value=(predictions, gradient))
-    model.forward_and_gradient = lambda inputs, _:  \
-        (np.array([predictions] * len(inputs)), np.array([gradient] * len(inputs)))
+    model.forward_and_gradient = lambda inputs, _: (
+        np.array([predictions] * len(inputs)),
+        np.array([gradient] * len(inputs)),
+    )
     model.gradient_one = Mock(return_value=gradient)
     model.backward_one = Mock(return_value=gradient)
     model.gradient = Mock(return_value=gradient[np.newaxis])
@@ -109,16 +107,14 @@ def bn_model():
 
     with tf.Session():
         model = TensorFlowModel(
-            images,
-            logits,
-            bounds=bounds,
-            channel_axis=channel_axis)
+            images, logits, bounds=bounds, channel_axis=channel_axis
+        )
 
         yield model
 
 
 # bn_model is also needed as a function, so we create the fixture separately
-@pytest.fixture(name='bn_model')
+@pytest.fixture(name="bn_model")
 def bn_model_fixture():
     cm_model = contextmanager(bn_model)
     with cm_model() as model:
@@ -136,7 +132,6 @@ def bn_model_pytorch():
     num_classes = 10
 
     class Net(nn.Module):
-
         def forward(self, x):
             assert isinstance(x.data, torch.FloatTensor)
             x = torch.mean(x, 3)
@@ -145,11 +140,7 @@ def bn_model_pytorch():
             return logits
 
     model = Net()
-    model = PyTorchModel(
-        model,
-        bounds=bounds,
-        num_classes=num_classes,
-        device='cpu')
+    model = PyTorchModel(model, bounds=bounds, num_classes=num_classes, device="cpu")
     return model
 
 
@@ -164,18 +155,18 @@ def bn_model_caffe(request, tmpdir):
     num_classes = channels = getattr(request, "param", 1000)
 
     net_spec = caffe.NetSpec()
-    net_spec.data = L.Input(name="data",
-                            shape=dict(dim=[1, channels, 5, 5]))
-    net_spec.reduce_1 = L.Reduction(net_spec.data,
-                                    reduction_param={"operation": 4,
-                                                     "axis": 3})
-    net_spec.output = L.Reduction(net_spec.reduce_1,
-                                  reduction_param={"operation": 4,
-                                                   "axis": 2})
+    net_spec.data = L.Input(name="data", shape=dict(dim=[1, channels, 5, 5]))
+    net_spec.reduce_1 = L.Reduction(
+        net_spec.data, reduction_param={"operation": 4, "axis": 3}
+    )
+    net_spec.output = L.Reduction(
+        net_spec.reduce_1, reduction_param={"operation": 4, "axis": 2}
+    )
     net_spec.label = L.Input(name="label", shape=dict(dim=[1]))
     net_spec.loss = L.SoftmaxWithLoss(net_spec.output, net_spec.label)
-    wf = tmpdir.mkdir("test_models_caffe_fixture")\
-               .join("test_caffe_{}.prototxt".format(num_classes))
+    wf = tmpdir.mkdir("test_models_caffe_fixture").join(
+        "test_caffe_{}.prototxt".format(num_classes)
+    )
     wf.write("force_backward: true\n" + str(net_spec.to_proto()))
     net = caffe.Net(str(wf), caffe.TEST)
     model = CaffeModel(net, bounds=bounds)
@@ -193,7 +184,7 @@ def gl_bn_model():
 
 
 # gl_bn_model is also needed as a function, so we create the fixture separately
-@pytest.fixture(name='gl_bn_model')
+@pytest.fixture(name="gl_bn_model")
 def gl_bn_model_fixture():
     cm_model = contextmanager(gl_bn_model)
     with cm_model() as model:
@@ -212,14 +203,16 @@ def eg_bn_model_factory(request):
             gradient_estimator = GradientEstimator(epsilon=0.01)
             model = ModelWithEstimatedGradients(model, gradient_estimator)
             yield model
+
     return eg_bn_model
 
 
 # eg_bn_model_factory is also needed as a function, so we create the
 # fixture separately
-@pytest.fixture(name='eg_bn_model_factory',
-                params=[CoordinateWiseGradientEstimator,
-                        EvolutionaryStrategiesGradientEstimator])
+@pytest.fixture(
+    name="eg_bn_model_factory",
+    params=[CoordinateWiseGradientEstimator, EvolutionaryStrategiesGradientEstimator],
+)
 def eg_bn_model_factory_fixture(request):
     return eg_bn_model_factory(request)
 
@@ -291,13 +284,13 @@ def bn_targeted_criterion(bn_label):
 @pytest.fixture
 def bn_impossible_criterion():
     """Does not consider any image as adversarial."""
-    return OriginalClassProbability(0.)
+    return OriginalClassProbability(0.0)
 
 
 @pytest.fixture
 def bn_trivial_criterion():
     """Does consider every image as adversarial."""
-    return OriginalClassProbability(1.)
+    return OriginalClassProbability(1.0)
 
 
 @pytest.fixture
@@ -357,8 +350,9 @@ def gl_bn_adversarial(bn_criterion, bn_image, bn_label):
         yield Adversarial(model, criterion, image, label)
 
 
-@pytest.fixture(params=[CoordinateWiseGradientEstimator,
-                        EvolutionaryStrategiesGradientEstimator])
+@pytest.fixture(
+    params=[CoordinateWiseGradientEstimator, EvolutionaryStrategiesGradientEstimator]
+)
 def eg_bn_adversarial(request, bn_criterion, bn_image, bn_label):
     criterion = bn_criterion
     image = bn_image
@@ -399,8 +393,9 @@ def bn_trivial(bn_trivial_criterion, bn_image, bn_label):
 
 
 @pytest.fixture
-def bn_adversarial_pytorch(bn_model_pytorch, bn_criterion,
-                           bn_image_pytorch, bn_label_pytorch):
+def bn_adversarial_pytorch(
+    bn_model_pytorch, bn_criterion, bn_image_pytorch, bn_label_pytorch
+):
     model = bn_model_pytorch
     criterion = bn_criterion
     image = bn_image_pytorch
@@ -412,8 +407,9 @@ def bn_adversarial_pytorch(bn_model_pytorch, bn_criterion,
 
 
 @pytest.fixture
-def bn_targeted_adversarial_pytorch(bn_model_pytorch, bn_targeted_criterion,
-                                    bn_image_pytorch, bn_label_pytorch):
+def bn_targeted_adversarial_pytorch(
+    bn_model_pytorch, bn_targeted_criterion, bn_image_pytorch, bn_label_pytorch
+):
     model = bn_model_pytorch
     criterion = bn_targeted_criterion
     image = bn_image_pytorch
@@ -447,6 +443,7 @@ def binarized_bn_model():
 
         def backward(x):
             return x
+
         return x, backward
 
     with tf.Session():
@@ -455,14 +452,15 @@ def binarized_bn_model():
             logits,
             bounds=bounds,
             channel_axis=channel_axis,
-            preprocessing=preprocessing)
+            preprocessing=preprocessing,
+        )
 
         yield model
 
 
 # binarized_bn_model is also needed as a function, so we create the
 # fixture separately
-@pytest.fixture(name='bn_model')
+@pytest.fixture(name="bn_model")
 def binarized_bn_model_fixture():
     cm_model = contextmanager(binarized_bn_model)
     with cm_model() as model:
@@ -519,10 +517,11 @@ def binarized2_bn_model():
     logits = mean_brightness_net(images)
 
     def preprocessing(x):
-        x = binarize(x, (0, 1), included_in='lower')
+        x = binarize(x, (0, 1), included_in="lower")
 
         def backward(x):
             return x
+
         return x, backward
 
     with tf.Session():
@@ -531,14 +530,15 @@ def binarized2_bn_model():
             logits,
             bounds=bounds,
             channel_axis=channel_axis,
-            preprocessing=preprocessing)
+            preprocessing=preprocessing,
+        )
 
         yield model
 
 
 # binarized2_bn_model is also needed as a function, so we create the
 # fixture separately
-@pytest.fixture(name='binarized2_bn_model')
+@pytest.fixture(name="binarized2_bn_model")
 def binarized2_bn_model_fixture():
     cm_model = contextmanager(binarized2_bn_model)
     with cm_model() as model:
@@ -559,7 +559,7 @@ def binarized2_bn_adversarial(bn_criterion, bn_image, binarized2_bn_label):
 @pytest.fixture
 def binarized2_bn_label(bn_image):
     image = bn_image
-    image = binarize(image, (0, 1), included_in='lower')
+    image = binarize(image, (0, 1), included_in="lower")
     mean = np.mean(image, axis=(0, 1))
     assert mean.shape == (10,)
     label = np.argmax(mean)

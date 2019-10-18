@@ -5,9 +5,8 @@ from abc import abstractmethod
 
 
 class ModelLoader(abc.ABC):
-
     @abstractmethod
-    def load(self, path, module_name='foolbox_model', **kwargs):
+    def load(self, path, module_name="foolbox_model", **kwargs):
         """
         Load a model from a local path, to which a git repository
         has been previously cloned to.
@@ -27,16 +26,15 @@ class ModelLoader(abc.ABC):
             raise RuntimeError("No model loader for: %s".format(key))
 
     @staticmethod
-    def _import_module(path, module_name='foolbox_model'):
+    def _import_module(path, module_name="foolbox_model"):
         sys.path.insert(0, path)
         module = importlib.import_module(module_name)
-        print('imported module: {}'.format(module))
+        print("imported module: {}".format(module))
         return module
 
 
 class DefaultLoader(ModelLoader):
-
-    def load(self, path, module_name='foolbox_model', **kwargs):
+    def load(self, path, module_name="foolbox_model", **kwargs):
         module = ModelLoader._import_module(path, module_name=module_name)
         model = module.create(**kwargs)
         return model

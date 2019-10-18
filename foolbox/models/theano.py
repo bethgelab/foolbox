@@ -1,4 +1,3 @@
-
 import warnings
 import numpy as np
 
@@ -29,20 +28,18 @@ class TheanoModel(DifferentiableModel):
     """
 
     def __init__(
-            self,
-            inputs,
-            logits,
-            bounds,
-            num_classes,
-            channel_axis=1,
-            preprocessing=[0, 1]):
+        self, inputs, logits, bounds, num_classes, channel_axis=1, preprocessing=[0, 1]
+    ):
 
-        super(TheanoModel, self).__init__(bounds=bounds,
-                                          channel_axis=channel_axis,
-                                          preprocessing=preprocessing)
+        super(TheanoModel, self).__init__(
+            bounds=bounds, channel_axis=channel_axis, preprocessing=preprocessing
+        )
 
-        warnings.warn('Theano is no longer being developed and Theano support'
-                      ' in Foolbox will be removed', DeprecationWarning)
+        warnings.warn(
+            "Theano is no longer being developed and Theano support"
+            " in Foolbox will be removed",
+            DeprecationWarning,
+        )
 
         self._num_classes = num_classes
 
@@ -50,18 +47,24 @@ class TheanoModel(DifferentiableModel):
         import theano as th
         import theano.tensor as T
 
-        labels = T.ivector('labels')
-        loss = T.nnet.nnet.categorical_crossentropy(T.nnet.nnet.softmax(logits), labels).sum()
+        labels = T.ivector("labels")
+        loss = T.nnet.nnet.categorical_crossentropy(
+            T.nnet.nnet.softmax(logits), labels
+        ).sum()
         gradient = th.gradient.grad(loss, inputs)
 
-        backward_grad_logits = T.fmatrix('backward_grad_logits')
+        backward_grad_logits = T.fmatrix("backward_grad_logits")
         backward_loss = (logits * backward_grad_logits).sum()
         backward_grad_inputs = th.gradient.grad(backward_loss, inputs)
 
         self._forward_fn = th.function([inputs], logits)
-        self._forward_and_gradient_fn = th.function([inputs, labels], [logits, gradient])
+        self._forward_and_gradient_fn = th.function(
+            [inputs, labels], [logits, gradient]
+        )
         self._gradient_fn = th.function([inputs, labels], gradient)
-        self._backward_fn = th.function([backward_grad_logits, inputs], backward_grad_inputs)
+        self._backward_fn = th.function(
+            [backward_grad_logits, inputs], backward_grad_inputs
+        )
 
         # for tests
         self._loss_fn = th.function([inputs, labels], loss)
@@ -76,8 +79,9 @@ class TheanoModel(DifferentiableModel):
         input_shape = x.shape
         x, dpdx = self._process_input(x)
         label = np.array(label, dtype=np.int32)
-        predictions, gradient = self._forward_and_gradient_fn(x[np.newaxis],
-                                                              label[np.newaxis])
+        predictions, gradient = self._forward_and_gradient_fn(
+            x[np.newaxis], label[np.newaxis]
+        )
         gradient = gradient.astype(x.dtype)
         predictions = np.squeeze(predictions, axis=0)
         gradient = np.squeeze(gradient, axis=0)

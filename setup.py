@@ -2,30 +2,21 @@ from setuptools import setup
 from setuptools import find_packages
 from os.path import join, dirname
 
-with open(join(dirname(__file__), 'foolbox/VERSION')) as f:
+with open(join(dirname(__file__), "foolbox/VERSION")) as f:
     version = f.read().strip()
 
 try:
     # obtain long description from README
-    readme_path = join(dirname(__file__), 'README.rst')
-    with open(readme_path, encoding='utf-8') as f:
+    readme_path = join(dirname(__file__), "README.rst")
+    with open(readme_path, encoding="utf-8") as f:
         README = f.read()
 except IOError:
-    README = ''
+    README = ""
 
 
-install_requires = [
-    'numpy',
-    'scipy',
-    'setuptools',
-    'requests',
-    'GitPython'
-]
+install_requires = ["numpy", "scipy", "setuptools", "requests", "GitPython"]
 
-tests_require = [
-    'pytest',
-    'pytest-cov',
-]
+tests_require = ["pytest", "pytest-cov"]
 
 setup(
     name="foolbox",
@@ -51,7 +42,5 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=install_requires,
-    extras_require={
-        'testing': tests_require,
-    },
+    extras_require={"testing": tests_require},
 )

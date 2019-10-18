@@ -38,7 +38,7 @@ class PrecomputedAdversarialsAttack(Attack):
         # if we run into numerical problems with this approach, we might
         # need to add a very tiny threshold here
         if mses[index] > 0:
-            raise ValueError('Could not find a precomputed adversarial for this input')
+            raise ValueError("Could not find a precomputed adversarial for this input")
         return self._outputs[index]
 
     @call_decorator

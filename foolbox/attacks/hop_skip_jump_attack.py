@@ -1,5 +1,3 @@
-
-
 import warnings
 import time
 import sys
@@ -42,20 +40,21 @@ class HopSkipJumpAttack(Attack):
 
     @call_decorator
     def __call__(
-            self,
-            input_or_adv,
-            label=None,
-            unpack=True,
-            iterations=64,
-            initial_num_evals=100,
-            max_num_evals=10000,
-            stepsize_search='geometric_progression',
-            gamma=1.0,
-            starting_point=None,
-            batch_size=256,
-            internal_dtype=np.float64,
-            log_every_n_steps=1,
-            verbose=False):
+        self,
+        input_or_adv,
+        label=None,
+        unpack=True,
+        iterations=64,
+        initial_num_evals=100,
+        max_num_evals=10000,
+        stepsize_search="geometric_progression",
+        gamma=1.0,
+        starting_point=None,
+        batch_size=256,
+        internal_dtype=np.float64,
+        log_every_n_steps=1,
+        verbose=False,
+    ):
         """Applies HopSkipJumpAttack.
 
         Parameters
@@ -117,31 +116,25 @@ class HopSkipJumpAttack(Attack):
 
         # Set constraint based on the distance.
         if self._default_distance == MSE:
-            self.constraint = 'l2'
+            self.constraint = "l2"
         elif self._default_distance == Linf:
-            self.constraint = 'linf'
+            self.constraint = "linf"
 
         # Set binary search threshold.
         self.shape = input_or_adv.unperturbed.shape
         self.d = np.prod(self.shape)
-        if self.constraint == 'l2':
+        if self.constraint == "l2":
             self.theta = self.gamma / (np.sqrt(self.d) * self.d)
         else:
             self.theta = self.gamma / (self.d * self.d)
-        print('HopSkipJumpAttack optimized for {} distance'.format(
-            self.constraint))
+        print("HopSkipJumpAttack optimized for {} distance".format(self.constraint))
 
         if not verbose:
-            print('run with verbose=True to see details')
+            print("run with verbose=True to see details")
 
-        return self.attack(
-            input_or_adv,
-            iterations=iterations)
+        return self.attack(input_or_adv, iterations=iterations)
 
-    def attack(
-            self,
-            a,
-            iterations):
+    def attack(self, a, iterations):
         """
         iterations : int
             Maximum number of iterations to run.
@@ -157,8 +150,9 @@ class HopSkipJumpAttack(Attack):
         assert self.internal_dtype in [np.float32, np.float64]
         assert self.external_dtype in [np.float32, np.float64]
 
-        assert not (self.external_dtype == np.float64 and
-                    self.internal_dtype == np.float32)
+        assert not (
+            self.external_dtype == np.float64 and self.internal_dtype == np.float32
+        )
 
         a.set_distance_dtype(self.internal_dtype)
 
@@ -171,8 +165,7 @@ class HopSkipJumpAttack(Attack):
             outs = []
             num_batchs = int(math.ceil(len(x) * 1.0 / self.batch_size))
             for j in range(num_batchs):
-                current_batch = x[self.batch_size * j:
-                                  self.batch_size * (j + 1)]
+                current_batch = x[self.batch_size * j : self.batch_size * (j + 1)]
                 current_batch = current_batch.astype(self.external_dtype)
                 out = a.forward(current_batch, strict=False)[1]
                 outs.append(out)
@@ -193,7 +186,7 @@ class HopSkipJumpAttack(Attack):
         # ===========================================================
 
         # make sure repeated warnings are shown
-        warnings.simplefilter('always', UserWarning)
+        warnings.simplefilter("always", UserWarning)
 
         # get bounds
         bounds = a.bounds()
@@ -207,9 +200,10 @@ class HopSkipJumpAttack(Attack):
 
         if a.perturbed is None:
             warnings.warn(
-                'Initialization failed.'
-                ' it might be necessary to pass an explicit starting'
-                ' point.')
+                "Initialization failed."
+                " it might be necessary to pass an explicit starting"
+                " point."
+            )
             return
 
         self.time_initialization += time.time() - self.t_initial
@@ -226,7 +220,8 @@ class HopSkipJumpAttack(Attack):
 
         # Project the initialization to the boundary.
         perturbed, dist_post_update = self.binary_search_batch(
-            original, np.expand_dims(perturbed, 0), decision_function)
+            original, np.expand_dims(perturbed, 0), decision_function
+        )
 
         dist = self.compute_distance(perturbed, original)
 
@@ -247,14 +242,16 @@ class HopSkipJumpAttack(Attack):
             delta = self.select_delta(dist_post_update, step)
 
             # Choose number of evaluations.
-            num_evals = int(min([self.initial_num_evals * np.sqrt(step),
-                                 self.max_num_evals]))
+            num_evals = int(
+                min([self.initial_num_evals * np.sqrt(step), self.max_num_evals])
+            )
 
             # approximate gradient.
-            gradf = self.approximate_gradient(decision_function, perturbed,
-                                              num_evals, delta)
+            gradf = self.approximate_gradient(
+                decision_function, perturbed, num_evals, delta
+            )
 
-            if self.constraint == 'linf':
+            if self.constraint == "linf":
                 update = np.sign(gradf)
             else:
                 update = gradf
@@ -264,24 +261,27 @@ class HopSkipJumpAttack(Attack):
             # ===========================================================
             # Update, and binary search back to the boundary.
             # ===========================================================
-            if self.stepsize_search == 'geometric_progression':
+            if self.stepsize_search == "geometric_progression":
                 # find step size.
                 epsilon = self.geometric_progression_for_stepsize(
-                    perturbed, update, dist, decision_function, step)
+                    perturbed, update, dist, decision_function, step
+                )
 
                 # Update the sample.
-                perturbed = np.clip(perturbed + epsilon * update, self.clip_min, self.clip_max)
+                perturbed = np.clip(
+                    perturbed + epsilon * update, self.clip_min, self.clip_max
+                )
 
                 # Binary search to return to the boundary.
                 perturbed, dist_post_update = self.binary_search_batch(
-                    original, perturbed[None], decision_function)
+                    original, perturbed[None], decision_function
+                )
 
-            elif self.stepsize_search == 'grid_search':
+            elif self.stepsize_search == "grid_search":
                 # Grid search for stepsize.
                 epsilons = np.logspace(-4, 0, num=20, endpoint=True) * dist
                 epsilons_shape = [20] + len(self.shape) * [1]
-                perturbeds = perturbed + epsilons.reshape(
-                    epsilons_shape) * update
+                perturbeds = perturbed + epsilons.reshape(epsilons_shape) * update
                 perturbeds = np.clip(perturbeds, self.clip_min, self.clip_max)
                 idx_perturbed = decision_function(perturbeds)
 
@@ -289,8 +289,8 @@ class HopSkipJumpAttack(Attack):
                     # Select the perturbation that yields the minimum
                     # distance after binary search.
                     perturbed, dist_post_update = self.binary_search_batch(
-                        original, perturbeds[idx_perturbed],
-                        decision_function)
+                        original, perturbeds[idx_perturbed], decision_function
+                    )
             t2 = time.time()
 
             self.time_search += t2 - t1
@@ -302,12 +302,11 @@ class HopSkipJumpAttack(Attack):
             # Log the step
             # ===========================================================
             # Using foolbox definition of distance for logging.
-            if self.constraint == 'l2':
-                distance = dist ** 2 / self.d / \
-                    (self.clip_max - self.clip_min) ** 2
-            elif self.constraint == 'linf':
+            if self.constraint == "l2":
+                distance = dist ** 2 / self.d / (self.clip_max - self.clip_min) ** 2
+            elif self.constraint == "linf":
                 distance = dist / (self.clip_max - self.clip_min)
-            message = ' (took {:.5f} seconds)'.format(t2 - t0)
+            message = " (took {:.5f} seconds)".format(t2 - t0)
             self.log_step(step, distance, message)
             sys.stdout.flush()
 
@@ -328,18 +327,21 @@ class HopSkipJumpAttack(Attack):
 
         if a.perturbed is not None:
             print(
-                'Attack is applied to a previously found adversarial.'
-                ' Continuing search for better adversarials.')
+                "Attack is applied to a previously found adversarial."
+                " Continuing search for better adversarials."
+            )
             if starting_point is not None:  # pragma: no cover
                 warnings.warn(
-                    'Ignoring starting_point parameter because the attack'
-                    ' is applied to a previously found adversarial.')
+                    "Ignoring starting_point parameter because the attack"
+                    " is applied to a previously found adversarial."
+                )
             return
 
         if starting_point is not None:
             a.forward_one(starting_point)
-            assert a.perturbed is not None, (
-                'Invalid starting point provided. Please provide a starting point that is adversarial.')
+            assert (
+                a.perturbed is not None
+            ), "Invalid starting point provided. Please provide a starting point that is adversarial."
             return
 
         """
@@ -351,10 +353,10 @@ class HopSkipJumpAttack(Attack):
         num_evals = 0
 
         while True:
-            random_noise = np.random.uniform(self.clip_min, self.clip_max,
-                                             size=self.shape)
-            _, success = a.forward_one(
-                random_noise.astype(self.external_dtype))
+            random_noise = np.random.uniform(
+                self.clip_min, self.clip_max, size=self.shape
+            )
+            _, success = a.forward_one(random_noise.astype(self.external_dtype))
             num_evals += 1
             if success:
                 break
@@ -374,34 +376,36 @@ class HopSkipJumpAttack(Attack):
                 low = mid
 
     def compute_distance(self, x1, x2):
-        if self.constraint == 'l2':
+        if self.constraint == "l2":
             return np.linalg.norm(x1 - x2)
-        elif self.constraint == 'linf':
+        elif self.constraint == "linf":
             return np.max(abs(x1 - x2))
 
     def project(self, unperturbed, perturbed_inputs, alphas):
         """ Projection onto given l2 / linf balls in a batch. """
         alphas_shape = [len(alphas)] + [1] * len(self.shape)
         alphas = alphas.reshape(alphas_shape)
-        if self.constraint == 'l2':
-            projected = (1 - alphas) * unperturbed + \
-                alphas * perturbed_inputs
-        elif self.constraint == 'linf':
-            projected = np.clip(perturbed_inputs, unperturbed - alphas, unperturbed + alphas)
+        if self.constraint == "l2":
+            projected = (1 - alphas) * unperturbed + alphas * perturbed_inputs
+        elif self.constraint == "linf":
+            projected = np.clip(
+                perturbed_inputs, unperturbed - alphas, unperturbed + alphas
+            )
         return projected
 
-    def binary_search_batch(self, unperturbed, perturbed_inputs,
-                            decision_function):
+    def binary_search_batch(self, unperturbed, perturbed_inputs, decision_function):
         """ Binary search to approach the boundary. """
 
         # Compute distance between each of perturbed and unperturbed input.
         dists_post_update = np.array(
-            [self.compute_distance(unperturbed,
-                                   perturbed_x) for perturbed_x in
-             perturbed_inputs])
+            [
+                self.compute_distance(unperturbed, perturbed_x)
+                for perturbed_x in perturbed_inputs
+            ]
+        )
 
         # Choose upper thresholds in binary searchs based on constraint.
-        if self.constraint == 'linf':
+        if self.constraint == "linf":
             highs = dists_post_update
             # Stopping criteria.
             thresholds = dists_post_update * self.theta
@@ -415,25 +419,20 @@ class HopSkipJumpAttack(Attack):
         while np.max((highs - lows) / thresholds) > 1:
             # projection to mids.
             mids = (highs + lows) / 2.0
-            mid_inputs = self.project(unperturbed, perturbed_inputs,
-                                      mids)
+            mid_inputs = self.project(unperturbed, perturbed_inputs, mids)
 
             # Update highs and lows based on model decisions.
             decisions = decision_function(mid_inputs)
             lows = np.where(decisions == 0, mids, lows)
             highs = np.where(decisions == 1, mids, highs)
 
-        out_inputs = self.project(unperturbed, perturbed_inputs,
-                                  highs)
+        out_inputs = self.project(unperturbed, perturbed_inputs, highs)
 
         # Compute distance of the output to select the best choice.
         # (only used when stepsize_search is grid_search.)
-        dists = np.array([
-            self.compute_distance(
-                unperturbed,
-                out
-            )
-            for out in out_inputs])
+        dists = np.array(
+            [self.compute_distance(unperturbed, out) for out in out_inputs]
+        )
         idx = np.argmin(dists)
 
         dist = dists_post_update[idx]
@@ -448,21 +447,20 @@ class HopSkipJumpAttack(Attack):
         if current_iteration == 1:
             delta = 0.1 * (self.clip_max - self.clip_min)
         else:
-            if self.constraint == 'l2':
+            if self.constraint == "l2":
                 delta = np.sqrt(self.d) * self.theta * dist_post_update
-            elif self.constraint == 'linf':
+            elif self.constraint == "linf":
                 delta = self.d * self.theta * dist_post_update
 
         return delta
 
-    def approximate_gradient(self, decision_function, sample,
-                             num_evals, delta):
+    def approximate_gradient(self, decision_function, sample, num_evals, delta):
         """ Gradient direction estimation """
         # Generate random vectors.
         noise_shape = [num_evals] + list(self.shape)
-        if self.constraint == 'l2':
+        if self.constraint == "l2":
             rv = np.random.randn(*noise_shape)
-        elif self.constraint == 'linf':
+        elif self.constraint == "linf":
             rv = np.random.uniform(low=-1, high=1, size=noise_shape)
 
         axis = tuple(range(1, 1 + len(self.shape)))
@@ -474,8 +472,7 @@ class HopSkipJumpAttack(Attack):
         # query the model.
         decisions = decision_function(perturbed)
         decision_shape = [len(decisions)] + [1] * len(self.shape)
-        fval = 2 * decisions.astype(self.internal_dtype).reshape(
-            decision_shape) - 1.0
+        fval = 2 * decisions.astype(self.internal_dtype).reshape(decision_shape) - 1.0
 
         # Baseline subtraction (when fval differs)
         vals = fval if abs(np.mean(fval)) == 1.0 else fval - np.mean(fval)
@@ -486,9 +483,9 @@ class HopSkipJumpAttack(Attack):
 
         return gradf
 
-    def geometric_progression_for_stepsize(self, x, update, dist,
-                                           decision_function,
-                                           current_iteration):
+    def geometric_progression_for_stepsize(
+        self, x, update, dist, decision_function, current_iteration
+    ):
         """ Geometric progression to search for stepsize.
           Keep decreasing stepsize by half until reaching
           the desired side of the boundary.
@@ -504,13 +501,10 @@ class HopSkipJumpAttack(Attack):
 
         return epsilon
 
-    def log_step(self, step, distance, message='', always=False):
+    def log_step(self, step, distance, message="", always=False):
         if not always and step % self.log_every_n_steps != 0:
             return
-        print('Step {}: {:.5e} {}'.format(
-            step,
-            distance,
-            message))
+        print("Step {}: {:.5e} {}".format(step, distance, message))
 
     def log_time(self):
         t_total = time.time() - self.t_initial
@@ -518,21 +512,28 @@ class HopSkipJumpAttack(Attack):
         rel_gradient_estimation = self.time_gradient_estimation / t_total
         rel_search = self.time_search / t_total
 
-        self.printv('Time since beginning: {:.5f}'.format(t_total))
-        self.printv('   {:2.1f}% for initialization ({:.5f})'.format(
-            rel_initialization * 100, self.time_initialization))
-        self.printv('   {:2.1f}% for gradient estimation ({:.5f})'.format(
-            rel_gradient_estimation * 100,
-            self.time_gradient_estimation))
-        self.printv('   {:2.1f}% for search ({:.5f})'.format(
-            rel_search * 100, self.time_search))
+        self.printv("Time since beginning: {:.5f}".format(t_total))
+        self.printv(
+            "   {:2.1f}% for initialization ({:.5f})".format(
+                rel_initialization * 100, self.time_initialization
+            )
+        )
+        self.printv(
+            "   {:2.1f}% for gradient estimation ({:.5f})".format(
+                rel_gradient_estimation * 100, self.time_gradient_estimation
+            )
+        )
+        self.printv(
+            "   {:2.1f}% for search ({:.5f})".format(rel_search * 100, self.time_search)
+        )
 
     def printv(self, *args, **kwargs):
         if self.verbose:
             print(*args, **kwargs)
 
 
-def BoundaryAttackPlusPlus(model=None, criterion=Misclassification(),
-                           distance=MSE, threshold=None):
+def BoundaryAttackPlusPlus(
+    model=None, criterion=Misclassification(), distance=MSE, threshold=None
+):
     warn("BoundaryAttackPlusPlus is deprecated; use HopSkipJumpAttack.")
     return HopSkipJumpAttack(model, criterion, distance, threshold)

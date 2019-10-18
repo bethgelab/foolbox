@@ -11,8 +11,7 @@ class GaussianBlurAttack(BatchAttack):
     """Blurs the input until it is misclassified."""
 
     @generator_decorator
-    def as_generator(self, a,
-                     epsilons=1000):
+    def as_generator(self, a, epsilons=1000):
 
         """Blurs the input until it is misclassified.
 

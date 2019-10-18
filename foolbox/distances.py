@@ -52,12 +52,7 @@ class Distance(abc.ABC):
 
     """
 
-    def __init__(
-            self,
-            reference=None,
-            other=None,
-            bounds=None,
-            value=None):
+    def __init__(self, reference=None, other=None, bounds=None, value=None):
 
         if value is not None:
             # alternative constructor
@@ -96,19 +91,23 @@ class Distance(abc.ABC):
         return self.__class__.__name__
 
     def __str__(self):
-        return '{} = {:.6e}'.format(self.name(), self._value)
+        return "{} = {:.6e}".format(self.name(), self._value)
 
     def __repr__(self):
         return self.__str__()
 
     def __eq__(self, other):
         if other.__class__ != self.__class__:
-            raise TypeError('Comparisons are only possible between the same distance types.')
+            raise TypeError(
+                "Comparisons are only possible between the same distance types."
+            )
         return self.value == other.value
 
     def __lt__(self, other):
         if other.__class__ != self.__class__:
-            raise TypeError('Comparisons are only possible between the same distance types.')
+            raise TypeError(
+                "Comparisons are only possible between the same distance types."
+            )
         return self.value < other.value
 
 
@@ -120,7 +119,7 @@ class MeanSquaredDistance(Distance):
     def _calculate(self):
         min_, max_ = self._bounds
         n = self.reference.size
-        f = n * (max_ - min_)**2
+        f = n * (max_ - min_) ** 2
 
         diff = self.other - self.reference
         value = np.vdot(diff, diff) / f
@@ -138,7 +137,7 @@ class MeanSquaredDistance(Distance):
         return self._gradient
 
     def __str__(self):
-        return 'normalized MSE = {:.2e}'.format(self._value)
+        return "normalized MSE = {:.2e}".format(self._value)
 
 
 MSE = MeanSquaredDistance
@@ -158,7 +157,7 @@ class MeanAbsoluteDistance(Distance):
         return value, gradient
 
     def __str__(self):
-        return 'normalized MAE = {:.2e}'.format(self._value)
+        return "normalized MAE = {:.2e}".format(self._value)
 
 
 MAE = MeanAbsoluteDistance
@@ -181,7 +180,7 @@ class Linfinity(Distance):
         raise NotImplementedError
 
     def __str__(self):
-        return 'normalized Linf distance = {:.2e}'.format(self._value)
+        return "normalized Linf distance = {:.2e}".format(self._value)
 
 
 Linf = Linfinity
@@ -203,7 +202,7 @@ class L0(Distance):
         raise NotImplementedError
 
     def __str__(self):
-        return 'L0 distance = {}'.format(self._value)
+        return "L0 distance = {}".format(self._value)
 
 
 class ElasticNet(Distance):
@@ -212,12 +211,8 @@ class ElasticNet(Distance):
     """
 
     def __init__(
-            self,
-            reference=None,
-            other=None,
-            bounds=None,
-            value=None,
-            l1_factor=1.0):
+        self, reference=None, other=None, bounds=None, value=None, l1_factor=1.0
+    ):
 
         # set L1 regularization factor before calling __init__ of super
         # to make sure that the _calculate method can be called
@@ -227,8 +222,8 @@ class ElasticNet(Distance):
 
     def _calculate(self):
         min_, max_ = self._bounds
-        max_l2 = (max_ - min_)**2
-        max_l1 = (max_ - min_)
+        max_l2 = (max_ - min_) ** 2
+        max_l1 = max_ - min_
 
         diff = (self.other - self.reference) / (max_ - min_)
 
@@ -242,7 +237,7 @@ class ElasticNet(Distance):
         return value, gradient
 
     def __str__(self):
-        return 'normalized EN = {:.2e}'.format(self._value)
+        return "normalized EN = {:.2e}".format(self._value)
 
 
 def EN(l1_factor=1.0):
@@ -253,7 +248,8 @@ def EN(l1_factor=1.0):
 
     def __init__(self, *kargs, **kwargs):
         ElasticNet.__init__(self, *kargs, **kwargs, l1_factor=l1_factor)
-    name = 'EN_{}'.format(l1_factor).replace('.', '')
+
+    name = "EN_{}".format(l1_factor).replace(".", "")
     newclass = type(name, (ElasticNet, Distance), {"__init__": __init__})
 
     return newclass

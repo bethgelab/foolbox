@@ -1,10 +1,4 @@
-import sys
-if sys.version_info > (3, 2):
-    from unittest.mock import Mock
-else:
-    # for Python2.7 compatibility
-    from mock import Mock
-
+from unittest.mock import Mock
 import pytest
 
 from foolbox import attacks
@@ -29,7 +23,7 @@ def test_aliases():
 
 def test_base_attack(model, criterion, image, label):
     attack = attacks.FGSM(model, criterion)
-    assert attack.name() == 'GradientSignAttack'
+    assert attack.name() == "GradientSignAttack"
 
     with pytest.raises(ValueError):
         attack(image)
@@ -88,30 +82,30 @@ def test_early_stopping(bn_model, bn_criterion, bn_image, bn_label):
     large_d = 10 * d
     small_d = d / 2
 
-    adv = Adversarial(model, criterion, image, label,
-                      threshold=adv._distance(value=large_d))
+    adv = Adversarial(
+        model, criterion, image, label, threshold=adv._distance(value=large_d)
+    )
     attack(adv)
     assert 0 < adv.distance.value <= large_d
     assert adv.reached_threshold()
     assert adv._total_prediction_calls < c
 
-    adv = Adversarial(model, criterion, image, label,
-                      threshold=large_d)
+    adv = Adversarial(model, criterion, image, label, threshold=large_d)
     attack(adv)
     assert 0 < adv.distance.value <= large_d
     assert adv.reached_threshold()
     assert adv._total_prediction_calls < c
 
-    adv = Adversarial(model, criterion, image, label,
-                      threshold=small_d)
+    adv = Adversarial(model, criterion, image, label, threshold=small_d)
     attack(adv)
     assert small_d < adv.distance.value <= large_d
     assert not adv.reached_threshold()
     assert adv._total_prediction_calls == c
     assert adv.distance.value == d
 
-    adv = Adversarial(model, criterion, image, label,
-                      threshold=adv._distance(value=large_d))
+    adv = Adversarial(
+        model, criterion, image, label, threshold=adv._distance(value=large_d)
+    )
     attack(adv)
     assert adv.reached_threshold()
     c = adv._total_prediction_calls

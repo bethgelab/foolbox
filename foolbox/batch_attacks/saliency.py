@@ -22,12 +22,15 @@ class SaliencyMapAttack(BatchAttack):
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     max_iter=2000,
-                     num_random_targets=0,
-                     fast=True,
-                     theta=0.1,
-                     max_perturbations_per_pixel=7):
+    def as_generator(
+        self,
+        a,
+        max_iter=2000,
+        num_random_targets=0,
+        fast=True,
+        theta=0.1,
+        max_perturbations_per_pixel=7,
+    ):
 
         """Implements the Saliency Map Attack.
 
@@ -68,15 +71,19 @@ class SaliencyMapAttack(BatchAttack):
                     # using GradientAttack did not work,
                     # falling back to random target
                     num_random_targets = 1
-                    logging.info('Using GradientAttack to determine a target '
-                                 'class failed, falling back to a random target '
-                                 'class')
+                    logging.info(
+                        "Using GradientAttack to determine a target "
+                        "class failed, falling back to a random target "
+                        "class"
+                    )
                 else:
                     logits, _ = yield from a.forward_one(adv_img)
                     target_class = np.argmax(logits)
                     target_classes = [target_class]
-                    logging.info('Determined a target class using the '
-                                 'GradientAttack: {}'.format(target_class))
+                    logging.info(
+                        "Determined a target class using the "
+                        "GradientAttack: {}".format(target_class)
+                    )
             else:  # pragma: no coverage
                 num_random_targets = 1
 
@@ -92,16 +99,14 @@ class SaliencyMapAttack(BatchAttack):
                 # remove original class from samples
                 # should be more efficient than other approaches, see
                 # https://github.com/numpy/numpy/issues/2764
-                target_classes = rng.sample(
-                    range(num_classes), num_random_targets + 1)
-                target_classes = [t for t in target_classes
-                                  if t != original_class]
+                target_classes = rng.sample(range(num_classes), num_random_targets + 1)
+                target_classes = [t for t in target_classes if t != original_class]
                 target_classes = target_classes[:num_random_targets]
 
                 str_target_classes = [str(t) for t in target_classes]
                 logging.info(
-                    'Random target classes: {}'.format(
-                        ', '.join(str_target_classes)))
+                    "Random target classes: {}".format(", ".join(str_target_classes))
+                )
         else:
             target_classes = [target_class]
 
@@ -134,7 +139,8 @@ class SaliencyMapAttack(BatchAttack):
 
                 # get pixel location with highest influence on class
                 idx, p_sign = yield from self._saliency_map(
-                    a, perturbed, target, labels, mask, fast=fast)
+                    a, perturbed, target, labels, mask, fast=fast
+                )
 
                 # apply perturbation
                 perturbed[idx] += -p_sign * theta * (max_ - min_)

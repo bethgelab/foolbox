@@ -1,4 +1,3 @@
-
 import warnings
 
 from .theano import TheanoModel
@@ -26,15 +25,14 @@ class LasagneModel(TheanoModel):
     """
 
     def __init__(
-            self,
-            input_layer,
-            logits_layer,
-            bounds,
-            channel_axis=1,
-            preprocessing=(0, 1)):
+        self, input_layer, logits_layer, bounds, channel_axis=1, preprocessing=(0, 1)
+    ):
 
-        warnings.warn('Theano is no longer being developed and Lasagne support'
-                      ' in Foolbox will be removed', DeprecationWarning)
+        warnings.warn(
+            "Theano is no longer being developed and Lasagne support"
+            " in Foolbox will be removed",
+            DeprecationWarning,
+        )
 
         # lazy import
         import lasagne
@@ -44,5 +42,11 @@ class LasagneModel(TheanoModel):
         shape = lasagne.layers.get_output_shape(logits_layer)
         _, num_classes = shape
 
-        super(LasagneModel, self).__init__(inputs, logits, bounds=bounds, num_classes=num_classes,
-                                           channel_axis=channel_axis, preprocessing=preprocessing)
+        super(LasagneModel, self).__init__(
+            inputs,
+            logits,
+            bounds=bounds,
+            num_classes=num_classes,
+            channel_axis=channel_axis,
+            preprocessing=preprocessing,
+        )

@@ -1,4 +1,3 @@
-
 from .base import DifferentiableModel
 
 import numpy as np
@@ -28,23 +27,18 @@ class MXNetGluonModel(DifferentiableModel):
     """
 
     def __init__(
-            self,
-            block,
-            bounds,
-            num_classes,
-            ctx=None,
-            channel_axis=1,
-            preprocessing=(0, 1)):
+        self, block, bounds, num_classes, ctx=None, channel_axis=1, preprocessing=(0, 1)
+    ):
         import mxnet as mx
+
         self._num_classes = num_classes
 
         if ctx is None:
             ctx = mx.cpu()
 
         super(MXNetGluonModel, self).__init__(
-            bounds=bounds,
-            channel_axis=channel_axis,
-            preprocessing=preprocessing)
+            bounds=bounds, channel_axis=channel_axis, preprocessing=preprocessing
+        )
 
         self._device = ctx
         self._block = block
@@ -54,6 +48,7 @@ class MXNetGluonModel(DifferentiableModel):
 
     def forward(self, inputs):
         import mxnet as mx
+
         inputs, _ = self._process_input(inputs)
         data_array = mx.nd.array(inputs, ctx=self._device)
         data_array.attach_grad()
@@ -63,6 +58,7 @@ class MXNetGluonModel(DifferentiableModel):
 
     def forward_and_gradient_one(self, x, label):
         import mxnet as mx
+
         x, dpdx = self._process_input(x)
         label = mx.nd.array([label], ctx=self._device)
         data_array = mx.nd.array(x[np.newaxis], ctx=self._device)
@@ -78,6 +74,7 @@ class MXNetGluonModel(DifferentiableModel):
 
     def forward_and_gradient(self, inputs, labels):
         import mxnet as mx
+
         inputs, dpdx = self._process_input(inputs)
         labels = mx.nd.array(labels, ctx=self._device)
         data_array = mx.nd.array(inputs, ctx=self._device)
@@ -93,6 +90,7 @@ class MXNetGluonModel(DifferentiableModel):
 
     def gradient(self, inputs, labels):
         import mxnet as mx
+
         inputs, dpdx = self._process_input(inputs)
         inputs = mx.nd.array(inputs, ctx=self._device)
         labels = mx.nd.array(labels, ctx=self._device)
@@ -107,6 +105,7 @@ class MXNetGluonModel(DifferentiableModel):
 
     def _loss_fn(self, x, label):
         import mxnet as mx
+
         x, _ = self._process_input(x)
 
         label = np.array(label)

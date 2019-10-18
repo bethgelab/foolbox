@@ -12,7 +12,7 @@ from keras.models import Sequential
 from foolbox.models import KerasModel
 
 
-@pytest.mark.parametrize('num_classes', [10, 1000])
+@pytest.mark.parametrize("num_classes", [10, 1000])
 def test_keras_model(num_classes):
 
     bounds = (0, 255)
@@ -21,19 +21,18 @@ def test_keras_model(num_classes):
     model = Sequential()
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        model.add(GlobalAveragePooling2D(
-            data_format='channels_last', input_shape=(5, 5, channels)))
+        model.add(
+            GlobalAveragePooling2D(
+                data_format="channels_last", input_shape=(5, 5, channels)
+            )
+        )
 
-        model = KerasModel(
-            model,
-            bounds=bounds,
-            predicts='logits')
+        model = KerasModel(model, bounds=bounds, predicts="logits")
 
     test_images = np.random.rand(2, 5, 5, channels).astype(np.float32)
     test_label = 7
 
-    assert model.forward(test_images).shape \
-        == (2, num_classes)
+    assert model.forward(test_images).shape == (2, num_classes)
 
     test_logits = model.forward_one(test_images[0])
     assert test_logits.shape == (num_classes,)
@@ -42,16 +41,16 @@ def test_keras_model(num_classes):
     assert test_gradient.shape == test_images[0].shape
 
     np.testing.assert_almost_equal(
-        model.forward_and_gradient_one(test_images[0], test_label)[0],
-        test_logits)
+        model.forward_and_gradient_one(test_images[0], test_label)[0], test_logits
+    )
     np.testing.assert_almost_equal(
-        model.forward_and_gradient_one(test_images[0], test_label)[1],
-        test_gradient)
+        model.forward_and_gradient_one(test_images[0], test_label)[1], test_gradient
+    )
 
     assert model.num_classes() == num_classes
 
 
-@pytest.mark.parametrize('num_classes', [10, 1000])
+@pytest.mark.parametrize("num_classes", [10, 1000])
 def test_keras_model_probs(num_classes):
     bounds = (0, 255)
     channels = num_classes
@@ -59,24 +58,20 @@ def test_keras_model_probs(num_classes):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         inputs = Input(shape=(5, 5, channels))
-        logits = GlobalAveragePooling2D(
-            data_format='channels_last')(inputs)
+        logits = GlobalAveragePooling2D(data_format="channels_last")(inputs)
         probs = Activation(softmax)(logits)
 
         model1 = KerasModel(
-            Model(inputs=inputs, outputs=logits),
-            bounds=bounds,
-            predicts='logits')
+            Model(inputs=inputs, outputs=logits), bounds=bounds, predicts="logits"
+        )
 
         model2 = KerasModel(
-            Model(inputs=inputs, outputs=probs),
-            bounds=bounds,
-            predicts='probabilities')
+            Model(inputs=inputs, outputs=probs), bounds=bounds, predicts="probabilities"
+        )
 
         model3 = KerasModel(
-            Model(inputs=inputs, outputs=probs),
-            bounds=bounds,
-            predicts='probs')
+            Model(inputs=inputs, outputs=probs), bounds=bounds, predicts="probs"
+        )
 
     np.random.seed(22)
     test_images = np.random.rand(2, 5, 5, channels).astype(np.float32)
@@ -87,15 +82,9 @@ def test_keras_model_probs(num_classes):
 
     assert p1.shape == p2.shape == p3.shape == (2, num_classes)
 
-    np.testing.assert_array_almost_equal(
-        p1 - p1.max(),
-        p2 - p2.max(),
-        decimal=1)
+    np.testing.assert_array_almost_equal(p1 - p1.max(), p2 - p2.max(), decimal=1)
 
-    np.testing.assert_array_almost_equal(
-        p2 - p2.max(),
-        p3 - p3.max(),
-        decimal=5)
+    np.testing.assert_array_almost_equal(p2 - p2.max(), p3 - p3.max(), decimal=5)
 
 
 def test_keras_model_preprocess():
@@ -106,35 +95,36 @@ def test_keras_model_preprocess():
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         inputs = Input(shape=(5, 5, channels))
-        logits = GlobalAveragePooling2D(
-            data_format='channels_last')(inputs)
+        logits = GlobalAveragePooling2D(data_format="channels_last")(inputs)
 
-        preprocessing = (np.arange(num_classes)[None, None],
-                         np.random.uniform(size=(5, 5, channels)) + 1)
+        preprocessing = (
+            np.arange(num_classes)[None, None],
+            np.random.uniform(size=(5, 5, channels)) + 1,
+        )
 
         model1 = KerasModel(
-            Model(inputs=inputs, outputs=logits),
-            bounds=bounds,
-            predicts='logits')
+            Model(inputs=inputs, outputs=logits), bounds=bounds, predicts="logits"
+        )
 
         model2 = KerasModel(
             Model(inputs=inputs, outputs=logits),
             bounds=bounds,
-            predicts='logits',
-            preprocessing=preprocessing)
+            predicts="logits",
+            preprocessing=preprocessing,
+        )
 
         model3 = KerasModel(
-            Model(inputs=inputs, outputs=logits),
-            bounds=bounds,
-            predicts='logits')
+            Model(inputs=inputs, outputs=logits), bounds=bounds, predicts="logits"
+        )
 
         preprocessing = (0, np.random.uniform(size=(5, 5, channels)) + 1)
 
         model4 = KerasModel(
             Model(inputs=inputs, outputs=logits),
             bounds=bounds,
-            predicts='logits',
-            preprocessing=preprocessing)
+            predicts="logits",
+            preprocessing=preprocessing,
+        )
 
     np.random.seed(22)
     test_images = np.random.rand(2, 5, 5, channels).astype(np.float32)
@@ -151,10 +141,7 @@ def test_keras_model_preprocess():
 
     assert p1.shape == p2.shape == p3.shape == (2, num_classes)
 
-    np.testing.assert_array_almost_equal(
-        p1 - p1.max(),
-        p3 - p3.max(),
-        decimal=5)
+    np.testing.assert_array_almost_equal(p1 - p1.max(), p3 - p3.max(), decimal=5)
 
     model4.forward(test_images)
 
@@ -167,17 +154,19 @@ def test_keras_model_gradients():
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         inputs = Input(shape=(5, 5, channels))
-        logits = GlobalAveragePooling2D(
-            data_format='channels_last')(inputs)
+        logits = GlobalAveragePooling2D(data_format="channels_last")(inputs)
 
-        preprocessing = (np.arange(num_classes)[None, None],
-                         np.random.uniform(size=(5, 5, channels)) + 1)
+        preprocessing = (
+            np.arange(num_classes)[None, None],
+            np.random.uniform(size=(5, 5, channels)) + 1,
+        )
 
         model = KerasModel(
             Model(inputs=inputs, outputs=logits),
             bounds=bounds,
-            predicts='logits',
-            preprocessing=preprocessing)
+            predicts="logits",
+            preprocessing=preprocessing,
+        )
 
     eps = 1e-3
 
@@ -195,9 +184,8 @@ def test_keras_model_gradients():
 
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
-        1e5 * (l2 - l1),
-        1e5 * eps * np.linalg.norm(g1)**2,
-        decimal=1)
+        1e5 * (l2 - l1), 1e5 * eps * np.linalg.norm(g1) ** 2, decimal=1
+    )
 
 
 def test_keras_model_forward_gradients():
@@ -208,17 +196,19 @@ def test_keras_model_forward_gradients():
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         inputs = Input(shape=(5, 5, channels))
-        logits = GlobalAveragePooling2D(
-            data_format='channels_last')(inputs)
+        logits = GlobalAveragePooling2D(data_format="channels_last")(inputs)
 
-        preprocessing = (np.arange(num_classes)[None, None],
-                         np.random.uniform(size=(5, 5, channels)) + 1)
+        preprocessing = (
+            np.arange(num_classes)[None, None],
+            np.random.uniform(size=(5, 5, channels)) + 1,
+        )
 
         model = KerasModel(
             Model(inputs=inputs, outputs=logits),
             bounds=bounds,
-            predicts='logits',
-            preprocessing=preprocessing)
+            predicts="logits",
+            preprocessing=preprocessing,
+        )
 
     eps = 1e-3
 
@@ -236,12 +226,11 @@ def test_keras_model_forward_gradients():
 
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
-        1e5 * (l2 - l1),
-        1e5 * eps * np.linalg.norm(g1)**2,
-        decimal=1)
+        1e5 * (l2 - l1), 1e5 * eps * np.linalg.norm(g1) ** 2, decimal=1
+    )
 
 
-@pytest.mark.parametrize('num_classes', [10, 1000])
+@pytest.mark.parametrize("num_classes", [10, 1000])
 def test_keras_backward(num_classes):
 
     bounds = (0, 255)
@@ -250,13 +239,13 @@ def test_keras_backward(num_classes):
     model = Sequential()
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        model.add(GlobalAveragePooling2D(
-            data_format='channels_last', input_shape=(5, 5, channels)))
+        model.add(
+            GlobalAveragePooling2D(
+                data_format="channels_last", input_shape=(5, 5, channels)
+            )
+        )
 
-        model = KerasModel(
-            model,
-            bounds=bounds,
-            predicts='logits')
+        model = KerasModel(model, bounds=bounds, predicts="logits")
 
     test_image = np.random.rand(5, 5, channels).astype(np.float32)
     test_grad_pre = np.random.rand(num_classes).astype(np.float32)
@@ -264,10 +253,8 @@ def test_keras_backward(num_classes):
     test_grad = model.backward_one(test_grad_pre, test_image)
     assert test_grad.shape == test_image.shape
 
-    manual_grad = np.repeat(np.repeat(
-        (test_grad_pre / 25.).reshape((1, 1, -1)),
-        5, axis=0), 5, axis=1)
+    manual_grad = np.repeat(
+        np.repeat((test_grad_pre / 25.0).reshape((1, 1, -1)), 5, axis=0), 5, axis=1
+    )
 
-    np.testing.assert_almost_equal(
-        test_grad,
-        manual_grad)
+    np.testing.assert_almost_equal(test_grad, manual_grad)

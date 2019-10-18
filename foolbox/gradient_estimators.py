@@ -14,6 +14,7 @@ class CoordinateWiseGradientEstimator(object):
     the coordinate-wise finite-difference method.
 
     """
+
     def __init__(self, epsilon, clip=True):
         self._epsilon = epsilon
         self.clip = clip
@@ -62,10 +63,11 @@ class EvolutionaryStrategiesGradientEstimator(object):
            http://people.idsia.ch/~tom/publications/nes.pdf
 
     """
+
     def __init__(self, epsilon, samples=100, clip=True):
         self._epsilon = epsilon
         if samples % 2 != 0:  # pragma: no cover
-            warnings.warn('antithetic sampling: samples should be even')
+            warnings.warn("antithetic sampling: samples should be even")
         self._samples = (samples // 2) * 2
         self.clip = clip
 
@@ -82,8 +84,10 @@ class EvolutionaryStrategiesGradientEstimator(object):
         N = len(noise)
 
         if N >= 2 * x.size:  # pragma: no cover
-            logging.info('CoordinateWiseGradientEstimator might be better'
-                         ' without requiring more samples.')
+            logging.info(
+                "CoordinateWiseGradientEstimator might be better"
+                " without requiring more samples."
+            )
 
         min_, max_ = bounds
         scaled_epsilon = self._epsilon * (max_ - min_)

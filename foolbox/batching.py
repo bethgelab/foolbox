@@ -5,9 +5,22 @@ from .distances import MSE
 from .yielding_adversarial import YieldingAdversarial
 
 
-def run_sequential(create_attack_fn, model, criterion, inputs, labels,
-                   distance=MSE, threshold=None, verbose=False,
-                   individual_kwargs=None, **kwargs):
+def run_sequential(
+    create_attack_fn,
+    model,
+    criterion,
+    inputs,
+    labels,
+    distance=MSE,
+    threshold=None,
+    verbose=False,
+    individual_kwargs=None,
+    # workaround for https://github.com/psf/black/issues/419
+    # remove once an update to black 19.3b0 has been released
+    # fmt: off
+    **kwargs
+    # fmt: on
+):
     """
     Runs the same type of attack vor multiple inputs sequentially without
     batching them.
@@ -54,45 +67,64 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
     The list of generated adversarial examples.
     """
 
-    assert len(inputs) == len(labels), 'The number of inputs must match the number of labels.'  # noqa: E501
+    assert len(inputs) == len(
+        labels
+    ), "The number of inputs must match the number of labels."  # noqa: E501
 
     # if only one criterion has been passed use the same one for all inputs
     if not isinstance(criterion, (list, tuple)):
         criterion = [criterion] * len(inputs)
     else:
-        assert len(criterion) == len(inputs), 'The number of criteria must match the number of inputs.'  # noqa: E501
+        assert len(criterion) == len(
+            inputs
+        ), "The number of criteria must match the number of inputs."  # noqa: E501
 
     # if only one distance has been passed use the same one for all inputs
     if not isinstance(distance, (list, tuple)):
         distance = [distance] * len(inputs)
     else:
-        assert len(distance) == len(inputs), 'The number of distances must match the number of inputs.'  # noqa: E501
+        assert len(distance) == len(
+            inputs
+        ), "The number of distances must match the number of inputs."  # noqa: E501
 
     if individual_kwargs is None:
         individual_kwargs = [kwargs] * len(inputs)
     else:
-        assert isinstance(individual_kwargs, (
-        list, tuple)), 'Individual_kwargs must be a list or None.'  # noqa: E501
+        assert isinstance(
+            individual_kwargs, (list, tuple)
+        ), "Individual_kwargs must be a list or None."  # noqa: E501
         assert len(individual_kwargs) == len(
-            inputs), 'The number of individual_kwargs must match the number of inputs.'  # noqa: E501
+            inputs
+        ), (
+            "The number of individual_kwargs must match the number of inputs."
+        )  # noqa: E501
 
         for i in range(len(individual_kwargs)):
             assert isinstance(individual_kwargs[i], dict)
             individual_kwargs[i] = {**kwargs, **individual_kwargs[i]}
 
-    advs = [YieldingAdversarial(model, _criterion, x, label,
-                                distance=_distance, threshold=threshold,
-                                verbose=verbose)
-            for _criterion, _distance, x, label in zip(criterion, distance,
-                                                       inputs, labels)]
-    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv, kwargs
-               in zip(advs, individual_kwargs)]
+    advs = [
+        YieldingAdversarial(
+            model,
+            _criterion,
+            x,
+            label,
+            distance=_distance,
+            threshold=threshold,
+            verbose=verbose,
+        )
+        for _criterion, _distance, x, label in zip(criterion, distance, inputs, labels)
+    ]
+    attacks = [
+        create_attack_fn().as_generator(adv, **kwargs)
+        for adv, kwargs in zip(advs, individual_kwargs)
+    ]
 
     supported_methods = {
-        'forward_one': model.forward_one,
-        'gradient_one': model.gradient_one,
-        'backward_one': model.backward_one,
-        'forward_and_gradient_one': model.forward_and_gradient_one,
+        "forward_one": model.forward_one,
+        "gradient_one": model.gradient_one,
+        "backward_one": model.backward_one,
+        "forward_and_gradient_one": model.forward_and_gradient_one,
     }
 
     for i, attack in enumerate(attacks):
@@ -106,13 +138,26 @@ def run_sequential(create_attack_fn, model, criterion, inputs, labels,
             method = supported_methods[method]
             result = method(*args)
             assert result is not None
-        logging.info('{} of {} attacks completed'.format(i + 1, len(advs)))
+        logging.info("{} of {} attacks completed".format(i + 1, len(advs)))
     return advs
 
 
-def run_parallel(create_attack_fn, model, criterion, inputs, labels,
-                 distance=MSE, threshold=None, verbose=False,
-                 individual_kwargs=None, **kwargs):
+def run_parallel(  # noqa: C901
+    create_attack_fn,
+    model,
+    criterion,
+    inputs,
+    labels,
+    distance=MSE,
+    threshold=None,
+    verbose=False,
+    individual_kwargs=None,
+    # workaround for https://github.com/psf/black/issues/419
+    # remove once an update to black 19.3b0 has been released
+    # fmt: off
+    **kwargs
+    # fmt: on
+):
     """
     Runs the same type of attack vor multiple inputs in parallel by
     batching them.
@@ -159,40 +204,58 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
     The list of generated adversarial examples.
     """
 
-    assert len(inputs) == len(labels), 'The number of inputs must match the number of labels.'  # noqa: E501
+    assert len(inputs) == len(
+        labels
+    ), "The number of inputs must match the number of labels."  # noqa: E501
 
     # if only one criterion has been passed use the same one for all inputs
     if not isinstance(criterion, (list, tuple)):
         criterion = [criterion] * len(inputs)
     else:
-        assert len(criterion) == len(inputs), 'The number of criteria must match the number of inputs.'  # noqa: E501
+        assert len(criterion) == len(
+            inputs
+        ), "The number of criteria must match the number of inputs."  # noqa: E501
 
     # if only one distance has been passed use the same one for all inputs
     if not isinstance(distance, (list, tuple)):
         distance = [distance] * len(inputs)
     else:
-        assert len(distance) == len(inputs), 'The number of distances must match the number of inputs.'  # noqa: E501
+        assert len(distance) == len(
+            inputs
+        ), "The number of distances must match the number of inputs."  # noqa: E501
 
     if individual_kwargs is None:
         individual_kwargs = [kwargs] * len(inputs)
     else:
-        assert isinstance(individual_kwargs, (
-            list,
-            tuple)), 'Individual_kwargs must be a list or None.'  # noqa: E501
+        assert isinstance(
+            individual_kwargs, (list, tuple)
+        ), "Individual_kwargs must be a list or None."  # noqa: E501
         assert len(individual_kwargs) == len(
-            inputs), 'The number of individual_kwargs must match the number of inputs.'  # noqa: E501
+            inputs
+        ), (
+            "The number of individual_kwargs must match the number of inputs."
+        )  # noqa: E501
 
         for i in range(len(individual_kwargs)):
             assert isinstance(individual_kwargs[i], dict)
             individual_kwargs[i] = {**kwargs, **individual_kwargs[i]}
 
-    advs = [YieldingAdversarial(model, _criterion, x, label,
-                                distance=_distance, threshold=threshold,
-                                verbose=verbose)
-            for _criterion, _distance, x, label in zip(criterion, distance,
-                                                       inputs, labels)]
-    attacks = [create_attack_fn().as_generator(adv, **kwargs) for adv, kwargs
-               in zip(advs, individual_kwargs)]
+    advs = [
+        YieldingAdversarial(
+            model,
+            _criterion,
+            x,
+            label,
+            distance=_distance,
+            threshold=threshold,
+            verbose=verbose,
+        )
+        for _criterion, _distance, x, label in zip(criterion, distance, inputs, labels)
+    ]
+    attacks = [
+        create_attack_fn().as_generator(adv, **kwargs)
+        for adv, kwargs in zip(advs, individual_kwargs)
+    ]
 
     predictions = [None for _ in attacks]
     gradients = []
@@ -200,9 +263,9 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
     prediction_gradients = []
 
     batched_predictions = []
-    results = itertools.chain(predictions, gradients, backwards,
-                              prediction_gradients,
-                              batched_predictions)
+    results = itertools.chain(
+        predictions, gradients, backwards, prediction_gradients, batched_predictions
+    )
 
     while True:
         attacks_requesting_predictions = []
@@ -222,43 +285,59 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
                 continue
             method, args = x[0], x[1:]
 
-            if method == 'forward_one':
+            if method == "forward_one":
                 attacks_requesting_predictions.append(attack)
                 predictions_args.append(args)
-            elif method == 'gradient_one':
+            elif method == "gradient_one":
                 attacks_requesting_gradients.append(attack)
                 gradients_args.append(args)
-            elif method == 'backward_one':
+            elif method == "backward_one":
                 attacks_requesting_backwards.append(attack)
                 backwards_args.append(args)
-            elif method == 'forward_and_gradient_one':
+            elif method == "forward_and_gradient_one":
                 attacks_requesting_prediction_gradients.append(attack)
                 predictions_gradients_args.append(args)
-            elif method == 'forward':
+            elif method == "forward":
                 attacks_requesting_batched_predictions.append(attack)
                 batched_predictions_args.append(args)
             else:
                 assert False
-        n_active_attacks = len(attacks_requesting_predictions) \
-            + len(attacks_requesting_gradients) \
-            + len(attacks_requesting_backwards) \
-            + len(attacks_requesting_prediction_gradients) \
+        n_active_attacks = (
+            len(attacks_requesting_predictions)
+            + len(attacks_requesting_gradients)
+            + len(attacks_requesting_backwards)
+            + len(attacks_requesting_prediction_gradients)
             + len(attacks_requesting_batched_predictions)
-        if n_active_attacks < len(predictions) + len(gradients) + len(backwards) + len(prediction_gradients) + len(batched_predictions):  # noqa: E501
+        )
+        if n_active_attacks < len(predictions) + len(gradients) + len(backwards) + len(
+            prediction_gradients
+        ) + len(
+            batched_predictions
+        ):  # noqa: E501
             # an attack completed in this iteration
-            logging.info('{} of {} attacks completed'.format(len(advs) - n_active_attacks, len(advs)))  # noqa: E501
+            logging.info(
+                "{} of {} attacks completed".format(
+                    len(advs) - n_active_attacks, len(advs)
+                )
+            )  # noqa: E501
         if n_active_attacks == 0:
             break
 
         if len(attacks_requesting_predictions) > 0:
-            logging.debug('calling forward with {}'.format(len(attacks_requesting_predictions)))  # noqa: E501
+            logging.debug(
+                "calling forward with {}".format(len(attacks_requesting_predictions))
+            )  # noqa: E501
             predictions_args = map(np.stack, zip(*predictions_args))
             predictions = model.forward(*predictions_args)
         else:
             predictions = []
 
         if len(attacks_requesting_batched_predictions) > 0:
-            logging.debug('calling native forward with {}'.format(len(attacks_requesting_batched_predictions)))  # noqa: E501
+            logging.debug(
+                "calling native forward with {}".format(
+                    len(attacks_requesting_batched_predictions)
+                )
+            )  # noqa: E501
 
             # we are only interested in the first argument
             inputs = [x[0] for x in batched_predictions_args]
@@ -270,43 +349,53 @@ def run_parallel(create_attack_fn, model, criterion, inputs, labels,
 
             # split super-batch back into individual batches
             batched_predictions = model.forward(inputs)
-            batched_predictions = np.split(batched_predictions, batch_splits,
-                                           axis=0)
+            batched_predictions = np.split(batched_predictions, batch_splits, axis=0)
 
         else:
             batched_predictions = []
 
         if len(attacks_requesting_gradients) > 0:
-            logging.debug('calling gradient with {}'.format(len(attacks_requesting_gradients)))  # noqa: E501
+            logging.debug(
+                "calling gradient with {}".format(len(attacks_requesting_gradients))
+            )  # noqa: E501
             gradients_args = map(np.stack, zip(*gradients_args))
             gradients = model.gradient(*gradients_args)
         else:
             gradients = []
 
         if len(attacks_requesting_backwards) > 0:
-            logging.debug('calling backward with {}'.format(len(attacks_requesting_backwards)))  # noqa: E501
+            logging.debug(
+                "calling backward with {}".format(len(attacks_requesting_backwards))
+            )  # noqa: E501
             backwards_args = map(np.stack, zip(*backwards_args))
             backwards = model.backward(*backwards_args)
         else:
             backwards = []
         if len(attacks_requesting_prediction_gradients) > 0:
-            logging.debug('calling forward_and_gradient_one with {}'.format(len(attacks_requesting_prediction_gradients)))  # noqa: E501
+            logging.debug(
+                "calling forward_and_gradient_one with {}".format(
+                    len(attacks_requesting_prediction_gradients)
+                )
+            )  # noqa: E501
 
-            predictions_gradients_args = map(np.stack,
-                                             zip(*predictions_gradients_args))
+            predictions_gradients_args = map(np.stack, zip(*predictions_gradients_args))
 
             prediction_gradients = model.forward_and_gradient(
-                *predictions_gradients_args)
+                *predictions_gradients_args
+            )
 
             prediction_gradients = list(zip(*prediction_gradients))
         else:
             prediction_gradients = []
 
-        attacks = itertools.chain(attacks_requesting_predictions,
-                                  attacks_requesting_gradients,
-                                  attacks_requesting_backwards,
-                                  attacks_requesting_prediction_gradients,
-                                  attacks_requesting_batched_predictions)
-        results = itertools.chain(predictions, gradients, backwards,
-                                  prediction_gradients, batched_predictions)
+        attacks = itertools.chain(
+            attacks_requesting_predictions,
+            attacks_requesting_gradients,
+            attacks_requesting_backwards,
+            attacks_requesting_prediction_gradients,
+            attacks_requesting_batched_predictions,
+        )
+        results = itertools.chain(
+            predictions, gradients, backwards, prediction_gradients, batched_predictions
+        )
     return advs

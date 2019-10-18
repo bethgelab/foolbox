@@ -13,12 +13,11 @@ import zipfile
 
 @responses.activate
 def test_fetch_weights_unzipped():
-    weights_uri = 'http://localhost:8080/weights.zip'
+    weights_uri = "http://localhost:8080/weights.zip"
     raw_body = _random_body(zipped=False)
 
     # mock server
-    responses.add(responses.GET, weights_uri,
-                  body=raw_body, status=200, stream=True)
+    responses.add(responses.GET, weights_uri, body=raw_body, status=200, stream=True)
 
     expected_path = _expected_path(weights_uri)
 
@@ -34,14 +33,19 @@ def test_fetch_weights_unzipped():
 
 @responses.activate
 def test_fetch_weights_zipped():
-    weights_uri = 'http://localhost:8080/weights.zip'
+    weights_uri = "http://localhost:8080/weights.zip"
 
     # mock server
     raw_body = _random_body(zipped=True)
-    responses.add(responses.GET, weights_uri,
-                  body=raw_body, status=200, stream=True,
-                  content_type='application/zip',
-                  headers={'Accept-Encoding': 'gzip, deflate'})
+    responses.add(
+        responses.GET,
+        weights_uri,
+        body=raw_body,
+        status=200,
+        stream=True,
+        content_type="application/zip",
+        headers={"Accept-Encoding": "gzip, deflate"},
+    )
 
     expected_path = _expected_path(weights_uri)
 
@@ -57,7 +61,7 @@ def test_fetch_weights_zipped():
 
 @responses.activate
 def test_fetch_weights_returns_404():
-    weights_uri = 'http://down:8080/weights.zip'
+    weights_uri = "http://down:8080/weights.zip"
 
     # mock server
     responses.add(responses.GET, weights_uri, status=404)
@@ -78,8 +82,8 @@ def test_no_uri_given():
 def _random_body(zipped=False):
     if zipped:
         data = io.BytesIO()
-        with zipfile.ZipFile(data, mode='w') as z:
-            z.writestr('test.txt', 'no real weights in here :)')
+        with zipfile.ZipFile(data, mode="w") as z:
+            z.writestr("test.txt", "no real weights in here :)")
         data.seek(0)
         return data.getvalue()
     else:

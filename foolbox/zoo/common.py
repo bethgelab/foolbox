@@ -10,7 +10,7 @@ def sha256_hash(git_uri):
 
 def home_directory_path(folder, hash_digest):
     # does this work on all operating systems?
-    home = os.path.expanduser('~')
+    home = os.path.expanduser("~")
     return os.path.join(home, folder, hash_digest)
 
 

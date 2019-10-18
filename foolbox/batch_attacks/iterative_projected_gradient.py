@@ -1,4 +1,3 @@
-
 import numpy as np
 from abc import abstractmethod
 import logging
@@ -50,12 +49,22 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
             class_ = a.original_class
         return targeted, class_
 
-    def _run(self, a, binary_search,
-             epsilon, stepsize, iterations,
-             random_start, return_early, gradient_kwargs={}):
+    def _run(
+        self,
+        a,
+        binary_search,
+        epsilon,
+        stepsize,
+        iterations,
+        random_start,
+        return_early,
+        gradient_kwargs={},
+    ):
         if not a.has_gradient():
-            warnings.warn('applied gradient-based attack to model that'
-                          ' does not provide gradients')
+            warnings.warn(
+                "applied gradient-based attack to model that"
+                " does not provide gradients"
+            )
             return
 
         self._check_distance(a)
@@ -68,22 +77,47 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
             else:
                 k = int(binary_search)
             yield from self._run_binary_search(
-                a, epsilon, stepsize, iterations,
-                random_start, targeted, class_, return_early, k=k,
-                gradient_kwargs=gradient_kwargs)
+                a,
+                epsilon,
+                stepsize,
+                iterations,
+                random_start,
+                targeted,
+                class_,
+                return_early,
+                k=k,
+                gradient_kwargs=gradient_kwargs,
+            )
             return
         else:
             optimizer = self._create_optimizer(a, stepsize)
 
             success = yield from self._run_one(
-                a, epsilon, optimizer, iterations,
-                random_start, targeted, class_, return_early,
-                gradient_kwargs)
+                a,
+                epsilon,
+                optimizer,
+                iterations,
+                random_start,
+                targeted,
+                class_,
+                return_early,
+                gradient_kwargs,
+            )
             return success
 
-    def _run_binary_search(self, a, epsilon, stepsize, iterations,
-                           random_start, targeted, class_, return_early, k,
-                           gradient_kwargs):
+    def _run_binary_search(
+        self,
+        a,
+        epsilon,
+        stepsize,
+        iterations,
+        random_start,
+        targeted,
+        class_,
+        return_early,
+        k,
+        gradient_kwargs,
+    ):
 
         factor = stepsize / epsilon
 
@@ -92,20 +126,27 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
             optimizer = self._create_optimizer(a, stepsize)
 
             success = yield from self._run_one(
-                a, epsilon, optimizer, iterations,
-                random_start, targeted, class_, return_early,
-                gradient_kwargs)
+                a,
+                epsilon,
+                optimizer,
+                iterations,
+                random_start,
+                targeted,
+                class_,
+                return_early,
+                gradient_kwargs,
+            )
             return success
 
         for i in range(k):
             success = yield from try_epsilon(epsilon)
             if success:
-                logging.info('successful for eps = {}'.format(epsilon))
+                logging.info("successful for eps = {}".format(epsilon))
                 break
-            logging.info('not successful for eps = {}'.format(epsilon))
+            logging.info("not successful for eps = {}".format(epsilon))
             epsilon = epsilon * 1.5
         else:
-            logging.warning('exponential search failed')
+            logging.warning("exponential search failed")
             return
 
         bad = 0
@@ -116,14 +157,23 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
             success = yield from try_epsilon(epsilon)
             if success:
                 good = epsilon
-                logging.info('successful for eps = {}'.format(epsilon))
+                logging.info("successful for eps = {}".format(epsilon))
             else:
                 bad = epsilon
-                logging.info('not successful for eps = {}'.format(epsilon))
+                logging.info("not successful for eps = {}".format(epsilon))
 
-    def _run_one(self, a, epsilon, optimizer, iterations,
-                 random_start, targeted, class_, return_early,
-                 gradient_kwargs):
+    def _run_one(
+        self,
+        a,
+        epsilon,
+        optimizer,
+        iterations,
+        random_start,
+        targeted,
+        class_,
+        return_early,
+        gradient_kwargs,
+    ):
         min_, max_ = a.bounds()
         s = max_ - min_
 
@@ -132,9 +182,9 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
         if random_start:
             # using uniform noise even if the perturbation clipping uses
             # a different norm because cleverhans does it the same way
-            noise = nprng.uniform(
-                -epsilon * s, epsilon * s, original.shape).astype(
-                    original.dtype)
+            noise = nprng.uniform(-epsilon * s, epsilon * s, original.shape).astype(
+                original.dtype
+            )
             x = original + self._clip_perturbation(a, noise, epsilon)
             strict = False  # because we don't enforce the bounds here
         else:
@@ -143,8 +193,9 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
 
         success = False
         for _ in range(iterations):
-            gradient = yield from self._gradient(a, x, class_, strict=strict,
-                                                 **gradient_kwargs)
+            gradient = yield from self._gradient(
+                a, x, class_, strict=strict, **gradient_kwargs
+            )
             # non-strict only for the first call and
             # only if random_start is True
             strict = True
@@ -163,10 +214,11 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 if targeted:
                     ce = crossentropy(a.original_class, logits)
-                    logging.debug('crossentropy to {} is {}'.format(
-                        a.original_class, ce))
+                    logging.debug(
+                        "crossentropy to {} is {}".format(a.original_class, ce)
+                    )
                 ce = crossentropy(class_, logits)
-                logging.debug('crossentropy to {} is {}'.format(class_, ce))
+                logging.debug("crossentropy to {} is {}".format(class_, ce))
             if is_adversarial:
                 if return_early:
                     return True
@@ -282,39 +334,46 @@ class L2ClippingMixin(object):
 class LinfinityDistanceCheckMixin(object):
     def _check_distance(self, a):
         if not isinstance(a.distance, distances.Linfinity):
-            logging.warning('Running an attack that tries to minimize the'
-                            ' Linfinity norm of the perturbation without'
-                            ' specifying foolbox.distances.Linfinity as'
-                            ' the distance metric might lead to suboptimal'
-                            ' results.')
+            logging.warning(
+                "Running an attack that tries to minimize the"
+                " Linfinity norm of the perturbation without"
+                " specifying foolbox.distances.Linfinity as"
+                " the distance metric might lead to suboptimal"
+                " results."
+            )
 
 
 class L1DistanceCheckMixin(object):
     def _check_distance(self, a):
         if not isinstance(a.distance, distances.MAE):
-            logging.warning('Running an attack that tries to minimize the'
-                            ' L1 norm of the perturbation without'
-                            ' specifying foolbox.distances.MAE as'
-                            ' the distance metric might lead to suboptimal'
-                            ' results.')
+            logging.warning(
+                "Running an attack that tries to minimize the"
+                " L1 norm of the perturbation without"
+                " specifying foolbox.distances.MAE as"
+                " the distance metric might lead to suboptimal"
+                " results."
+            )
 
 
 class L2DistanceCheckMixin(object):
     def _check_distance(self, a):
         if not isinstance(a.distance, distances.MSE):
-            logging.warning('Running an attack that tries to minimize the'
-                            ' L2 norm of the perturbation without'
-                            ' specifying foolbox.distances.MSE as'
-                            ' the distance metric might lead to suboptimal'
-                            ' results.')
+            logging.warning(
+                "Running an attack that tries to minimize the"
+                " L2 norm of the perturbation without"
+                " specifying foolbox.distances.MSE as"
+                " the distance metric might lead to suboptimal"
+                " results."
+            )
 
 
 class LinfinityBasicIterativeAttack(
-        LinfinityGradientMixin,
-        LinfinityClippingMixin,
-        LinfinityDistanceCheckMixin,
-        GDOptimizerMixin,
-        IterativeProjectedGradientBaseAttack):
+    LinfinityGradientMixin,
+    LinfinityClippingMixin,
+    LinfinityDistanceCheckMixin,
+    GDOptimizerMixin,
+    IterativeProjectedGradientBaseAttack,
+):
 
     """The Basic Iterative Method introduced in [1]_.
 
@@ -332,13 +391,16 @@ class LinfinityBasicIterativeAttack(
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     binary_search=True,
-                     epsilon=0.3,
-                     stepsize=0.05,
-                     iterations=10,
-                     random_start=False,
-                     return_early=True):
+    def as_generator(
+        self,
+        a,
+        binary_search=True,
+        epsilon=0.3,
+        stepsize=0.05,
+        iterations=10,
+        random_start=False,
+        return_early=True,
+    ):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
@@ -377,12 +439,14 @@ class LinfinityBasicIterativeAttack(
 
         assert epsilon > 0
 
-        yield from self._run(a, binary_search,
-                             epsilon, stepsize, iterations,
-                             random_start, return_early)
+        yield from self._run(
+            a, binary_search, epsilon, stepsize, iterations, random_start, return_early
+        )
 
 
-LinfinityBasicIterativeAttack.__call__.__doc__ = LinfinityBasicIterativeAttack.as_generator.__doc__
+LinfinityBasicIterativeAttack.__call__.__doc__ = (
+    LinfinityBasicIterativeAttack.as_generator.__doc__
+)
 
 
 BasicIterativeMethod = LinfinityBasicIterativeAttack
@@ -390,11 +454,12 @@ BIM = BasicIterativeMethod
 
 
 class L1BasicIterativeAttack(
-        L1GradientMixin,
-        L1ClippingMixin,
-        L1DistanceCheckMixin,
-        GDOptimizerMixin,
-        IterativeProjectedGradientBaseAttack):
+    L1GradientMixin,
+    L1ClippingMixin,
+    L1DistanceCheckMixin,
+    GDOptimizerMixin,
+    IterativeProjectedGradientBaseAttack,
+):
 
     """Modified version of the Basic Iterative Method
     that minimizes the L1 distance.
@@ -404,13 +469,16 @@ class L1BasicIterativeAttack(
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     binary_search=True,
-                     epsilon=0.3,
-                     stepsize=0.05,
-                     iterations=10,
-                     random_start=False,
-                     return_early=True):
+    def as_generator(
+        self,
+        a,
+        binary_search=True,
+        epsilon=0.3,
+        stepsize=0.05,
+        iterations=10,
+        random_start=False,
+        return_early=True,
+    ):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
@@ -449,20 +517,21 @@ class L1BasicIterativeAttack(
 
         assert epsilon > 0
 
-        yield from self._run(a, binary_search,
-                             epsilon, stepsize, iterations,
-                             random_start, return_early)
+        yield from self._run(
+            a, binary_search, epsilon, stepsize, iterations, random_start, return_early
+        )
 
 
 L1BasicIterativeAttack.__call__.__doc__ = L1BasicIterativeAttack.as_generator.__doc__
 
 
 class SparseL1BasicIterativeAttack(
-        SparseL1GradientMixin,
-        L1ClippingMixin,
-        L1DistanceCheckMixin,
-        GDOptimizerMixin,
-        IterativeProjectedGradientBaseAttack):
+    SparseL1GradientMixin,
+    L1ClippingMixin,
+    L1DistanceCheckMixin,
+    GDOptimizerMixin,
+    IterativeProjectedGradientBaseAttack,
+):
 
     """Sparse version of the Basic Iterative Method
     that minimizes the L1 distance introduced in [1]_.
@@ -478,14 +547,17 @@ class SparseL1BasicIterativeAttack(
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     q=80.0,
-                     binary_search=True,
-                     epsilon=0.3,
-                     stepsize=0.05,
-                     iterations=10,
-                     random_start=False,
-                     return_early=True):
+    def as_generator(
+        self,
+        a,
+        q=80.0,
+        binary_search=True,
+        epsilon=0.3,
+        stepsize=0.05,
+        iterations=10,
+        random_start=False,
+        return_early=True,
+    ):
 
         """Sparse version of a gradient-based attack that minimizes the
         L1 distance.
@@ -526,23 +598,32 @@ class SparseL1BasicIterativeAttack(
 
         assert epsilon > 0
 
-        assert 0 <= q < 100.0, '`q` must be in [0, 100).'
+        assert 0 <= q < 100.0, "`q` must be in [0, 100)."
 
-        yield from self._run(a, binary_search,
-                             epsilon, stepsize, iterations,
-                             random_start, return_early,
-                             gradient_kwargs={'q': q})
+        yield from self._run(
+            a,
+            binary_search,
+            epsilon,
+            stepsize,
+            iterations,
+            random_start,
+            return_early,
+            gradient_kwargs={"q": q},
+        )
 
 
-SparseL1BasicIterativeAttack.__call__.__doc__ = SparseL1BasicIterativeAttack.as_generator.__doc__
+SparseL1BasicIterativeAttack.__call__.__doc__ = (
+    SparseL1BasicIterativeAttack.as_generator.__doc__
+)
 
 
 class L2BasicIterativeAttack(
-        L2GradientMixin,
-        L2ClippingMixin,
-        L2DistanceCheckMixin,
-        GDOptimizerMixin,
-        IterativeProjectedGradientBaseAttack):
+    L2GradientMixin,
+    L2ClippingMixin,
+    L2DistanceCheckMixin,
+    GDOptimizerMixin,
+    IterativeProjectedGradientBaseAttack,
+):
 
     """Modified version of the Basic Iterative Method
     that minimizes the L2 distance.
@@ -552,13 +633,16 @@ class L2BasicIterativeAttack(
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     binary_search=True,
-                     epsilon=0.3,
-                     stepsize=0.05,
-                     iterations=10,
-                     random_start=False,
-                     return_early=True):
+    def as_generator(
+        self,
+        a,
+        binary_search=True,
+        epsilon=0.3,
+        stepsize=0.05,
+        iterations=10,
+        random_start=False,
+        return_early=True,
+    ):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
@@ -597,20 +681,21 @@ class L2BasicIterativeAttack(
 
         assert epsilon > 0
 
-        yield from self._run(a, binary_search,
-                             epsilon, stepsize, iterations,
-                             random_start, return_early)
+        yield from self._run(
+            a, binary_search, epsilon, stepsize, iterations, random_start, return_early
+        )
 
 
 L2BasicIterativeAttack.__call__.__doc__ = L2BasicIterativeAttack.as_generator.__doc__
 
 
 class ProjectedGradientDescentAttack(
-        LinfinityGradientMixin,
-        LinfinityClippingMixin,
-        LinfinityDistanceCheckMixin,
-        GDOptimizerMixin,
-        IterativeProjectedGradientBaseAttack):
+    LinfinityGradientMixin,
+    LinfinityClippingMixin,
+    LinfinityDistanceCheckMixin,
+    GDOptimizerMixin,
+    IterativeProjectedGradientBaseAttack,
+):
 
     """The Projected Gradient Descent Attack
     introduced in [1]_ without random start.
@@ -634,13 +719,16 @@ class ProjectedGradientDescentAttack(
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     binary_search=True,
-                     epsilon=0.3,
-                     stepsize=0.01,
-                     iterations=40,
-                     random_start=False,
-                     return_early=True):
+    def as_generator(
+        self,
+        a,
+        binary_search=True,
+        epsilon=0.3,
+        stepsize=0.01,
+        iterations=40,
+        random_start=False,
+        return_early=True,
+    ):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
@@ -679,12 +767,14 @@ class ProjectedGradientDescentAttack(
 
         assert epsilon > 0
 
-        yield from self._run(a, binary_search,
-                             epsilon, stepsize, iterations,
-                             random_start, return_early)
+        yield from self._run(
+            a, binary_search, epsilon, stepsize, iterations, random_start, return_early
+        )
 
 
-ProjectedGradientDescentAttack.__call__.__doc__ = ProjectedGradientDescentAttack.as_generator.__doc__
+ProjectedGradientDescentAttack.__call__.__doc__ = (
+    ProjectedGradientDescentAttack.as_generator.__doc__
+)
 
 
 ProjectedGradientDescent = ProjectedGradientDescentAttack
@@ -692,11 +782,12 @@ PGD = ProjectedGradientDescent
 
 
 class RandomStartProjectedGradientDescentAttack(
-        LinfinityGradientMixin,
-        LinfinityClippingMixin,
-        LinfinityDistanceCheckMixin,
-        GDOptimizerMixin,
-        IterativeProjectedGradientBaseAttack):
+    LinfinityGradientMixin,
+    LinfinityClippingMixin,
+    LinfinityDistanceCheckMixin,
+    GDOptimizerMixin,
+    IterativeProjectedGradientBaseAttack,
+):
 
     """The Projected Gradient Descent Attack
     introduced in [1]_ with random start.
@@ -713,13 +804,16 @@ class RandomStartProjectedGradientDescentAttack(
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     binary_search=True,
-                     epsilon=0.3,
-                     stepsize=0.01,
-                     iterations=40,
-                     random_start=True,
-                     return_early=True):
+    def as_generator(
+        self,
+        a,
+        binary_search=True,
+        epsilon=0.3,
+        stepsize=0.01,
+        iterations=40,
+        random_start=True,
+        return_early=True,
+    ):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
@@ -758,13 +852,14 @@ class RandomStartProjectedGradientDescentAttack(
 
         assert epsilon > 0
 
-        yield from self._run(a, binary_search,
-                             epsilon, stepsize, iterations,
-                             random_start, return_early)
+        yield from self._run(
+            a, binary_search, epsilon, stepsize, iterations, random_start, return_early
+        )
 
 
-RandomStartProjectedGradientDescentAttack.__call__.__doc__ = \
+RandomStartProjectedGradientDescentAttack.__call__.__doc__ = (
     RandomStartProjectedGradientDescentAttack.as_generator.__doc__
+)
 
 
 RandomProjectedGradientDescent = RandomStartProjectedGradientDescentAttack
@@ -772,10 +867,11 @@ RandomPGD = RandomProjectedGradientDescent
 
 
 class MomentumIterativeAttack(
-        LinfinityClippingMixin,
-        LinfinityDistanceCheckMixin,
-        GDOptimizerMixin,
-        IterativeProjectedGradientBaseAttack):
+    LinfinityClippingMixin,
+    LinfinityDistanceCheckMixin,
+    GDOptimizerMixin,
+    IterativeProjectedGradientBaseAttack,
+):
 
     """The Momentum Iterative Method attack
     introduced in [1]_. It's like the Basic
@@ -797,8 +893,7 @@ class MomentumIterativeAttack(
         gradient = gradient / max(1e-12, np.mean(np.abs(gradient)))
 
         # combine with history of gradient as new history
-        self._momentum_history = \
-            self._decay_factor * self._momentum_history + gradient
+        self._momentum_history = self._decay_factor * self._momentum_history + gradient
 
         # use history
         gradient = self._momentum_history
@@ -812,18 +907,22 @@ class MomentumIterativeAttack(
         # gradient descent
         self._momentum_history = 0
         success = yield from super(MomentumIterativeAttack, self)._run_one(
-            *args, **kwargs)
+            *args, **kwargs
+        )
         return success
 
     @generator_decorator
-    def as_generator(self, a,
-                     binary_search=True,
-                     epsilon=0.3,
-                     stepsize=0.06,
-                     iterations=10,
-                     decay_factor=1.0,
-                     random_start=False,
-                     return_early=True):
+    def as_generator(
+        self,
+        a,
+        binary_search=True,
+        epsilon=0.3,
+        stepsize=0.06,
+        iterations=10,
+        decay_factor=1.0,
+        random_start=False,
+        return_early=True,
+    ):
 
         """Momentum-based iterative gradient attack known as
         Momentum Iterative Method.
@@ -866,9 +965,9 @@ class MomentumIterativeAttack(
 
         self._decay_factor = decay_factor
 
-        yield from self._run(a, binary_search,
-                             epsilon, stepsize, iterations,
-                             random_start, return_early)
+        yield from self._run(
+            a, binary_search, epsilon, stepsize, iterations, random_start, return_early
+        )
 
 
 MomentumIterativeAttack.__call__.__doc__ = MomentumIterativeAttack.as_generator.__doc__
@@ -876,11 +975,12 @@ MomentumIterativeMethod = MomentumIterativeAttack
 
 
 class AdamL1BasicIterativeAttack(
-        L1GradientMixin,
-        L1ClippingMixin,
-        L1DistanceCheckMixin,
-        AdamOptimizerMixin,
-        IterativeProjectedGradientBaseAttack):
+    L1GradientMixin,
+    L1ClippingMixin,
+    L1DistanceCheckMixin,
+    AdamOptimizerMixin,
+    IterativeProjectedGradientBaseAttack,
+):
 
     """Modified version of the Basic Iterative Method
     that minimizes the L1 distance using the Adam optimizer.
@@ -890,13 +990,16 @@ class AdamL1BasicIterativeAttack(
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     binary_search=True,
-                     epsilon=0.3,
-                     stepsize=0.05,
-                     iterations=10,
-                     random_start=False,
-                     return_early=True):
+    def as_generator(
+        self,
+        a,
+        binary_search=True,
+        epsilon=0.3,
+        stepsize=0.05,
+        iterations=10,
+        random_start=False,
+        return_early=True,
+    ):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
@@ -939,17 +1042,18 @@ class AdamL1BasicIterativeAttack(
 
         assert epsilon > 0
 
-        yield from self._run(a, binary_search,
-                             epsilon, stepsize, iterations,
-                             random_start, return_early)
+        yield from self._run(
+            a, binary_search, epsilon, stepsize, iterations, random_start, return_early
+        )
 
 
 class AdamL2BasicIterativeAttack(
-        L2GradientMixin,
-        L2ClippingMixin,
-        L2DistanceCheckMixin,
-        AdamOptimizerMixin,
-        IterativeProjectedGradientBaseAttack):
+    L2GradientMixin,
+    L2ClippingMixin,
+    L2DistanceCheckMixin,
+    AdamOptimizerMixin,
+    IterativeProjectedGradientBaseAttack,
+):
 
     """Modified version of the Basic Iterative Method
     that minimizes the L2 distance using the Adam optimizer.
@@ -959,13 +1063,16 @@ class AdamL2BasicIterativeAttack(
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     binary_search=True,
-                     epsilon=0.3,
-                     stepsize=0.05,
-                     iterations=10,
-                     random_start=False,
-                     return_early=True):
+    def as_generator(
+        self,
+        a,
+        binary_search=True,
+        epsilon=0.3,
+        stepsize=0.05,
+        iterations=10,
+        random_start=False,
+        return_early=True,
+    ):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
@@ -1008,17 +1115,18 @@ class AdamL2BasicIterativeAttack(
 
         assert epsilon > 0
 
-        yield from self._run(a, binary_search,
-                             epsilon, stepsize, iterations,
-                             random_start, return_early)
+        yield from self._run(
+            a, binary_search, epsilon, stepsize, iterations, random_start, return_early
+        )
 
 
 class AdamProjectedGradientDescentAttack(
-        LinfinityGradientMixin,
-        LinfinityClippingMixin,
-        LinfinityDistanceCheckMixin,
-        AdamOptimizerMixin,
-        IterativeProjectedGradientBaseAttack):
+    LinfinityGradientMixin,
+    LinfinityClippingMixin,
+    LinfinityDistanceCheckMixin,
+    AdamOptimizerMixin,
+    IterativeProjectedGradientBaseAttack,
+):
 
     """The Projected Gradient Descent Attack
     introduced in [1]_, [2]_ without random start using the Adam optimizer.
@@ -1045,13 +1153,16 @@ class AdamProjectedGradientDescentAttack(
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     binary_search=True,
-                     epsilon=0.3,
-                     stepsize=0.01,
-                     iterations=40,
-                     random_start=False,
-                     return_early=True):
+    def as_generator(
+        self,
+        a,
+        binary_search=True,
+        epsilon=0.3,
+        stepsize=0.01,
+        iterations=40,
+        random_start=False,
+        return_early=True,
+    ):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
@@ -1094,9 +1205,9 @@ class AdamProjectedGradientDescentAttack(
 
         assert epsilon > 0
 
-        yield from self._run(a, binary_search,
-                             epsilon, stepsize, iterations,
-                             random_start, return_early)
+        yield from self._run(
+            a, binary_search, epsilon, stepsize, iterations, random_start, return_early
+        )
 
 
 AdamProjectedGradientDescent = AdamProjectedGradientDescentAttack
@@ -1104,11 +1215,12 @@ AdamPGD = AdamProjectedGradientDescent
 
 
 class AdamRandomStartProjectedGradientDescentAttack(
-        LinfinityGradientMixin,
-        LinfinityClippingMixin,
-        LinfinityDistanceCheckMixin,
-        AdamOptimizerMixin,
-        IterativeProjectedGradientBaseAttack):
+    LinfinityGradientMixin,
+    LinfinityClippingMixin,
+    LinfinityDistanceCheckMixin,
+    AdamOptimizerMixin,
+    IterativeProjectedGradientBaseAttack,
+):
 
     """The Projected Gradient Descent Attack
     introduced in [1]_, [2]_ with random start using the Adam optimizer.
@@ -1128,13 +1240,16 @@ class AdamRandomStartProjectedGradientDescentAttack(
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     binary_search=True,
-                     epsilon=0.3,
-                     stepsize=0.01,
-                     iterations=40,
-                     random_start=True,
-                     return_early=True):
+    def as_generator(
+        self,
+        a,
+        binary_search=True,
+        epsilon=0.3,
+        stepsize=0.01,
+        iterations=40,
+        random_start=True,
+        return_early=True,
+    ):
 
         """Simple iterative gradient-based attack known as
         Basic Iterative Method, Projected Gradient Descent or FGSM^k.
@@ -1177,14 +1292,17 @@ class AdamRandomStartProjectedGradientDescentAttack(
 
         assert epsilon > 0
 
-        yield from self._run(a, binary_search,
-                             epsilon, stepsize, iterations,
-                             random_start, return_early)
+        yield from self._run(
+            a, binary_search, epsilon, stepsize, iterations, random_start, return_early
+        )
 
 
-AdamRandomProjectedGradientDescent = AdamRandomStartProjectedGradientDescentAttack  # noqa: E501
-AdamRandomProjectedGradientDescent.__call__.__doc__ = \
+AdamRandomProjectedGradientDescent = (
+    AdamRandomStartProjectedGradientDescentAttack
+)  # noqa: E501
+AdamRandomProjectedGradientDescent.__call__.__doc__ = (
     AdamRandomProjectedGradientDescent.as_generator.__doc__
+)
 
 AdamRandomPGD = AdamRandomProjectedGradientDescent
 AdamRandomPGD.__call__.__doc__ = AdamRandomPGD.as_generator.__doc__

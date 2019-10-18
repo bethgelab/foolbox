@@ -19,7 +19,7 @@ class YieldingAdversarial(Adversarial):
             # if a threshold is specified and the unperturbed input is
             # misclassified, this can already cause a StopAttack
             # exception
-            assert self.distance.value == 0.
+            assert self.distance.value == 0.0
 
     def forward_one(self, x, strict=True, return_details=False):
         """Interface to model.forward_one for attacks.
@@ -37,14 +37,17 @@ class YieldingAdversarial(Adversarial):
         assert not strict or in_bounds
 
         self._total_prediction_calls += 1
-        predictions = yield ('forward_one', x)
+        predictions = yield ("forward_one", x)
 
-        assert predictions is not None, 'Predictions is None; this happens if' \
-                                        ' you forget the `yield from` ' \
-                                        'preceding the forward() call.'
+        assert predictions is not None, (
+            "Predictions is None; this happens if"
+            " you forget the `yield from` "
+            "preceding the forward() call."
+        )
 
         is_adversarial, is_best, distance = self._Adversarial__is_adversarial(
-            x, predictions, in_bounds)
+            x, predictions, in_bounds
+        )
 
         assert predictions.ndim == 1
         if return_details:
@@ -70,11 +73,13 @@ class YieldingAdversarial(Adversarial):
             assert in_bounds
 
         self._total_prediction_calls += len(inputs)
-        predictions = yield ('forward', inputs)
+        predictions = yield ("forward", inputs)
 
-        assert predictions is not None, 'Prediction is None; this happens if ' \
-                                        'you forget the `yield from` ' \
-                                        'preceding the forward() call.'
+        assert predictions is not None, (
+            "Prediction is None; this happens if "
+            "you forget the `yield from` "
+            "preceding the forward() call."
+        )
 
         assert predictions.ndim == 2
         assert predictions.shape[0] == inputs.shape[0]
@@ -89,7 +94,8 @@ class YieldingAdversarial(Adversarial):
             else:
                 in_bounds_i = self.in_bounds(inputs[i])
             is_adversarial, is_best, distance = self._Adversarial__is_adversarial(
-                inputs[i], predictions[i], in_bounds_i)
+                inputs[i], predictions[i], in_bounds_i
+            )
             if is_adversarial and greedy:
                 if return_details:
                     return predictions, is_adversarial, i, is_best, distance
@@ -135,16 +141,20 @@ class YieldingAdversarial(Adversarial):
         assert not strict or self.in_bounds(x)
 
         self._total_gradient_calls += 1
-        gradient = yield ('gradient_one', x, label)
+        gradient = yield ("gradient_one", x, label)
 
-        assert gradient is not None, 'gradient is None; this happens if ' \
-                                     'you forget the `yield from` ' \
-                                     'preceding the forward() call.'
+        assert gradient is not None, (
+            "gradient is None; this happens if "
+            "you forget the `yield from` "
+            "preceding the forward() call."
+        )
 
         assert gradient.shape == x.shape
         return gradient
 
-    def forward_and_gradient_one(self, x=None, label=None, strict=True, return_details=False):
+    def forward_and_gradient_one(
+        self, x=None, label=None, strict=True, return_details=False
+    ):
         """Interface to model.forward_and_gradient_one for attacks.
 
         Parameters
@@ -172,15 +182,18 @@ class YieldingAdversarial(Adversarial):
 
         self._total_prediction_calls += 1
         self._total_gradient_calls += 1
-        output = yield ('forward_and_gradient_one', x, label)
+        output = yield ("forward_and_gradient_one", x, label)
 
-        assert output is not None, 'Prediction is None; this happens if ' \
-                                   'you forget the `yield from` ' \
-                                   'preceding the forward() call.'
+        assert output is not None, (
+            "Prediction is None; this happens if "
+            "you forget the `yield from` "
+            "preceding the forward() call."
+        )
         predictions, gradient = output
 
         is_adversarial, is_best, distance = self._Adversarial__is_adversarial(
-            x, predictions, in_bounds)
+            x, predictions, in_bounds
+        )
         assert predictions.ndim == 1
         assert gradient.shape == x.shape
         if return_details:
@@ -218,11 +231,13 @@ class YieldingAdversarial(Adversarial):
         assert not strict or self.in_bounds(x)
 
         self._total_gradient_calls += 1
-        gradient = yield ('backward_one', gradient, x)
+        gradient = yield ("backward_one", gradient, x)
 
-        assert gradient is not None, 'gradient is None; this happens if ' \
-                                     'you forget the `yield from` ' \
-                                     'preceding the forward() call.'
+        assert gradient is not None, (
+            "gradient is None; this happens if "
+            "you forget the `yield from` "
+            "preceding the forward() call."
+        )
 
         assert gradient.shape == x.shape
         return gradient

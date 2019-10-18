@@ -1,5 +1,3 @@
-
-
 from .base import BatchAttack
 from .base import generator_decorator
 from .. import nprng
@@ -9,8 +7,7 @@ class SinglePixelAttack(BatchAttack):
     """Perturbs just a single pixel and sets it to the min or max."""
 
     @generator_decorator
-    def as_generator(self, a,
-                     max_pixels=1000):
+    def as_generator(self, a, max_pixels=1000):
 
         """Perturbs just a single pixel and sets it to the min or max.
 

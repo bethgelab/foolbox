@@ -29,8 +29,9 @@ class SparseFoolAttack(Attack):
     """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 steps=30, lambda_=1., subsample=10):
+    def __call__(
+        self, input_or_adv, label=None, unpack=True, steps=30, lambda_=1.0, subsample=10
+    ):
 
         """A geometry-inspired and fast attack for computing
         sparse adversarial perturbations.
@@ -68,7 +69,7 @@ class SparseFoolAttack(Attack):
             return
 
         if a.target_class() is not None:
-            logging.fatal('SparseFool is an untargeted adversarial attack.')
+            logging.fatal("SparseFool is an untargeted adversarial attack.")
             return
 
         _label = a.original_class
@@ -86,18 +87,19 @@ class SparseFoolAttack(Attack):
             # the normal of the decision boundary at that point. The final
             # approximation is done using an overshooted version of the
             # boundary point by a factor lambda_.
-            boundary_point, boundary_normal = \
-                self.boundary_approximation_deepfool(a, perturbed, subsample,
-                                                     _label, lambda_)
+            boundary_point, boundary_normal = self.boundary_approximation_deepfool(
+                a, perturbed, subsample, _label, lambda_
+            )
 
             if boundary_point is None:
-                logging.fatal('SparseFool fails to find an adversarial.')
+                logging.fatal("SparseFool fails to find an adversarial.")
                 return
 
             # Compute the l1 perturbation between the current adversarial point
             # and the approximated hyperplane
-            perturbation = self.l1_linear_solver(perturbed, boundary_point,
-                                                 boundary_normal, min_, max_)
+            perturbation = self.l1_linear_solver(
+                perturbed, boundary_point, boundary_normal, min_, max_
+            )
 
             # Update the current iterate
             perturbed = np.clip(perturbed + 1.02 * perturbation, min_, max_)
@@ -105,8 +107,9 @@ class SparseFoolAttack(Attack):
         a.forward_one(perturbed)  # to find an adversarial in the last step
 
     @classmethod
-    def boundary_approximation_deepfool(cls, a, initial_point, subsample,
-                                        label, lambda_, steps=100):
+    def boundary_approximation_deepfool(
+        cls, a, initial_point, subsample, label, lambda_, steps=100
+    ):
 
         """Approximates the decision boundary as an affine hyperplane.
         The approximation is done using a slightly modified version of
@@ -141,25 +144,23 @@ class SparseFoolAttack(Attack):
         labels = np.argsort(logits)[::-1]
         if subsample:
             # choose the top-k classes
-            logging.info('Only testing the top-{} classes'.format(subsample))
+            logging.info("Only testing the top-{} classes".format(subsample))
             assert isinstance(subsample, int)
             labels = labels[:subsample]
 
         def get_residual_labels(logs):
             """Get all labels with p < p[original_class]"""
-            return [
-                k for k in labels
-                if logs[k] < logs[label]]
+            return [k for k in labels if logs[k] < logs[label]]
 
-        total_perturbation = 0.
+        total_perturbation = 0.0
         for step in range(steps):
 
             # Update the boundary point
             boundary_point = initial_point + total_perturbation
 
-            logits, grad, is_adv = \
-                a.forward_and_gradient_one(
-                    initial_point + 1.02 * total_perturbation, strict=False)
+            logits, grad, is_adv = a.forward_and_gradient_one(
+                initial_point + 1.02 * total_perturbation, strict=False
+            )
 
             if is_adv:
 
@@ -168,7 +169,9 @@ class SparseFoolAttack(Attack):
                 fooling_label = np.argmax(logits)
 
                 # Compute the gradients at the boundary point
-                grad_fool = a.gradient_one(boundary_point, label=fooling_label, strict=False)
+                grad_fool = a.gradient_one(
+                    boundary_point, label=fooling_label, strict=False
+                )
                 grad_true = a.gradient_one(boundary_point, label=label, strict=False)
                 grad_diff = grad_fool - grad_true
 
@@ -191,7 +194,7 @@ class SparseFoolAttack(Attack):
             # sanity check: original label has zero probability or is not in
             # the labels
             if len(residual_labels) == 0:
-                logging.fatal('No label with p < p[original_class]')
+                logging.fatal("No label with p < p[original_class]")
 
                 return None, _
 
@@ -199,18 +202,18 @@ class SparseFoolAttack(Attack):
             # we use a numerically stable implementation of the cross-entropy
             # and expect that the deep learning frameworks also use such a
             # stable implementation to calculate the gradient
-            losses = [-crossentropy(logits=logits, label=k)
-                      for k in residual_labels]
-            grads = [a.gradient_one(boundary_point, label=k, strict=False)
-                     for k in residual_labels]
+            losses = [-crossentropy(logits=logits, label=k) for k in residual_labels]
+            grads = [
+                a.gradient_one(boundary_point, label=k, strict=False)
+                for k in residual_labels
+            ]
 
             # compute optimal direction (and loss difference)
             # pairwise between each label and the target
             diffs = [(l - loss, g - grad) for l, g in zip(losses, grads)]
 
             # calculate distances
-            distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8)
-                         for dl, dg in diffs]
+            distances = [abs(dl) / (np.linalg.norm(dg) + 1e-8) for dl, dg in diffs]
 
             # choose optimal distance
             optimal = np.argmin(distances)
@@ -222,8 +225,7 @@ class SparseFoolAttack(Attack):
             total_perturbation = total_perturbation + perturbation
 
     @classmethod
-    def l1_linear_solver(cls, initial_point, boundary_point,
-                         normal, min_, max_):
+    def l1_linear_solver(cls, initial_point, boundary_point, normal, min_, max_):
 
         """Computes the L1 solution (perturbation) to the linearized problem.
         It corresponds to algorithm 1 in [1]_.
@@ -265,11 +267,15 @@ class SparseFoolAttack(Attack):
             # towards the direction of the maximum
             # absolute value
             mask = np.zeros_like(coordinates)
-            mask[np.unravel_index(np.argmax(np.absolute(coordinates)),
-                                  coordinates.shape)] = 1
+            mask[
+                np.unravel_index(np.argmax(np.absolute(coordinates)), coordinates.shape)
+            ] = 1
 
-            perturbation = max(abs(f_k) / np.amax(np.absolute(coordinates)),
-                               1e-4) * mask * np.sign(coordinates)
+            perturbation = (
+                max(abs(f_k) / np.amax(np.absolute(coordinates)), 1e-4)
+                * mask
+                * np.sign(coordinates)
+            )
 
             # Apply the perturbation
             perturbed = perturbed + perturbation

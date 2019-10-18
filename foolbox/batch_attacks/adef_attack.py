@@ -106,8 +106,7 @@ def _compose(image, vec_field, color_axis):
 
     for channel in range(c):
         # Get a linear interpolation for this color channel.
-        interpolation = RectBivariateSpline(hrange, wrange, image[channel],
-                                            kx=1, ky=1)
+        interpolation = RectBivariateSpline(hrange, wrange, image[channel], kx=1, ky=1)
 
         # grid = False since the deformed grid is irregular
         new_image[channel] = interpolation(defMGy, defMGx, grid=False)
@@ -179,8 +178,7 @@ class ADefAttack(BatchAttack):
         self.vector_field = None
 
     @generator_decorator
-    def as_generator(self, a,
-                     max_iter=100, smooth=1.0, subsample=10):
+    def as_generator(self, a, max_iter=100, smooth=1.0, subsample=10):
 
         """Parameters
         ----------
@@ -206,8 +204,10 @@ class ADefAttack(BatchAttack):
         """
 
         if not a.has_gradient():
-            logging.fatal('Applied gradient-based attack to model that '
-                          'does not provide gradients.')
+            logging.fatal(
+                "Applied gradient-based attack to model that "
+                "does not provide gradients."
+            )
             return
 
         perturbed = a.unperturbed.copy()  # is updated in every iteration
@@ -234,7 +234,7 @@ class ADefAttack(BatchAttack):
             ind_of_candidates = index_of_target_class
         else:
             # choose the top-k classes
-            logging.info('Only testing the top-{} classes'.format(subsample))
+            logging.info("Only testing the top-{} classes".format(subsample))
             assert isinstance(subsample, int)
             assert subsample >= 2
             ind_of_candidates = np.arange(1, subsample)
@@ -246,8 +246,7 @@ class ADefAttack(BatchAttack):
 
         color_axis = a.channel_axis(batch=False)  # get color axis
         assert color_axis in [0, 2]
-        hw = [perturbed.shape[i] for i in range(perturbed.ndim)
-              if i != color_axis]
+        hw = [perturbed.shape[i] for i in range(perturbed.ndim) if i != color_axis]
         h, w = hw
 
         logits, is_adv = yield from a.forward_one(perturbed)
@@ -263,8 +262,8 @@ class ADefAttack(BatchAttack):
         vec_field_full = np.zeros((h, w, 2))  # the vector field
 
         current_label = original_label
-        logging.info('Iterations finished: 0')
-        logging.info('Current label: {} '.format(current_label))
+        logging.info("Iterations finished: 0")
+        logging.info("Current label: {} ".format(current_label))
 
         for step in range(max_iter):
             n += 1
@@ -272,8 +271,10 @@ class ADefAttack(BatchAttack):
             if is_adv:
                 yield from a.forward_one(perturbed)
                 logging.info(
-                    'Image successfully deformed from {} to {}'.format(
-                        original_label, current_label))
+                    "Image successfully deformed from {} to {}".format(
+                        original_label, current_label
+                    )
+                )
                 self.vector_field = vec_field_full
                 return
 
@@ -282,8 +283,7 @@ class ADefAttack(BatchAttack):
             logits_for_grad = np.zeros_like(logits)
             logits_for_grad[original_label] = 1
 
-            grad_original = yield from a.backward_one(logits_for_grad,
-                                                      perturbed)
+            grad_original = yield from a.backward_one(logits_for_grad, perturbed)
 
             # Find vector fields for the image and each candidate label.
             # Keep the smallest vector field for each image.
@@ -297,8 +297,7 @@ class ADefAttack(BatchAttack):
                 logits_for_grad[target_label] = 1
 
                 # gradient of the target label w.r.t. image
-                grad_target = yield from a.backward_one(logits_for_grad,
-                                                        perturbed)
+                grad_target = yield from a.backward_one(logits_for_grad, perturbed)
 
                 # Derivative of the binary classifier 'F_lab - F_orig'
                 dfx = grad_target - grad_original
@@ -306,7 +305,8 @@ class ADefAttack(BatchAttack):
 
                 # create the vector field
                 vec_field_target = _create_vec_field(
-                    f_im, dfx, d1x, d2x, color_axis, smooth)
+                    f_im, dfx, d1x, d2x, color_axis, smooth
+                )
 
                 vec_field_target += vec_field_full
 
@@ -322,8 +322,7 @@ class ADefAttack(BatchAttack):
             # the vector field is always applied to the original image,
             # since the current vector field is added to all prior
             # vector fields via vec_field_target += vec_field_full
-            perturbed = _compose(image_original.copy(), vec_field_min,
-                                 color_axis)
+            perturbed = _compose(image_original.copy(), vec_field_min, color_axis)
 
             vec_field_full = vec_field_min
             norm_full = norm_min
@@ -333,13 +332,13 @@ class ADefAttack(BatchAttack):
             current_label = np.argmax(logits)
             fx = logits - logits[current_label]
 
-            logging.info('Iterations finished: {} '.format(n))
-            logging.info('Current label: {} '.format(current_label))
-            logging.info('Norm vector field: {} '.format(norm_full))
+            logging.info("Iterations finished: {} ".format(n))
+            logging.info("Current label: {} ".format(current_label))
+            logging.info("Norm vector field: {} ".format(norm_full))
 
         logits, _ = yield from a.forward_one(perturbed)
         current_label = np.argmax(logits)
-        logging.info('{} -> {}'.format(original_label, current_label))
+        logging.info("{} -> {}".format(original_label, current_label))
 
         yield from a.forward_one(perturbed)
 

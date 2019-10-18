@@ -37,8 +37,7 @@ def test_targeted_attack_slow(bn_model, bn_targeted_criterion, bn_images, bn_lab
 
 def test_targeted_attack_max(bn_model, bn_targeted_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_targeted_criterion)
-    advs = attack(bn_images, bn_labels, unpack=False,
-                  max_perturbations_per_pixel=1)
+    advs = attack(bn_images, bn_labels, unpack=False, max_perturbations_per_pixel=1)
     for adv in advs:
         assert adv.perturbed is not None
         assert adv.distance.value < np.inf

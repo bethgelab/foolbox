@@ -1,4 +1,3 @@
-
 import numpy as np
 import logging
 
@@ -26,42 +25,40 @@ class TensorFlowModel(DifferentiableModel):
 
     """
 
-    def __init__(
-            self,
-            inputs,
-            logits,
-            bounds,
-            channel_axis=3,
-            preprocessing=(0, 1)):
+    def __init__(self, inputs, logits, bounds, channel_axis=3, preprocessing=(0, 1)):
 
-        super(TensorFlowModel, self).__init__(bounds=bounds,
-                                              channel_axis=channel_axis,
-                                              preprocessing=preprocessing)
+        super(TensorFlowModel, self).__init__(
+            bounds=bounds, channel_axis=channel_axis, preprocessing=preprocessing
+        )
 
         # delay import until class is instantiated
         import tensorflow as tf
 
         session = tf.get_default_session()
         if session is None:
-            logging.warning('No default session. Created a new tf.Session. '
-                            'Please restore variables using this session.')
+            logging.warning(
+                "No default session. Created a new tf.Session. "
+                "Please restore variables using this session."
+            )
             session = tf.Session(graph=inputs.graph)
             self._created_session = True
         else:
             self._created_session = False
-            assert session.graph == inputs.graph, \
-                'The default session uses the wrong graph'
+            assert (
+                session.graph == inputs.graph
+            ), "The default session uses the wrong graph"
 
         with session.graph.as_default():
             self._session = session
             self._inputs = inputs
             self._logits = logits
 
-            labels = tf.placeholder(tf.int64, (None,), name='labels')
+            labels = tf.placeholder(tf.int64, (None,), name="labels")
             self._labels = labels
 
-            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels,
-                                                                  logits=logits)
+            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
+                labels=labels, logits=logits
+            )
             loss = tf.reduce_sum(loss)
             self._loss = loss
 
@@ -80,8 +77,9 @@ class TensorFlowModel(DifferentiableModel):
             self._backward_grad_inputs = backward_grad_inputs
 
     @classmethod
-    def from_keras(cls, model, bounds, input_shape=None,
-                   channel_axis=3, preprocessing=(0, 1)):
+    def from_keras(
+        cls, model, bounds, input_shape=None, channel_axis=3, preprocessing=(0, 1)
+    ):
         """Alternative constructor for a TensorFlowModel that
         accepts a `tf.keras.Model` instance.
 
@@ -106,15 +104,24 @@ class TensorFlowModel(DifferentiableModel):
 
         """
         import tensorflow as tf
+
         if input_shape is None:
             try:
                 input_shape = model.input_shape[1:]
             except AttributeError:
-                raise ValueError('Please specify input_shape manually or provide a model with an input_shape attribute')
+                raise ValueError(
+                    "Please specify input_shape manually or provide a model with an input_shape attribute"
+                )
         with tf.keras.backend.get_session().as_default():
             inputs = tf.placeholder(tf.float32, (None,) + input_shape)
             logits = model(inputs)
-            return cls(inputs, logits, bounds=bounds, channel_axis=channel_axis, preprocessing=preprocessing)
+            return cls(
+                inputs,
+                logits,
+                bounds=bounds,
+                channel_axis=channel_axis,
+                preprocessing=preprocessing,
+            )
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self._created_session:
@@ -138,8 +145,11 @@ class TensorFlowModel(DifferentiableModel):
         x, dpdx = self._process_input(x)
         predictions, gradient = self._session.run(
             [self._logits, self._gradient],
-            feed_dict={self._inputs: x[np.newaxis],
-                       self._labels: np.asarray(label)[np.newaxis]})
+            feed_dict={
+                self._inputs: x[np.newaxis],
+                self._labels: np.asarray(label)[np.newaxis],
+            },
+        )
         predictions = np.squeeze(predictions, axis=0)
         gradient = np.squeeze(gradient, axis=0)
         gradient = self._process_gradient(dpdx, gradient)
@@ -149,18 +159,16 @@ class TensorFlowModel(DifferentiableModel):
         inputs, dpdx = self._process_input(inputs)
         predictions, gradient = self._session.run(
             [self._logits, self._gradient],
-            feed_dict={self._inputs: inputs,
-                       self._labels: labels})
+            feed_dict={self._inputs: inputs, self._labels: labels},
+        )
         gradient = self._process_gradient(dpdx, gradient)
         return predictions, gradient
 
     def gradient(self, inputs, labels):
         inputs, dpdx = self._process_input(inputs)
         g = self._session.run(
-            self._gradient,
-            feed_dict={
-                self._inputs: inputs,
-                self._labels: labels})
+            self._gradient, feed_dict={self._inputs: inputs, self._labels: labels}
+        )
         g = self._process_gradient(dpdx, g)
         return g
 
@@ -176,10 +184,8 @@ class TensorFlowModel(DifferentiableModel):
         print(x.shape, labels.shape)
 
         loss = self._session.run(
-            self._loss,
-            feed_dict={
-                self._inputs: x,
-                self._labels: labels})
+            self._loss, feed_dict={self._inputs: x, self._labels: labels}
+        )
         return loss
 
     def backward(self, gradient, inputs):
@@ -188,9 +194,8 @@ class TensorFlowModel(DifferentiableModel):
         inputs, dpdx = self._process_input(inputs)
         g = self._session.run(
             self._backward_grad_inputs,
-            feed_dict={
-                self._inputs: inputs,
-                self._backward_grad_logits: gradient})
+            feed_dict={self._inputs: inputs, self._backward_grad_logits: gradient},
+        )
         g = self._process_gradient(dpdx, g)
         assert g.shape == input_shape
         return g

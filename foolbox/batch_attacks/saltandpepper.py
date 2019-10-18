@@ -11,8 +11,7 @@ class SaltAndPepperNoiseAttack(BatchAttack):
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     epsilons=100, repetitions=10):
+    def as_generator(self, a, epsilons=100, repetitions=10):
 
         """Increases the amount of salt and pepper noise until the input is misclassified.
 

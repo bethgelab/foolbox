@@ -8,14 +8,10 @@ from foolbox.batch_attacks import DeepFoolLinfinityAttack
 from foolbox.distances import MAE
 from foolbox.distances import Linf
 
-Attacks = [
-    DeepFoolAttack,
-    DeepFoolL2Attack,
-    DeepFoolLinfinityAttack,
-]
+Attacks = [DeepFoolAttack, DeepFoolL2Attack, DeepFoolLinfinityAttack]
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_attack(Attack, bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
     advs = attack(bn_images, bn_labels, unpack=False)
@@ -24,7 +20,7 @@ def test_attack(Attack, bn_model, bn_criterion, bn_images, bn_labels):
         assert adv.distance.value < np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_attack_gl(Attack, gl_bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(gl_bn_model, bn_criterion)
     advs = attack(bn_images, bn_labels, unpack=False)
@@ -33,9 +29,8 @@ def test_attack_gl(Attack, gl_bn_model, bn_criterion, bn_images, bn_labels):
         assert adv.distance.value == np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
-def test_targeted_attack(Attack, bn_model, bn_targeted_criterion, bn_images,
-                         bn_labels):
+@pytest.mark.parametrize("Attack", Attacks)
+def test_targeted_attack(Attack, bn_model, bn_targeted_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_targeted_criterion)
     advs = attack(bn_images, bn_labels, unpack=False)
     for adv in advs:
@@ -43,7 +38,7 @@ def test_targeted_attack(Attack, bn_model, bn_targeted_criterion, bn_images,
         assert adv.distance.value == np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
+@pytest.mark.parametrize("Attack", Attacks)
 def test_subsample(Attack, bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
     advs = attack(bn_images, bn_labels, unpack=False, subsample=5)
@@ -52,9 +47,10 @@ def test_subsample(Attack, bn_model, bn_criterion, bn_images, bn_labels):
         assert adv.distance.value < np.inf
 
 
-@pytest.mark.parametrize('Attack', Attacks)
-def test_attack_impossible(Attack, bn_model, bn_impossible_criterion, bn_images,
-                           bn_labels):
+@pytest.mark.parametrize("Attack", Attacks)
+def test_attack_impossible(
+    Attack, bn_model, bn_impossible_criterion, bn_images, bn_labels
+):
     attack = Attack(bn_model, bn_impossible_criterion)
     advs = attack(bn_images, bn_labels, unpack=False)
     for adv in advs:

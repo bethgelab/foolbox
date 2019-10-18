@@ -20,9 +20,7 @@ class NewtonFoolAttack(BatchAttack):
    """
 
     @generator_decorator
-    def as_generator(self, a,
-                     max_iter=100,
-                     eta=0.01):
+    def as_generator(self, a, max_iter=100, eta=0.01):
         """
         Parameters
         ----------
@@ -43,13 +41,15 @@ class NewtonFoolAttack(BatchAttack):
         """
 
         if not a.has_gradient():
-            logging.fatal('Applied gradient-based attack to model that '
-                          'does not provide gradients.')
+            logging.fatal(
+                "Applied gradient-based attack to model that "
+                "does not provide gradients."
+            )
 
             return
 
         if a.target_class() is not None:
-            logging.fatal('NewtonFool is an untargeted adversarial attack.')
+            logging.fatal("NewtonFool is an untargeted adversarial attack.")
             return
 
         l2_norm = np.linalg.norm(a.unperturbed)
@@ -59,8 +59,9 @@ class NewtonFoolAttack(BatchAttack):
         for i in range(max_iter):
 
             # (1) get the score and gradients
-            logits, gradients, is_adversarial = \
-                yield from a.forward_and_gradient_one(perturbed)
+            logits, gradients, is_adversarial = yield from a.forward_and_gradient_one(
+                perturbed
+            )
 
             if is_adversarial:
                 return
@@ -78,15 +79,12 @@ class NewtonFoolAttack(BatchAttack):
             gradient_l2_norm = np.linalg.norm(gradients)
 
             # (3) calculate delta
-            delta = self._delta(eta, l2_norm, score,
-                                gradient_l2_norm, a.num_classes())
+            delta = self._delta(eta, l2_norm, score, gradient_l2_norm, a.num_classes())
 
             # delta = 0.01
 
             # (4) calculate & apply current pertubation
-            current_pertubation = self._perturbation(delta,
-                                                     gradients,
-                                                     gradient_l2_norm)
+            current_pertubation = self._perturbation(delta, gradients, gradient_l2_norm)
 
             perturbed += current_pertubation
             perturbed = np.clip(perturbed, min_, max_)

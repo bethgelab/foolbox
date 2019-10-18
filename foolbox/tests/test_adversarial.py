@@ -64,7 +64,9 @@ def test_adversarial(model, criterion, image, label):
     first_predictions = predictions
     assert is_adversarial
 
-    predictions, is_adversarial, _, _ = adversarial.forward_one(image, return_details=True)
+    predictions, is_adversarial, _, _ = adversarial.forward_one(
+        image, return_details=True
+    )
     first_predictions = predictions
     assert is_adversarial
 
@@ -72,30 +74,38 @@ def test_adversarial(model, criterion, image, label):
     assert (predictions == first_predictions[np.newaxis]).all()
     assert np.all(is_adversarial == np.array([True]))
 
-    predictions, is_adversarial, index = adversarial.forward(image[np.newaxis], greedy=True)
+    predictions, is_adversarial, index = adversarial.forward(
+        image[np.newaxis], greedy=True
+    )
     assert (predictions == first_predictions[np.newaxis]).all()
     assert is_adversarial
     assert index == 0
 
-    predictions, is_adversarial, index, _, _ = adversarial.forward(image[np.newaxis], greedy=True, return_details=True)
+    predictions, is_adversarial, index, _, _ = adversarial.forward(
+        image[np.newaxis], greedy=True, return_details=True
+    )
     assert (predictions == first_predictions[np.newaxis]).all()
     assert is_adversarial
     assert index == 0
 
-    predictions, gradient, is_adversarial = adversarial.forward_and_gradient_one(image, label)
+    predictions, gradient, is_adversarial = adversarial.forward_and_gradient_one(
+        image, label
+    )
     assert (predictions == first_predictions).all()
     assert gradient.shape == image.shape
     assert is_adversarial
 
     predictions, gradient, is_adversarial, _, _ = adversarial.forward_and_gradient_one(
-        image, label, return_details=True)
+        image, label, return_details=True
+    )
     assert (predictions == first_predictions).all()
     assert gradient.shape == image.shape
     assert is_adversarial
 
     images = image[np.newaxis]
     predictions, gradient, is_adversarial, _, _ = adversarial.forward_and_gradient(
-        images, [label], return_details=True)
+        images, [label], return_details=True
+    )
     assert (predictions == first_predictions).all()
     assert gradient.shape == images.shape
     assert is_adversarial[0]
@@ -125,7 +135,9 @@ def test_adversarial(model, criterion, image, label):
     # without adversarials
     criterion.is_adversarial = Mock(return_value=False)
     adversarial = Adversarial(model, criterion, image, label)
-    predictions, is_adversarial, index = adversarial.forward(image[np.newaxis], greedy=True)
+    predictions, is_adversarial, index = adversarial.forward(
+        image[np.newaxis], greedy=True
+    )
     assert (predictions == first_predictions[np.newaxis]).all()
     assert not is_adversarial
     assert index is None

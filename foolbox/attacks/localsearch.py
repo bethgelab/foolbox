@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from .base import Attack
@@ -11,8 +10,7 @@ class SinglePixelAttack(Attack):
     """Perturbs just a single pixel and sets it to the min or max."""
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 max_pixels=1000):
+    def __call__(self, input_or_adv, label=None, unpack=True, max_pixels=1000):
 
         """Perturbs just a single pixel and sets it to the min or max.
 
@@ -80,8 +78,9 @@ class LocalSearchAttack(Attack):
     """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True,
-                 r=1.5, p=10., d=5, t=5, R=150):
+    def __call__(
+        self, input_or_adv, label=None, unpack=True, r=1.5, p=10.0, d=5, t=5, R=150
+    ):
 
         """A black-box attack based on the idea of greedy local search.
 
@@ -223,7 +222,8 @@ class LocalSearchAttack(Attack):
                 (x, y)
                 for _a, _b in PxPy_star
                 for x in range(_a - d, _a + d + 1)
-                for y in range(_b - d, _b + d + 1)]
+                for y in range(_b - d, _b + d + 1)
+            ]
             PxPy = [(x, y) for x, y in PxPy if 0 <= x < w and 0 <= y < h]
             PxPy = list(set(PxPy))
             PxPy = np.array(PxPy)

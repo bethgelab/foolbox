@@ -49,9 +49,9 @@ class Attack(abc.ABC):
 
     """
 
-    def __init__(self,
-                 model=None, criterion=Misclassification(),
-                 distance=MSE, threshold=None):
+    def __init__(
+        self, model=None, criterion=Misclassification(), distance=MSE, threshold=None
+    ):
         self._default_model = model
         self._default_criterion = criterion
         self._default_distance = distance
@@ -97,53 +97,73 @@ def call_decorator(call_fn):
         assert input_or_adv is not None
 
         if isinstance(input_or_adv, YieldingAdversarial):
-            raise ValueError('If you pass an Adversarial instance, it must not be a YieldingAdversarial instance'
-                             ' when calling non-batch-supporting attacks like this one (check foolbox.batch_attacks).')
+            raise ValueError(
+                "If you pass an Adversarial instance, it must not be a YieldingAdversarial instance"
+                " when calling non-batch-supporting attacks like this one (check foolbox.batch_attacks)."
+            )
         elif isinstance(input_or_adv, Adversarial):
             a = input_or_adv
             if label is not None:
-                raise ValueError('Label must not be passed when input_or_adv'
-                                 ' is an Adversarial instance')
+                raise ValueError(
+                    "Label must not be passed when input_or_adv"
+                    " is an Adversarial instance"
+                )
         else:
             if label is None:
-                raise ValueError('Label must be passed when input_or_adv is'
-                                 ' not an Adversarial instance')
+                raise ValueError(
+                    "Label must be passed when input_or_adv is"
+                    " not an Adversarial instance"
+                )
             else:
                 model = self._default_model
                 criterion = self._default_criterion
                 distance = self._default_distance
                 threshold = self._default_threshold
                 if model is None or criterion is None:
-                    raise ValueError('The attack needs to be initialized'
-                                     ' with a model and a criterion or it'
-                                     ' needs to be called with an Adversarial'
-                                     ' instance.')
-                a = Adversarial(model, criterion, input_or_adv, label,
-                                distance=distance, threshold=threshold)
+                    raise ValueError(
+                        "The attack needs to be initialized"
+                        " with a model and a criterion or it"
+                        " needs to be called with an Adversarial"
+                        " instance."
+                    )
+                a = Adversarial(
+                    model,
+                    criterion,
+                    input_or_adv,
+                    label,
+                    distance=distance,
+                    threshold=threshold,
+                )
 
         assert a is not None
 
-        if a.distance.value == 0.:
-            warnings.warn('Not running the attack because the original input'
-                          ' is already misclassified and the adversarial thus'
-                          ' has a distance of 0.')
+        if a.distance.value == 0.0:
+            warnings.warn(
+                "Not running the attack because the original input"
+                " is already misclassified and the adversarial thus"
+                " has a distance of 0."
+            )
         elif a.reached_threshold():
-            warnings.warn('Not running the attack because the given treshold'
-                          ' is already reached')
+            warnings.warn(
+                "Not running the attack because the given treshold"
+                " is already reached"
+            )
         else:
             try:
                 _ = call_fn(self, a, label=None, unpack=None, **kwargs)
-                assert _ is None, 'decorated __call__ method must return None'
+                assert _ is None, "decorated __call__ method must return None"
             except StopAttack:
                 # if a threshold is specified, StopAttack will be thrown
                 # when the treshold is reached; thus we can do early
                 # stopping of the attack
-                logging.info('threshold reached, stopping attack')
+                logging.info("threshold reached, stopping attack")
 
         if a.perturbed is None:
-            warnings.warn('{} did not find an adversarial, maybe the model'
-                          ' or the criterion is not supported by this'
-                          ' attack.'.format(self.name()))
+            warnings.warn(
+                "{} did not find an adversarial, maybe the model"
+                " or the criterion is not supported by this"
+                " attack.".format(self.name())
+            )
 
         if unpack:
             return a.perturbed

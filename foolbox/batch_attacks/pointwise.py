@@ -22,8 +22,7 @@ class PointwiseAttack(BatchAttack):
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     starting_point=None, initialization_attack=None):
+    def as_generator(self, a, starting_point=None, initialization_attack=None):
 
         """Starts with an adversarial and performs a binary search between
         the adversarial and the original for each dimension of the input
@@ -56,9 +55,10 @@ class PointwiseAttack(BatchAttack):
 
         if a.perturbed is None:
             warnings.warn(
-                'Initialization failed. If the criterion is targeted,'
-                ' it might be necessary to pass an explicit starting'
-                ' point or targeted initialization attack.')
+                "Initialization failed. If the criterion is targeted,"
+                " it might be necessary to pass an explicit starting"
+                " point or targeted initialization attack."
+            )
             return
 
         shape = a.unperturbed.shape
@@ -87,8 +87,10 @@ class PointwiseAttack(BatchAttack):
 
                 # if adversarial, restart from there
                 if is_adversarial:
-                    logging.info('Reset value to original -> new distance:'
-                                 ' {}'.format(a.distance))
+                    logging.info(
+                        "Reset value to original -> new distance:"
+                        " {}".format(a.distance)
+                    )
                     break
 
                 # if not, undo change
@@ -97,7 +99,7 @@ class PointwiseAttack(BatchAttack):
                 # no index was successful
                 break
 
-        logging.info('Starting binary searches')
+        logging.info("Starting binary searches")
 
         while True:
             # draw random shuffling of all indices
@@ -107,7 +109,7 @@ class PointwiseAttack(BatchAttack):
             # whether that run through all values made any improvement
             improved = False
 
-            logging.info('Starting new loop through all values')
+            logging.info("Starting new loop through all values")
 
             for index in indices:
                 # change index
@@ -122,25 +124,33 @@ class PointwiseAttack(BatchAttack):
 
                 # if adversarial, no binary search needed
                 if is_adversarial:  # pragma: no cover
-                    logging.info('Reset value at {} to original ->'
-                                 ' new distance: {}'.format(
-                                     index, a.distance))
+                    logging.info(
+                        "Reset value at {} to original ->"
+                        " new distance: {}".format(index, a.distance)
+                    )
                     improved = True
                 else:
                     # binary search
                     adv_value = old_value
                     non_adv_value = original_value
                     best_adv_value = yield from self.binary_search(
-                        a, x, index, adv_value, non_adv_value, shape)
+                        a, x, index, adv_value, non_adv_value, shape
+                    )
 
                     if old_value != best_adv_value:
                         x[index] = best_adv_value
                         improved = True
-                        logging.info('Set value at {} from {} to {}'
-                                     ' (original has {}) ->'
-                                     ' new distance: {}'.format(
-                                         index, old_value, best_adv_value,
-                                         original_value, a.distance))
+                        logging.info(
+                            "Set value at {} from {} to {}"
+                            " (original has {}) ->"
+                            " new distance: {}".format(
+                                index,
+                                old_value,
+                                best_adv_value,
+                                original_value,
+                                a.distance,
+                            )
+                        )
 
             if not improved:
                 # no improvement for any of the indices
@@ -164,30 +174,32 @@ class PointwiseAttack(BatchAttack):
         if a.perturbed is not None:
             if starting_point is not None:  # pragma: no cover
                 warnings.warn(
-                    'Ignoring starting_point because the attack'
-                    ' is applied to a previously found adversarial.')
+                    "Ignoring starting_point because the attack"
+                    " is applied to a previously found adversarial."
+                )
             if init_attack is not None:  # pragma: no cover
                 warnings.warn(
-                    'Ignoring initialization_attack because the attack'
-                    ' is applied to a previously found adversarial.')
+                    "Ignoring initialization_attack because the attack"
+                    " is applied to a previously found adversarial."
+                )
             return
 
         if starting_point is not None:
             yield from a.forward_one(starting_point)
             assert a.perturbed is not None, (
-                'Invalid starting point provided. Please provide a starting '
-                'point that is adversarial.')
+                "Invalid starting point provided. Please provide a starting "
+                "point that is adversarial."
+            )
             return
 
         if init_attack is None:
             init_attack = SaltAndPepperNoiseAttack
             logging.info(
-                'Neither starting_point nor initialization_attack given.'
-                ' Falling back to {} for initialization.'.format(
-                    init_attack.__name__))
+                "Neither starting_point nor initialization_attack given."
+                " Falling back to {} for initialization.".format(init_attack.__name__)
+            )
 
-        if issubclass(init_attack, Attack) or\
-                issubclass(init_attack, BatchAttack):
+        if issubclass(init_attack, Attack) or issubclass(init_attack, BatchAttack):
             # instantiate if necessary
             init_attack = init_attack()
 

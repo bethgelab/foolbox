@@ -1,5 +1,3 @@
-
-
 import warnings
 import time
 import sys
@@ -38,17 +36,20 @@ class BoundaryAttackPlusPlus(BatchAttack):
     """
 
     @generator_decorator
-    def as_generator(self, a,
-                     iterations=64,
-                     initial_num_evals=100,
-                     max_num_evals=10000,
-                     stepsize_search='grid_search',
-                     gamma=0.01,
-                     starting_point=None,
-                     batch_size=256,
-                     internal_dtype=np.float64,
-                     log_every_n_steps=1,
-                     verbose=False):
+    def as_generator(
+        self,
+        a,
+        iterations=64,
+        initial_num_evals=100,
+        max_num_evals=10000,
+        stepsize_search="grid_search",
+        gamma=0.01,
+        starting_point=None,
+        batch_size=256,
+        internal_dtype=np.float64,
+        log_every_n_steps=1,
+        verbose=False,
+    ):
         """Applies Boundary Attack++.
 
         Parameters
@@ -110,31 +111,25 @@ class BoundaryAttackPlusPlus(BatchAttack):
 
         # Set constraint based on the distance.
         if self._default_distance == MSE:
-            self.constraint = 'l2'
+            self.constraint = "l2"
         elif self._default_distance == Linf:
-            self.constraint = 'linf'
+            self.constraint = "linf"
 
         # Set binary search threshold.
         self.shape = a.unperturbed.shape
         self.d = np.prod(self.shape)
-        if self.constraint == 'l2':
+        if self.constraint == "l2":
             self.theta = self.gamma / np.sqrt(self.d)
         else:
             self.theta = self.gamma / (self.d)
-        print('Boundary Attack ++ optimized for {} distance'.format(
-            self.constraint))
+        print("Boundary Attack ++ optimized for {} distance".format(self.constraint))
 
         if not verbose:
-            print('run with verbose=True to see details')
+            print("run with verbose=True to see details")
 
-        yield from self.attack(
-            a,
-            iterations=iterations)
+        yield from self.attack(a, iterations=iterations)
 
-    def attack(
-            self,
-            a,
-            iterations):
+    def attack(self, a, iterations):
         """
         iterations : int
             Maximum number of iterations to run.
@@ -150,8 +145,9 @@ class BoundaryAttackPlusPlus(BatchAttack):
         assert self.internal_dtype in [np.float32, np.float64]
         assert self.external_dtype in [np.float32, np.float64]
 
-        assert not (self.external_dtype == np.float64 and
-                    self.internal_dtype == np.float32)
+        assert not (
+            self.external_dtype == np.float64 and self.internal_dtype == np.float32
+        )
 
         a.set_distance_dtype(self.internal_dtype)
 
@@ -164,8 +160,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
             outs = []
             num_batchs = int(math.ceil(len(x) * 1.0 / self.batch_size))
             for j in range(num_batchs):
-                current_batch = x[self.batch_size * j:
-                                  self.batch_size * (j + 1)]
+                current_batch = x[self.batch_size * j : self.batch_size * (j + 1)]
                 current_batch = current_batch.astype(self.external_dtype)
                 _, out = yield from a.forward(current_batch, strict=False)
                 outs.append(out)
@@ -186,7 +181,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
         # ===========================================================
 
         # make sure repeated warnings are shown
-        warnings.simplefilter('always', UserWarning)
+        warnings.simplefilter("always", UserWarning)
 
         # get bounds
         bounds = a.bounds()
@@ -200,9 +195,10 @@ class BoundaryAttackPlusPlus(BatchAttack):
 
         if a.perturbed is None:
             warnings.warn(
-                'Initialization failed.'
-                ' it might be necessary to pass an explicit starting'
-                ' point.')
+                "Initialization failed."
+                " it might be necessary to pass an explicit starting"
+                " point."
+            )
             return
 
         self.time_initialization += time.time() - self.t_initial
@@ -219,7 +215,8 @@ class BoundaryAttackPlusPlus(BatchAttack):
 
         # Project the initialization to the boundary.
         perturbed, dist_post_update = yield from self.binary_search_batch(
-            original, np.expand_dims(perturbed, 0), decision_function)
+            original, np.expand_dims(perturbed, 0), decision_function
+        )
 
         dist = self.compute_distance(perturbed, original)
 
@@ -240,15 +237,16 @@ class BoundaryAttackPlusPlus(BatchAttack):
             delta = self.select_delta(dist_post_update, step)
 
             # Choose number of evaluations.
-            num_evals = int(min([self.initial_num_evals * np.sqrt(step),
-                                 self.max_num_evals]))
+            num_evals = int(
+                min([self.initial_num_evals * np.sqrt(step), self.max_num_evals])
+            )
 
             # approximate gradient.
-            gradf = yield from self.approximate_gradient(decision_function,
-                                                         perturbed, num_evals,
-                                                         delta)
+            gradf = yield from self.approximate_gradient(
+                decision_function, perturbed, num_evals, delta
+            )
 
-            if self.constraint == 'linf':
+            if self.constraint == "linf":
                 update = np.sign(gradf)
             else:
                 update = gradf
@@ -258,25 +256,27 @@ class BoundaryAttackPlusPlus(BatchAttack):
             # ===========================================================
             # Update, and binary search back to the boundary.
             # ===========================================================
-            if self.stepsize_search == 'geometric_progression':
+            if self.stepsize_search == "geometric_progression":
                 # find step size.
                 epsilon = yield from self.geometric_progression_for_stepsize(
-                    perturbed, update, dist, decision_function, step)
+                    perturbed, update, dist, decision_function, step
+                )
 
                 # Update the sample.
-                perturbed = np.clip(perturbed + epsilon * update, self.clip_min,
-                                    self.clip_max)
+                perturbed = np.clip(
+                    perturbed + epsilon * update, self.clip_min, self.clip_max
+                )
 
                 # Binary search to return to the boundary.
                 perturbed, dist_post_update = yield from self.binary_search_batch(
-                    original, perturbed[None], decision_function)
+                    original, perturbed[None], decision_function
+                )
 
-            elif self.stepsize_search == 'grid_search':
+            elif self.stepsize_search == "grid_search":
                 # Grid search for stepsize.
                 epsilons = np.logspace(-4, 0, num=20, endpoint=True) * dist
                 epsilons_shape = [20] + len(self.shape) * [1]
-                perturbeds = perturbed + epsilons.reshape(
-                    epsilons_shape) * update
+                perturbeds = perturbed + epsilons.reshape(epsilons_shape) * update
                 perturbeds = np.clip(perturbeds, self.clip_min, self.clip_max)
                 idx_perturbed = yield from decision_function(perturbeds)
 
@@ -284,8 +284,8 @@ class BoundaryAttackPlusPlus(BatchAttack):
                     # Select the perturbation that yields the minimum
                     # distance after binary search.
                     perturbed, dist_post_update = yield from self.binary_search_batch(
-                        original, perturbeds[idx_perturbed],
-                        decision_function)
+                        original, perturbeds[idx_perturbed], decision_function
+                    )
             t2 = time.time()
 
             self.time_search += t2 - t1
@@ -297,12 +297,11 @@ class BoundaryAttackPlusPlus(BatchAttack):
             # Log the step
             # ===========================================================
             # Using foolbox definition of distance for logging.
-            if self.constraint == 'l2':
-                distance = dist ** 2 / self.d / \
-                    (self.clip_max - self.clip_min) ** 2
-            elif self.constraint == 'linf':
+            if self.constraint == "l2":
+                distance = dist ** 2 / self.d / (self.clip_max - self.clip_min) ** 2
+            elif self.constraint == "linf":
                 distance = dist / (self.clip_max - self.clip_min)
-            message = ' (took {:.5f} seconds)'.format(t2 - t0)
+            message = " (took {:.5f} seconds)".format(t2 - t0)
             self.log_step(step, distance, message)
             sys.stdout.flush()
 
@@ -323,19 +322,22 @@ class BoundaryAttackPlusPlus(BatchAttack):
 
         if a.perturbed is not None:
             print(
-                'Attack is applied to a previously found adversarial.'
-                ' Continuing search for better adversarials.')
+                "Attack is applied to a previously found adversarial."
+                " Continuing search for better adversarials."
+            )
             if starting_point is not None:  # pragma: no cover
                 warnings.warn(
-                    'Ignoring starting_point parameter because the attack'
-                    ' is applied to a previously found adversarial.')
+                    "Ignoring starting_point parameter because the attack"
+                    " is applied to a previously found adversarial."
+                )
             return
 
         if starting_point is not None:
             yield from a.forward_one(starting_point)
             assert a.perturbed is not None, (
-                'Invalid starting point provided. Please provide a starting '
-                'point that is adversarial.')
+                "Invalid starting point provided. Please provide a starting "
+                "point that is adversarial."
+            )
             return
 
         """
@@ -347,10 +349,12 @@ class BoundaryAttackPlusPlus(BatchAttack):
         num_evals = 0
 
         while True:
-            random_noise = np.random.uniform(self.clip_min, self.clip_max,
-                                             size=self.shape)
+            random_noise = np.random.uniform(
+                self.clip_min, self.clip_max, size=self.shape
+            )
             _, success = yield from a.forward_one(
-                random_noise.astype(self.external_dtype))
+                random_noise.astype(self.external_dtype)
+            )
             num_evals += 1
             if success:
                 break
@@ -363,47 +367,46 @@ class BoundaryAttackPlusPlus(BatchAttack):
         while high - low > 0.001:
             mid = (high + low) / 2.0
             blended = (1 - mid) * a.unperturbed + mid * random_noise
-            _, success = yield from a.forward_one(blended.astype(
-                self.external_dtype))
+            _, success = yield from a.forward_one(blended.astype(self.external_dtype))
             if success:
                 high = mid
             else:
                 low = mid
 
     def compute_distance(self, x1, x2):
-        if self.constraint == 'l2':
+        if self.constraint == "l2":
             return np.linalg.norm(x1 - x2)
-        elif self.constraint == 'linf':
+        elif self.constraint == "linf":
             return np.max(abs(x1 - x2))
 
     def project(self, unperturbed, perturbed_inputs, alphas):
         """ Projection onto given l2 / linf balls in a batch. """
         alphas_shape = [len(alphas)] + [1] * len(self.shape)
         alphas = alphas.reshape(alphas_shape)
-        if self.constraint == 'l2':
-            projected = (1 - alphas) * unperturbed + \
-                alphas * perturbed_inputs
-        elif self.constraint == 'linf':
-            projected = np.clip(perturbed_inputs, unperturbed - alphas,
-                                unperturbed + alphas)
+        if self.constraint == "l2":
+            projected = (1 - alphas) * unperturbed + alphas * perturbed_inputs
+        elif self.constraint == "linf":
+            projected = np.clip(
+                perturbed_inputs, unperturbed - alphas, unperturbed + alphas
+            )
         return projected
 
-    def binary_search_batch(self, unperturbed, perturbed_inputs,
-                            decision_function):
+    def binary_search_batch(self, unperturbed, perturbed_inputs, decision_function):
         """ Binary search to approach the boundary. """
 
         # Compute distance between each of perturbed and unperturbed input.
         dists_post_update = np.array(
-            [self.compute_distance(unperturbed,
-                                   perturbed_x) for perturbed_x in
-             perturbed_inputs])
+            [
+                self.compute_distance(unperturbed, perturbed_x)
+                for perturbed_x in perturbed_inputs
+            ]
+        )
 
         # Choose upper thresholds in binary searchs based on constraint.
-        if self.constraint == 'linf':
+        if self.constraint == "linf":
             highs = dists_post_update
             # Stopping criteria.
-            thresholds = np.minimum(dists_post_update * self.theta,
-                                    self.theta)
+            thresholds = np.minimum(dists_post_update * self.theta, self.theta)
         else:
             highs = np.ones(len(perturbed_inputs))
             thresholds = self.theta
@@ -414,25 +417,20 @@ class BoundaryAttackPlusPlus(BatchAttack):
         while np.max((highs - lows) / thresholds) > 1:
             # projection to mids.
             mids = (highs + lows) / 2.0
-            mid_inputs = self.project(unperturbed, perturbed_inputs,
-                                      mids)
+            mid_inputs = self.project(unperturbed, perturbed_inputs, mids)
 
             # Update highs and lows based on model decisions.
             decisions = yield from decision_function(mid_inputs)
             lows = np.where(decisions == 0, mids, lows)
             highs = np.where(decisions == 1, mids, highs)
 
-        out_inputs = self.project(unperturbed, perturbed_inputs,
-                                  highs)
+        out_inputs = self.project(unperturbed, perturbed_inputs, highs)
 
         # Compute distance of the output to select the best choice.
         # (only used when stepsize_search is grid_search.)
-        dists = np.array([
-            self.compute_distance(
-                unperturbed,
-                out
-            )
-            for out in out_inputs])
+        dists = np.array(
+            [self.compute_distance(unperturbed, out) for out in out_inputs]
+        )
         idx = np.argmin(dists)
 
         dist = dists_post_update[idx]
@@ -447,21 +445,20 @@ class BoundaryAttackPlusPlus(BatchAttack):
         if current_iteration == 1:
             delta = 0.1 * (self.clip_max - self.clip_min)
         else:
-            if self.constraint == 'l2':
+            if self.constraint == "l2":
                 delta = np.sqrt(self.d) * self.theta * dist_post_update
-            elif self.constraint == 'linf':
+            elif self.constraint == "linf":
                 delta = self.d * self.theta * dist_post_update
 
         return delta
 
-    def approximate_gradient(self, decision_function, sample,
-                             num_evals, delta):
+    def approximate_gradient(self, decision_function, sample, num_evals, delta):
         """ Gradient direction estimation """
         # Generate random vectors.
         noise_shape = [num_evals] + list(self.shape)
-        if self.constraint == 'l2':
+        if self.constraint == "l2":
             rv = np.random.randn(*noise_shape)
-        elif self.constraint == 'linf':
+        elif self.constraint == "linf":
             rv = np.random.uniform(low=-1, high=1, size=noise_shape)
 
         axis = tuple(range(1, 1 + len(self.shape)))
@@ -473,8 +470,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
         # query the model.
         decisions = yield from decision_function(perturbed)
         decision_shape = [len(decisions)] + [1] * len(self.shape)
-        fval = 2 * decisions.astype(self.internal_dtype).reshape(
-            decision_shape) - 1.0
+        fval = 2 * decisions.astype(self.internal_dtype).reshape(decision_shape) - 1.0
 
         # Baseline subtraction (when fval differs)
         vals = fval if abs(np.mean(fval)) == 1.0 else fval - np.mean(fval)
@@ -485,17 +481,16 @@ class BoundaryAttackPlusPlus(BatchAttack):
 
         return gradf
 
-    def geometric_progression_for_stepsize(self, x, update, dist,
-                                           decision_function,
-                                           current_iteration):
+    def geometric_progression_for_stepsize(
+        self, x, update, dist, decision_function, current_iteration
+    ):
         """ Geometric progression to search for stepsize.
           Keep decreasing stepsize by half until reaching
           the desired side of the boundary.
         """
         epsilon = dist / np.sqrt(current_iteration)
         while True:
-            updated = np.clip(x + epsilon * update, self.clip_min,
-                              self.clip_max)
+            updated = np.clip(x + epsilon * update, self.clip_min, self.clip_max)
             out = yield from decision_function(updated[None])
             success = out[0]
             if success:
@@ -505,13 +500,10 @@ class BoundaryAttackPlusPlus(BatchAttack):
 
         return epsilon
 
-    def log_step(self, step, distance, message='', always=False):
+    def log_step(self, step, distance, message="", always=False):
         if not always and step % self.log_every_n_steps != 0:
             return
-        print('Step {}: {:.5e} {}'.format(
-            step,
-            distance,
-            message))
+        print("Step {}: {:.5e} {}".format(step, distance, message))
 
     def log_time(self):
         t_total = time.time() - self.t_initial
@@ -519,14 +511,20 @@ class BoundaryAttackPlusPlus(BatchAttack):
         rel_gradient_estimation = self.time_gradient_estimation / t_total
         rel_search = self.time_search / t_total
 
-        self.printv('Time since beginning: {:.5f}'.format(t_total))
-        self.printv('   {:2.1f}% for initialization ({:.5f})'.format(
-            rel_initialization * 100, self.time_initialization))
-        self.printv('   {:2.1f}% for gradient estimation ({:.5f})'.format(
-            rel_gradient_estimation * 100,
-            self.time_gradient_estimation))
-        self.printv('   {:2.1f}% for search ({:.5f})'.format(
-            rel_search * 100, self.time_search))
+        self.printv("Time since beginning: {:.5f}".format(t_total))
+        self.printv(
+            "   {:2.1f}% for initialization ({:.5f})".format(
+                rel_initialization * 100, self.time_initialization
+            )
+        )
+        self.printv(
+            "   {:2.1f}% for gradient estimation ({:.5f})".format(
+                rel_gradient_estimation * 100, self.time_gradient_estimation
+            )
+        )
+        self.printv(
+            "   {:2.1f}% for search ({:.5f})".format(rel_search * 100, self.time_search)
+        )
 
     def printv(self, *args, **kwargs):
         if self.verbose:

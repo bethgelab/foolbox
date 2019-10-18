@@ -37,8 +37,9 @@ def test_attack_notrans(bn_model, bn_criterion, bn_images, bn_labels):
 
 def test_attack_notrans_norot(bn_model, bn_criterion, bn_images, bn_labels):
     attack = Attack(bn_model, bn_criterion)
-    advs = attack(bn_images, bn_labels, unpack=False, do_translations=False,
-                  do_rotations=False)
+    advs = attack(
+        bn_images, bn_labels, unpack=False, do_translations=False, do_rotations=False
+    )
     for adv in advs:
         assert adv.perturbed is None
         assert adv.distance.value == np.inf
