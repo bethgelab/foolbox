@@ -82,6 +82,8 @@
    AdditiveGaussianNoiseAttack
    SaltAndPepperNoiseAttack
    BlendedUniformNoiseAttack
+   BoundaryAttackPlusPlus
+   GenAttack
    HopSkipJumpAttack
 
 

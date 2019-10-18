@@ -28,6 +28,7 @@ from .bapp import BoundaryAttackPlusPlus
 from .inversion import InversionAttack
 from .virtual_adversarial import VirtualAdversarialAttack
 from .inversion import InversionAttack
+from .gen import GenAttack
 
 from .iterative_projected_gradient import (
     LinfinityBasicIterativeAttack,
@@ -36,6 +37,7 @@ from .iterative_projected_gradient import (
 )
 from .iterative_projected_gradient import L1BasicIterativeAttack
 from .iterative_projected_gradient import L2BasicIterativeAttack
+
 from .iterative_projected_gradient import (
     ProjectedGradientDescentAttack,
     ProjectedGradientDescent,
@@ -51,7 +53,6 @@ from .iterative_projected_gradient import (
     MomentumIterativeMethod,
 )
 from .iterative_projected_gradient import SparseL1BasicIterativeAttack
-
 from .iterative_projected_gradient import AdamL1BasicIterativeAttack
 from .iterative_projected_gradient import AdamL2BasicIterativeAttack
 from .iterative_projected_gradient import (
