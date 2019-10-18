@@ -4,10 +4,11 @@ from .base import BatchAttack
 from .gradient import GradientAttack, GradientSignAttack, FGSM
 from .iterative_gradient import IterativeGradientAttack, IterativeGradientSignAttack
 from .deepfool import DeepFoolAttack, DeepFoolL2Attack, DeepFoolLinfinityAttack
+from .sparsefool import SparseFoolAttack
 from .saliency import SaliencyMapAttack
 from .blur import GaussianBlurAttack
 from .contrast import ContrastReductionAttack
-from .localsearch import SinglePixelAttack
+from .localsearch import SinglePixelAttack, LocalSearchAttack
 from .additive_noise import (
     AdditiveNoiseAttack,
     AdditiveUniformNoiseAttack,
@@ -29,6 +30,7 @@ from .inversion import InversionAttack
 from .virtual_adversarial import VirtualAdversarialAttack
 from .inversion import InversionAttack
 from .gen import GenAttack
+from .hop_skip_jump_attack import HopSkipJumpAttack, BoundaryAttackPlusPlus
 
 from .iterative_projected_gradient import (
     LinfinityBasicIterativeAttack,
