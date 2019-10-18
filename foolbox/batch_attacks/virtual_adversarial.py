@@ -56,9 +56,9 @@ class VirtualAdversarialAttack(BatchAttack):
             Largest step size if epsilons is not an iterable.
         """
 
-        assert a.target_class is None, (
-            "Virtual Adversarial is an untargeted adversarial attack."
-        )
+        assert (
+            a.target_class is None
+        ), "Virtual Adversarial is an untargeted adversarial attack."
 
         yield from self._run(
             a, xi=xi, iterations=iterations, epsilons=epsilons, max_epsilon=max_epsilon
@@ -93,8 +93,7 @@ class VirtualAdversarialAttack(BatchAttack):
 
                     # d = dl_dd = dl_dp * dp_dd
                     # use gradient of KL divergence as new search vector
-                    d = yield from a.backward_one(gradient=dl_dp, x=x + d,
-                                                  strict=False)
+                    d = yield from a.backward_one(gradient=dl_dp, x=x + d, strict=False)
                     d = (max_ - min_) * d
 
                     if np.allclose(np.sqrt((d ** 2).sum()), 0, atol=1e-16):
