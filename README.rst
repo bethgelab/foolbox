@@ -29,7 +29,7 @@ Installation
    # Foolbox 1.8
    pip install foolbox
    
-   # Foolbox 2.0 beta
+   # Foolbox 2.0 release candidate
    pip install foolbox --pre
 
 Foolbox requires Python 3.5 or newer (since Foolbox 2.0).
@@ -37,9 +37,8 @@ Foolbox requires Python 3.5 or newer (since Foolbox 2.0).
 Documentation
 -------------
 
-Documentation is available on readthedocs: http://foolbox.readthedocs.io/
-
-For the 2.0 beta, please go to https://foolbox.readthedocs.io/en/latest/
+Documentation for the `latest stable version <https://foolbox.readthedocs.io/>`_ as well as
+`pre-release versions <https://foolbox.readthedocs.io/en/latest/>`_ is available on ReadTheDocs. 
 
 Our paper describing Foolbox is on arXiv: https://arxiv.org/abs/1707.04131
 
@@ -136,16 +135,16 @@ Contributions welcome
 ----------------------
 
 Foolbox is a work in progress and any input is welcome.
-
-In particular, we encourage users of deep learning frameworks for which we do not yet have builtin support, e.g. Caffe, Caffe2 or CNTK, to contribute the necessary wrappers. Don't hestiate to contact us if we can be of any help.
-
-Moreoever, attack developers are encouraged to share their reference implementation using Foolbox so that it will be available to everyone.
+Foolbox is particularly well-suited to develop
+`new adversarial attacks <https://foolbox.readthedocs.io/en/stable/user/development.html#new-adversarial-attacks>`_
+and to support new machine learning and deep learning frameworks by simply adding a wrapper.
+By adding reference implementations for adversarial attacks to Foolbox, they will automatically be applicable
+to models implemented in any of the supported frameworks such as PyTorch, TensorFlow, Keras Or MxNet.
 
 Citation
 --------
 
-If you find Foolbox useful for your scientific work, please consider citing it
-in resulting publications:
+If you use Foolbox for your work, please cite our paper:
 
 .. code-block::
 

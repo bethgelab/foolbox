@@ -4,21 +4,22 @@ Development
 
 To install Foolbox in editable mode, see the installation instructions under :ref:`dev-install`.
 
+.. _development:
+
 Running Tests
 =======================
 
 pytest
 ``````
 
-To run the tests, you need to have `pytest <https://docs.pytest.org/en/latest/getting-started.html>`_ and `pytest-cov <http://pytest-cov.readthedocs.io/en/latest/readme.html#installation>`_ installed. Afterwards, you can simply run ``pytest`` in the root folder of the project. Some tests will require TensorFlow, PyTorch and the other frameworks, so to run all tests, you need to have all of them installed.
+To run the tests, you need to have `pytest <https://docs.pytest.org/en/latest/getting-started.html>`_ and `pytest-cov <http://pytest-cov.readthedocs.io/en/latest/readme.html#installation>`_ installed. Afterwards, you can simply run ``pytest`` in the root folder of the project. Some tests will require TensorFlow, PyTorch and the other frameworks, so to run all tests, you need to have all of them installed. Note however that this can take quite long (Foolbox has many tests) and installing all frameworks with the correct versions is difficult due to conflicting dependencies. You can also open a pull-request and then we will run all the tests using travis.
 
-flake8
-``````
-Foolbox follows the `PEP 8 style guide for Python code <https://www.python.org/dev/peps/pep-0008/>`_. To check for violations, we use `flake8 <http://flake8.pycqa.org/en/latest/>`_ and run it like this:
+Style Guide
+===========
 
-.. code-block:: sh
-
-   flake8 --ignore E402,E741 .
+We use `Black <https://black.readthedocs.io/>`_ to format all code in a consistent and PEP-8 conform way.
+All pull-requests are checked using both ``black`` and ``flake8``. Simply install ``black`` and run ``black .`` after
+all your changes or ideally even on each commit using `pre-commit <https://black.readthedocs.io/en/stable/version_control_integration.html>`_.
 
 New Adversarial Attacks
 =======================
