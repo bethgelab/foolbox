@@ -56,7 +56,7 @@ class VirtualAdversarialAttack(BatchAttack):
             Largest step size if epsilons is not an iterable.
         """
 
-        assert a.target_class() is None, (
+        assert a.target_class is None, (
             "Virtual Adversarial is an " "untargeted adversarial attack."
         )
 

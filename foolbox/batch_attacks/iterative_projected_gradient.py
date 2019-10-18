@@ -40,7 +40,7 @@ class IterativeProjectedGradientBaseAttack(BatchAttack):
 
     def _get_mode_and_class(self, a):
         # determine if the attack is targeted or not
-        target_class = a.target_class()
+        target_class = a.target_class
         targeted = target_class is not None
 
         if targeted:

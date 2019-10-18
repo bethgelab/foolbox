@@ -48,7 +48,7 @@ class NewtonFoolAttack(Attack):
         if not a.has_gradient():
             return
 
-        if a.target_class() is not None:
+        if a.target_class is not None:
             logging.fatal("NewtonFool is an untargeted adversarial attack.")
             return
 

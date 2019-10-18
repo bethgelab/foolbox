@@ -29,7 +29,7 @@ class InversionAttack(BatchAttack):
             If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         """
 
-        assert a.target_class() is None, "This is an untargeted attack by design."
+        assert a.target_class is None, "This is an untargeted attack by design."
 
         min_, max_ = a.bounds()
         x = min_ + max_ - a.unperturbed

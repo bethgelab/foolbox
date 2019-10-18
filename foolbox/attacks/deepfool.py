@@ -62,7 +62,7 @@ class DeepFoolAttack(Attack):
         if not a.has_gradient():
             return
 
-        if a.target_class() is not None:
+        if a.target_class is not None:
             logging.fatal("DeepFool is an untargeted adversarial attack.")
             return
 

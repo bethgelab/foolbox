@@ -90,7 +90,7 @@ class LBFGSAttack(Attack):
 
         original_class = a.original_class
 
-        target_class = a.target_class()
+        target_class = a.target_class
         if target_class is None:
             if num_random_targets == 0 and self._approximate_gradient:
                 num_random_targets = 1
