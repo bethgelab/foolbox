@@ -28,7 +28,7 @@ Installation
 
    # Foolbox 1.8
    pip install foolbox
-   
+
    # Foolbox 2.0 release candidate
    pip install foolbox --pre
 
@@ -38,7 +38,7 @@ Documentation
 -------------
 
 Documentation for the `latest stable version <https://foolbox.readthedocs.io/>`_ as well as
-`pre-release versions <https://foolbox.readthedocs.io/en/latest/>`_ is available on ReadTheDocs. 
+`pre-release versions <https://foolbox.readthedocs.io/en/latest/>`_ is available on ReadTheDocs.
 
 Our paper describing Foolbox is on arXiv: https://arxiv.org/abs/1707.04131
 
@@ -48,24 +48,49 @@ Example
 .. code-block:: python
 
    import foolbox
-   import keras
    import numpy as np
-   from keras.applications.resnet50 import ResNet50
+   import torchvision.models as models
 
-   # instantiate model
-   keras.backend.set_learning_phase(0)
-   kmodel = ResNet50(weights='imagenet')
-   preprocessing = (np.array([104, 116, 123]), 1)
-   fmodel = foolbox.models.KerasModel(kmodel, bounds=(0, 255), preprocessing=preprocessing)
+   # instantiate model (supports PyTorch, Keras, TensorFlow (Graph and Eager), MXNet and many more)
+   model = models.resnet18(pretrained=True).eval()
+   preprocessing = dict(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], axis=-3)
+   fmodel = foolbox.models.PyTorchModel(model, bounds=(0, 1), num_classes=1000, preprocessing=preprocessing)
 
-   # get source image and label
-   image, label = foolbox.utils.imagenet_example()
+   # get a batch of images and labels and print the accuracy
+   images, labels = foolbox.utils.samples(dataset='imagenet', batchsize=16, data_format='channels_first', bounds=(0, 1))
+   print(np.mean(fmodel.forward(images).argmax(axis=-1) == labels))
 
-   # apply attack on source image
-   # ::-1 reverses the color channels, because Keras ResNet50 expects BGR instead of RGB
-   attack = foolbox.attacks.FGSM(fmodel)
-   adversarial = attack(image[:, :, ::-1], label)
-   # if the attack fails, adversarial will be None and a warning will be printed
+   # apply the attack
+   attack = foolbox.batch_attacks.FGSM(fmodel)
+   adversarials = attack(images, labels)
+   # if the i'th image is misclassfied without a perturbation, then adversarials[i] will be the same as images[i]
+   # if the attack fails to find an adversarial for the i'th image, then adversarials[i] will all be np.nan
+
+   # Foolbox guarantees that all returned adversarials are in fact in adversarials
+   print(np.mean(fmodel.forward(adversarials).argmax(axis=-1) == labels))  # will be 0.0
+
+
+.. code-block:: python
+
+   # In rare cases, it can happen that attacks return adversarials that are so close to the decision boundary,
+   # that they actually might end up on the other (correct) side if you pass them through the model again like
+   # above to get the adversarial class. This is because models are not numerically deterministic (on GPU, some
+   # operations such as `sum` are non-deterministic by default) and indepedent between samples (an input might
+   # be classified differently depending on the other inputs in the same batch).
+
+   # You can always get the actual adversarial class that was observed for that sample by Foolbox by
+   # passing `unpack=False` to get the actual `Adversarial` objects:
+   adversarials = attack(images, labels, unpack=False)
+
+   adversarial_classes = np.asarray([a.adversarial_class for a in adversarials])
+   print(labels)
+   print(adversarial_classes)
+   print(np.mean(adversarial_classes == labels))  # will always be 0.0
+
+   # The `Adversarial` objects also provide a `distance` attribute. Note that the distances
+   # can be 0 (misclassified without perturbation) and inf (attack failed).
+   distances = np.asarray([a.distance.value for a in adversarials])
+   print("{:.1e}, {:.1e}, {:.1e}".format(distances.min(), np.median(distances), distances.max()))
 
 For more examples, have a look at the `documentation <https://foolbox.readthedocs.io/en/latest/user/examples.html>`__.
 
@@ -78,21 +103,26 @@ Finally, the result can be plotted like this:
 
    import matplotlib.pyplot as plt
 
+   image = images[0].transpose(1, 2, 0)
+   adversarial = adversarials[0].transpose(1, 2, 0)
+   # or the following if the attack was run with `unpack=False`
+   adversarial = adversarials[0].input.transpose(1, 2, 0)
+
    plt.figure()
 
    plt.subplot(1, 3, 1)
    plt.title('Original')
-   plt.imshow(image / 255)  # division by 255 to convert [0, 255] to [0, 1]
+   plt.imshow(image)
    plt.axis('off')
 
    plt.subplot(1, 3, 2)
    plt.title('Adversarial')
-   plt.imshow(adversarial[:, :, ::-1] / 255)  # ::-1 to convert BGR to RGB
+   plt.imshow(adversarial)
    plt.axis('off')
 
    plt.subplot(1, 3, 3)
    plt.title('Difference')
-   difference = adversarial[:, :, ::-1] - image
+   difference = adversarial - image
    plt.imshow(difference / abs(difference).max() * 0.2 + 0.5)
    plt.axis('off')
 
@@ -111,7 +141,7 @@ PyTorch, Theano, Lasagne and MXNet are available, e.g.
    model = foolbox.models.PyTorchModel(torchmodel, bounds=(0, 255), num_classes=1000)
    # etc.
 
-Different adversarial criteria such as Top-k, specific target classes or target probability 
+Different adversarial criteria such as Top-k, specific target classes or target probability
 values for the original class or the target class can be passed to the attack, e.g.
 
 .. code-block:: python
