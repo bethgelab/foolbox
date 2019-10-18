@@ -17,5 +17,8 @@ exclude = '''
 
   # specific to Foolbox
   | foolbox/tests/data/model_repo
+  | worktrees
+  | wip
+  | .pytest_cache
 )/
 '''
