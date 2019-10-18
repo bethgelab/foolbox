@@ -23,6 +23,7 @@ setup(
     version=version,
     description="Python toolbox to create adversarial examples that fool neural networks",
     long_description=README,
+    long_description_content_type="text/x-rst",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
