@@ -32,7 +32,7 @@ class IterativeProjectedGradientBaseAttack(Attack):
         raise NotImplementedError
 
     @abstractmethod
-    def _create_optimizer(self, a):
+    def _create_optimizer(self, a, stepsize):
         raise NotImplementedError
 
     @abstractmethod
