@@ -24,7 +24,6 @@ from .spatial import SpatialAttack
 from .carlini_wagner import CarliniWagnerL2Attack
 from .ead import EADAttack
 from .decoupled_direction_norm import DecoupledDirectionNormL2Attack
-from .bapp import BoundaryAttackPlusPlus
 from .inversion import InversionAttack
 from .virtual_adversarial import VirtualAdversarialAttack
 from .inversion import InversionAttack

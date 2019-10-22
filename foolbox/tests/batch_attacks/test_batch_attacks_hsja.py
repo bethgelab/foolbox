@@ -13,6 +13,15 @@ def test_attack(bn_model, bn_criterion, bn_images, bn_labels):
         assert adv.distance.value < np.inf
 
 
+def test_attack_stepsize_gridsearch(bn_model, bn_criterion, bn_images, bn_labels):
+    attack = HopSkipJumpAttack(bn_model, bn_criterion)
+    advs = attack(bn_images, bn_labels, unpack=False, iterations=20, verbose=True,
+                  stepsize_search='grid_search')
+    for adv in advs:
+        assert adv.perturbed is not None
+        assert adv.distance.value < np.inf
+
+
 def test_attack_linf(bn_model, bn_criterion, bn_images, bn_labels):
     attack = HopSkipJumpAttack(bn_model, bn_criterion, distance=Linf)
     advs = attack(bn_images, bn_labels, iterations=20, verbose=True, unpack=False)
