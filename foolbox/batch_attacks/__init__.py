@@ -31,7 +31,6 @@ from .inversion import InversionAttack
 from .binarization import BinarizationRefinementAttack
 from .gen import GenAttack
 from .hop_skip_jump_attack import HopSkipJumpAttack, BoundaryAttackPlusPlus
-
 from .iterative_projected_gradient import (
     LinfinityBasicIterativeAttack,
     BasicIterativeMethod,
