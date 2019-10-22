@@ -26,7 +26,7 @@ from foolbox.criteria import OriginalClassProbability
 from foolbox.models import TensorFlowModel
 from foolbox.models import PyTorchModel
 
-# from foolbox.models import CaffeModel
+from foolbox.models import CaffeModel
 from foolbox.models import ModelWithoutGradients
 from foolbox.models import ModelWithEstimatedGradients
 from foolbox import Adversarial

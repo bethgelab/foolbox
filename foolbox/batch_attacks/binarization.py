@@ -1,6 +1,5 @@
 import logging
 import warnings
-from collections import Iterable
 
 import numpy as np
 
