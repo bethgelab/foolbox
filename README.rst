@@ -34,7 +34,7 @@ Foolbox 2.0 requires Python 3.5 or newer.
 Documentation
 -------------
 
-Documentation for the `latest stable version <https://foolbox.readthedocs.io/>`_ as well as
+Documentation for the `latest stable version <https://foolbox.readthedocs.io/en/stable/>`_ as well as
 `pre-release versions <https://foolbox.readthedocs.io/en/latest/>`_ is available on ReadTheDocs.
 
 Our paper describing Foolbox is on arXiv: https://arxiv.org/abs/1707.04131
