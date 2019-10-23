@@ -11,7 +11,7 @@ from . import models  # noqa: F401
 from . import criteria  # noqa: F401
 from . import distances  # noqa: F401
 from . import attacks  # noqa: F401
-from . import batch_attacks  # noqa: F401
+from . import attacks_v1  # noqa: F401
 from . import utils  # noqa: F401
 from . import gradient_estimators  # noqa: F401
 
