@@ -41,6 +41,7 @@ The source code and a `minimal working example`_ can be found on `GitHub`_.
    modules/attacks
    modules/adversarial
    modules/utils
+   modules/v1_attacks
 
 Indices and tables
 ==================
