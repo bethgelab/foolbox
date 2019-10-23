@@ -1,16 +1,15 @@
-import numpy as np
-
 from .base import Attack
-from .base import call_decorator
-from ..utils import softmax
+from .base import generator_decorator
+import numpy as np
 from .. import nprng
+from ..utils import softmax
 
 
 class SinglePixelAttack(Attack):
     """Perturbs just a single pixel and sets it to the min or max."""
 
-    @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True, max_pixels=1000):
+    @generator_decorator
+    def as_generator(self, a, max_pixels=1000):
 
         """Perturbs just a single pixel and sets it to the min or max.
 
@@ -31,11 +30,6 @@ class SinglePixelAttack(Attack):
             Maximum number of pixels to try.
 
         """
-
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
 
         channel_axis = a.channel_axis(batch=False)
         axes = [i for i in range(a.unperturbed.ndim) if i != channel_axis]
@@ -59,7 +53,7 @@ class SinglePixelAttack(Attack):
                 perturbed = a.unperturbed.copy()
                 perturbed[location] = value
 
-                _, is_adv = a.forward_one(perturbed)
+                _, is_adv = yield from a.forward_one(perturbed)
                 if is_adv:
                     return
 
@@ -77,10 +71,8 @@ class LocalSearchAttack(Attack):
 
     """
 
-    @call_decorator
-    def __call__(
-        self, input_or_adv, label=None, unpack=True, r=1.5, p=10.0, d=5, t=5, R=150
-    ):
+    @generator_decorator
+    def as_generator(self, a, r=1.5, p=10.0, d=5, t=5, R=150):
 
         """A black-box attack based on the idea of greedy local search.
 
@@ -112,13 +104,8 @@ class LocalSearchAttack(Attack):
 
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         # TODO: incorporate the modifications mentioned in the manuscript
-        # under "Implementing Algorithm LocSearchAdv"
+        #   under "Implementing Algorithm LocSearchAdv"
 
         assert 0 <= r <= 2
 
@@ -194,11 +181,11 @@ class LocalSearchAttack(Attack):
             def score(Its):
                 Its = np.stack(Its)
                 Its = unnormalize(Its)
-                batch_logits, _ = a.forward(Its, strict=False)
+                batch_logits, _ = yield from a.forward(Its, strict=False)
                 scores = [softmax(logits)[cI] for logits in batch_logits]
                 return scores
 
-            scores = score(L)
+            scores = yield from score(L)
 
             indices = np.argsort(scores)[:t]
 
@@ -213,7 +200,7 @@ class LocalSearchAttack(Attack):
                     Ii[location] = cyclic(r, Ii[location])
 
             # Check whether the perturbed input Ii is an adversarial input
-            _, is_adv = a.forward_one(unnormalize(Ii))
+            _, is_adv = yield from a.forward_one(unnormalize(Ii))
             if is_adv:  # pragma: no cover
                 return
 

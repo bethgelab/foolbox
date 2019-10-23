@@ -2,14 +2,14 @@ import numpy as np
 from collections import Iterable
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 
 
 class ContrastReductionAttack(Attack):
     """Reduces the contrast of the input until it is misclassified."""
 
-    @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True, epsilons=1000):
+    @generator_decorator
+    def as_generator(self, a, epsilons=1000):
 
         """Reduces the contrast of the input until it is misclassified.
 
@@ -32,11 +32,6 @@ class ContrastReductionAttack(Attack):
 
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         x = a.unperturbed
         min_, max_ = a.bounds()
         target = (max_ + min_) / 2
@@ -47,6 +42,6 @@ class ContrastReductionAttack(Attack):
         for epsilon in epsilons:
             perturbed = (1 - epsilon) * x + epsilon * target
 
-            _, is_adversarial = a.forward_one(perturbed)
+            _, is_adversarial = yield from a.forward_one(perturbed)
             if is_adversarial:
                 return

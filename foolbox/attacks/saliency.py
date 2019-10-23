@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 from .gradient import GradientAttack
 from .. import rng
 
@@ -21,12 +21,10 @@ class SaliencyMapAttack(Attack):
 
     """
 
-    @call_decorator
-    def __call__(
+    @generator_decorator
+    def as_generator(
         self,
-        input_or_adv,
-        label=None,
-        unpack=True,
+        a,
         max_iter=2000,
         num_random_targets=0,
         fast=True,
@@ -58,10 +56,6 @@ class SaliencyMapAttack(Attack):
             Maximum number of times a pixel can be modified.
 
         """
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
 
         # TODO: the original algorithm works on pixels across channels!
 
@@ -71,24 +65,24 @@ class SaliencyMapAttack(Attack):
         if target_class is None:
             if num_random_targets == 0:
                 gradient_attack = GradientAttack()
-                gradient_attack(a)
-                adv_img = a.perturbed
+                adv_grad = yield from gradient_attack.as_generator(a)
+                adv_img = adv_grad.perturbed
                 if adv_img is None:  # pragma: no coverage
                     # using GradientAttack did not work,
                     # falling back to random target
                     num_random_targets = 1
                     logging.info(
-                        "Using GradientAttack to determine a target class failed,"
-                        " falling back to a random target class"
+                        "Using GradientAttack to determine a target "
+                        "class failed, falling back to a random target "
+                        "class"
                     )
                 else:
-                    logits, _ = a.forward_one(adv_img)
+                    logits, _ = yield from a.forward_one(adv_img)
                     target_class = np.argmax(logits)
                     target_classes = [target_class]
                     logging.info(
-                        "Determined a target class using the GradientAttack: {}".format(
-                            target_class
-                        )
+                        "Determined a target class using the "
+                        "GradientAttack: {}".format(target_class)
                     )
             else:  # pragma: no coverage
                 num_random_targets = 1
@@ -139,12 +133,12 @@ class SaliencyMapAttack(Attack):
 
             # TODO: stop if mask is all zero
             for step in range(max_iter):
-                _, is_adversarial = a.forward_one(perturbed)
+                _, is_adversarial = yield from a.forward_one(perturbed)
                 if is_adversarial:
                     return
 
                 # get pixel location with highest influence on class
-                idx, p_sign = self._saliency_map(
+                idx, p_sign = yield from self._saliency_map(
                     a, perturbed, target, labels, mask, fast=fast
                 )
 
@@ -170,16 +164,20 @@ class SaliencyMapAttack(Attack):
         """
 
         # pixel influence on target class
-        alphas = a.gradient_one(x, target) * mask
+        alphas = yield from a.gradient_one(x, target)
+        alphas *= mask
 
         # pixel influence on sum of residual classes
         # (don't evaluate if fast == True)
         if fast:
             betas = -np.ones_like(alphas)
         else:
-            betas = np.sum(
-                [a.gradient_one(x, label) * mask - alphas for label in labels], 0
-            )
+            betas = []
+            for label in labels:
+                beta = yield from a.gradient_one(x, label)
+                beta *= mask - alphas
+                betas.append(beta)
+            betas = np.sum(betas)
 
         # compute saliency map
         # (take into account both pos. & neg. perturbations)

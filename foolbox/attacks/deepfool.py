@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 from ..utils import crossentropy
 from ..distances import MeanSquaredDistance
 from ..distances import Linfinity
@@ -23,10 +23,8 @@ class DeepFoolAttack(Attack):
 
     """
 
-    @call_decorator
-    def __call__(
-        self, input_or_adv, label=None, unpack=True, steps=100, subsample=10, p=None
-    ):
+    @generator_decorator
+    def as_generator(self, a, steps=100, subsample=10, p=None):
 
         """Simple and close to optimal gradient-based
         adversarial attack.
@@ -54,12 +52,11 @@ class DeepFoolAttack(Attack):
 
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         if not a.has_gradient():
+            logging.fatal(
+                "Applied gradient-based attack to model that "
+                "does not provide gradients."
+            )
             return
 
         if a.target_class is not None:
@@ -89,7 +86,7 @@ class DeepFoolAttack(Attack):
         _label = a.original_class
 
         # define labels
-        logits, _ = a.forward_one(a.unperturbed)
+        logits, _ = yield from a.forward_one(a.unperturbed)
         labels = np.argsort(logits)[::-1]
         if subsample:
             # choose the top-k classes
@@ -105,7 +102,7 @@ class DeepFoolAttack(Attack):
         min_, max_ = a.bounds()
 
         for step in range(steps):
-            logits, grad, is_adv = a.forward_and_gradient_one(perturbed)
+            logits, grad, is_adv = yield from a.forward_and_gradient_one(perturbed)
             if is_adv:
                 return
 
@@ -123,7 +120,10 @@ class DeepFoolAttack(Attack):
             # and expect that the deep learning frameworks also use such a
             # stable implemenation to calculate the gradient
             losses = [-crossentropy(logits=logits, label=k) for k in residual_labels]
-            grads = [a.gradient_one(perturbed, label=k) for k in residual_labels]
+            grads = []
+            for k in residual_labels:
+                g = yield from a.gradient_one(perturbed, label=k)
+                grads.append(g)
 
             # compute optimal direction (and loss difference)
             # pairwise between each label and the target
@@ -157,28 +157,20 @@ class DeepFoolAttack(Attack):
             perturbed = perturbed + 1.05 * perturbation
             perturbed = np.clip(perturbed, min_, max_)
 
-        a.forward_one(perturbed)  # to find an adversarial in the last step
+        yield from a.forward_one(perturbed)  # to find an adversarial in the last step
 
 
 class DeepFoolL2Attack(DeepFoolAttack):
-    def __call__(self, input_or_adv, label=None, unpack=True, steps=100, subsample=10):
-        return super(DeepFoolL2Attack, self).__call__(
-            input_or_adv,
-            label=label,
-            unpack=unpack,
-            steps=steps,
-            subsample=subsample,
-            p=2,
+    @generator_decorator
+    def as_generator(self, a, steps=100, subsample=10):
+        yield from super(DeepFoolL2Attack, self).as_generator(
+            a, steps=steps, subsample=subsample, p=2
         )
 
 
 class DeepFoolLinfinityAttack(DeepFoolAttack):
-    def __call__(self, input_or_adv, label=None, unpack=True, steps=100, subsample=10):
-        return super(DeepFoolLinfinityAttack, self).__call__(
-            input_or_adv,
-            label=label,
-            unpack=unpack,
-            steps=steps,
-            subsample=subsample,
-            p=np.inf,
+    @generator_decorator
+    def as_generator(self, a, steps=100, subsample=10):
+        yield from super(DeepFoolLinfinityAttack, self).as_generator(
+            a, steps=steps, subsample=subsample, p=np.inf
         )

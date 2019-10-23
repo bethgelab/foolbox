@@ -4,7 +4,7 @@ from scipy.ndimage import rotate, shift
 import operator
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 from .. import nprng
 
 
@@ -22,12 +22,10 @@ class SpatialAttack(Attack):
            http://arxiv.org/abs/1712.02779
     """
 
-    @call_decorator
-    def __call__(
+    @generator_decorator
+    def as_generator(
         self,
-        input_or_adv,
-        label=None,
-        unpack=True,
+        a,
         do_rotations=True,
         do_translations=True,
         x_shift_limits=(-5, 5),
@@ -73,11 +71,6 @@ class SpatialAttack(Attack):
         abort_early : bool
             If True, the attack stops as soon as it finds an adversarial.
         """
-
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
 
         min_, max_ = a.bounds()
         channel_axis = a.channel_axis(batch=False)
@@ -135,7 +128,7 @@ class SpatialAttack(Attack):
             x = np.clip(x, min_, max_)
 
             # test image
-            _, is_adv = a.forward_one(x)
+            _, is_adv = yield from a.forward_one(x)
 
             if abort_early and is_adv:
                 break

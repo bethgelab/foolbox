@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import itertools
 from .distances import MSE
-from .yielding_adversarial import YieldingAdversarial
+from .adversarial import Adversarial
 
 
 def run_sequential(
@@ -104,7 +104,7 @@ def run_sequential(
             individual_kwargs[i] = {**kwargs, **individual_kwargs[i]}
 
     advs = [
-        YieldingAdversarial(
+        Adversarial(
             model,
             _criterion,
             x,
@@ -241,7 +241,7 @@ def run_parallel(  # noqa: C901
             individual_kwargs[i] = {**kwargs, **individual_kwargs[i]}
 
     advs = [
-        YieldingAdversarial(
+        Adversarial(
             model,
             _criterion,
             x,

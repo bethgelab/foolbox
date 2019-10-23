@@ -5,7 +5,7 @@ from collections import Iterable
 import numpy as np
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 from .. import nprng
 
 
@@ -14,10 +14,8 @@ class BlendedUniformNoiseAttack(Attack):
 
     """
 
-    @call_decorator
-    def __call__(
-        self, input_or_adv, label=None, unpack=True, epsilons=1000, max_directions=1000
-    ):
+    @generator_decorator
+    def as_generator(self, a, epsilons=1000, max_directions=1000):
 
         """Blends the input with a uniform noise input until it is misclassified.
 
@@ -41,11 +39,6 @@ class BlendedUniformNoiseAttack(Attack):
 
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         x = a.unperturbed
         min_, max_ = a.bounds()
 
@@ -60,7 +53,7 @@ class BlendedUniformNoiseAttack(Attack):
             # so we might need to make very many draws if the original class
             # is that one
             random = nprng.uniform(min_, max_, size=x.shape).astype(x.dtype)
-            _, is_adversarial = a.forward_one(random)
+            _, is_adversarial = yield from a.forward_one(random)
             if is_adversarial:
                 logging.info(
                     "Found adversarial input after {} " "attempts".format(j + 1)
@@ -83,6 +76,6 @@ class BlendedUniformNoiseAttack(Attack):
             if not a.in_bounds(perturbed):  # pragma: no cover
                 np.clip(perturbed, min_, max_, out=perturbed)
 
-            _, is_adversarial = a.forward_one(perturbed)
+            _, is_adversarial = yield from a.forward_one(perturbed)
             if is_adversarial:
                 return

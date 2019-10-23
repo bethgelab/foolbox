@@ -1,7 +1,7 @@
 import logging
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 from ..utils import softmax
 
 import numpy as np
@@ -19,8 +19,8 @@ class NewtonFoolAttack(Attack):
            https://dl.acm.org/citation.cfm?id=3134635
    """
 
-    @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True, max_iter=100, eta=0.01):
+    @generator_decorator
+    def as_generator(self, a, max_iter=100, eta=0.01):
         """
         Parameters
         ----------
@@ -40,12 +40,12 @@ class NewtonFoolAttack(Attack):
             the eta coefficient
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         if not a.has_gradient():
+            logging.fatal(
+                "Applied gradient-based attack to model that "
+                "does not provide gradients."
+            )
+
             return
 
         if a.target_class is not None:
@@ -59,7 +59,9 @@ class NewtonFoolAttack(Attack):
         for i in range(max_iter):
 
             # (1) get the score and gradients
-            logits, gradients, is_adversarial = a.forward_and_gradient_one(perturbed)
+            logits, gradients, is_adversarial = yield from a.forward_and_gradient_one(
+                perturbed
+            )
 
             if is_adversarial:
                 return

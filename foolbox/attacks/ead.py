@@ -2,7 +2,7 @@ import numpy as np
 import logging
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 from ..utils import onehot_like
 
 
@@ -24,12 +24,10 @@ class EADAttack(Attack):
            https://github.com/ysharma1126/EAD_Attack/blob/master/en_attack.py
     """
 
-    @call_decorator
-    def __call__(
+    @generator_decorator
+    def as_generator(
         self,
-        input_or_adv,
-        label=None,
-        unpack=True,
+        a,
         binary_search_steps=5,
         max_iterations=1000,
         confidence=0,
@@ -39,20 +37,16 @@ class EADAttack(Attack):
         abort_early=True,
     ):
 
-        """Gradient based attack which sues an elastic-net regularization.
+        """The L2 version of the Carlini & Wagner attack.
 
         Parameters
         ----------
-        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, unperturbed input as a `numpy.ndarray` or
-            an :class:`Adversarial` instance.
-        label : int
-            The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
-            an :class:`Adversarial` instance.
+        inputs : `numpy.ndarray`
+            Batch of inputs with shape as expected by the underlying model.
+        labels : `numpy.ndarray`
+            Class labels of the inputs as a vector of integers in [0, number of classes).
         unpack : bool
-            If true, returns the adversarial input, otherwise returns
-            the Adversarial object.
+            If true, returns the adversarial inputs as an array, otherwise returns Adversarial objects.
         binary_search_steps : int
             The number of steps for the binary search used to
             find the optimal tradeoff-constant between distance and confidence.
@@ -80,11 +74,6 @@ class EADAttack(Attack):
             for some time (a tenth of max_iterations).
 
         """
-
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
 
         if not a.has_gradient():
             logging.fatal(
@@ -133,8 +122,8 @@ class EADAttack(Attack):
                 # store x from previous iteration (k-1) as x^(k-1)
                 x_prev = x.copy()
 
-                logits, is_adv = a.forward_one(y)
-                loss, gradient = self.loss_function(
+                logits, is_adv = yield from a.forward_one(y)
+                loss, gradient = yield from self.loss_function(
                     const, a, y, logits, att_original, confidence, min_, max_
                 )
 
@@ -187,7 +176,9 @@ class EADAttack(Attack):
                 const = (lower_bound + upper_bound) / 2
 
     @classmethod
-    def loss_function(cls, const, a, x, logits, original, confidence, min_, max_):
+    def loss_function(
+        cls, const, a, x, logits, reconstructed_original, confidence, min_, max_
+    ):
         """Returns the loss and the gradient of the loss w.r.t. x,
         assuming that logits = model(x)."""
 
@@ -207,20 +198,19 @@ class EADAttack(Attack):
         is_adv_loss = max(0, is_adv_loss)
 
         s = max_ - min_
-        squared_l2_distance = np.sum((x - original) ** 2) / s ** 2
-
+        squared_l2_distance = np.sum((x - reconstructed_original) ** 2) / s ** 2
         total_loss = squared_l2_distance + const * is_adv_loss
 
         # calculate the gradient of total_loss w.r.t. x
         logits_diff_grad = np.zeros_like(logits)
         logits_diff_grad[c_minimize] = 1
         logits_diff_grad[c_maximize] = -1
-        is_adv_loss_grad = a.backward_one(logits_diff_grad, x)
+        is_adv_loss_grad = yield from a.backward_one(logits_diff_grad, x)
         assert is_adv_loss >= 0
         if is_adv_loss == 0:
             is_adv_loss_grad = 0
 
-        squared_l2_distance_grad = (2 / s ** 2) * (x - original)
+        squared_l2_distance_grad = (2 / s ** 2) * (x - reconstructed_original)
 
         total_loss_grad = squared_l2_distance_grad + const * is_adv_loss_grad
         return total_loss, total_loss_grad
@@ -246,3 +236,6 @@ class EADAttack(Attack):
         is passed as `exclude`."""
         other_logits = logits - onehot_like(logits, exclude, value=np.inf)
         return np.argmax(other_logits)
+
+
+EADAttack.__call__.__doc__ = EADAttack.as_generator.__doc__

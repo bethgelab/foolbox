@@ -2,7 +2,7 @@ import warnings
 import logging
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 from .saltandpepper import SaltAndPepperNoiseAttack
 from .. import rng
 
@@ -20,15 +20,8 @@ class PointwiseAttack(Attack):
 
     """
 
-    @call_decorator
-    def __call__(
-        self,
-        input_or_adv,
-        label=None,
-        unpack=True,
-        starting_point=None,
-        initialization_attack=None,
-    ):
+    @generator_decorator
+    def as_generator(self, a, starting_point=None, initialization_attack=None):
 
         """Starts with an adversarial and performs a binary search between
         the adversarial and the original for each dimension of the input
@@ -55,14 +48,9 @@ class PointwiseAttack(Attack):
 
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
         self._starting_point = starting_point
         self._initialization_attack = initialization_attack
-        self.initialize_starting_point(a)
+        yield from self.initialize_starting_point(a)
 
         if a.perturbed is None:
             warnings.warn(
@@ -94,7 +82,7 @@ class PointwiseAttack(Attack):
                 x[index] = new_value
 
                 # check if still adversarial
-                _, is_adversarial = a.forward_one(x.reshape(shape))
+                _, is_adversarial = yield from a.forward_one(x.reshape(shape))
 
                 # if adversarial, restart from there
                 if is_adversarial:
@@ -107,7 +95,7 @@ class PointwiseAttack(Attack):
                 # if not, undo change
                 x[index] = old_value
             else:
-                # no index was succesful
+                # no index was successful
                 break
 
         logging.info("Starting binary searches")
@@ -131,7 +119,7 @@ class PointwiseAttack(Attack):
                 x[index] = original_value
 
                 # check if still adversarial
-                _, is_adversarial = a.forward_one(x.reshape(shape))
+                _, is_adversarial = yield from a.forward_one(x.reshape(shape))
 
                 # if adversarial, no binary search needed
                 if is_adversarial:  # pragma: no cover
@@ -144,7 +132,7 @@ class PointwiseAttack(Attack):
                     # binary search
                     adv_value = old_value
                     non_adv_value = original_value
-                    best_adv_value = self.binary_search(
+                    best_adv_value = yield from self.binary_search(
                         a, x, index, adv_value, non_adv_value, shape
                     )
 
@@ -171,7 +159,7 @@ class PointwiseAttack(Attack):
         for i in range(10):
             next_value = (adv_value + non_adv_value) / 2
             x[index] = next_value
-            _, is_adversarial = a.forward_one(x.reshape(shape))
+            _, is_adversarial = yield from a.forward_one(x.reshape(shape))
             if is_adversarial:
                 adv_value = next_value
             else:
@@ -196,10 +184,11 @@ class PointwiseAttack(Attack):
             return
 
         if starting_point is not None:
-            a.forward_one(starting_point)
-            assert (
-                a.perturbed is not None
-            ), "Invalid starting point provided. Please provide a starting point that is adversarial."
+            yield from a.forward_one(starting_point)
+            assert a.perturbed is not None, (
+                "Invalid starting point provided. Please provide a starting "
+                "point that is adversarial."
+            )
             return
 
         if init_attack is None:
@@ -213,4 +202,4 @@ class PointwiseAttack(Attack):
             # instantiate if necessary
             init_attack = init_attack()
 
-        init_attack(a)
+        yield from init_attack.as_generator(a)

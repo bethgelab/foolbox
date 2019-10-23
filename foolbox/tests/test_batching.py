@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from foolbox.batch_attacks import GradientAttack as Attack
+from foolbox.attacks import GradientAttack as Attack
 
 from foolbox import run_parallel
 from foolbox import run_sequential

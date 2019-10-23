@@ -3,12 +3,13 @@ import time
 import sys
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 from ..distances import MSE, Linf
 from ..criteria import Misclassification
 import numpy as np
 import math
 from warnings import warn
+import logging
 
 
 class HopSkipJumpAttack(Attack):
@@ -38,12 +39,10 @@ class HopSkipJumpAttack(Attack):
 
     """
 
-    @call_decorator
-    def __call__(
+    @generator_decorator
+    def as_generator(
         self,
-        input_or_adv,
-        label=None,
-        unpack=True,
+        a,
         iterations=64,
         initial_num_evals=100,
         max_num_evals=10000,
@@ -121,18 +120,20 @@ class HopSkipJumpAttack(Attack):
             self.constraint = "linf"
 
         # Set binary search threshold.
-        self.shape = input_or_adv.unperturbed.shape
+        self.shape = a.unperturbed.shape
         self.d = np.prod(self.shape)
         if self.constraint == "l2":
             self.theta = self.gamma / (np.sqrt(self.d) * self.d)
         else:
             self.theta = self.gamma / (self.d * self.d)
-        print("HopSkipJumpAttack optimized for {} distance".format(self.constraint))
+        logging.info(
+            "HopSkipJumpAttack optimized for {} distance".format(self.constraint)
+        )
 
         if not verbose:
-            print("run with verbose=True to see details")
+            logging.info("run with verbose=True to see details")
 
-        return self.attack(input_or_adv, iterations=iterations)
+        yield from self.attack(a, iterations=iterations)
 
     def attack(self, a, iterations):
         """
@@ -167,7 +168,7 @@ class HopSkipJumpAttack(Attack):
             for j in range(num_batchs):
                 current_batch = x[self.batch_size * j : self.batch_size * (j + 1)]
                 current_batch = current_batch.astype(self.external_dtype)
-                out = a.forward(current_batch, strict=False)[1]
+                _, out = yield from a.forward(current_batch, strict=False)
                 outs.append(out)
             outs = np.concatenate(outs, axis=0)
             return outs
@@ -196,7 +197,7 @@ class HopSkipJumpAttack(Attack):
         # Find starting point
         # ===========================================================
 
-        self.initialize_starting_point(a)
+        yield from self.initialize_starting_point(a)
 
         if a.perturbed is None:
             warnings.warn(
@@ -219,7 +220,7 @@ class HopSkipJumpAttack(Attack):
         t0 = time.time()
 
         # Project the initialization to the boundary.
-        perturbed, dist_post_update = self.binary_search_batch(
+        perturbed, dist_post_update = yield from self.binary_search_batch(
             original, np.expand_dims(perturbed, 0), decision_function
         )
 
@@ -247,7 +248,7 @@ class HopSkipJumpAttack(Attack):
             )
 
             # approximate gradient.
-            gradf = self.approximate_gradient(
+            gradf = yield from self.approximate_gradient(
                 decision_function, perturbed, num_evals, delta
             )
 
@@ -263,7 +264,7 @@ class HopSkipJumpAttack(Attack):
             # ===========================================================
             if self.stepsize_search == "geometric_progression":
                 # find step size.
-                epsilon = self.geometric_progression_for_stepsize(
+                epsilon = yield from self.geometric_progression_for_stepsize(
                     perturbed, update, dist, decision_function, step
                 )
 
@@ -273,7 +274,7 @@ class HopSkipJumpAttack(Attack):
                 )
 
                 # Binary search to return to the boundary.
-                perturbed, dist_post_update = self.binary_search_batch(
+                perturbed, dist_post_update = yield from self.binary_search_batch(
                     original, perturbed[None], decision_function
                 )
 
@@ -283,12 +284,12 @@ class HopSkipJumpAttack(Attack):
                 epsilons_shape = [20] + len(self.shape) * [1]
                 perturbeds = perturbed + epsilons.reshape(epsilons_shape) * update
                 perturbeds = np.clip(perturbeds, self.clip_min, self.clip_max)
-                idx_perturbed = decision_function(perturbeds)
+                idx_perturbed = yield from decision_function(perturbeds)
 
                 if np.sum(idx_perturbed) > 0:
                     # Select the perturbation that yields the minimum
                     # distance after binary search.
-                    perturbed, dist_post_update = self.binary_search_batch(
+                    perturbed, dist_post_update = yield from self.binary_search_batch(
                         original, perturbeds[idx_perturbed], decision_function
                     )
             t2 = time.time()
@@ -338,7 +339,7 @@ class HopSkipJumpAttack(Attack):
             return
 
         if starting_point is not None:
-            a.forward_one(starting_point)
+            yield from a.forward_one(starting_point)
             assert (
                 a.perturbed is not None
             ), "Invalid starting point provided. Please provide a starting point that is adversarial."
@@ -356,7 +357,9 @@ class HopSkipJumpAttack(Attack):
             random_noise = np.random.uniform(
                 self.clip_min, self.clip_max, size=self.shape
             )
-            _, success = a.forward_one(random_noise.astype(self.external_dtype))
+            _, success = yield from a.forward_one(
+                random_noise.astype(self.external_dtype)
+            )
             num_evals += 1
             if success:
                 break
@@ -369,7 +372,7 @@ class HopSkipJumpAttack(Attack):
         while high - low > 0.001:
             mid = (high + low) / 2.0
             blended = (1 - mid) * a.unperturbed + mid * random_noise
-            _, success = a.forward_one(blended.astype(self.external_dtype))
+            _, success = yield from a.forward_one(blended.astype(self.external_dtype))
             if success:
                 high = mid
             else:
@@ -422,7 +425,7 @@ class HopSkipJumpAttack(Attack):
             mid_inputs = self.project(unperturbed, perturbed_inputs, mids)
 
             # Update highs and lows based on model decisions.
-            decisions = decision_function(mid_inputs)
+            decisions = yield from decision_function(mid_inputs)
             lows = np.where(decisions == 0, mids, lows)
             highs = np.where(decisions == 1, mids, highs)
 
@@ -470,7 +473,7 @@ class HopSkipJumpAttack(Attack):
         rv = (perturbed - sample) / delta
 
         # query the model.
-        decisions = decision_function(perturbed)
+        decisions = yield from decision_function(perturbed)
         decision_shape = [len(decisions)] + [1] * len(self.shape)
         fval = 2 * decisions.astype(self.internal_dtype).reshape(decision_shape) - 1.0
 
@@ -493,7 +496,7 @@ class HopSkipJumpAttack(Attack):
         epsilon = dist / np.sqrt(current_iteration)
         while True:
             updated = np.clip(x + epsilon * update, self.clip_min, self.clip_max)
-            success = decision_function(updated[None])[0]
+            success = (yield from decision_function(updated[None]))[0]
             if success:
                 break
             else:
@@ -504,7 +507,7 @@ class HopSkipJumpAttack(Attack):
     def log_step(self, step, distance, message="", always=False):
         if not always and step % self.log_every_n_steps != 0:
             return
-        print("Step {}: {:.5e} {}".format(step, distance, message))
+        logging.info("Step {}: {:.5e} {}".format(step, distance, message))
 
     def log_time(self):
         t_total = time.time() - self.t_initial
@@ -529,7 +532,7 @@ class HopSkipJumpAttack(Attack):
 
     def printv(self, *args, **kwargs):
         if self.verbose:
-            print(*args, **kwargs)
+            logging.info(*args, **kwargs)
 
 
 def BoundaryAttackPlusPlus(

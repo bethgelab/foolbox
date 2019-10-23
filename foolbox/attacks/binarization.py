@@ -1,9 +1,10 @@
-import numpy as np
-import warnings
 import logging
+import warnings
+
+import numpy as np
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 
 
 class BinarizationRefinementAttack(Attack):
@@ -15,20 +16,12 @@ class BinarizationRefinementAttack(Attack):
 
     """
 
-    @call_decorator
-    def __call__(
-        self,
-        input_or_adv,
-        label=None,
-        unpack=True,
-        starting_point=None,
-        threshold=None,
-        included_in="upper",
-    ):
+    @generator_decorator
+    def as_generator(self, a, starting_point=None, threshold=None, included_in="upper"):
 
         """For models that preprocess their inputs by binarizing the
         inputs, this attack can improve adversarials found by other
-        attacks. It does os by utilizing information about the
+        attacks. It does this by utilizing information about the
         binarization and mapping values to the corresponding value in
         the clean input or to the right side of the threshold.
 
@@ -55,13 +48,7 @@ class BinarizationRefinementAttack(Attack):
 
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
-        self._starting_point = starting_point
-        self.initialize_starting_point(a)
+        yield from self._initialize_starting_point(a, starting_point)
 
         if a.perturbed is None:
             warnings.warn(
@@ -124,17 +111,15 @@ class BinarizationRefinementAttack(Attack):
         logging.info(
             "distance before the {}: {}".format(self.__class__.__name__, a.distance)
         )
-        _, is_adversarial = a.forward_one(p)
+        _, is_adversarial = yield from a.forward_one(p)
         assert is_adversarial, (
-            "The specified thresholding does not" " match what is done by the model."
+            "The specified threshold does not" " match what is done by the model."
         )
         logging.info(
             "distance after the {}: {}".format(self.__class__.__name__, a.distance)
         )
 
-    def initialize_starting_point(self, a):
-        starting_point = self._starting_point
-
+    def _initialize_starting_point(self, a, starting_point):
         if a.perturbed is not None:
             if starting_point is not None:  # pragma: no cover
                 warnings.warn(
@@ -144,7 +129,7 @@ class BinarizationRefinementAttack(Attack):
             return
 
         if starting_point is not None:
-            a.forward_one(starting_point)
+            yield from a.forward_one(starting_point)
             assert (
                 a.perturbed is not None
             ), "Invalid starting point provided. Please provide a starting point that is adversarial."

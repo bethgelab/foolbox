@@ -1,48 +1,30 @@
 import numpy as np
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 
 
 class PrecomputedAdversarialsAttack(Attack):
-    """Attacks a model using precomputed adversarial candidates.
+    """Attacks a model using precomputed adversarial candidates."""
 
-    Parameters
-    ----------
-    inputs : `numpy.ndarray`
-        The original inputs that will be expected by this attack.
-    outputs : `numpy.ndarray`
-        The adversarial candidates corresponding to the inputs.
-    *args : positional args
-        Poistional args passed to the `Attack` base class.
-    **kwargs : keyword args
-        Keyword args passed to the `Attack` base class.
-    """
-
-    def __init__(self, inputs, outputs, *args, **kwargs):
-        super(PrecomputedAdversarialsAttack, self).__init__(*args, **kwargs)
-
-        assert inputs.shape == outputs.shape
-
-        self._inputs = inputs
-        self._outputs = outputs
-
-    def _get_output(self, a, x):
+    def _get_output(self, a, x, inputs, outputs):
         """ Looks up the precomputed adversarial for a given input.
 
         """
-        sd = np.square(self._inputs - x)
+        sd = np.square(inputs - x)
         mses = np.mean(sd, axis=tuple(range(1, sd.ndim)))
         index = np.argmin(mses)
 
         # if we run into numerical problems with this approach, we might
         # need to add a very tiny threshold here
         if mses[index] > 0:
-            raise ValueError("Could not find a precomputed adversarial for this input")
-        return self._outputs[index]
+            raise ValueError(
+                "Could not find a precomputed adversarial for " "this input"
+            )
+        return outputs[index]
 
-    @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True):
+    @generator_decorator
+    def as_generator(self, a, candidate_inputs, candidate_outputs):
         """Attacks a model using precomputed adversarial candidates.
 
         Parameters
@@ -57,14 +39,14 @@ class PrecomputedAdversarialsAttack(Attack):
         unpack : bool
             If true, returns the adversarial input, otherwise returns
             the Adversarial object.
-
+        candidate_inputs : `numpy.ndarray`
+            The original inputs that will be expected by this attack.
+        candidate_outputs : `numpy.ndarray`
+            The adversarial candidates corresponding to the inputs.
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
+        assert candidate_inputs.shape == candidate_outputs.shape
 
         x = a.unperturbed
-        adversarial = self._get_output(a, x)
-        a.forward_one(adversarial)
+        adversarial = self._get_output(a, x, candidate_inputs, candidate_outputs)
+        yield from a.forward_one(adversarial)

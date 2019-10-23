@@ -1,8 +1,8 @@
 from unittest.mock import Mock
 import pytest
 
-from foolbox import attacks
-from foolbox import Adversarial
+from foolbox.v1 import attacks
+from foolbox.v1 import Adversarial
 
 
 # def test_abstract_attack():

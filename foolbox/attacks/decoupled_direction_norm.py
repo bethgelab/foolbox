@@ -3,7 +3,7 @@ import numpy as np
 import logging
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 
 
 class DecoupledDirectionNormL2Attack(Attack):
@@ -18,17 +18,9 @@ class DecoupledDirectionNormL2Attack(Attack):
 
     """
 
-    @call_decorator
-    def __call__(
-        self,
-        input_or_adv,
-        label=None,
-        unpack=True,
-        steps=100,
-        gamma=0.05,
-        initial_norm=1,
-        quantize=True,
-        levels=256,
+    @generator_decorator
+    def as_generator(
+        self, a, steps=100, gamma=0.05, initial_norm=1, quantize=True, levels=256
     ):
         """The Decoupled Direction and Norm L2 adversarial attack.
 
@@ -60,8 +52,6 @@ class DecoupledDirectionNormL2Attack(Attack):
 
         """
 
-        a = input_or_adv
-
         if not a.has_gradient():
             logging.fatal(
                 "Applied gradient-based attack to model that "
@@ -82,7 +72,7 @@ class DecoupledDirectionNormL2Attack(Attack):
         perturbation = np.zeros_like(unperturbed)
 
         for i in range(steps):
-            logits, grad, is_adv = a.forward_and_gradient_one(
+            logits, grad, is_adv = yield from a.forward_and_gradient_one(
                 unperturbed + perturbation, attack_class, strict=True
             )
 

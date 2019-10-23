@@ -1,7 +1,7 @@
 import numpy as np
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 from .. import nprng
 
 
@@ -10,10 +10,8 @@ class SaltAndPepperNoiseAttack(Attack):
 
     """
 
-    @call_decorator
-    def __call__(
-        self, input_or_adv, label=None, unpack=True, epsilons=100, repetitions=10
-    ):
+    @generator_decorator
+    def as_generator(self, a, epsilons=100, repetitions=10):
 
         """Increases the amount of salt and pepper noise until the input is misclassified.
 
@@ -35,11 +33,6 @@ class SaltAndPepperNoiseAttack(Attack):
             Specifies how often the attack will be repeated.
 
         """
-
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
 
         x = a.unperturbed
         min_, max_ = a.bounds()
@@ -69,7 +62,7 @@ class SaltAndPepperNoiseAttack(Attack):
                 if a.normalized_distance(perturbed) >= a.distance:
                     continue
 
-                _, is_adversarial = a.forward_one(perturbed)
+                _, is_adversarial = yield from a.forward_one(perturbed)
                 if is_adversarial:
                     # higher epsilon usually means larger perturbation, but
                     # this relationship is not strictly monotonic, so we set

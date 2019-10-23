@@ -4,7 +4,7 @@ import abc
 import logging
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 
 
 class IterativeGradientBaseAttack(Attack):
@@ -22,6 +22,10 @@ class IterativeGradientBaseAttack(Attack):
             " attack."
         )
         if not a.has_gradient():
+            logging.fatal(
+                "Applied gradient-based attack to model that "
+                "does not provide gradients."
+            )
             return
 
         x = a.unperturbed
@@ -36,12 +40,12 @@ class IterativeGradientBaseAttack(Attack):
             perturbed = x
 
             for _ in range(steps):
-                gradient = self._gradient(a, perturbed)
+                gradient = yield from self._gradient(a, perturbed)
 
                 perturbed = perturbed + gradient * epsilon
                 perturbed = np.clip(perturbed, min_, max_)
 
-                a.forward_one(perturbed)
+                yield from a.forward_one(perturbed)
                 # we don't return early if an adversarial was found
                 # because there might be a different epsilon
                 # and/or step that results in a better adversarial
@@ -52,16 +56,8 @@ class IterativeGradientAttack(IterativeGradientBaseAttack):
 
     """
 
-    @call_decorator
-    def __call__(
-        self,
-        input_or_adv,
-        label=None,
-        unpack=True,
-        epsilons=100,
-        max_epsilon=1,
-        steps=10,
-    ):
+    @generator_decorator
+    def as_generator(self, a, epsilons=100, max_epsilon=1, steps=10):
 
         """Like GradientAttack but with several steps for each epsilon.
 
@@ -88,16 +84,11 @@ class IterativeGradientAttack(IterativeGradientBaseAttack):
 
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
-        self._run(a, epsilons=epsilons, max_epsilon=max_epsilon, steps=steps)
+        yield from self._run(a, epsilons=epsilons, max_epsilon=max_epsilon, steps=steps)
 
     def _gradient(self, a, x):
         min_, max_ = a.bounds()
-        gradient = a.gradient_one(x)
+        gradient = yield from a.gradient_one(x)
         gradient_norm = np.sqrt(np.mean(np.square(gradient)))
         gradient = gradient / (gradient_norm + 1e-8) * (max_ - min_)
         return gradient
@@ -108,16 +99,8 @@ class IterativeGradientSignAttack(IterativeGradientBaseAttack):
 
     """
 
-    @call_decorator
-    def __call__(
-        self,
-        input_or_adv,
-        label=None,
-        unpack=True,
-        epsilons=100,
-        max_epsilon=1,
-        steps=10,
-    ):
+    @generator_decorator
+    def as_generator(self, a, epsilons=100, max_epsilon=1, steps=10):
 
         """Like GradientSignAttack but with several steps for each epsilon.
 
@@ -144,15 +127,10 @@ class IterativeGradientSignAttack(IterativeGradientBaseAttack):
 
         """
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
-
-        self._run(a, epsilons=epsilons, max_epsilon=max_epsilon, steps=steps)
+        yield from self._run(a, epsilons=epsilons, max_epsilon=max_epsilon, steps=steps)
 
     def _gradient(self, a, x):
         min_, max_ = a.bounds()
-        gradient = a.gradient_one(x)
+        gradient = yield from a.gradient_one(x)
         gradient = np.sign(gradient) * (max_ - min_)
         return gradient

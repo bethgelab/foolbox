@@ -10,7 +10,7 @@ from concurrent.futures import Executor
 from concurrent.futures import Future
 
 from .base import Attack
-from .base import call_decorator
+from .base import generator_decorator
 from .blended_noise import BlendedUniformNoiseAttack
 
 import numpy as np
@@ -47,12 +47,10 @@ class BoundaryAttack(Attack):
 
     """
 
-    @call_decorator
-    def __call__(
+    @generator_decorator
+    def as_generator(
         self,
-        input_or_adv,
-        label=None,
-        unpack=True,
+        a,
         iterations=5000,
         max_directions=25,
         starting_point=None,
@@ -144,8 +142,8 @@ class BoundaryAttack(Attack):
         else:
             self.generate_candidate = self.generate_candidate_default
 
-        return self._apply_outer(
-            input_or_adv,
+        yield from self._apply_outer(
+            a,
             iterations=iterations,
             tune_batch_size=tune_batch_size,
             threaded_rnd=threaded_rnd,
@@ -165,10 +163,10 @@ class BoundaryAttack(Attack):
         if kwargs["threaded_gen"]:
             n = kwargs["threaded_gen"]
             with ThreadPoolExecutor(max_workers=n) as pool:
-                return self._apply_inner(pool, *args, **kwargs)
+                yield from self._apply_inner(pool, *args, **kwargs)
         else:
             with DummyExecutor() as pool:
-                return self._apply_inner(pool, *args, **kwargs)
+                yield from self._apply_inner(pool, *args, **kwargs)
 
     def _apply_inner(  # noqa: C901
         self, pool, a, iterations, tune_batch_size, threaded_rnd, threaded_gen
@@ -193,7 +191,7 @@ class BoundaryAttack(Attack):
         # Find starting point
         # ===========================================================
 
-        self.initialize_starting_point(a)
+        yield from self.initialize_starting_point(a)
 
         if a.perturbed is None:
             warnings.warn(
@@ -359,7 +357,9 @@ class BoundaryAttack(Attack):
 
             if tune_batch_size and step == self.next_tuning_step:
                 if not stats_initialized:
-                    self.initialize_stats(a, pool, external_dtype, generation_args)
+                    yield from self.initialize_stats(
+                        a, pool, external_dtype, generation_args
+                    )
                     stats_initialized = True
 
                     # during initialization, predictions are performed
@@ -470,7 +470,7 @@ class BoundaryAttack(Attack):
                 # check spherical ones
                 if do_spherical:
                     t = time.time()
-                    _, batch_is_adversarial = a.forward(
+                    _, batch_is_adversarial = yield from a.forward(
                         spherical_candidates.astype(external_dtype), strict=False
                     )
                     t = time.time() - t
@@ -502,7 +502,7 @@ class BoundaryAttack(Attack):
                     assert candidates.shape == reduced_shape
 
                     t = time.time()
-                    _, batch_is_adversarial = a.forward(
+                    _, batch_is_adversarial = yield from a.forward(
                         candidates.astype(external_dtype), strict=False
                     )
                     t = time.time() - t
@@ -529,7 +529,7 @@ class BoundaryAttack(Attack):
                 else:
                     # check if one of the candidates is adversarial
                     t = time.time()
-                    _, is_adversarial, adv_index, is_best, candidate_distance = a.forward(
+                    _, is_adversarial, adv_index, is_best, candidate_distance = yield from a.forward(
                         candidates.astype(external_dtype),
                         greedy=True,
                         strict=False,
@@ -647,10 +647,11 @@ class BoundaryAttack(Attack):
             return
 
         if starting_point is not None:
-            a.forward_one(starting_point)
-            assert (
-                a.perturbed is not None
-            ), "Invalid starting point provided. Please provide a starting point that is adversarial."
+            yield from a.forward_one(starting_point)
+            assert a.perturbed is not None, (
+                "Invalid starting point provided. Please provide a starting "
+                "point that is adversarial."
+            )
             return
 
         if init_attack is None:
@@ -664,7 +665,7 @@ class BoundaryAttack(Attack):
             # instantiate if necessary
             init_attack = init_attack()
 
-        init_attack(a)
+        yield from init_attack.as_generator(a)
 
     def log_step(self, step, distance, message="", always=False):
         if not always and step % self.log_every_n_steps != 0:
@@ -923,7 +924,7 @@ class BoundaryAttack(Attack):
 
             for i in range(n):
                 t = time.time()
-                _, is_adversarial, adv_index, is_best, candidate_distance = a.forward(
+                _, is_adversarial, adv_index, is_best, candidate_distance = yield from a.forward(
                     batch.astype(external_dtype),
                     greedy=True,
                     strict=False,
@@ -935,7 +936,7 @@ class BoundaryAttack(Attack):
                 self.stats_prediction_calls[batch_size - 1] += 1
 
                 t = time.time()
-                _, _ = a.forward(batch.astype(external_dtype), strict=False)
+                _, _ = yield from a.forward(batch.astype(external_dtype), strict=False)
                 t = time.time() - t
 
                 self.stats_spherical_prediction_duration[batch_size - 1] += t
