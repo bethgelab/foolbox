@@ -5,11 +5,14 @@ import sys
 from .base import BatchAttack
 from .base import generator_decorator
 from ..distances import MSE, Linf
+from ..criteria import Misclassification
 import numpy as np
 import math
+from warnings import warn
+import logging
 
 
-class BoundaryAttackPlusPlus(BatchAttack):
+class HopSkipJumpAttack(BatchAttack):
     """A powerful adversarial attack that requires neither gradients
     nor probabilities.
 
@@ -27,7 +30,8 @@ class BoundaryAttackPlusPlus(BatchAttack):
     References
     ----------
     ..
-    Boundary Attack ++ was originally proposed by Chen and Jordan.
+    HopSkipJumpAttack was originally proposed by Chen, Jordan and
+    Wainwright.
     It is a decision-based attack that requires access to output
     labels of a model alone.
     Paper link: https://arxiv.org/abs/1904.02144
@@ -42,15 +46,15 @@ class BoundaryAttackPlusPlus(BatchAttack):
         iterations=64,
         initial_num_evals=100,
         max_num_evals=10000,
-        stepsize_search="grid_search",
-        gamma=0.01,
+        stepsize_search="geometric_progression",
+        gamma=1.0,
         starting_point=None,
         batch_size=256,
         internal_dtype=np.float64,
         log_every_n_steps=1,
         verbose=False,
     ):
-        """Applies Boundary Attack++.
+        """Applies HopSkipJumpAttack.
 
         Parameters
         ----------
@@ -81,8 +85,8 @@ class BoundaryAttackPlusPlus(BatchAttack):
             chooses the optimal epsilon over a grid, in the scale of
             ||x_t - x||_p.
         gamma: float
-            The binary search threshold theta is gamma / sqrt(d) for
-                   l2 attack and gamma / d for linf attack.
+            The binary search threshold theta is gamma / d^1.5 for
+                   l2 attack and gamma / d^2 for linf attack.
 
         starting_point : `numpy.ndarray`
             Adversarial input to use as a starting point, required
@@ -119,13 +123,15 @@ class BoundaryAttackPlusPlus(BatchAttack):
         self.shape = a.unperturbed.shape
         self.d = np.prod(self.shape)
         if self.constraint == "l2":
-            self.theta = self.gamma / np.sqrt(self.d)
+            self.theta = self.gamma / (np.sqrt(self.d) * self.d)
         else:
-            self.theta = self.gamma / (self.d)
-        print("Boundary Attack ++ optimized for {} distance".format(self.constraint))
+            self.theta = self.gamma / (self.d * self.d)
+        logging.info(
+            "HopSkipJumpAttack optimized for {} distance".format(self.constraint)
+        )
 
         if not verbose:
-            print("run with verbose=True to see details")
+            logging.info("run with verbose=True to see details")
 
         yield from self.attack(a, iterations=iterations)
 
@@ -334,10 +340,9 @@ class BoundaryAttackPlusPlus(BatchAttack):
 
         if starting_point is not None:
             yield from a.forward_one(starting_point)
-            assert a.perturbed is not None, (
-                "Invalid starting point provided. Please provide a starting "
-                "point that is adversarial."
-            )
+            assert (
+                a.perturbed is not None
+            ), "Invalid starting point provided. Please provide a starting point that is adversarial."
             return
 
         """
@@ -406,7 +411,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
         if self.constraint == "linf":
             highs = dists_post_update
             # Stopping criteria.
-            thresholds = np.minimum(dists_post_update * self.theta, self.theta)
+            thresholds = dists_post_update * self.theta
         else:
             highs = np.ones(len(perturbed_inputs))
             thresholds = self.theta
@@ -491,8 +496,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
         epsilon = dist / np.sqrt(current_iteration)
         while True:
             updated = np.clip(x + epsilon * update, self.clip_min, self.clip_max)
-            out = yield from decision_function(updated[None])
-            success = out[0]
+            success = (yield from decision_function(updated[None]))[0]
             if success:
                 break
             else:
@@ -503,7 +507,7 @@ class BoundaryAttackPlusPlus(BatchAttack):
     def log_step(self, step, distance, message="", always=False):
         if not always and step % self.log_every_n_steps != 0:
             return
-        print("Step {}: {:.5e} {}".format(step, distance, message))
+        logging.info("Step {}: {:.5e} {}".format(step, distance, message))
 
     def log_time(self):
         t_total = time.time() - self.t_initial
@@ -528,4 +532,11 @@ class BoundaryAttackPlusPlus(BatchAttack):
 
     def printv(self, *args, **kwargs):
         if self.verbose:
-            print(*args, **kwargs)
+            logging.info(*args, **kwargs)
+
+
+def BoundaryAttackPlusPlus(
+    model=None, criterion=Misclassification(), distance=MSE, threshold=None
+):
+    warn("BoundaryAttackPlusPlus is deprecated; use HopSkipJumpAttack.")
+    return HopSkipJumpAttack(model, criterion, distance, threshold)
