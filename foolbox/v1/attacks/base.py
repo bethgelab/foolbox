@@ -5,7 +5,7 @@ import abc
 from abc import abstractmethod
 
 from ..adversarial import Adversarial
-from ..yielding_adversarial import YieldingAdversarial
+from ...adversarial import Adversarial as YieldingAdversarial
 from ..adversarial import StopAttack
 from ..criteria import Misclassification
 from ..distances import MSE
