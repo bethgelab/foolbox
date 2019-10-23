@@ -77,6 +77,7 @@ Example
 
    # You can always get the actual adversarial class that was observed for that sample by Foolbox by
    # passing `unpack=False` to get the actual `Adversarial` objects:
+   attack = foolbox.attacks.FGSM(fmodel, distance=foolbox.distance.Linf)
    adversarials = attack(images, labels, unpack=False)
 
    adversarial_classes = np.asarray([a.adversarial_class for a in adversarials])
