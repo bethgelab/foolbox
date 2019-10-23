@@ -5,16 +5,16 @@ Provides a class that represents an adversarial example.
 
 import numpy as np
 
-from .adversarial import Adversarial
-from .adversarial import StopAttack
+from v1.adversarial import Adversarial as BaseAdversarial
+from v1.adversarial import StopAttack
 
 
-class YieldingAdversarial(Adversarial):
+class Adversarial(BaseAdversarial):
     def _check_unperturbed(self):
         try:
             # for now, we use the non-yielding implementation in the super-class
             # TODO: add support for batching this first call as well
-            super(YieldingAdversarial, self).forward_one(self._Adversarial__unperturbed)
+            super(Adversarial, self).forward_one(self._Adversarial__unperturbed)
         except StopAttack:
             # if a threshold is specified and the unperturbed input is
             # misclassified, this can already cause a StopAttack
