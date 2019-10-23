@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.batch_attacks import GaussianBlurAttack as Attack
+from foolbox.attacks import GaussianBlurAttack as Attack
 
 
 def test_attack(bn_model, bn_criterion, bn_images, bn_labels):

@@ -6,7 +6,7 @@ from foolbox.gradient_estimators import EvolutionaryStrategiesGradientEstimator
 
 from foolbox.models import ModelWithEstimatedGradients
 
-from foolbox.batch_attacks import GradientAttack as Attack
+from foolbox.attacks import GradientAttack as Attack
 
 
 def test_untargeted_attack(bn_model, bn_criterion, bn_images, bn_labels):

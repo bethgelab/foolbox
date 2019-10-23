@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from foolbox.batch_attacks import InversionAttack as Attack
+from foolbox.attacks import InversionAttack as Attack
 
 
 def test_untargeted_attack(bn_model, bn_criterion, bn_images, bn_labels):

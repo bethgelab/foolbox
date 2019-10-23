@@ -98,8 +98,7 @@ def call_decorator(call_fn):
 
         if isinstance(input_or_adv, YieldingAdversarial):
             raise ValueError(
-                "If you pass an Adversarial instance, it must not be a YieldingAdversarial instance"
-                " when calling non-batch-supporting attacks like this one (check foolbox.batch_attacks)."
+                "foolbox.v1.attacks do not support batches and require a foolbox.v1.Adversarial instance"
             )
         elif isinstance(input_or_adv, Adversarial):
             a = input_or_adv

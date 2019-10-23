@@ -1,7 +1,7 @@
 import numpy as np
 
 from foolbox import set_seeds
-from foolbox.batch_attacks import LocalSearchAttack as Attack
+from foolbox.attacks import LocalSearchAttack as Attack
 
 
 def test_attack(bn_model, bn_criterion, bn_images, bn_labels):

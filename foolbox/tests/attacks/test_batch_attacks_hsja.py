@@ -1,7 +1,7 @@
 import numpy as np
 
-from foolbox.batch_attacks import HopSkipJumpAttack, BoundaryAttackPlusPlus
-from foolbox.batch_attacks import BlendedUniformNoiseAttack
+from foolbox.attacks import HopSkipJumpAttack, BoundaryAttackPlusPlus
+from foolbox.attacks import BlendedUniformNoiseAttack
 from foolbox.distances import Linf
 
 

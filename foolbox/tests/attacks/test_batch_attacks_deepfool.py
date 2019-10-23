@@ -1,9 +1,9 @@
 import pytest
 import numpy as np
 
-from foolbox.batch_attacks import DeepFoolAttack
-from foolbox.batch_attacks import DeepFoolL2Attack
-from foolbox.batch_attacks import DeepFoolLinfinityAttack
+from foolbox.attacks import DeepFoolAttack
+from foolbox.attacks import DeepFoolL2Attack
+from foolbox.attacks import DeepFoolLinfinityAttack
 
 from foolbox.distances import MAE
 from foolbox.distances import Linf

@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.batch_attacks import ContrastReductionAttack as Attack
+from foolbox.attacks import ContrastReductionAttack as Attack
 
 
 def test_attack(bn_model, bn_criterion, bn_images, bn_labels):

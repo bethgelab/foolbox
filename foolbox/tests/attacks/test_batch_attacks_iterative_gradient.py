@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.batch_attacks import IterativeGradientAttack as Attack
+from foolbox.attacks import IterativeGradientAttack as Attack
 
 
 def test_attack(bn_model, bn_criterion, bn_images, bn_labels):

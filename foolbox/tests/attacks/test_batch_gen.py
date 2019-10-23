@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from foolbox.batch_attacks import GenAttack as Attack
+from foolbox.attacks import GenAttack as Attack
 
 
 def test_untargeted_attack(bn_model, bn_criterion, bn_images, bn_labels):

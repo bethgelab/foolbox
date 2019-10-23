@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.batch_attacks import CarliniWagnerL2Attack as Attack
+from foolbox.attacks import CarliniWagnerL2Attack as Attack
 
 
 def test_untargeted_attack(bn_model, bn_criterion, bn_images, bn_labels):
