@@ -49,10 +49,7 @@ Finally, we can create and apply the attack:
    from foolbox.attacks import LBFGSAttack
 
    attack = LBFGSAttack(model, criterion)
-
-   image = np.asarray(Image.open('example.jpg'))
-   label = np.argmax(model.forward_one(image))
-
+   images, labels = foolbox.utils.samples(dataset='imagenet', batchsize=16, data_format='channels_last', bounds=(0, 255))
    adversarial = attack(image, label=label)
 
 

@@ -26,7 +26,7 @@ Running a batch attack against a PyTorch model
    print(np.mean(fmodel.forward(images).argmax(axis=-1) == labels))
 
    # apply the attack
-   attack = foolbox.batch_attacks.FGSM(fmodel)
+   attack = foolbox.attacks.FGSM(fmodel)
    adversarials = attack(images, labels)
    # if the i'th image is misclassfied without a perturbation, then adversarials[i] will be the same as images[i]
    # if the attack fails to find an adversarial for the i'th image, then adversarials[i] will all be np.nan
@@ -78,7 +78,7 @@ Running an attack on single sample against a Keras model
 
    # apply attack on source image
    # ::-1 reverses the color channels, because Keras ResNet50 expects BGR instead of RGB
-   attack = foolbox.attacks.FGSM(fmodel)
+   attack = foolbox.v1.attacks.FGSM(fmodel)
    adversarial = attack(image[:, :, ::-1], label)
    # if the attack fails, adversarial will be None and a warning will be printed
 
@@ -215,7 +215,7 @@ FGSM (GradientSignAttack)
    image, label = foolbox.utils.imagenet_example()
 
    # apply attack on source image
-   attack  = foolbox.attacks.FGSM(fmodel)
+   attack  = foolbox.v1.attacks.FGSM(fmodel)
    adversarial = attack(image[:,:,::-1], label)
 
 
@@ -246,7 +246,7 @@ Creating an untargeted adversarial for a PyTorch model
    print('predicted class', np.argmax(fmodel.forward_one(image)))
 
    # apply attack on source image
-   attack = foolbox.attacks.FGSM(fmodel)
+   attack = foolbox.v1.attacks.FGSM(fmodel)
    adversarial = attack(image, label)
 
    print('adversarial class', np.argmax(fmodel.forward_one(adversarial)))
