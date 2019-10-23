@@ -1,8 +1,8 @@
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 
 
-class InversionAttack(BatchAttack):
+class InversionAttack(Attack):
     """Creates "negative images" by inverting the pixel values according to
     [1]_.
 

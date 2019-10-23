@@ -1,11 +1,11 @@
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 import numpy as np
 from .. import nprng
 from ..utils import softmax
 
 
-class SinglePixelAttack(BatchAttack):
+class SinglePixelAttack(Attack):
     """Perturbs just a single pixel and sets it to the min or max."""
 
     @generator_decorator
@@ -58,7 +58,7 @@ class SinglePixelAttack(BatchAttack):
                     return
 
 
-class LocalSearchAttack(BatchAttack):
+class LocalSearchAttack(Attack):
     """A black-box attack based on the idea of greedy local search.
 
     This implementation is based on the algorithm in [1]_.

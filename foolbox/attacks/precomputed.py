@@ -1,10 +1,10 @@
 import numpy as np
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 
 
-class PrecomputedAdversarialsAttack(BatchAttack):
+class PrecomputedAdversarialsAttack(Attack):
     """Attacks a model using precomputed adversarial candidates."""
 
     def _get_output(self, a, x, inputs, outputs):

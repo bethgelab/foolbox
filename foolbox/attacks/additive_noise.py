@@ -3,12 +3,12 @@ from collections import Iterable
 
 import numpy as np
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from .. import nprng
 
 
-class AdditiveNoiseAttack(BatchAttack):
+class AdditiveNoiseAttack(Attack):
     """Base class for attacks that add random noise to an input.
 
     """

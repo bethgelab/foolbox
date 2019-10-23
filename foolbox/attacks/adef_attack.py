@@ -4,7 +4,7 @@ from scipy.interpolate import RectBivariateSpline
 from scipy.ndimage.filters import gaussian_filter
 import numpy as np
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 
 
@@ -162,7 +162,7 @@ def _create_vec_field(fval, gradf, d1x, d2x, color_axis, smooth=0):
     return vec_field
 
 
-class ADefAttack(BatchAttack):
+class ADefAttack(Attack):
     """Adversarial attack that distorts the image, i.e. changes the locations
     of pixels. The algorithm is described in [1]_,
     a Repository with the original code can be found in [2]_.

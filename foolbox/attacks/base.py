@@ -3,13 +3,13 @@ import logging
 import functools
 import numpy as np
 
-from ..attacks.base import Attack
-from ..yielding_adversarial import YieldingAdversarial
+from ..v1.attacks.base import Attack as BaseAttack
+from ..advesarial import Adversarial
 from ..adversarial import StopAttack
 from ..batching import run_parallel
 
 
-class BatchAttack(Attack):
+class Attack(BaseAttack):
     def __call__(self, inputs, labels, unpack=True, individual_kwargs=None, **kwargs):
         assert isinstance(inputs, np.ndarray)
         assert isinstance(labels, np.ndarray)
@@ -55,7 +55,7 @@ class BatchAttack(Attack):
 def generator_decorator(generator):
     @functools.wraps(generator)
     def wrapper(self, a, **kwargs):
-        assert isinstance(a, YieldingAdversarial)
+        assert isinstance(a, Adversarial)
 
         if a.distance.value == 0.0:
             logging.info(

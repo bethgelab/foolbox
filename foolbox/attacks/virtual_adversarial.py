@@ -2,12 +2,12 @@ import numpy as np
 from collections import Iterable
 import logging
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from ..utils import softmax
 
 
-class VirtualAdversarialAttack(BatchAttack):
+class VirtualAdversarialAttack(Attack):
     """Calculate an untargeted adversarial perturbation by performing a
     approximated second order optimization step on the KL divergence between
     the unperturbed predictions and the predictions for the adversarial

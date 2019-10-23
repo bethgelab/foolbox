@@ -2,7 +2,7 @@ import warnings
 import time
 import sys
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from ..distances import MSE, Linf
 from ..criteria import Misclassification
@@ -12,7 +12,7 @@ from warnings import warn
 import logging
 
 
-class HopSkipJumpAttack(BatchAttack):
+class HopSkipJumpAttack(Attack):
     """A powerful adversarial attack that requires neither gradients
     nor probabilities.
 

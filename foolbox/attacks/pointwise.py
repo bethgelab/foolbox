@@ -1,14 +1,14 @@
 import warnings
 import logging
 
-from .base import BatchAttack
+from .base import Attack
 from .base import Attack
 from .base import generator_decorator
 from .saltandpepper import SaltAndPepperNoiseAttack
 from .. import rng
 
 
-class PointwiseAttack(BatchAttack):
+class PointwiseAttack(Attack):
     """Starts with an adversarial and performs a binary search between
     the adversarial and the original for each dimension of the input
     individually.
@@ -199,7 +199,7 @@ class PointwiseAttack(BatchAttack):
                 " Falling back to {} for initialization.".format(init_attack.__name__)
             )
 
-        if issubclass(init_attack, Attack) or issubclass(init_attack, BatchAttack):
+        if issubclass(init_attack, Attack) or issubclass(init_attack, Attack):
             # instantiate if necessary
             init_attack = init_attack()
 

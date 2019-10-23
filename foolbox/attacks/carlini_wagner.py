@@ -1,12 +1,12 @@
 import numpy as np
 import logging
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from ..utils import onehot_like
 
 
-class CarliniWagnerL2Attack(BatchAttack):
+class CarliniWagnerL2Attack(Attack):
     """The L2 version of the Carlini & Wagner attack.
 
     This attack is described in [1]_. This implementation

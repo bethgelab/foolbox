@@ -1,11 +1,11 @@
 import numpy as np
 from collections import Iterable
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 
 
-class ContrastReductionAttack(BatchAttack):
+class ContrastReductionAttack(Attack):
     """Reduces the contrast of the input until it is misclassified."""
 
     @generator_decorator

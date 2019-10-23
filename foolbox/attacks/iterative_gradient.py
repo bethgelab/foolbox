@@ -3,11 +3,11 @@ from collections import Iterable
 import abc
 import logging
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 
 
-class IterativeGradientBaseAttack(BatchAttack):
+class IterativeGradientBaseAttack(Attack):
     """Common base class for iterative gradient attacks."""
 
     @abc.abstractmethod

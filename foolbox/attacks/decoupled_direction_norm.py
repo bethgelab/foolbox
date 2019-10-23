@@ -2,11 +2,11 @@ import math
 import numpy as np
 import logging
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 
 
-class DecoupledDirectionNormL2Attack(BatchAttack):
+class DecoupledDirectionNormL2Attack(Attack):
     """The Decoupled Direction and Norm L2 adversarial attack from [1]_.
 
     References

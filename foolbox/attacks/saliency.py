@@ -2,13 +2,13 @@ import logging
 
 import numpy as np
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from .gradient import GradientAttack
 from .. import rng
 
 
-class SaliencyMapAttack(BatchAttack):
+class SaliencyMapAttack(Attack):
     """Implements the Saliency Map Attack.
 
     The attack was introduced in [1]_.

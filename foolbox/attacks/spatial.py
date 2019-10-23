@@ -3,12 +3,12 @@ from itertools import product
 from scipy.ndimage import rotate, shift
 import operator
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from .. import nprng
 
 
-class SpatialAttack(BatchAttack):
+class SpatialAttack(Attack):
     """Adversarially chosen rotations and translations [1].
 
     This implementation is based on the reference implementation by

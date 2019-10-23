@@ -4,12 +4,12 @@ from collections import Iterable
 
 import numpy as np
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from .. import nprng
 
 
-class BlendedUniformNoiseAttack(BatchAttack):
+class BlendedUniformNoiseAttack(Attack):
     """Blends the input with a uniform noise input until it is misclassified.
 
     """

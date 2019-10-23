@@ -1,13 +1,13 @@
 import logging
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from ..utils import softmax
 
 import numpy as np
 
 
-class NewtonFoolAttack(BatchAttack):
+class NewtonFoolAttack(Attack):
     """Implements the NewtonFool Attack.
 
     The attack was introduced in [1]_.

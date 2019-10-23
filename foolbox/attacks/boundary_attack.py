@@ -9,7 +9,6 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import Executor
 from concurrent.futures import Future
 
-from .base import BatchAttack
 from .base import Attack
 from .base import generator_decorator
 from .blended_noise import BlendedUniformNoiseAttack
@@ -18,7 +17,7 @@ import numpy as np
 from numpy.linalg import norm
 
 
-class BoundaryAttack(BatchAttack):
+class BoundaryAttack(Attack):
     """A powerful adversarial attack that requires neither gradients
     nor probabilities.
 
@@ -662,7 +661,7 @@ class BoundaryAttack(BatchAttack):
                 " Falling back to {} for initialization.".format(init_attack.__name__)
             )
 
-        if issubclass(init_attack, Attack) or issubclass(init_attack, BatchAttack):
+        if issubclass(init_attack, Attack):
             # instantiate if necessary
             init_attack = init_attack()
 

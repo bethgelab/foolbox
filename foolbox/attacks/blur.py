@@ -3,11 +3,11 @@ from collections import Iterable
 
 from scipy.ndimage.filters import gaussian_filter
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 
 
-class GaussianBlurAttack(BatchAttack):
+class GaussianBlurAttack(Attack):
     """Blurs the input until it is misclassified."""
 
     @generator_decorator

@@ -3,7 +3,7 @@ from abc import abstractmethod
 import logging
 import warnings
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from .. import distances
 from ..utils import crossentropy
@@ -12,7 +12,7 @@ from ..optimizers import AdamOptimizer
 from ..optimizers import GDOptimizer
 
 
-class IterativeProjectedGradientBaseAttack(BatchAttack):
+class IterativeProjectedGradientBaseAttack(Attack):
     """Base class for iterative (projected) gradient attacks.
 
     Concrete subclasses should implement as_generator, _gradient

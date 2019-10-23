@@ -1,11 +1,11 @@
 import numpy as np
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from .. import nprng
 
 
-class SaltAndPepperNoiseAttack(BatchAttack):
+class SaltAndPepperNoiseAttack(Attack):
     """Increases the amount of salt and pepper noise until the input is misclassified.
 
     """

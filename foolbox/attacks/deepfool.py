@@ -2,14 +2,14 @@ import logging
 
 import numpy as np
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from ..utils import crossentropy
 from ..distances import MeanSquaredDistance
 from ..distances import Linfinity
 
 
-class DeepFoolAttack(BatchAttack):
+class DeepFoolAttack(Attack):
     """Simple and close to optimal gradient-based
     adversarial attack.
 

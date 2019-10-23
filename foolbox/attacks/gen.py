@@ -3,12 +3,12 @@ import numpy as np
 import logging
 from scipy.ndimage import zoom
 
-from .base import BatchAttack
+from .base import Attack
 from .base import generator_decorator
 from ..utils import softmax
 
 
-class GenAttack(BatchAttack):
+class GenAttack(Attack):
     """The GenAttack introduced in [1]_.
 
     This attack is performs a genetic search in order to find an adversarial
