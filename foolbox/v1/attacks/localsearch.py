@@ -2,7 +2,7 @@ import numpy as np
 
 from .base import Attack
 from .base import call_decorator
-from ..utils import softmax
+from ...utils import softmax
 from ... import nprng
 
 

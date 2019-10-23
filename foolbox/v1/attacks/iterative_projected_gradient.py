@@ -5,11 +5,11 @@ import warnings
 
 from .base import Attack
 from .base import call_decorator
-from .. import distances
-from ..utils import crossentropy
+from ... import distances
+from ...utils import crossentropy
 from ... import nprng
-from ..optimizers import AdamOptimizer
-from ..optimizers import GDOptimizer
+from ...optimizers import AdamOptimizer
+from ...optimizers import GDOptimizer
 
 
 class IterativeProjectedGradientBaseAttack(Attack):

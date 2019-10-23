@@ -4,8 +4,8 @@ import sys
 
 from .base import Attack
 from .base import call_decorator
-from ..distances import MSE, Linf
-from ..criteria import Misclassification
+from ...distances import MSE, Linf
+from ...criteria import Misclassification
 import numpy as np
 import math
 from warnings import warn

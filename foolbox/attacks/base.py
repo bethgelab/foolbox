@@ -4,7 +4,7 @@ import functools
 import numpy as np
 
 from ..v1.attacks.base import Attack as BaseAttack
-from ..advesarial import Adversarial
+from ..adversarial import Adversarial
 from ..adversarial import StopAttack
 from ..batching import run_parallel
 

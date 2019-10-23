@@ -5,10 +5,10 @@ import abc
 from abc import abstractmethod
 
 from ..adversarial import Adversarial
-from ...adversarial import Adversarial as YieldingAdversarial
 from ..adversarial import StopAttack
-from ..criteria import Misclassification
-from ..distances import MSE
+from ...adversarial import Adversarial as YieldingAdversarial
+from ...criteria import Misclassification
+from ...distances import MSE
 
 
 class Attack(abc.ABC):

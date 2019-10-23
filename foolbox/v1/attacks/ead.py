@@ -3,7 +3,7 @@ import logging
 
 from .base import Attack
 from .base import call_decorator
-from ..utils import onehot_like
+from ...utils import onehot_like
 
 
 class EADAttack(Attack):
