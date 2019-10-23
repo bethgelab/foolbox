@@ -7,7 +7,7 @@ from .base import Attack
 from .base import call_decorator
 from .gradient import GradientAttack
 from ..utils import crossentropy as utils_ce
-from .. import rng
+from ... import rng
 
 
 class LBFGSAttack(Attack):

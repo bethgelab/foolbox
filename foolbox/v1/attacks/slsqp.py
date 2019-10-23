@@ -2,7 +2,7 @@ import scipy.optimize as so
 
 from .base import Attack
 from .base import call_decorator
-from .. import nprng
+from ... import nprng
 
 
 class SLSQPAttack(Attack):

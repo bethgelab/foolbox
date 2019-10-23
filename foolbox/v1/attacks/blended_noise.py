@@ -6,7 +6,7 @@ import numpy as np
 
 from .base import Attack
 from .base import call_decorator
-from .. import nprng
+from ... import nprng
 
 
 class BlendedUniformNoiseAttack(Attack):

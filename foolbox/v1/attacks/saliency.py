@@ -5,7 +5,7 @@ import numpy as np
 from .base import Attack
 from .base import call_decorator
 from .gradient import GradientAttack
-from .. import rng
+from ... import rng
 
 
 class SaliencyMapAttack(Attack):
