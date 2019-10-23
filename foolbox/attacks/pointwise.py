@@ -2,7 +2,6 @@ import warnings
 import logging
 
 from .base import Attack
-from .base import Attack
 from .base import generator_decorator
 from .saltandpepper import SaltAndPepperNoiseAttack
 from .. import rng
@@ -199,7 +198,7 @@ class PointwiseAttack(Attack):
                 " Falling back to {} for initialization.".format(init_attack.__name__)
             )
 
-        if issubclass(init_attack, Attack) or issubclass(init_attack, Attack):
+        if issubclass(init_attack, Attack):
             # instantiate if necessary
             init_attack = init_attack()
 
