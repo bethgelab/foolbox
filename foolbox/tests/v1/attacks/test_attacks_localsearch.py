@@ -1,7 +1,7 @@
 import numpy as np
 
 from foolbox import set_seeds
-from foolbox.attacks import LocalSearchAttack as Attack
+from foolbox.v1.attacks import LocalSearchAttack as Attack
 
 
 def test_attack(bn_adversarial):

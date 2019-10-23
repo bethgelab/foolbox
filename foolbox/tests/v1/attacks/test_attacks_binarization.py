@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 
-from foolbox.attacks import GradientAttack
-from foolbox.attacks import BinarizationRefinementAttack
+from foolbox.v1.attacks import GradientAttack
+from foolbox.v1.attacks import BinarizationRefinementAttack
 
 
 def test_attack(binarized_bn_adversarial):

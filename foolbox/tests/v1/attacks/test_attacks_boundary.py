@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from foolbox.attacks import BoundaryAttack
-from foolbox.attacks import DeepFoolAttack
-from foolbox.attacks import BlendedUniformNoiseAttack
+from foolbox.v1.attacks import BoundaryAttack
+from foolbox.v1.attacks import DeepFoolAttack
+from foolbox.v1.attacks import BlendedUniformNoiseAttack
 
 
 def test_attack(bn_adversarial):

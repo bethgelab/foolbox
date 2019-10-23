@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import ADefAttack as Attack
+from foolbox.v1.attacks import ADefAttack as Attack
 
 
 def test_attack_pytorch(bn_adversarial_pytorch):

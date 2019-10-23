@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox import Adversarial
+from foolbox.v1 import Adversarial
 from foolbox.distances import MSE
 import foolbox
 
@@ -147,8 +147,8 @@ def test_adversarial(model, criterion, image, label):
 
 
 def test_inplace(bn_model, bn_adversarial, bn_label):
-    class TestAttack(foolbox.attacks.Attack):
-        @foolbox.attacks.base.call_decorator
+    class TestAttack(foolbox.v1.attacks.Attack):
+        @foolbox.v1.attacks.base.call_decorator
         def __call__(self, input_or_adv, label, unpack):
             a = input_or_adv
             x = np.zeros_like(a.unperturbed)

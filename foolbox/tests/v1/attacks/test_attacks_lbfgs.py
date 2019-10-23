@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import LBFGSAttack as Attack
+from foolbox.v1.attacks import LBFGSAttack as Attack
 
 
 def test_attack(bn_adversarial):

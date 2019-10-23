@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import SLSQPAttack as Attack
+from foolbox.v1.attacks import SLSQPAttack as Attack
 
 
 def test_attack(bn_adversarial):

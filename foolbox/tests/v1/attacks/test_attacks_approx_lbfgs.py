@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import ApproximateLBFGSAttack as Attack
+from foolbox.v1.attacks import ApproximateLBFGSAttack as Attack
 
 
 def test_name():

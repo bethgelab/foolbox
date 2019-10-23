@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import ContrastReductionAttack as Attack
+from foolbox.v1.attacks import ContrastReductionAttack as Attack
 
 
 def test_attack(bn_adversarial):

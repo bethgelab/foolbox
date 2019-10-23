@@ -1,17 +1,17 @@
 import pytest
 import numpy as np
 
-from foolbox.attacks import LinfinityBasicIterativeAttack
-from foolbox.attacks import L1BasicIterativeAttack
-from foolbox.attacks import L2BasicIterativeAttack
-from foolbox.attacks import ProjectedGradientDescentAttack
-from foolbox.attacks import RandomStartProjectedGradientDescentAttack
-from foolbox.attacks import MomentumIterativeAttack
+from foolbox.v1.attacks import LinfinityBasicIterativeAttack
+from foolbox.v1.attacks import L1BasicIterativeAttack
+from foolbox.v1.attacks import L2BasicIterativeAttack
+from foolbox.v1.attacks import ProjectedGradientDescentAttack
+from foolbox.v1.attacks import RandomStartProjectedGradientDescentAttack
+from foolbox.v1.attacks import MomentumIterativeAttack
 
-from foolbox.attacks import AdamL1BasicIterativeAttack
-from foolbox.attacks import AdamL2BasicIterativeAttack
-from foolbox.attacks import AdamProjectedGradientDescentAttack
-from foolbox.attacks import AdamRandomStartProjectedGradientDescentAttack
+from foolbox.v1.attacks import AdamL1BasicIterativeAttack
+from foolbox.v1.attacks import AdamL2BasicIterativeAttack
+from foolbox.v1.attacks import AdamProjectedGradientDescentAttack
+from foolbox.v1.attacks import AdamRandomStartProjectedGradientDescentAttack
 
 Attacks = [
     LinfinityBasicIterativeAttack,

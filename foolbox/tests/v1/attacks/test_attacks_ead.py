@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import EADAttack as Attack
+from foolbox.v1.attacks import EADAttack as Attack
 
 
 def test_untargeted_attack(bn_adversarial):

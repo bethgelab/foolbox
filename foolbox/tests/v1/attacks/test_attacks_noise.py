@@ -1,10 +1,10 @@
 import pytest
 import numpy as np
 
-from foolbox.attacks import AdditiveUniformNoiseAttack
-from foolbox.attacks import AdditiveGaussianNoiseAttack
-from foolbox.attacks import SaltAndPepperNoiseAttack
-from foolbox.attacks import BlendedUniformNoiseAttack
+from foolbox.v1.attacks import AdditiveUniformNoiseAttack
+from foolbox.v1.attacks import AdditiveGaussianNoiseAttack
+from foolbox.v1.attacks import SaltAndPepperNoiseAttack
+from foolbox.v1.attacks import BlendedUniformNoiseAttack
 
 Attacks = [
     AdditiveUniformNoiseAttack,

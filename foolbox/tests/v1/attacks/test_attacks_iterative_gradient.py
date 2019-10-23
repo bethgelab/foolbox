@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import IterativeGradientAttack as Attack
+from foolbox.v1.attacks import IterativeGradientAttack as Attack
 
 
 def test_attack(bn_adversarial):

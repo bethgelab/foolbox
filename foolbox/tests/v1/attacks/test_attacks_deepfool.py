@@ -1,9 +1,9 @@
 import pytest
 import numpy as np
 
-from foolbox.attacks import DeepFoolAttack
-from foolbox.attacks import DeepFoolL2Attack
-from foolbox.attacks import DeepFoolLinfinityAttack
+from foolbox.v1.attacks import DeepFoolAttack
+from foolbox.v1.attacks import DeepFoolL2Attack
+from foolbox.v1.attacks import DeepFoolLinfinityAttack
 
 Attacks = [DeepFoolAttack, DeepFoolL2Attack, DeepFoolLinfinityAttack]
 

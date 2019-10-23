@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import SpatialAttack as Attack
+from foolbox.v1.attacks import SpatialAttack as Attack
 
 
 def test_attack_pytorch(bn_adversarial_pytorch):

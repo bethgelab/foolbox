@@ -1,6 +1,6 @@
 import numpy as np
 
-from foolbox.attacks import GaussianBlurAttack as Attack
+from foolbox.v1.attacks import GaussianBlurAttack as Attack
 
 
 def test_attack(bn_adversarial):
