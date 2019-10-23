@@ -27,3 +27,5 @@ New Adversarial Attacks
 Foolbox makes it easy to develop new adversarial attacks that can be applied to arbitrary models.
 
 To implement an attack, simply subclass the :class:`Attack` class, implement the :meth:`__call__` method and decorate it with the :decorator:`call_decorator`. The :decorator:`call_decorator` will make sure that your :meth:`__call__` implementation will be called with an instance of the :class:`Adversarial` class. You can use this instance to ask for model predictions and gradients, get the original image and its label and more. In addition, the :class:`Adversarial` instance automatically keeps track of the best adversarial amongst all the inputs tested by the attack. That way, the implementation of the attack can focus on the attack logic.
+
+To implement an attack that can make use of the batch support introduced in Foolbox 2.0, implement the :meth:`as_generator` method and decorate it with the :decorator:`generator_decorator`. All model calls using the :class:`Adversarial` object should use ``yield``.

@@ -5,3 +5,4 @@
 
 .. autoclass:: Adversarial
    :members:
+   :inherited-members:

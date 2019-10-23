@@ -4,6 +4,13 @@ Advanced
 
 The :class:`Adversarial` class provides an advanced way to specify the adversarial example that should be found by an attack and provides detailed information about the created adversarial. In addition, it provides a way to improve a previously found adversarial example by re-running an attack.
 
+.. code-block:: python3
+
+   from foolbox.v1 import Adversarial
+   from foolbox.v1.attacks import LBFGSAttack
+   from foolbox.models import TenosrFlowModel
+   from foolbox.criteria import TargetClassProbability
+
 
 Implicit
 ========
