@@ -29,7 +29,7 @@ from foolbox.models import PyTorchModel
 from foolbox.models import CaffeModel
 from foolbox.models import ModelWithoutGradients
 from foolbox.models import ModelWithEstimatedGradients
-from foolbox import Adversarial
+from foolbox.v1 import Adversarial
 from foolbox.distances import MSE
 from foolbox.distances import Linfinity
 from foolbox.distances import MAE
