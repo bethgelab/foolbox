@@ -58,7 +58,7 @@ Example
    print(np.mean(fmodel.forward(images).argmax(axis=-1) == labels))
 
    # apply the attack
-   attack = foolbox.batch_attacks.FGSM(fmodel)
+   attack = foolbox.attacks.FGSM(fmodel)
    adversarials = attack(images, labels)
    # if the i'th image is misclassfied without a perturbation, then adversarials[i] will be the same as images[i]
    # if the attack fails to find an adversarial for the i'th image, then adversarials[i] will all be np.nan
