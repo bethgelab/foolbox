@@ -5,8 +5,8 @@ Provides a class that represents an adversarial example.
 
 import numpy as np
 
-from v1.adversarial import Adversarial as BaseAdversarial
-from v1.adversarial import StopAttack
+from .v1.adversarial import Adversarial as BaseAdversarial
+from .v1.adversarial import StopAttack
 
 
 class Adversarial(BaseAdversarial):
