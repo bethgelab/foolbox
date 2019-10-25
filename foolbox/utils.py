@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import numpy as np
 
@@ -199,6 +200,11 @@ def samples(
     basepath = os.path.dirname(__file__)
     samplepath = os.path.join(basepath, "data")
     files = os.listdir(samplepath)
+
+    if batchsize > 20:
+        warnings.warn(
+            "foolbox.utils.samples() has only 20 samples and repeats itself if batchsize > 20"
+        )
 
     for idx in range(index, index + batchsize):
         i = idx % 20
