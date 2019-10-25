@@ -7,9 +7,19 @@ from ..v1.attacks.base import Attack as BaseAttack
 from ..adversarial import Adversarial
 from ..adversarial import StopAttack
 from ..batching import run_parallel
+from ..criteria import Misclassification
+from ..distances import MSE
 
 
 class Attack(BaseAttack):
+    def __init__(
+        self, model=None, criterion=Misclassification(), distance=MSE, threshold=None
+    ):
+        super(Attack, self).__init__(
+            model=model, criterion=criterion, distance=distance, threshold=threshold
+        )
+        self.__call__.__func__.__doc__ = self.as_generator.__doc__
+
     def __call__(self, inputs, labels, unpack=True, individual_kwargs=None, **kwargs):
         assert isinstance(inputs, np.ndarray)
         assert isinstance(labels, np.ndarray)

@@ -115,8 +115,3 @@ class VirtualAdversarialAttack(Attack):
 
             max_epsilon = epsilons[i]
             epsilons = np.linspace(0, max_epsilon, num=20 + 1)[1:]
-
-
-VirtualAdversarialAttack.__call__.__doc__ = (
-    VirtualAdversarialAttack.as_generator.__doc__
-)

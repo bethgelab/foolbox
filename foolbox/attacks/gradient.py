@@ -85,9 +85,6 @@ class GradientAttack(SingleStepGradientBaseAttack):
         return gradient
 
 
-GradientAttack.__call__.__doc__ = GradientAttack.as_generator.__doc__
-
-
 class GradientSignAttack(SingleStepGradientBaseAttack):
     """Adds the sign of the gradient to the input, gradually increasing
     the magnitude until the input is misclassified. This attack is
@@ -132,9 +129,6 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
         gradient = yield from a.gradient_one()
         gradient = np.sign(gradient) * (max_ - min_)
         return gradient
-
-
-GradientSignAttack.__call__.__doc__ = GradientSignAttack.as_generator.__doc__
 
 
 FGSM = GradientSignAttack

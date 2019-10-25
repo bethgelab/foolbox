@@ -446,11 +446,6 @@ class LinfinityBasicIterativeAttack(
         )
 
 
-LinfinityBasicIterativeAttack.__call__.__doc__ = (
-    LinfinityBasicIterativeAttack.as_generator.__doc__
-)
-
-
 BasicIterativeMethod = LinfinityBasicIterativeAttack
 BIM = BasicIterativeMethod
 
@@ -522,9 +517,6 @@ class L1BasicIterativeAttack(
         yield from self._run(
             a, binary_search, epsilon, stepsize, iterations, random_start, return_early
         )
-
-
-L1BasicIterativeAttack.__call__.__doc__ = L1BasicIterativeAttack.as_generator.__doc__
 
 
 class SparseL1BasicIterativeAttack(
@@ -614,11 +606,6 @@ class SparseL1BasicIterativeAttack(
         )
 
 
-SparseL1BasicIterativeAttack.__call__.__doc__ = (
-    SparseL1BasicIterativeAttack.as_generator.__doc__
-)
-
-
 class L2BasicIterativeAttack(
     L2GradientMixin,
     L2ClippingMixin,
@@ -686,9 +673,6 @@ class L2BasicIterativeAttack(
         yield from self._run(
             a, binary_search, epsilon, stepsize, iterations, random_start, return_early
         )
-
-
-L2BasicIterativeAttack.__call__.__doc__ = L2BasicIterativeAttack.as_generator.__doc__
 
 
 class ProjectedGradientDescentAttack(
@@ -774,11 +758,6 @@ class ProjectedGradientDescentAttack(
         )
 
 
-ProjectedGradientDescentAttack.__call__.__doc__ = (
-    ProjectedGradientDescentAttack.as_generator.__doc__
-)
-
-
 ProjectedGradientDescent = ProjectedGradientDescentAttack
 PGD = ProjectedGradientDescent
 
@@ -857,11 +836,6 @@ class RandomStartProjectedGradientDescentAttack(
         yield from self._run(
             a, binary_search, epsilon, stepsize, iterations, random_start, return_early
         )
-
-
-RandomStartProjectedGradientDescentAttack.__call__.__doc__ = (
-    RandomStartProjectedGradientDescentAttack.as_generator.__doc__
-)
 
 
 RandomProjectedGradientDescent = RandomStartProjectedGradientDescentAttack
@@ -972,7 +946,6 @@ class MomentumIterativeAttack(
         )
 
 
-MomentumIterativeAttack.__call__.__doc__ = MomentumIterativeAttack.as_generator.__doc__
 MomentumIterativeMethod = MomentumIterativeAttack
 
 
@@ -1302,9 +1275,5 @@ class AdamRandomStartProjectedGradientDescentAttack(
 AdamRandomProjectedGradientDescent = (
     AdamRandomStartProjectedGradientDescentAttack
 )  # noqa: E501
-AdamRandomProjectedGradientDescent.__call__.__doc__ = (
-    AdamRandomProjectedGradientDescent.as_generator.__doc__
-)
 
 AdamRandomPGD = AdamRandomProjectedGradientDescent
-AdamRandomPGD.__call__.__doc__ = AdamRandomPGD.as_generator.__doc__

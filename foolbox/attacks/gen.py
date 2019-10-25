@@ -206,6 +206,3 @@ class GenAttack(Attack):
             else:
                 bad = epsilon
                 logging.info("not successful for eps = {}".format(epsilon))
-
-
-GenAttack.__call__.__doc__ = GenAttack.as_generator.__doc__
