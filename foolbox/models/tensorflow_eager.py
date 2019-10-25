@@ -19,10 +19,18 @@ class TensorFlowEagerModel(DifferentiableModel):
         If None, will try to infer it from the model's output shape.
     channel_axis : int
         The index of the axis that represents color channels.
-    preprocessing: 2-element tuple with floats or numpy arrays
-        Elementwises preprocessing of input; we first subtract the first
-        element of preprocessing from the input and then divide the input by
-        the second element.
+    preprocessing: dict or tuple
+        Can be a tuple with two elements representing mean and standard
+        deviation or a dict with keys "mean" and "std". The two elements
+        should be floats or numpy arrays. "mean" is subtracted from the input,
+        the result is then divided by "std". If "mean" and "std" are
+        1-dimensional arrays, an additional (negative) "axis" key can be
+        given such that "mean" and "std" will be broadcasted to that axis
+        (typically -1 for "channels_last" and -3 for "channels_first", but
+        might be different when using e.g. 1D convolutions). Finally,
+        a (negative) "flip_axis" can be specified. This axis will be flipped
+        (before "mean" is subtracted), e.g. to convert RGB to BGR.
+
     """
 
     def __init__(
