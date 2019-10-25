@@ -2,7 +2,7 @@
 Provides a class that represents an adversarial example.
 
 """
-
+import inspect
 import numpy as np
 import numbers
 
@@ -60,6 +60,8 @@ class Adversarial(object):
         threshold=None,
         verbose=False,
     ):
+        if inspect.isclass(criterion):
+            raise ValueError("criterion should be an instance, not a class")
 
         self.__model = model
         self.__criterion = criterion
