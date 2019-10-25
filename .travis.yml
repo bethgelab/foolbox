@@ -33,6 +33,9 @@ before_install:
     - python -c 'import keras; print(keras.__version__)'
     - travis_wait travis_retry pip install --upgrade mxnet>=1.1.0
     - python -c 'import mxnet; print(mxnet.__version__)'
+    - travis_wait travis_retry pip install --upgrade jax jaxlib
+    - python -c 'import jaxlib; print(jaxlib.__version__)'
+    - python -c 'import jax; print(jax.__version__)'
 
     #install open mpi for cntk
     - mkdir /tmp/mpi

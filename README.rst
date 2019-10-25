@@ -48,7 +48,7 @@ Example
    import numpy as np
    import torchvision.models as models
 
-   # instantiate model (supports PyTorch, Keras, TensorFlow (Graph and Eager), MXNet and many more)
+   # instantiate model (supports PyTorch, Keras, TensorFlow (Graph and Eager), JAX, MXNet and many more)
    model = models.resnet18(pretrained=True).eval()
    preprocessing = dict(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], axis=-3)
    fmodel = foolbox.models.PyTorchModel(model, bounds=(0, 1), num_classes=1000, preprocessing=preprocessing)
@@ -138,7 +138,7 @@ Finally, the result can be plotted like this:
 
 
 Interfaces for a range of other deeplearning packages such as TensorFlow 1 and 2,
-PyTorch, Theano, Lasagne and MXNet are available, e.g.
+PyTorch, JAX, Theano, Lasagne and MXNet are available, e.g.
 
 .. code-block:: python
 
@@ -175,7 +175,7 @@ Foolbox is particularly well-suited to develop
 `new adversarial attacks <https://foolbox.readthedocs.io/en/stable/user/development.html#new-adversarial-attacks>`_
 and to support new machine learning and deep learning frameworks by simply adding a wrapper.
 By adding reference implementations for adversarial attacks to Foolbox, they will automatically be applicable
-to models implemented in any of the supported frameworks such as PyTorch, TensorFlow, Keras Or MxNet.
+to models implemented in any of the supported frameworks such as PyTorch, TensorFlow, Keras, JAX or MxNet.
 
 Citation
 --------
