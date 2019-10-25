@@ -19,6 +19,8 @@ Models
    LasagneModel
    MXNetModel
    MXNetGluonModel
+   JAXModel
+   CaffeModel
 
 Wrappers
 --------
@@ -50,6 +52,9 @@ Detailed description
 .. autoclass:: PyTorchModel
    :members:
 
+.. autoclass:: JAXModel
+   :members:
+
 .. autoclass:: KerasModel
    :members:
 
@@ -63,6 +68,9 @@ Detailed description
    :members:
 
 .. autoclass:: MXNetGluonModel
+   :members:
+
+.. autoclass:: CaffeModel
    :members:
 
 .. autoclass:: ModelWrapper

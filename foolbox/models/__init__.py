@@ -22,3 +22,4 @@ from .lasagne import LasagneModel  # noqa: F401
 from .mxnet import MXNetModel  # noqa: F401
 from .mxnet_gluon import MXNetGluonModel  # noqa: F401
 from .caffe import CaffeModel  # noqa: F401
+from .jax import JAXModel  # noqa: F401

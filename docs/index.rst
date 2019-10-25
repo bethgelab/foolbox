@@ -7,10 +7,11 @@ It comes with support for many frameworks to build models including
 
 * TensorFlow
 * PyTorch
-* Theano
 * Keras
-* Lasagne
+* JAX
 * MXNet
+* Theano
+* Lasagne
 
 and it is easy to extend to other frameworks.
 

@@ -10,6 +10,7 @@ import tensorflow
 # import mxnet
 # import keras
 import torch
+import jax
 
 from unittest.mock import Mock
 from os.path import join
@@ -46,6 +47,7 @@ print(tensorflow.__version__)
 # print(mxnet.__version__)
 # print(keras.__version__)
 print(torch.__version__)
+print(jax.__version__)
 
 
 @pytest.fixture
