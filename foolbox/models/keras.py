@@ -13,8 +13,9 @@ class KerasModel(DifferentiableModel):
         The `Keras` model that should be attacked.
     bounds : tuple
         Tuple of lower and upper bound for the pixel values, usually (0, 1) or (0, 255).
-    channel_axis : int
-        The index of the axis that represents color channels.
+    channel_axis : int or 'auto'
+        The index of the axis that represents color channels. If 'auto',
+        will be set automatically based on keras.backend.image_data_format()
     preprocessing: 2-element tuple with floats or numpy arrays
         Elementwises preprocessing of input; we first subtract the first element of preprocessing
         from the input and then divide the input by the second element.
@@ -28,16 +29,22 @@ class KerasModel(DifferentiableModel):
         self,
         model,
         bounds,
-        channel_axis=3,
+        channel_axis="auto",
         preprocessing=(0, 1),
         predicts="probabilities",
     ):
+        from keras import backend as K
+
+        if channel_axis == "auto":
+            if K.image_data_format() == "channels_first":
+                channel_axis = 1
+            else:
+                channel_axis = 3
 
         super(KerasModel, self).__init__(
             bounds=bounds, channel_axis=channel_axis, preprocessing=preprocessing
         )
 
-        from keras import backend as K
         import keras
         from pkg_resources import parse_version
 
