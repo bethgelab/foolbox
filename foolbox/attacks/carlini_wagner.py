@@ -237,9 +237,6 @@ class CarliniWagnerL2Attack(Attack):
         return np.argmax(other_logits)
 
 
-CarliniWagnerL2Attack.__call__.__doc__ = CarliniWagnerL2Attack.as_generator.__doc__
-
-
 class AdamOptimizer:
     """Basic Adam optimizer implementation that can minimize w.r.t.
     a single variable.

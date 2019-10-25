@@ -236,6 +236,3 @@ class EADAttack(Attack):
         is passed as `exclude`."""
         other_logits = logits - onehot_like(logits, exclude, value=np.inf)
         return np.argmax(other_logits)
-
-
-EADAttack.__call__.__doc__ = EADAttack.as_generator.__doc__
