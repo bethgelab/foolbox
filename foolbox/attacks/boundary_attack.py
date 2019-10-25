@@ -1,4 +1,5 @@
 import warnings
+import logging
 import threading
 import queue
 import time
@@ -55,7 +56,7 @@ class BoundaryAttack(Attack):
         max_directions=25,
         starting_point=None,
         initialization_attack=None,
-        log_every_n_steps=1,
+        log_every_n_steps=None,
         spherical_step=1e-2,
         source_step=1e-2,
         step_adaptation=1.5,
@@ -65,7 +66,7 @@ class BoundaryAttack(Attack):
         threaded_gen=True,
         alternative_generator=False,
         internal_dtype=np.float64,
-        verbose=False,
+        loggingLevel=logging.WARNING,
     ):
 
         """Applies the Boundary Attack.
@@ -116,8 +117,9 @@ class BoundaryAttack(Attack):
             should be used.
         internal_dtype : np.float32 or np.float64
             Higher precision might be slower but is numerically more stable.
-        verbose : bool
-            Controls verbosity of the attack.
+        loggingLevel : int
+            Controls the verbosity of the logging, e.g. logging.INFO
+            or logging.WARNING.
 
         """
 
@@ -132,10 +134,9 @@ class BoundaryAttack(Attack):
         self.spherical_step = spherical_step
         self.source_step = source_step
         self.internal_dtype = internal_dtype
-        self.verbose = verbose
 
-        if not verbose:
-            print("run with verbose=True to see details")
+        self.logger = logging.getLogger("BoundaryAttack")
+        self.logger.setLevel(loggingLevel)
 
         if alternative_generator:
             self.generate_candidate = self.generate_candidate_alternative
@@ -668,6 +669,8 @@ class BoundaryAttack(Attack):
         yield from init_attack.as_generator(a)
 
     def log_step(self, step, distance, message="", always=False):
+        if self.log_every_n_steps is None or self.log_every_n_steps == np.inf:
+            return
         if not always and step % self.log_every_n_steps != 0:
             return
         print(
@@ -1204,8 +1207,7 @@ class BoundaryAttack(Attack):
         return self.source_step < 2e-7
 
     def printv(self, *args, **kwargs):
-        if self.verbose:
-            print(*args, **kwargs)
+        self.logger.info(*args, **kwargs)
 
 
 class DummyExecutor(Executor):
