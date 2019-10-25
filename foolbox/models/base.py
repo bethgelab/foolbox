@@ -122,7 +122,7 @@ class Model(abc.ABC):
         self._channel_axis = channel_axis
 
         if not callable(preprocessing):
-            preprocessing = _create_preprocessing_fn(preprocessing, self._channel_axis)
+            preprocessing = _create_preprocessing_fn(preprocessing)
         assert callable(preprocessing)
         self._preprocessing = preprocessing
 
