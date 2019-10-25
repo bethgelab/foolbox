@@ -75,16 +75,15 @@ Running an attack on single sample against a Keras model
    # instantiate model
    keras.backend.set_learning_phase(0)
    kmodel = ResNet50(weights='imagenet')
-   preprocessing = (np.array([104, 116, 123]), 1)
+   preprocessing = dict(flip_axis=-1, mean=np.array([104, 116, 123]))  # RGB to BGR and mean subtraction
    fmodel = foolbox.models.KerasModel(kmodel, bounds=(0, 255), preprocessing=preprocessing)
 
    # get source image and label
    image, label = foolbox.utils.imagenet_example()
 
    # apply attack on source image
-   # ::-1 reverses the color channels, because Keras ResNet50 expects BGR instead of RGB
    attack = foolbox.v1.attacks.FGSM(fmodel)
-   adversarial = attack(image[:, :, ::-1], label)
+   adversarial = attack(image, label)
    # if the attack fails, adversarial will be None and a warning will be printed
 
 
@@ -102,12 +101,11 @@ Keras: ResNet50
 
    keras.backend.set_learning_phase(0)
    kmodel = keras.applications.resnet50.ResNet50(weights='imagenet')
-   preprocessing = (np.array([104, 116, 123]), 1)
+   preprocessing = dict(flip_axis=-1, mean=np.array([104, 116, 123]))  # RGB to BGR and mean subtraction
    model = foolbox.models.KerasModel(kmodel, bounds=(0, 255), preprocessing=preprocessing)
 
    image, label = foolbox.utils.imagenet_example()
-   # ::-1 reverses the color channels, because Keras ResNet50 expects BGR instead of RGB
-   print(np.argmax(model.forward_one(image[:, :, ::-1])), label)
+   print(np.argmax(model.forward_one(image)), label)
 
 PyTorch: ResNet18
 -----------------
@@ -221,7 +219,7 @@ FGSM (GradientSignAttack)
 
    # apply attack on source image
    attack  = foolbox.v1.attacks.FGSM(fmodel)
-   adversarial = attack(image[:,:,::-1], label)
+   adversarial = attack(image, label)
 
 
 Creating an untargeted adversarial for a PyTorch model
@@ -286,20 +284,19 @@ Creating a targeted adversarial for the Keras ResNet model
 
    keras.backend.set_learning_phase(0)
    kmodel = ResNet50(weights='imagenet')
-   preprocessing = (np.array([104, 116, 123]), 1)
+   preprocessing = dict(flip_axis=-1, mean=np.array([104, 116, 123]))  # RGB to BGR and mean subtraction
    fmodel = KerasModel(kmodel, bounds=(0, 255), preprocessing=preprocessing)
 
    image, label = foolbox.utils.imagenet_example()
 
    # run the attack
    attack = LBFGSAttack(model=fmodel, criterion=TargetClassProbability(781, p=.5))
-   adversarial = attack(image[:, :, ::-1], label)
+   adversarial = attack(image, label)
 
    # show results
    print(np.argmax(fmodel.forward_one(adversarial)))
    print(foolbox.utils.softmax(fmodel.forward_one(adversarial))[781])
-   adversarial_rgb = adversarial[np.newaxis, :, :, ::-1]
-   preds = kmodel.predict(preprocess_input(adversarial_rgb.copy()))
+   preds = kmodel.predict(preprocess_input(adversarial[np.newaxis].copy()))
    print("Top 5 predictions (adversarial: ", decode_forward_one(preds, top=5))
 
 outputs
