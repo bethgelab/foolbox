@@ -10,7 +10,8 @@ class PyTorchModel(DifferentiableModel):
     Parameters
     ----------
     model : `torch.nn.Module`
-        The PyTorch model that should be attacked.
+        The PyTorch model that should be attacked. It should predict logits
+        or log-probabilities, i.e. predictions without the softmax.
     bounds : tuple
         Tuple of lower and upper bound for the pixel values, usually
         (0, 1) or (0, 255).
