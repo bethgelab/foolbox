@@ -51,8 +51,8 @@ class HopSkipJumpAttack(Attack):
         starting_point=None,
         batch_size=256,
         internal_dtype=np.float64,
-        log_every_n_steps=1,
-        verbose=False,
+        log_every_n_steps=None,
+        loggingLevel=logging.WARNING,
     ):
         """Applies HopSkipJumpAttack.
 
@@ -97,8 +97,9 @@ class HopSkipJumpAttack(Attack):
             Higher precision might be slower but is numerically more stable.
         log_every_n_steps : int
             Determines verbositity of the logging.
-        verbose : bool
-            Controls verbosity of the attack.
+        loggingLevel : int
+            Controls the verbosity of the logging, e.g. logging.INFO
+            or logging.WARNING.
 
         """
 
@@ -107,11 +108,12 @@ class HopSkipJumpAttack(Attack):
         self.stepsize_search = stepsize_search
         self.gamma = gamma
         self.batch_size = batch_size
-        self.verbose = verbose
         self._starting_point = starting_point
         self.internal_dtype = internal_dtype
         self.log_every_n_steps = log_every_n_steps
-        self.verbose = verbose
+
+        self.logger = logging.getLogger("BoundaryAttack")
+        self.logger.setLevel(loggingLevel)
 
         # Set constraint based on the distance.
         if self._default_distance == MSE:
@@ -129,9 +131,6 @@ class HopSkipJumpAttack(Attack):
         logging.info(
             "HopSkipJumpAttack optimized for {} distance".format(self.constraint)
         )
-
-        if not verbose:
-            logging.info("run with verbose=True to see details")
 
         yield from self.attack(a, iterations=iterations)
 
@@ -505,6 +504,8 @@ class HopSkipJumpAttack(Attack):
         return epsilon
 
     def log_step(self, step, distance, message="", always=False):
+        if self.log_every_n_steps is None or self.log_every_n_steps == np.inf:
+            return
         if not always and step % self.log_every_n_steps != 0:
             return
         logging.info("Step {}: {:.5e} {}".format(step, distance, message))
@@ -531,8 +532,7 @@ class HopSkipJumpAttack(Attack):
         )
 
     def printv(self, *args, **kwargs):
-        if self.verbose:
-            logging.info(*args, **kwargs)
+        self.logger.info(*args, **kwargs)
 
 
 def BoundaryAttackPlusPlus(
