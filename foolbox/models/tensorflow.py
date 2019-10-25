@@ -85,7 +85,7 @@ class TensorFlowModel(DifferentiableModel):
 
     @classmethod
     def from_keras(
-        cls, model, bounds, input_shape=None, channel_axis=3, preprocessing=(0, 1)
+        cls, model, bounds, input_shape=None, channel_axis="auto", preprocessing=(0, 1)
     ):
         """Alternative constructor for a TensorFlowModel that
         accepts a `tf.keras.Model` instance.
@@ -102,8 +102,9 @@ class TensorFlowModel(DifferentiableModel):
             The shape of a single input, e.g. (28, 28, 1) for MNIST.
             If None, tries to get the the shape from the model's
             input_shape attribute.
-        channel_axis : int
-            The index of the axis that represents color channels.
+        channel_axis : int or 'auto'
+            The index of the axis that represents color channels. If 'auto',
+            will be set automatically based on keras.backend.image_data_format()
         preprocessing: dict or tuple
             Can be a tuple with two elements representing mean and standard
             deviation or a dict with keys "mean" and "std". The two elements
@@ -118,6 +119,12 @@ class TensorFlowModel(DifferentiableModel):
 
         """
         import tensorflow as tf
+
+        if channel_axis == "auto":
+            if tf.keras.backend.image_data_format() == "channels_first":
+                channel_axis = 1
+            else:
+                channel_axis = 3
 
         if input_shape is None:
             try:
