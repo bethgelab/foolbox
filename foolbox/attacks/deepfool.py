@@ -114,6 +114,13 @@ class DeepFoolAttack(Attack):
             loss = -crossentropy(logits=logits, label=_label)
 
             residual_labels = get_residual_labels(logits)
+            if len(residual_labels) == 0:
+                raise ValueError(
+                    "No residual_labels left. This can happen if DeepFool is"
+                    " used with a criterion that is more difficult to achieve"
+                    " than Misclassification(). You can try increasing"
+                    " 'subsample' or disabling it."
+                )
 
             # instead of using the logits and the gradient of the logits,
             # we use a numerically stable implementation of the cross-entropy
