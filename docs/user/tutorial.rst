@@ -70,3 +70,12 @@ To plot the adversarial example we can use `matplotlib`:
 
   plt.subplot(1, 3, 3)
   plt.imshow(adversarial - image)
+
+External Resources
+==================
+
+If you would like to share your Foolbox tutorial or example code, please let
+us know by opening an issue or pull-request on GitHub and we would be happy
+to add it to this list.
+
+- `Fashion-MNIST by akash-joshi <https://github.com/akash-joshi/adversarial-comparer>`_
