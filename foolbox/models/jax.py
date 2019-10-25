@@ -34,7 +34,7 @@ class JAXModel(DifferentiableModel):
     """
 
     def __init__(
-        self, predict, bounds, num_classes, channel_axis=-1, preprocessing=(0, 1)
+        self, predict, bounds, num_classes, channel_axis=3, preprocessing=(0, 1)
     ):
         # lazy import
         import jax

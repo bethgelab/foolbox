@@ -200,7 +200,7 @@ class LocalSearchAttack(Attack):
 
             scores = score(L)
 
-            indices = np.argsort(scores)[:t]
+            indices = np.argsort(scores)[-t:]
 
             PxPy_star = PxPy[indices]
 
