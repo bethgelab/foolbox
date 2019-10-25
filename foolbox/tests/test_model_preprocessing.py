@@ -42,8 +42,11 @@ params2 = [
     dict(mean=128.0, std=255.0, axis=-1),
     dict(mean=128.0, std=255.0, axis=-3),
     dict(mean=[1.0, 2.0, 3.0], std=[1.0, 2.0, 3.0]),
+    dict(mean=[1.0, 2.0, 3.0], std=[1.0, 2.0, 3.0], flip_axis=-1),
     dict(mean=[1.0, 2.0, 3.0], std=[1.0, 2.0, 3.0], axis=-1),
     dict(mean=[1.0, 2.0, 3.0], std=[1.0, 2.0, 3.0], axis=-3),
+    dict(mean=[1.0, 2.0, 3.0], std=[1.0, 2.0, 3.0], axis=-1, flip_axis=-1),
+    dict(mean=[1.0, 2.0, 3.0], std=[1.0, 2.0, 3.0], axis=-3, flip_axis=-3),
 ]
 
 
@@ -56,14 +59,18 @@ def test_preprocessing_axis(params, image):
     preprocessed, backward = preprocessing(image)
     assert image.shape == preprocessed.shape
     assert image.dtype == preprocessed.dtype
-    if params.get("axis", None) == -3:
-        assert np.allclose(
-            (image - np.asarray(params["mean"])[..., np.newaxis, np.newaxis])
-            / np.asarray(params["std"])[..., np.newaxis, np.newaxis],
-            preprocessed,
-        )
+    flip_axis = params.get("flip_axis", None)
+    if flip_axis is not None:
+        flipped = np.flip(image, axis=flip_axis)
     else:
-        assert np.allclose((image - params["mean"]) / params["std"], preprocessed)
+        flipped = image
+    if params.get("axis", None) == -3:
+        desired = (
+            flipped - np.asarray(params["mean"])[..., np.newaxis, np.newaxis]
+        ) / np.asarray(params["std"])[..., np.newaxis, np.newaxis]
+    else:
+        desired = (flipped - params["mean"]) / params["std"]
+    np.testing.assert_allclose(preprocessed, desired)
     assert np.all(image == image_copy)
     assert callable(backward)
     dmdp = image

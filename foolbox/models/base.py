@@ -9,9 +9,14 @@ def _create_preprocessing_fn(params):
         mean = params.get("mean", 0)
         std = params.get("std", 1)
         axis = params.get("axis", None)
+        flip_axis = params.get("flip_axis", None)
+        assert (
+            set(params.keys()) - {"mean", "std", "axis", "flip_axis"} == set()
+        ), "unknown parameter"
     else:
         mean, std = params
         axis = None
+        flip_axis = None
 
     mean = np.asarray(mean)
     std = np.asarray(std)
@@ -32,37 +37,48 @@ def _create_preprocessing_fn(params):
     def identity(x):
         return x
 
+    if flip_axis is None:
+        maybe_flip = identity
+    else:
+
+        def maybe_flip(x):
+            return np.flip(x, axis=flip_axis)
+
     if np.all(mean == 0) and np.all(std == 1):
 
         def preprocessing(x):
-            return x, identity
+            x = maybe_flip(x)
+            return x, maybe_flip
 
     elif np.all(std == 1):
 
         def preprocessing(x):
+            x = maybe_flip(x)
             _mean = mean.astype(x.dtype)
-            return x - _mean, identity
+            return x - _mean, maybe_flip
 
     elif np.all(mean == 0):
 
         def preprocessing(x):
+            x = maybe_flip(x)
             _std = std.astype(x.dtype)
 
             def grad(dmdp):
-                return dmdp / _std
+                return maybe_flip(dmdp / _std)
 
             return x / _std, grad
 
     else:
 
         def preprocessing(x):
+            x = maybe_flip(x)
             _mean = mean.astype(x.dtype)
             _std = std.astype(x.dtype)
             result = x - _mean
             result /= _std
 
             def grad(dmdp):
-                return dmdp / _std
+                return maybe_flip(dmdp / _std)
 
             return result, grad
 
@@ -86,10 +102,17 @@ class Model(abc.ABC):
         (0, 1) or (0, 255).
     channel_axis : int
         The index of the axis that represents color channels.
-    preprocessing: 2-element tuple with floats or numpy arrays
-        Elementwises preprocessing of input; we first subtract the first
-        element of preprocessing from the input and then divide the input by
-        the second element.
+    preprocessing: dict or tuple
+        Can be a tuple with two elements representing mean and standard
+        deviation or a dict with keys "mean" and "std". The two elements
+        should be floats or numpy arrays. "mean" is subtracted from the input,
+        the result is then divided by "std". If "mean" and "std" are
+        1-dimensional arrays, an additional (negative) "axis" key can be
+        given such that "mean" and "std" will be broadcasted to that axis
+        (typically -1 for "channels_last" and -3 for "channels_first", but
+        might be different when using e.g. 1D convolutions). Finally,
+        a (negative) "flip_axis" can be specified. This axis will be flipped
+        (before "mean" is subtracted), e.g. to convert RGB to BGR.
 
     """
 
