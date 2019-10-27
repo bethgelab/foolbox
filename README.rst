@@ -26,10 +26,8 @@ Installation
 
 .. code-block:: bash
 
-   # Foolbox 2.0
    pip install foolbox
 
-Foolbox 2.0 requires Python 3.5 or newer.
 
 Documentation
 -------------
