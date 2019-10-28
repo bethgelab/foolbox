@@ -39,7 +39,7 @@ setup(
     author_email="opensource@bethgelab.org",
     url="https://github.com/bethgelab/foolbox",
     license="MIT",
-    packages=find_packages(),
+    packages=find_packages() + ["foolbox.ext"],
     include_package_data=True,
     zip_safe=False,
     install_requires=install_requires,
