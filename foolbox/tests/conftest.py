@@ -30,6 +30,7 @@ from foolbox.models import PyTorchModel
 from foolbox.models import CaffeModel
 from foolbox.models import ModelWithoutGradients
 from foolbox.models import ModelWithEstimatedGradients
+from foolbox.models import EnsembleAveragedModel
 from foolbox.v1 import Adversarial
 from foolbox.distances import MSE
 from foolbox.distances import Linfinity
@@ -124,6 +125,54 @@ def bn_model_fixture():
         yield model
 
 
+def sn_bn_model():
+    """Creates a simple brightness model that does not require training with stochastic
+    noise to simulate the behaviour of e.g. bayesian networks.
+
+    """
+
+    import tensorflow as tf
+
+    bounds = (0, 1)
+    channel_axis = 3
+    channels = 10  # == num_classes
+
+    def mean_brightness_net(images):
+        logits = tf.reduce_mean(images, axis=(1, 2)) + tf.reduce_mean(
+            images * tf.random.normal(shape=(1, 1, 1, 1), stddev=1e-4), axis=(1, 2)
+        )
+        return logits
+
+    images = tf.placeholder(tf.float32, (None, 5, 5, channels))
+    logits = mean_brightness_net(images)
+
+    with tf.Session():
+        model = TensorFlowModel(
+            images, logits, bounds=bounds, channel_axis=channel_axis
+        )
+
+        yield model
+
+
+# sn_bn_model is also needed as a function, so we create the fixture separately
+@pytest.fixture(name="sn_bn_model")
+def sn_bn_model_fixture():
+    cm_model = contextmanager(sn_bn_model)
+    with cm_model() as model:
+        yield model
+
+
+@pytest.fixture
+def avg_sn_bn_adversarial(bn_criterion, bn_image, bn_label):
+    criterion = bn_criterion
+    image = bn_image
+    label = bn_label
+
+    cm_model = contextmanager(avg_bn_model)
+    with cm_model() as model:
+        yield Adversarial(model, criterion, image, label)
+
+
 @pytest.fixture
 def bn_model_pytorch():
     """Same as bn_model but with PyTorch."""
@@ -190,6 +239,24 @@ def gl_bn_model():
 @pytest.fixture(name="gl_bn_model")
 def gl_bn_model_fixture():
     cm_model = contextmanager(gl_bn_model)
+    with cm_model() as model:
+        yield model
+
+
+def avg_bn_model():
+    """Same as bn_model but without gradient.
+
+    """
+    cm_model = contextmanager(bn_model)
+    with cm_model() as model:
+        model = EnsembleAveragedModel(model, ensemble_size=2)
+        yield model
+
+
+# avg_bn_model is also needed as a function, so we create the fixture separately
+@pytest.fixture(name="avg_bn_model")
+def avg_bn_model_fixture():
+    cm_model = contextmanager(avg_bn_model)
     with cm_model() as model:
         yield model
 
