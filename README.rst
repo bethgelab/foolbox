@@ -2,6 +2,22 @@
 Foolbox Native
 ==============
 
-Foolbox Native tries to bring PyTorch and TensorFlow 2.0 native performance to `Foolbox <https://github.com/bethgelab/foolbox>`_.
-This is a prototype to explore this idea with the goal of ultimately becoming part of Foolbox itself.
+Foolbox Native is an extension for `Foolbox <https://github.com/bethgelab/foolbox>`_
+that tries to bring native performance to Foolbox. This extension is a
+prototype with the goal of ultimately becoming part of Foolbox itself.
 
+Installation
+------------
+
+.. code-block:: bash
+
+   pip install --upgrade foolbox-native
+
+
+Example
+-------
+
+.. code-block:: python
+
+   import foolbox.ext.native
+   print(foolbox.ext.native.__version__)
