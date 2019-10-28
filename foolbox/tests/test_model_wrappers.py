@@ -123,7 +123,7 @@ def test_ensemble_average_wrapper(
     with model:
         assert sn_bn_model.num_classes() == model.num_classes()
         assert not np.allclose(
-            bn_model.forward_one(bn_image), sn_bn_model.forward_one(bn_image)
+            bn_model.forward_one(bn_image), sn_bn_model.forward_one(bn_image), atol=1e-5
         )
         assert np.allclose(
             bn_model.forward_one(bn_image), model.forward_one(bn_image), atol=1e-5
