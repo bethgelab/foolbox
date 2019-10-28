@@ -1,0 +1,69 @@
+import numpy as np
+import torch
+import torch.nn as nn
+
+from foolbox.ext.native.models import PyTorchModel
+from foolbox.ext.native.attacks import LinfinityBasicIterativeAttack
+from foolbox.ext.native.attacks import L2BasicIterativeAttack
+
+
+def test_linf_basic_iterative_attack():
+    channels = 3
+    batch_size = 8
+    h = w = 32
+    bounds = (0, 1)
+
+    class Model(nn.Module):
+        def forward(self, x):
+            x = torch.mean(x, 3)
+            x = torch.mean(x, 2)
+            return x
+
+    model = Model()
+    fmodel = PyTorchModel(model, bounds=bounds)
+
+    np.random.seed(0)
+    x = np.random.uniform(*bounds, size=(batch_size, channels, h, w)).astype(np.float32)
+    x = torch.from_numpy(x).to(fmodel.device)
+    y = fmodel.forward(x).argmax(axis=-1)
+
+    attack = LinfinityBasicIterativeAttack(fmodel)
+    advs = attack(x, y, rescale=False, epsilon=0.3)
+
+    perturbation = advs - x
+    y_advs = fmodel.forward(advs).argmax(axis=-1)
+
+    assert x.shape == advs.shape
+    assert perturbation.abs().max() <= 0.3 + 1e7
+    assert (y_advs == y).float().mean() < 1
+
+
+def test_l2_basic_iterative_attack():
+    channels = 3
+    batch_size = 8
+    h = w = 32
+    bounds = (0, 1)
+
+    class Model(nn.Module):
+        def forward(self, x):
+            x = torch.mean(x, 3)
+            x = torch.mean(x, 2)
+            return x
+
+    model = Model()
+    fmodel = PyTorchModel(model, bounds=bounds)
+
+    np.random.seed(0)
+    x = np.random.uniform(*bounds, size=(batch_size, channels, h, w)).astype(np.float32)
+    x = torch.from_numpy(x).to(fmodel.device)
+    y = fmodel.forward(x).argmax(axis=-1)
+
+    attack = L2BasicIterativeAttack(fmodel)
+    advs = attack(x, y, rescale=False, epsilon=0.3)
+
+    perturbation = advs - x
+    y_advs = fmodel.forward(advs).argmax(axis=-1)
+
+    assert x.shape == advs.shape
+    assert perturbation.abs().max() <= 0.3 + 1e7
+    assert (y_advs == y).float().mean() < 1

@@ -5,3 +5,4 @@ with open(join(dirname(__file__), "VERSION")) as f:
 
 
 from . import models  # noqa: F401
+from . import attacks  # noqa: F401
