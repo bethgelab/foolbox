@@ -28,7 +28,7 @@ class PyTorchModel:
         mean = preprocessing.get("mean", None)
         std = preprocessing.get("std", None)
         axis = preprocessing.get("axis", None)
-        self._preprocessing_flip_axis = self._preprocessing.get("flip_axis", None)
+        flip_axis = preprocessing.get("flip_axis", None)
 
         if mean is not None:
             mean = torch.as_tensor(mean).to(self.device)
@@ -53,6 +53,7 @@ class PyTorchModel:
 
         self._preprocessing_mean = mean
         self._preprocessing_std = std
+        self._preprocessing_flip_axis = flip_axis
 
     def _preprocess(self, inputs):
         x = inputs

@@ -10,10 +10,10 @@ class TensorFlowModel:
 
     def _init_preprocessing(self, preprocessing):
         assert set(preprocessing.keys()) - {"mean", "std", "axis", "flip_axis"} == set()
-        mean = self._preprocessing.get("mean", None)
-        std = self._preprocessing.get("std", None)
-        axis = self._preprocessing.get("axis", None)
-        self._preprocessing_flip_axis = self._preprocessing.get("flip_axis", None)
+        mean = preprocessing.get("mean", None)
+        std = preprocessing.get("std", None)
+        axis = preprocessing.get("axis", None)
+        flip_axis = preprocessing.get("flip_axis", None)
 
         if mean is not None:
             mean = tf.convert_to_tensor(mean)
@@ -38,6 +38,7 @@ class TensorFlowModel:
 
         self._preprocessing_mean = mean
         self._preprocessing_std = std
+        self._preprocessing_flip_axis = flip_axis
 
     def _preprocess(self, inputs):
         x = inputs
