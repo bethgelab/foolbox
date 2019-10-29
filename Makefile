@@ -26,6 +26,11 @@ devsetup:
 build:
 	python3 setup.py sdist
 
+.PHONY: commit
+commit:
+	git add eagerpy/VERSION
+	git commit -m 'Version $(shell cat eagerpy/VERSION)'
+
 .PHONY: release
 release: build
 	twine upload dist/foolbox-native-$(shell cat foolbox/ext/native/VERSION).tar.gz
