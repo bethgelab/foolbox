@@ -4,17 +4,8 @@ import warnings
 
 
 class PyTorchModel:
-    def __init__(self, model, bounds, device=None, preprocessing=dict(mean=0, std=1)):
-        assert set(preprocessing.keys()) - {"mean", "std", "axis"} == set()
+    def __init__(self, model, bounds, device=None, preprocessing=None):
         self._bounds = bounds
-        self._preprocessing = preprocessing
-
-        if model.training:
-            warnings.warn(
-                "The PyTorch model is in training mode and therefore might"
-                " not be deterministic. Call the eval() method to set it in"
-                " evaluation mode if this is not intended."
-            )
 
         if device is None:
             self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -22,33 +13,52 @@ class PyTorchModel:
             self.device = torch.device(device)
         else:
             self.device = device
+
+        if model.training:
+            warnings.warn(
+                "The PyTorch model is in training mode and therefore might"
+                " not be deterministic. Call the eval() method to set it in"
+                " evaluation mode if this is not intended."
+            )
         self._model = model.to(self.device)
+        self._init_preprocessing(preprocessing)
 
-    def _preprocess(self, inputs):
-        x = inputs
+    def _init_preprocessing(self, preprocessing):
+        assert set(preprocessing.keys()) - {"mean", "std", "axis"} == set()
+        mean = preprocessing.get("mean", None)
+        std = preprocessing.get("std", None)
+        axis = preprocessing.get("axis", None)
 
-        mean = self._preprocessing.get("mean", 0)
-        std = self._preprocessing.get("std", 1)
-        axis = self._preprocessing.get("axis", None)
+        if mean is not None:
+            mean = torch.as_tensor(mean).to(self.device)
+        if std is not None:
+            std = torch.as_tensor(std).to(self.device)
 
         if axis is not None:
-            mean = torch.as_tensor(mean)
-            std = torch.as_tensor(std)
-            assert mean.ndim == 1, "If axis is specified, mean should be 1-dimensional"
-            assert std.ndim == 1, "If axis is specified, std should be 1-dimensional"
             assert (
                 axis < 0
             ), "axis must be negative integer, with -1 representing the last axis"
-            s = (1,) * (abs(axis) - 1)
-            mean = mean.reshape(mean.shape + s)
-            std = std.reshape(std.shape + s)
+            shape = (1,) * (abs(axis) - 1)
+            if mean is not None:
+                assert (
+                    mean.ndim == 1
+                ), "If axis is specified, mean should be 1-dimensional"
+                mean = mean.reshape(mean.shape + shape)
+            if std is not None:
+                assert (
+                    std.ndim == 1
+                ), "If axis is specified, std should be 1-dimensional"
+                std = std.reshape(std.shape + shape)
 
-        if isinstance(mean, torch.Tensor) or mean != 0:
-            x = x - mean
+        self._preprocessing_mean = mean
+        self._preprocessing_std = std
 
-        if isinstance(std, torch.Tensor) or std != 1:
-            x = x / std
-
+    def _preprocess(self, inputs):
+        x = inputs
+        if self._preprocessing_mean is not None:
+            x = x - self._preprocessing_mean
+        if self._preprocessing_std is not None:
+            x = x / self._preprocessing_std
         assert x.dtype == inputs.dtype
         return x
 
