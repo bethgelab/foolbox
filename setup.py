@@ -1,4 +1,5 @@
 from setuptools import setup
+from setuptools import find_namespace_packages
 from os.path import join, dirname
 
 with open(join(dirname(__file__), "foolbox/ext/native/VERSION")) as f:
@@ -37,7 +38,7 @@ setup(
     author_email="git@jonasrauber.de",
     url="https://github.com/jonasrauber/foolbox-native",
     license="",
-    packages=["foolbox.ext", "foolbox.ext.native"],
+    packages=find_namespace_packages(include=["foolbox.*"]),
     include_package_data=True,
     zip_safe=False,
     install_requires=install_requires,
