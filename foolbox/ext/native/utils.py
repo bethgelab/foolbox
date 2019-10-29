@@ -2,6 +2,7 @@ import eagerpy as ep
 import foolbox
 from .models import PyTorchModel
 from .models import TensorFlowModel
+from .models import JAXModel
 from .models import FoolboxModel
 
 
@@ -58,6 +59,11 @@ def samples(
 
         images = tf.convert_to_tensor(images)
         labels = tf.convert_to_tensor(labels)
+    elif isinstance(model, JAXModel):
+        import jax.numpy as np
+
+        images = np.asarray(images)
+        labels = np.asarray(labels)
     elif isinstance(model, FoolboxModel):
         images = images
         labels = labels

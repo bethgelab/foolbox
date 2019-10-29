@@ -14,6 +14,15 @@ that tries to bring native performance to Foolbox. This extension is a
 prototype with the goal of ultimately becoming part of Foolbox itself.
 Please be aware of the the differences to Foolbox listed below.
 
+Foolbox Native currently provides full support for:
+
+* PyTorch
+* TensorFlow
+* JAX
+
+Other frameworks can be used as well by falling back to Foolbox for the
+model API, see below.
+
 Installation
 ------------
 
