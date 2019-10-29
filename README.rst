@@ -94,9 +94,14 @@ Important differences to Foolbox
 Unlike Foolbox:
 
 * Foolbox Native does not yet guarantee API stability (expect breaking changes)
+
 * Foolbox Native is currently limited to very few attacks
+
 * Foolbox Native does not make any guarantees about the output of an attack
-*   The user is responsible for checking if the returned samples are adversarial
-*   Whether the size of the perturbations is guaranteed depends on the attack
-*   Foolbox, on the other hand, searches for the smallest perturbation while
+
+  * The user is responsible for checking if the returned samples are adversarial
+
+  * Whether the size of the perturbations is guaranteed depends on the attack
+
+  * Foolbox, on the other hand, searches for the smallest perturbation while
     guaranteeing that the returned samples are adversarial
