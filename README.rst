@@ -19,6 +19,8 @@
 Foolbox
 =======
 
+**NEW: Foolbox Native is now available!** Check out the `preview <https://github.com/jonasrauber/foolbox-native>`_.
+
 Foolbox is a Python toolbox to create adversarial examples that fool neural networks. It requires `Python`, `NumPy` and `SciPy`.
 
 Installation
