@@ -35,7 +35,14 @@ class L2BasicIterativeAttack:
         self.model = model
 
     def __call__(
-        self, inputs, labels, *, rescale=True, epsilon=0.3, step_size=0.05, num_steps=10
+        self,
+        inputs,
+        labels,
+        *,
+        rescale=False,
+        epsilon=0.3,
+        step_size=0.05,
+        num_steps=10,
     ):
         if rescale:
             min_, max_ = self.model.bounds()
@@ -67,7 +74,14 @@ class LinfinityBasicIterativeAttack:
         self.model = model
 
     def __call__(
-        self, inputs, labels, *, rescale=True, epsilon=0.3, step_size=0.05, num_steps=10
+        self,
+        inputs,
+        labels,
+        *,
+        rescale=False,
+        epsilon=0.3,
+        step_size=0.05,
+        num_steps=10,
     ):
         if rescale:
             min_, max_ = self.model.bounds()
