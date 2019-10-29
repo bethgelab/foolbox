@@ -28,8 +28,8 @@ build:
 
 .PHONY: commit
 commit:
-	git add eagerpy/VERSION
-	git commit -m 'Version $(shell cat eagerpy/VERSION)'
+	git add foolbox/ext/native/VERSION
+	git commit -m 'Version $(shell cat foolbox/ext/native/VERSION)'
 
 .PHONY: release
 release: build
