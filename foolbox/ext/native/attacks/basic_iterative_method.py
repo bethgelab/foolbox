@@ -34,7 +34,9 @@ class L2BasicIterativeAttack:
     def __init__(self, model):
         self.model = model
 
-    def __call__(self, inputs, labels, *, rescale=True, epsilon=0.3, step_size=0.05, num_steps=10):
+    def __call__(
+        self, inputs, labels, *, rescale=True, epsilon=0.3, step_size=0.05, num_steps=10
+    ):
         if rescale:
             min_, max_ = self.model.bounds()
             scale = (max_ - min_) * np.sqrt(np.prod(inputs.shape[1:]))
@@ -64,7 +66,9 @@ class LinfinityBasicIterativeAttack:
     def __init__(self, model):
         self.model = model
 
-    def __call__(self, inputs, labels, *, rescale=True, epsilon=0.3, step_size=0.05, num_steps=10):
+    def __call__(
+        self, inputs, labels, *, rescale=True, epsilon=0.3, step_size=0.05, num_steps=10
+    ):
         if rescale:
             min_, max_ = self.model.bounds()
             scale = max_ - min_

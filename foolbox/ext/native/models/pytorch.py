@@ -5,8 +5,16 @@ import warnings
 
 class PyTorchModel:
     def __init__(self, model, bounds, device=None, preprocessing=dict(mean=0, std=1)):
+        assert set(preprocessing.keys()) - {"mean", "std"} == set()
         self._bounds = bounds
         self._preprocessing = preprocessing
+
+        if model.training:
+            warnings.warn(
+                "The PyTorch model is in training mode and therefore might"
+                " not be deterministic. Call the eval() method to set it in"
+                " evaluation mode if this is not intended."
+            )
 
         if device is None:
             self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -15,13 +23,6 @@ class PyTorchModel:
         else:
             self.device = device
         self._model = model.to(self.device)
-
-        if model.training:
-            warnings.warn(
-                "The PyTorch model is in training mode and therefore might"
-                " not be deterministic. Call the eval() method to set it in"
-                " evaluation mode if this is not intended."
-            )
 
     def _preprocess(self, inputs):
         x = inputs
