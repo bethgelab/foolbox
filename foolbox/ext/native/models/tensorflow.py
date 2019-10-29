@@ -45,7 +45,7 @@ class TensorFlowModel:
     def _preprocess(self, inputs):
         x = inputs
         if self._preprocessing_flip_axis is not None:
-            x = tf.reverse(x, self._preprocessing_flip_axis)
+            x = tf.reverse(x, (self._preprocessing_flip_axis,))
         if self._preprocessing_mean is not None:
             x = x - self._preprocessing_mean
         if self._preprocessing_std is not None:
