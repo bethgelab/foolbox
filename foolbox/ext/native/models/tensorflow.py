@@ -9,6 +9,8 @@ class TensorFlowModel:
         self._init_preprocessing(preprocessing)
 
     def _init_preprocessing(self, preprocessing):
+        if preprocessing is None:
+            preprocessing = dict()
         assert set(preprocessing.keys()) - {"mean", "std", "axis", "flip_axis"} == set()
         mean = preprocessing.get("mean", None)
         std = preprocessing.get("std", None)
