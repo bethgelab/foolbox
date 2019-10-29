@@ -5,7 +5,7 @@ import warnings
 
 class PyTorchModel:
     def __init__(self, model, bounds, device=None, preprocessing=dict(mean=0, std=1)):
-        assert set(preprocessing.keys()) - {"mean", "std"} == set()
+        assert set(preprocessing.keys()) - {"mean", "std", "axis"} == set()
         self._bounds = bounds
         self._preprocessing = preprocessing
 
@@ -28,11 +28,25 @@ class PyTorchModel:
         x = inputs
 
         mean = self._preprocessing.get("mean", 0)
-        if mean != 0:
+        std = self._preprocessing.get("std", 1)
+        axis = self._preprocessing.get("axis", None)
+
+        if axis is not None:
+            mean = torch.as_tensor(mean)
+            std = torch.as_tensor(std)
+            assert mean.ndim == 1, "If axis is specified, mean should be 1-dimensional"
+            assert std.ndim == 1, "If axis is specified, std should be 1-dimensional"
+            assert (
+                axis < 0
+            ), "axis must be negative integer, with -1 representing the last axis"
+            s = (1,) * (abs(axis) - 1)
+            mean = mean.reshape(mean.shape + s)
+            std = std.reshape(std.shape + s)
+
+        if isinstance(mean, torch.Tensor) or mean != 0:
             x = x - mean
 
-        std = self._preprocessing.get("std", 1)
-        if std != 1:
+        if isinstance(std, torch.Tensor) or std != 1:
             x = x / std
 
         assert x.dtype == inputs.dtype
