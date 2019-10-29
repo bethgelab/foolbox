@@ -12,6 +12,7 @@ Foolbox Native
 Foolbox Native is an extension for `Foolbox <https://github.com/bethgelab/foolbox>`_
 that tries to bring native performance to Foolbox. This extension is a
 prototype with the goal of ultimately becoming part of Foolbox itself.
+Please be aware of the the differences to Foolbox listed below.
 
 Installation
 ------------
@@ -95,7 +96,6 @@ Unlike Foolbox:
 * Foolbox Native does not yet guarantee API stability (expect breaking changes)
 * Foolbox Native is currently limited to very few attacks
 * Foolbox Native does not make any guarantees about the output of an attack
-  * The user is responsible for checking if the returned samples are adversarial
-  * The size of the perturbations can be guaranteed by some attacks
-  * Foolbox, on the other hand, searches for the smallest perturbation while
-    guaranteeing that the returned samples are adversarial
+    * The user is responsible for checking if the returned samples are adversarial
+    * Whether the size of the perturbations is guaranteed depends on the attack
+    * Foolbox, on the other hand, searches for the smallest perturbation while guaranteeing that the returned samples are adversarial
