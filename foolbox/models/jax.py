@@ -131,7 +131,7 @@ class JAXModel(DifferentiableModel):
         predictions, vjp_fun = jax.vjp(self._predict, inputs)
         assert gradient.shape == predictions.shape
 
-        grad, = vjp_fun(gradient)
+        (grad,) = vjp_fun(gradient)
         grad = onp.asarray(grad)
         grad = self._process_gradient(dpdx, grad)
         assert grad.shape == input_shape

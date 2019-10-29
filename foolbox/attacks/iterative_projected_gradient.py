@@ -1273,7 +1273,7 @@ class AdamRandomStartProjectedGradientDescentAttack(
 
 
 AdamRandomProjectedGradientDescent = (
-    AdamRandomStartProjectedGradientDescentAttack
-)  # noqa: E501
+    AdamRandomStartProjectedGradientDescentAttack  # noqa: E501
+)
 
 AdamRandomPGD = AdamRandomProjectedGradientDescent

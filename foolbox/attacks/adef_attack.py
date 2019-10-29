@@ -230,7 +230,7 @@ class ADefAttack(Attack):
         if targeted:
             logits, _ = yield from a.forward_one(perturbed)
             pred_sorted = (-logits).argsort()
-            index_of_target_class, = np.where(pred_sorted == target_class)
+            (index_of_target_class,) = np.where(pred_sorted == target_class)
             ind_of_candidates = index_of_target_class
         else:
             # choose the top-k classes
