@@ -383,9 +383,11 @@ class BoundaryAttack(Attack):
             # Create a generator for new candidates
             # ===========================================================
 
-            unnormalized_source_direction, source_direction, source_norm = self.prepare_generate_candidates(
-                original, perturbed
-            )
+            (
+                unnormalized_source_direction,
+                source_direction,
+                source_norm,
+            ) = self.prepare_generate_candidates(original, perturbed)
 
             generation_args = (
                 rnd_normal_queue,
@@ -530,7 +532,13 @@ class BoundaryAttack(Attack):
                 else:
                     # check if one of the candidates is adversarial
                     t = time.time()
-                    _, is_adversarial, adv_index, is_best, candidate_distance = yield from a.forward(
+                    (
+                        _,
+                        is_adversarial,
+                        adv_index,
+                        is_best,
+                        candidate_distance,
+                    ) = yield from a.forward(
                         candidates.astype(external_dtype),
                         greedy=True,
                         strict=False,
@@ -927,7 +935,13 @@ class BoundaryAttack(Attack):
 
             for i in range(n):
                 t = time.time()
-                _, is_adversarial, adv_index, is_best, candidate_distance = yield from a.forward(
+                (
+                    _,
+                    is_adversarial,
+                    adv_index,
+                    is_best,
+                    candidate_distance,
+                ) = yield from a.forward(
                     batch.astype(external_dtype),
                     greedy=True,
                     strict=False,

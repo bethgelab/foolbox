@@ -16,7 +16,7 @@ before_install:
     - travis_wait travis_retry pip install --upgrade numpy
     - travis_wait travis_retry pip install --upgrade scipy
     - travis_wait travis_retry pip install -r requirements-dev.txt
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then travis_wait travis_retry pip install "black>=19.3b0"; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then travis_wait travis_retry pip install "black>=19.10b0"; fi
 
     - travis_wait travis_retry pip install --upgrade tensorflow==1.14
     - python -c 'import tensorflow; print(tensorflow.__version__)'

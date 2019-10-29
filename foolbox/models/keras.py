@@ -76,7 +76,7 @@ class KerasModel(DifferentiableModel):
 
         if predicts == "probabilities":
             if K.backend() == "tensorflow":
-                predictions, = predictions.op.inputs
+                (predictions,) = predictions.op.inputs
                 loss = K.sparse_categorical_crossentropy(
                     labels, predictions, from_logits=True
                 )
@@ -97,13 +97,13 @@ class KerasModel(DifferentiableModel):
             )
 
         loss = K.sum(loss, axis=0)
-        gradient, = K.gradients(loss, [inputs])
+        (gradient,) = K.gradients(loss, [inputs])
 
         backward_grad_logits = K.placeholder(shape=predictions.shape)
         backward_loss = K.sum(
             K.batch_dot(predictions, backward_grad_logits, axes=-1), axis=0
         )
-        backward_grad_inputs, = K.gradients(backward_loss, [inputs])
+        (backward_grad_inputs,) = K.gradients(backward_loss, [inputs])
 
         self._loss_fn = K.function([inputs, labels], [loss])
         self._forward_fn = K.function([inputs], [predictions])
@@ -128,7 +128,7 @@ class KerasModel(DifferentiableModel):
 
     def forward(self, inputs):
         px, _ = self._process_input(inputs)
-        predictions, = self._forward_fn([px])
+        (predictions,) = self._forward_fn([px])
         assert predictions.shape == (inputs.shape[0], self.num_classes())
         return predictions
 
@@ -157,7 +157,7 @@ class KerasModel(DifferentiableModel):
 
     def gradient(self, inputs, labels):
         px, dpdx = self._process_input(inputs)
-        g, = self._gradient_fn([px, labels])
+        (g,) = self._gradient_fn([px, labels])
         g = self._process_gradient(dpdx, g)
         assert g.shape == inputs.shape
         return g
@@ -165,7 +165,7 @@ class KerasModel(DifferentiableModel):
     def backward(self, gradient, inputs):
         assert gradient.ndim == 2
         px, dpdx = self._process_input(inputs)
-        g, = self._backward_fn([gradient, px])
+        (g,) = self._backward_fn([gradient, px])
         g = self._process_gradient(dpdx, g)
         assert g.shape == inputs.shape
         return g
