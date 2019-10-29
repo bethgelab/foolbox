@@ -13,7 +13,7 @@ except IOError:
     README = ""
 
 
-install_requires = ["numpy", "scipy", "setuptools", "foolbox>=2.2.0", "eagerpy==0.2.2"]
+install_requires = ["numpy", "scipy", "setuptools", "foolbox>=2.2.1", "eagerpy==0.2.2"]
 tests_require = ["pytest"]
 
 
