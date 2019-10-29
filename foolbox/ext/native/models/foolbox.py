@@ -14,3 +14,7 @@ class FoolboxModel:
 
     def gradient(self, inputs, labels):
         return self._model.gradient(inputs, labels)
+
+    @property
+    def foolbox_model(self):
+        return self._model
