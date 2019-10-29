@@ -15,11 +15,7 @@ def run_sequential(
     threshold=None,
     verbose=False,
     individual_kwargs=None,
-    # workaround for https://github.com/psf/black/issues/419
-    # remove once an update to black 19.3b0 has been released
-    # fmt: off
     **kwargs
-    # fmt: on
 ):
     """
     Runs the same type of attack vor multiple inputs sequentially without
@@ -152,11 +148,7 @@ def run_parallel(  # noqa: C901
     threshold=None,
     verbose=False,
     individual_kwargs=None,
-    # workaround for https://github.com/psf/black/issues/419
-    # remove once an update to black 19.3b0 has been released
-    # fmt: off
     **kwargs
-    # fmt: on
 ):
     """
     Runs the same type of attack vor multiple inputs in parallel by
