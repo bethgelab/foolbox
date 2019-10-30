@@ -103,7 +103,7 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
         gradients = self.gradient(inputs, labels)
         return predictions, gradients
 
-    def _gradient_one(self, x, label):
+    def gradient_one(self, x, label):
         pred_fn = self.forward
         bounds = self.bounds()
         return self._gradient_estimator.estimate_one(pred_fn, x, label, bounds)
