@@ -123,40 +123,40 @@ def test_ensemble_average_wrapper(
     with model:
         assert sn_bn_model.num_classes() == model.num_classes()
         assert not np.allclose(
-            bn_model.forward_one(bn_image), sn_bn_model.forward_one(bn_image), atol=1e-5
+            bn_model.forward_one(bn_image), sn_bn_model.forward_one(bn_image), atol=1e-4
         )
         assert np.allclose(
-            bn_model.forward_one(bn_image), model.forward_one(bn_image), atol=1e-5
+            bn_model.forward_one(bn_image), model.forward_one(bn_image), atol=1e-4
         )
 
         assert np.allclose(
             bn_model.gradient_one(bn_image, bn_label),
             model.gradient_one(bn_image, bn_label),
-            atol=1e-5,
+            atol=1e-4,
         )
 
         assert np.allclose(
             bn_model.backward_one(test_grad, bn_image),
             model.backward_one(test_grad, bn_image),
-            atol=1e-5,
+            atol=1e-4,
         )
         assert np.allclose(
             bn_model.forward_one(bn_image),
             model.forward_and_gradient_one(bn_image, bn_label)[0],
-            atol=1e-5,
+            atol=1e-4,
         )
         assert np.allclose(
             bn_model.forward_and_gradient_one(bn_image, bn_label)[1],
             model.forward_and_gradient_one(bn_image, bn_label)[1],
-            atol=1e-5,
+            atol=1e-4,
         )
         assert np.allclose(
             bn_model.forward_and_gradient(np.array([bn_image]), [bn_label])[0],
             model.forward_and_gradient(np.array([bn_image]), [bn_label])[0],
-            atol=1e-5,
+            atol=1e-4,
         )
         assert np.allclose(
             bn_model.forward_and_gradient(np.array([bn_image]), [bn_label])[1],
             model.forward_and_gradient(np.array([bn_image]), [bn_label])[1],
-            atol=1e-5,
+            atol=1e-4,
         )
