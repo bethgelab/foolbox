@@ -368,6 +368,17 @@ def eg_bn_adversarial(request, bn_criterion, bn_image, bn_label):
         yield Adversarial(model, criterion, image, label)
 
 
+@pytest.fixture(
+    params=[CoordinateWiseGradientEstimator, EvolutionaryStrategiesGradientEstimator]
+)
+def eg_bn_model(request):
+    eg_bn_model = eg_bn_model_factory(request)
+
+    cm_model = contextmanager(eg_bn_model)
+    with cm_model() as model:
+        yield model
+
+
 @pytest.fixture
 def bn_impossible(bn_impossible_criterion, bn_image, bn_label):
     criterion = bn_impossible_criterion
