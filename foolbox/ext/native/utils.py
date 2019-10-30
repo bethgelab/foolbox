@@ -75,3 +75,8 @@ def samples(
 def flatten(x: ep.Tensor) -> ep.Tensor:
     shape = (x.shape[0], -1)
     return x.reshape(shape)
+
+
+def atleast_kd(x: ep.Tensor, k) -> ep.Tensor:
+    shape = x.shape + (1,) * (k - x.ndim)
+    return x.reshape(shape)

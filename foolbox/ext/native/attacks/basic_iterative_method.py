@@ -2,11 +2,7 @@ import numpy as np
 import eagerpy as ep
 
 from ..utils import flatten
-
-
-def atleast_kd(x: ep.Tensor, k) -> ep.Tensor:
-    shape = x.shape + (1,) * (k - x.ndim)
-    return x.reshape(shape)
+from ..utils import atleast_kd
 
 
 def clip_l2_norms(x: ep.Tensor, norm) -> ep.Tensor:
