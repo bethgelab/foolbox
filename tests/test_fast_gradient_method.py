@@ -5,11 +5,11 @@ import torch.nn as nn
 
 from foolbox.ext.native.utils import flatten
 from foolbox.ext.native.models import PyTorchModel
-from foolbox.ext.native.attacks import LinfinityBasicIterativeAttack
-from foolbox.ext.native.attacks import L2BasicIterativeAttack
+from foolbox.ext.native.attacks import LinfinityFastGradientAttack
+from foolbox.ext.native.attacks import L2FastGradientAttack
 
 
-def test_linf_basic_iterative_attack():
+def test_linf_fast_gradient_attack():
     channels = 3
     batch_size = 8
     h = w = 32
@@ -29,10 +29,10 @@ def test_linf_basic_iterative_attack():
     x = torch.from_numpy(x).to(fmodel.device)
     y = fmodel.forward(x).argmax(axis=-1)
 
-    attack = LinfinityBasicIterativeAttack(fmodel)
-    advs = attack(x, y, rescale=False, epsilon=0.3, step_size=0.05)
+    attack = LinfinityFastGradientAttack(fmodel)
+    advs = attack(x, y, rescale=False, epsilon=0.3)
 
-    perturbations = advs - x
+    perturbations = ep.astensor(advs - x)
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
@@ -40,7 +40,7 @@ def test_linf_basic_iterative_attack():
     assert (y_advs == y).float().mean() < 1
 
 
-def test_l2_basic_iterative_attack():
+def test_l2_fast_gradient_attack():
     channels = 3
     batch_size = 8
     h = w = 32
@@ -60,8 +60,8 @@ def test_l2_basic_iterative_attack():
     x = torch.from_numpy(x).to(fmodel.device)
     y = fmodel.forward(x).argmax(axis=-1)
 
-    attack = L2BasicIterativeAttack(fmodel)
-    advs = attack(x, y, rescale=False, epsilon=2.0, step_size=0.4)
+    attack = L2FastGradientAttack(fmodel)
+    advs = attack(x, y, rescale=False, epsilon=2.0)
 
     perturbations = ep.astensor(advs - x)
     norms = flatten(perturbations).square().sum(axis=-1).sqrt()

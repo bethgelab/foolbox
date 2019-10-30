@@ -70,3 +70,8 @@ def samples(
     else:
         raise ValueError("data_format could not be inferred from the model")
     return images, labels
+
+
+def flatten(x: ep.Tensor) -> ep.Tensor:
+    shape = (x.shape[0], -1)
+    return x.reshape(shape)

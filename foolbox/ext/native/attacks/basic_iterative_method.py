@@ -1,10 +1,7 @@
 import numpy as np
 import eagerpy as ep
 
-
-def flatten(x: ep.Tensor) -> ep.Tensor:
-    shape = (x.shape[0], -1)
-    return x.reshape(shape)
+from ..utils import flatten
 
 
 def atleast_kd(x: ep.Tensor, k) -> ep.Tensor:
@@ -40,8 +37,8 @@ class L2BasicIterativeAttack:
         labels,
         *,
         rescale=False,
-        epsilon=0.3,
-        step_size=0.05,
+        epsilon=2.0,
+        step_size=0.4,
         num_steps=10,
     ):
         if rescale:
