@@ -158,3 +158,15 @@ def test_ensemble_average_wrapper(
             model.forward_and_gradient(np.array([bn_image]), [bn_label])[1],
             atol=1e-3,
         )
+
+
+def test_batched_estimate_gradient_wrapper(eg_bn_model, bn_image, bn_label):
+    set_seeds(22)
+    g1 = eg_bn_model.gradient(bn_image[np.newaxis], [bn_label])[0]
+    set_seeds(22)
+    g2 = eg_bn_model.gradient_one(bn_image, bn_label)
+
+    assert np.allclose(g1, g2)
+
+    gs = eg_bn_model.gradient(np.array([bn_image] * 2), np.array([bn_label] * 2))
+    assert np.allclose(gs[0], gs[1], atol=1e-1)

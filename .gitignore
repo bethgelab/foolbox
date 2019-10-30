@@ -1,3 +1,4 @@
+foolbox/ext/native
 worktrees/
 .mypy_cache
 Makefile

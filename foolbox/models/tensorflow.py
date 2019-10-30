@@ -69,14 +69,14 @@ class TensorFlowModel(DifferentiableModel):
             loss = tf.reduce_sum(loss)
             self._loss = loss
 
-            gradient, = tf.gradients(loss, inputs)
+            (gradient,) = tf.gradients(loss, inputs)
             if gradient is None:
                 gradient = tf.zeros_like(inputs)
             self._gradient = gradient
 
             backward_grad_logits = tf.placeholder(tf.float32, logits.shape)
             backward_loss = tf.reduce_sum(logits * backward_grad_logits)
-            backward_grad_inputs, = tf.gradients(backward_loss, inputs)
+            (backward_grad_inputs,) = tf.gradients(backward_loss, inputs)
             if backward_grad_inputs is None:
                 backward_grad_inputs = tf.zeros_like(inputs)
 

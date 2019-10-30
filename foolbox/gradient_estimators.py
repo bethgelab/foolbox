@@ -7,9 +7,25 @@ import numpy as np
 
 from .utils import batch_crossentropy
 from . import nprng
+from abc import abstractmethod, ABC
 
 
-class CoordinateWiseGradientEstimator(object):
+class GradientEstimatorBase(ABC):
+    @abstractmethod
+    def estimate_one(self, pred_fn, x, label, bounds):
+        raise NotImplementedError()
+
+    def estimate(self, pred_fn, xs, labels, bounds):
+        assert len(xs) == len(labels)
+        gradients = []
+        for x, label in zip(xs, labels):
+            gradients.append(self.estimate_one(pred_fn, x, label, bounds))
+        gradients = np.array(gradients)
+
+        return gradients
+
+
+class CoordinateWiseGradientEstimator(GradientEstimatorBase):
     """Implements a simple gradient-estimator using
     the coordinate-wise finite-difference method.
 
@@ -26,7 +42,7 @@ class CoordinateWiseGradientEstimator(object):
         noise = np.concatenate([noise, -noise])
         return noise
 
-    def __call__(self, pred_fn, x, label, bounds):
+    def estimate_one(self, pred_fn, x, label, bounds):
         noise = self._get_noise(x.shape, x.dtype)
         N = len(noise)
 
@@ -48,7 +64,7 @@ class CoordinateWiseGradientEstimator(object):
         return gradient
 
 
-class EvolutionaryStrategiesGradientEstimator(object):
+class EvolutionaryStrategiesGradientEstimator(GradientEstimatorBase):
     """Implements gradient estimation using evolution strategies.
 
     This gradient estimator is based on work from [1]_ and [2]_.
@@ -79,7 +95,7 @@ class EvolutionaryStrategiesGradientEstimator(object):
         noise = np.concatenate([noise, -noise])
         return noise
 
-    def __call__(self, pred_fn, x, label, bounds):
+    def estimate_one(self, pred_fn, x, label, bounds):
         noise = self._get_noise(x.shape, x.dtype)
         N = len(noise)
 
