@@ -1,6 +1,6 @@
 import jax.numpy as np
 from jax.scipy.special import logsumexp
-from jax import grad
+import jax
 
 
 def crossentropy(logits, labels):
@@ -23,7 +23,7 @@ class JAXModel:
             logits = f(x)
             return crossentropy(logits, y)
 
-        g = grad(loss)
+        g = jax.grad(loss)
 
         self._f = f
         self._g = g
@@ -84,3 +84,13 @@ class JAXModel:
         grad = self._g(inputs, labels)
         assert grad.shape == inputs.shape
         return grad
+
+    def value_and_grad(self, f, has_aux=False):
+        value_and_grad__ = jax.value_and_grad(f, has_aux=has_aux)
+
+        def value_and_grad_(x, *args, **kwargs):
+            outputs, grad = value_and_grad__(x, *args, **kwargs)
+            assert grad.shape == x.shape
+            return outputs, grad
+
+        return value_and_grad_

@@ -93,3 +93,21 @@ class PyTorchModel:
         grad = x_.grad
         assert grad.shape == x_.shape
         return grad
+
+    def value_and_grad(self, f, has_aux=False):
+        def value_and_grad_(x, *args, **kwargs):
+            x = x.clone()
+            x.requires_grad_()
+            if has_aux:
+                loss, aux = f(x, *args, **kwargs)
+            else:
+                loss = f(x)
+            loss.backward()
+            grad = x.grad
+            assert grad.shape == x.shape
+            if has_aux:
+                return (loss, aux), grad
+            else:
+                return loss, grad
+
+        return value_and_grad_
