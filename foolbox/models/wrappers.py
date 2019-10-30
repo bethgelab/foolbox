@@ -1,6 +1,7 @@
 import numpy as np
 from .base import Model
 from .base import DifferentiableModel
+from ..gradient_estimators import GradientEstimatorBase
 
 
 class ModelWrapper(Model):
@@ -82,16 +83,15 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
     ----------
     model : :class:`Model`
         The model that is wrapped.
-    gradient_estimator : `callable`
-        Callable taking three arguments (pred_fn, x, label) and
-        returning the estimated gradients. pred_fn will be the
-        forward method of the wrapped model.
+    gradient_estimator : :class:`GradientEstimatorBase`
+        GradientEstimator object that can estimate gradients for single and batched
+        samples.
     """
 
     def __init__(self, model, gradient_estimator):
         super(ModelWithEstimatedGradients, self).__init__(model=model)
 
-        assert callable(gradient_estimator)
+        assert issubclass(type(gradient_estimator), GradientEstimatorBase)
         self._gradient_estimator = gradient_estimator
 
     def forward_and_gradient_one(self, x, label):
@@ -107,12 +107,12 @@ class ModelWithEstimatedGradients(DifferentiableModelWrapper):
     def _gradient_one(self, x, label):
         pred_fn = self.forward
         bounds = self.bounds()
-        return self._gradient_estimator(pred_fn, x, label, bounds)
+        return self._gradient_estimator.estimate_one(pred_fn, x, label, bounds)
 
     def gradient(self, inputs, labels):
-        if inputs.shape[0] == labels.shape[0] == 1:
-            return self._gradient_one(inputs[0], labels[0])[np.newaxis]
-        raise NotImplementedError
+        pred_fn = self.forward
+        bounds = self.bounds()
+        return self._gradient_estimator.estimate(pred_fn, inputs, labels, bounds)
 
     def backward(self, gradient, inputs):
         raise NotImplementedError

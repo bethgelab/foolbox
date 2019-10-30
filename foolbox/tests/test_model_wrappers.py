@@ -98,3 +98,15 @@ def test_estimate_gradient_wrapper(eg_bn_adversarial, bn_image):
     assert np.all(p == p2) and np.all(p == p3)
     assert np.all(g == g2) and np.all(g == g3)
     assert ia == ia2 == ia3
+
+
+def test_batched_estimate_gradient_wrapper(eg_bn_model, bn_image, bn_label):
+    set_seeds(22)
+    g1 = eg_bn_model.gradient(bn_image[np.newaxis], [bn_label])[0]
+    set_seeds(22)
+    g2 = eg_bn_model.gradient_one(bn_image, bn_label)
+
+    assert np.allclose(g1, g2)
+
+    gs = eg_bn_model.gradient(np.array([bn_image] * 2), np.array([bn_label] * 2))
+    assert np.allclose(gs[0], gs[1], atol=1e-1)
