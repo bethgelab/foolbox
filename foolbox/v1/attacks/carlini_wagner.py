@@ -264,7 +264,7 @@ class AdamOptimizer:
         self.v = np.zeros(shape)
         self.t = 0
 
-    def __call__(self, gradient, learning_rate, beta1=0.9, beta2=0.999, epsilon=10e-8):
+    def __call__(self, gradient, learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8):
         """Updates internal parameters of the optimizer and returns
         the change that should be applied to the variable.
 
