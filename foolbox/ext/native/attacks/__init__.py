@@ -7,3 +7,5 @@ FGM = L2FastGradientAttack
 from .fast_gradient_method import LinfinityFastGradientAttack  # noqa: F401
 
 FGSM = LinfinityFastGradientAttack
+
+from .carlini_wagner import L2CarliniWagnerAttack  # noqa: F401
