@@ -142,8 +142,8 @@ PyTorch, JAX, Theano, Lasagne and MXNet are available, e.g.
 
 .. code-block:: python
 
-   model = foolbox.models.TensorFlowModel(images, logits, bounds=(0, 255))
-   model = foolbox.models.TensorFlowEagerModel(model, bounds=(0, 255))
+   model = foolbox.models.TensorFlowModel(images, logits, bounds=(0, 255))  # Use this for TensorFlow 1.0
+   model = foolbox.models.TensorFlowEagerModel(model, bounds=(0, 255))  # Use this for TensorFlow 2.0
    model = foolbox.models.PyTorchModel(torchmodel, bounds=(0, 255), num_classes=1000)
    # etc.
 
