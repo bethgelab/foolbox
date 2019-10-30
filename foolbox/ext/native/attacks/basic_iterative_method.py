@@ -75,6 +75,7 @@ class LinfinityBasicIterativeAttack:
         epsilon=0.3,
         step_size=0.05,
         num_steps=10,
+        random_start=False,
     ):
         if rescale:
             min_, max_ = self.model.bounds()
@@ -88,6 +89,10 @@ class LinfinityBasicIterativeAttack:
         assert y.ndim == 1
 
         x0 = x
+
+        if random_start:
+            x = x + ep.uniform(x, x.shape, -epsilon, epsilon)
+            x = ep.clip(x, *self.model.bounds())
 
         for _ in range(num_steps):
             gradients = ep.astensor(self.model.gradient(x.tensor, y.tensor))

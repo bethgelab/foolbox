@@ -7,6 +7,7 @@ from foolbox.ext.native.models import PyTorchModel
 from foolbox.ext.native.attacks import LinfinityBasicIterativeAttack
 from foolbox.ext.native.attacks import L2BasicIterativeAttack
 from foolbox.ext.native.attacks import L2CarliniWagnerAttack
+from foolbox.ext.native.attacks import PGD
 
 
 @pytest.fixture
@@ -94,4 +95,19 @@ def test_pytorch_l2_carlini_wagner_attack(fmodel_and_data):
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
+    assert (y_advs == y).float().mean() < 1
+
+
+def test_pytorch_linf_pgd(fmodel_and_data):
+    fmodel, x, y, batch_size, num_classes = fmodel_and_data
+    y = fmodel.forward(x).argmax(axis=-1)
+
+    attack = PGD(fmodel)
+    advs = attack(x, y, rescale=False, epsilon=0.3)
+
+    perturbation = advs - x
+    y_advs = fmodel.forward(advs).argmax(axis=-1)
+
+    assert x.shape == advs.shape
+    assert perturbation.abs().max() <= 0.3 + 1e7
     assert (y_advs == y).float().mean() < 1
