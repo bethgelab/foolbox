@@ -25,8 +25,6 @@ class L2CarliniWagnerAttack:
         initial_const=1e-3,
         abort_early=True,
     ):
-        # TODO: add rescale
-
         x = ep.astensor(inputs)
         N = len(x)
 
