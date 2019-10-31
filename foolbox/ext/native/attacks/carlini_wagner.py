@@ -30,14 +30,13 @@ class L2CarliniWagnerAttack:
 
         targeted = target_classes is not None
         if targeted:
-            del labels
+            labels = None
             target_classes = ep.astensor(target_classes)
             assert target_classes.shape == (N,)
             is_adv = partial(
                 targeted_is_adv, target_classes=target_classes, confidence=confidence
             )
         else:
-            del target_classes
             labels = ep.astensor(labels)
             assert labels.shape == (N,)
             is_adv = partial(untargeted_is_adv, labels=labels, confidence=confidence)

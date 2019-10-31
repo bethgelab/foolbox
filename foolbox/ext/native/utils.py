@@ -57,8 +57,9 @@ def samples(
     elif isinstance(model, TensorFlowModel):
         import tensorflow as tf
 
-        images = tf.convert_to_tensor(images)
-        labels = tf.convert_to_tensor(labels)
+        with model.device:
+            images = tf.convert_to_tensor(images)
+            labels = tf.convert_to_tensor(labels)
     elif isinstance(model, JAXModel):
         import jax.numpy as np
 

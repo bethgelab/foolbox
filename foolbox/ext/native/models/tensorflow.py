@@ -2,9 +2,19 @@ import tensorflow as tf
 
 
 class TensorFlowModel:
-    def __init__(self, model, bounds, preprocessing=None):
+    def __init__(self, model, bounds, device=None, preprocessing=None):
         assert tf.executing_eagerly()
         self._bounds = bounds
+
+        if device is None:
+            self.device = tf.device(
+                "/GPU:0" if tf.test.is_gpu_available() else "/CPU:0"
+            )
+        elif isinstance(device, str):
+            self.device = tf.device(device)
+        else:
+            self.device = device
+
         self._model = model
         self._init_preprocessing(preprocessing)
 
@@ -17,10 +27,11 @@ class TensorFlowModel:
         axis = preprocessing.get("axis", None)
         flip_axis = preprocessing.get("flip_axis", None)
 
-        if mean is not None:
-            mean = tf.convert_to_tensor(mean)
-        if std is not None:
-            std = tf.convert_to_tensor(std)
+        with self.device:
+            if mean is not None:
+                mean = tf.convert_to_tensor(mean)
+            if std is not None:
+                std = tf.convert_to_tensor(std)
 
         if axis is not None:
             assert (
