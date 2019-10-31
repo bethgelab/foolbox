@@ -1,3 +1,4 @@
+import numpy as np
 from .base import Model
 from .base import DifferentiableModel
 from ..gradient_estimators import GradientEstimatorBase
