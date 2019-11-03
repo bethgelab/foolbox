@@ -39,14 +39,18 @@ class AdamOptimizer:
 
     """
 
-    def __init__(self, shape, learning_rate, beta1=0.9, beta2=0.999, epsilon=10e-8):
+    def __init__(
+        self, shape, dtype, learning_rate, beta1=0.9, beta2=0.999, epsilon=10e-8
+    ):
         """Updates internal parameters of the optimizer and returns
         the change that should be applied to the variable.
 
         Parameters
         ----------
         shape : tuple
-            the shape of the image
+            the shape of the input
+        dtype : data-type
+            the data-type of the input
         learning_rate: float
             the learning rate in the current iteration
         beta1: float
@@ -59,8 +63,8 @@ class AdamOptimizer:
             small value to avoid division by zero
         """
 
-        self.m = np.zeros(shape)
-        self.v = np.zeros(shape)
+        self.m = np.zeros(shape, dtype=dtype)
+        self.v = np.zeros(shape, dtype=dtype)
         self.t = 0
 
         self._beta1 = beta1

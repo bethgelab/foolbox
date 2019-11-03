@@ -234,7 +234,7 @@ class GDOptimizerMixin(object):
 
 class AdamOptimizerMixin(object):
     def _create_optimizer(self, a, stepsize):
-        return AdamOptimizer(a.unperturbed.shape, stepsize)
+        return AdamOptimizer(a.unperturbed.shape, a.unperturbed.dtype, stepsize)
 
 
 class LinfinityGradientMixin(object):
