@@ -33,6 +33,7 @@ Wrappers
    ModelWithoutGradients
    ModelWithEstimatedGradients
    CompositeModel
+   EnsembleAveragedModel
 
 Detailed description
 --------------------
@@ -86,4 +87,7 @@ Detailed description
    :members:
 
 .. autoclass:: CompositeModel
+   :members:
+
+.. autoclass:: EnsembleAveragedModel
    :members:

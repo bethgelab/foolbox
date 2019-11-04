@@ -12,6 +12,7 @@ from .wrappers import DifferentiableModelWrapper  # noqa: F401
 from .wrappers import ModelWithoutGradients  # noqa: F401
 from .wrappers import ModelWithEstimatedGradients  # noqa: F401
 from .wrappers import CompositeModel  # noqa: F401
+from .wrappers import EnsembleAveragedModel  # noqa: F401
 
 from .tensorflow import TensorFlowModel  # noqa: F401
 from .tensorflow_eager import TensorFlowEagerModel  # noqa: F401

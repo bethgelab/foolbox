@@ -4,6 +4,7 @@ from foolbox import set_seeds
 from foolbox.models import ModelWrapper
 from foolbox.models import DifferentiableModelWrapper
 from foolbox.models import CompositeModel
+from foolbox.models import EnsembleAveragedModel
 
 
 def test_context_manager(gl_bn_model):
@@ -98,6 +99,65 @@ def test_estimate_gradient_wrapper(eg_bn_adversarial, bn_image):
     assert np.all(p == p2) and np.all(p == p3)
     assert np.all(g == g2) and np.all(g == g3)
     assert ia == ia2 == ia3
+
+
+def test_ensemble_average_wrapper(
+    sn_bn_model, bn_model, avg_sn_bn_adversarial, bn_image, bn_label
+):
+    p, ia = avg_sn_bn_adversarial.forward_one(bn_image)
+    set_seeds(22)
+    g = avg_sn_bn_adversarial.gradient_one(bn_image)
+    set_seeds(22)
+    p2, g2, ia2 = avg_sn_bn_adversarial.forward_and_gradient_one(bn_image)
+    set_seeds(22)
+    p3, g3, ia3 = avg_sn_bn_adversarial.forward_and_gradient(np.array([bn_image]))
+    p3, g3, ia3 = p3[0], g3[0], ia3[0]
+
+    assert np.all(p == p2) and np.all(p == p3)
+    assert np.all(g == g2) and np.all(g == g3)
+    assert ia == ia2 == ia3
+
+    num_classes = 10
+    test_grad = np.random.rand(num_classes).astype(np.float32)
+    model = EnsembleAveragedModel(sn_bn_model, ensemble_size=200)
+    with model:
+        assert sn_bn_model.num_classes() == model.num_classes()
+
+        assert np.allclose(
+            bn_model.forward_one(bn_image), model.forward_one(bn_image), atol=1e-3
+        )
+
+        assert np.allclose(
+            bn_model.gradient_one(bn_image, bn_label),
+            model.gradient_one(bn_image, bn_label),
+            atol=1e-3,
+        )
+
+        assert np.allclose(
+            bn_model.backward_one(test_grad, bn_image),
+            model.backward_one(test_grad, bn_image),
+            atol=1e-3,
+        )
+        assert np.allclose(
+            bn_model.forward_one(bn_image),
+            model.forward_and_gradient_one(bn_image, bn_label)[0],
+            atol=1e-3,
+        )
+        assert np.allclose(
+            bn_model.forward_and_gradient_one(bn_image, bn_label)[1],
+            model.forward_and_gradient_one(bn_image, bn_label)[1],
+            atol=1e-3,
+        )
+        assert np.allclose(
+            bn_model.forward_and_gradient(np.array([bn_image]), [bn_label])[0],
+            model.forward_and_gradient(np.array([bn_image]), [bn_label])[0],
+            atol=1e-3,
+        )
+        assert np.allclose(
+            bn_model.forward_and_gradient(np.array([bn_image]), [bn_label])[1],
+            model.forward_and_gradient(np.array([bn_image]), [bn_label])[1],
+            atol=1e-3,
+        )
 
 
 def test_batched_estimate_gradient_wrapper(eg_bn_model, bn_image, bn_label):

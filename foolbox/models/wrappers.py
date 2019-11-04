@@ -1,3 +1,4 @@
+import numpy as np
 from .base import Model
 from .base import DifferentiableModel
 from ..gradient_estimators import GradientEstimatorBase
@@ -179,3 +180,81 @@ class CompositeModel(DifferentiableModel):
         if r1 is None and r2 is None:
             return None
         return (r1, r2)  # pragma: no cover
+
+
+class EnsembleAveragedModel(DifferentiableModelWrapper):
+    """Reduces stochastic effects in networks by averaging both forward and backward
+     calculations of the network by creating an ensemble of the same model and averaging
+     over multiple runs (i.e. instances in the ensemble) as described in [1]_.
+
+    References
+    ----------
+    .. [1] Roland S. Zimmermann,
+           "Comment on 'Adv-BNN: Improved Adversarial Defense through Robust Bayesian
+           Neural Network'", https://arxiv.org/abs/1907.00895
+
+    Parameters
+    ----------
+    model : :class:`Model`
+        The model that is wrapped.
+    ensemble_size : int
+        Number of networks in the ensemble over which the predictions/gradients
+        will be averaged.
+
+    """
+
+    def __init__(self, model, ensemble_size):
+        assert ensemble_size > 0, "Ensemble must contain at least 1 member."
+        super(EnsembleAveragedModel, self).__init__(model=model)
+        self.ensemble_size = ensemble_size
+
+    def forward_and_gradient_one(self, x, label):
+        predictions = []
+        gradients = []
+        for _ in range(self.ensemble_size):
+            prediction, gradient = self.wrapped_model.forward_and_gradient_one(x, label)
+            predictions.append(prediction)
+            gradients.append(gradient)
+        prediction = np.mean(predictions, axis=0)
+        gradient = np.mean(gradients, axis=0)
+
+        return prediction, gradient
+
+    def forward_and_gradient(self, x, label):
+        predictions = []
+        gradients = []
+        for _ in range(self.ensemble_size):
+            prediction, gradient = self.wrapped_model.forward_and_gradient(x, label)
+            predictions.append(prediction)
+            gradients.append(gradient)
+        prediction = np.mean(predictions, axis=0)
+        gradient = np.mean(gradients, axis=0)
+
+        return prediction, gradient
+
+    def forward(self, x):
+        predictions = []
+        for _ in range(self.ensemble_size):
+            prediction = self.wrapped_model.forward(x)
+            predictions.append(prediction)
+        prediction = np.mean(predictions, axis=0)
+
+        return prediction
+
+    def gradient(self, inputs, labels):
+        gradients = []
+        for _ in range(self.ensemble_size):
+            gradient = self.wrapped_model.gradient(inputs, labels)
+            gradients.append(gradient)
+        gradient = np.mean(gradients, axis=0)
+
+        return gradient
+
+    def backward(self, gradient, inputs):
+        grads = []
+        for _ in range(self.ensemble_size):
+            grad = self.wrapped_model.backward(gradient, inputs)
+            grads.append(grad)
+        grad = np.mean(grads, axis=0)
+
+        return grad
