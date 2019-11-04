@@ -8,6 +8,9 @@ from foolbox.utils import imagenet_example
 from foolbox.utils import binarize
 from foolbox.utils import onehot_like
 from foolbox.utils import samples
+from foolbox.utils import flatten
+from foolbox.utils import atleast_kd
+from foolbox.utils import accuracy
 
 
 def test_softmax():
@@ -152,3 +155,28 @@ def test_onehot_like():
     assert np.all(o[:3] == 0)
     assert o[3] == -77.5
     assert np.all(o[4:] == 0)
+
+
+def test_flatten():
+    np.random.seed(22)
+    x = np.random.rand(10, 3, 32, 32)
+    y1 = x.reshape(10, 3 * 32 * 32)
+    y2 = flatten(x)
+    assert y1.shape == y2.shape
+    assert np.all(y1 == y2)
+
+
+def test_atleast_kd():
+    np.random.seed(22)
+    x = np.random.rand(10, 3, 32, 32)
+    y1 = x.reshape(10, 3, 32, 32, 1, 1, 1)
+    y2 = atleast_kd(x, 7)
+    assert y1.shape == y2.shape
+    assert np.all(y1 == y2)
+
+
+def test_accuracy(bn_model, bn_images):
+    logits = bn_model.forward(bn_images)
+    labels = logits.argmax(axis=-1)
+    assert accuracy(bn_model, bn_images, labels) == 1.0
+    assert accuracy(bn_model, bn_images, labels * 0) < 1.0

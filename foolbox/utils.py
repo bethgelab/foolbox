@@ -261,3 +261,20 @@ def onehot_like(a, index, value=1):
     x = np.zeros_like(a)
     x[index] = value
     return x
+
+
+def flatten(x):
+    shape = (x.shape[0], -1)
+    return x.reshape(shape)
+
+
+def atleast_kd(x, k):
+    shape = x.shape + (1,) * (k - x.ndim)
+    return x.reshape(shape)
+
+
+def accuracy(fmodel, inputs, labels):
+    logits = fmodel.forward(inputs)
+    predictions = logits.argmax(axis=-1)
+    accuracy = (predictions == labels).mean()
+    return accuracy
