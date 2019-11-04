@@ -15,7 +15,7 @@ def run_sequential(
     threshold=None,
     verbose=False,
     individual_kwargs=None,
-    **kwargs,
+    **kwargs
 ):
     """
     Runs the same type of attack vor multiple inputs sequentially without
@@ -148,7 +148,7 @@ def run_parallel(  # noqa: C901
     threshold=None,
     verbose=False,
     individual_kwargs=None,
-    **kwargs,
+    **kwargs
 ):
     """
     Runs the same type of attack vor multiple inputs in parallel by
