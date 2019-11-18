@@ -21,7 +21,7 @@ def test_linf_basic_iterative_attack():
             x = torch.mean(x, 2)
             return x
 
-    model = Model()
+    model = Model().eval()
     fmodel = PyTorchModel(model, bounds=bounds)
 
     np.random.seed(0)
@@ -36,7 +36,7 @@ def test_linf_basic_iterative_attack():
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert perturbations.abs().max() <= 0.3 + 1e7
+    assert perturbations.abs().max() <= 0.3 + 1e-7
     assert (y_advs == y).float().mean() < 1
 
 
@@ -52,7 +52,7 @@ def test_l2_basic_iterative_attack():
             x = torch.mean(x, 2)
             return x
 
-    model = Model()
+    model = Model().eval()
     fmodel = PyTorchModel(model, bounds=bounds)
 
     np.random.seed(0)
@@ -68,5 +68,5 @@ def test_l2_basic_iterative_attack():
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert norms.max().item() <= 2.0 + 1e7
+    assert norms.max().item() <= 2.0 + 1e-7
     assert (y_advs == y).float().mean() < 1

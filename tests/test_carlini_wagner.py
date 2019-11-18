@@ -8,7 +8,7 @@ from foolbox.ext.native.models import PyTorchModel
 from foolbox.ext.native.attacks import L2CarliniWagnerAttack
 
 
-def test_l2_fast_gradient_attack():
+def test_carlini_wagner_attack():
     channels = 3
     batch_size = 8
     h = w = 32
@@ -20,7 +20,7 @@ def test_l2_fast_gradient_attack():
             x = torch.mean(x, 2)
             return x
 
-    model = Model()
+    model = Model().eval()
     fmodel = PyTorchModel(model, bounds=bounds)
 
     np.random.seed(0)
@@ -36,5 +36,5 @@ def test_l2_fast_gradient_attack():
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert norms.max().item() <= 2.0 + 1e7
+    assert norms.max().item() <= 40.0 + 1e-7
     assert (y_advs == y).float().mean() < 1

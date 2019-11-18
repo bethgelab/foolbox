@@ -20,7 +20,7 @@ def fmodel():
             x = torch.mean(x, 2)
             return x
 
-    model = Model()
+    model = Model().eval()
     fmodel = PyTorchModel(model, bounds=bounds)
     return fmodel
 
@@ -67,7 +67,7 @@ def test_pytorch_linf_basic_iterative_attack(fmodel_and_data):
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert perturbation.abs().max() <= 0.3 + 1e7
+    assert perturbation.abs().max() <= 0.3 + 1e-7
     assert (y_advs == y).float().mean() < 1
 
 
@@ -82,7 +82,7 @@ def test_pytorch_l2_basic_iterative_attack(fmodel_and_data):
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert perturbation.abs().max() <= 0.3 + 1e7
+    assert perturbation.abs().max() <= 0.3 + 1e-7
     assert (y_advs == y).float().mean() < 1
 
 
@@ -109,5 +109,5 @@ def test_pytorch_linf_pgd(fmodel_and_data):
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert perturbation.abs().max() <= 0.3 + 1e7
+    assert perturbation.abs().max() <= 0.3 + 1e-7
     assert (y_advs == y).float().mean() < 1

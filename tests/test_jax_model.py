@@ -63,7 +63,7 @@ def test_jax_linf_basic_iterative_attack(fmodel_and_data):
     y_advs = ep.astensor(fmodel.forward(advs)).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert perturbation.abs().max() <= 0.3 + 1e7
+    assert perturbation.abs().max() <= 0.3 + 1e-7
     assert (y_advs == y).float32().mean() < 1
 
 
@@ -78,7 +78,7 @@ def test_jax_l2_basic_iterative_attack(fmodel_and_data):
     y_advs = ep.astensor(fmodel.forward(advs)).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert perturbation.abs().max() <= 0.3 + 1e7
+    assert perturbation.abs().max() <= 0.3 + 1e-7
     assert (y_advs == y).float32().mean() < 1
 
 
@@ -106,5 +106,5 @@ def test_jax_linf_pgd(fmodel_and_data):
     y_advs = ep.astensor(fmodel.forward(advs)).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert perturbation.abs().max() <= 0.3 + 1e7
+    assert perturbation.abs().max() <= 0.3 + 1e-7
     assert (y_advs == y).float32().mean() < 1
