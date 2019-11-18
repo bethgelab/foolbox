@@ -88,6 +88,32 @@ TensorFlow Example
    adversarials = attack(images, labels, epsilon=2.0 * 255., step_size=0.2 * 255.)  # L2 norm
    print(fbn.utils.accuracy(fmodel, adversarials, labels))
 
+Robust Accuracy Evaluation
+--------------------------
+
+.. code-block:: python
+
+   import foolbox.ext.native as fbn
+
+   # get fmodel, images, labels like above
+   fmodel = ...
+   images, labels = ...
+
+   attacks = [
+       L2BasicIterativeAttack,
+       L2CarliniWagnerAttack,
+       L2ContrastReductionAttack,
+       BinarySearchContrastReductionAttack,
+       LinearSearchContrastReductionAttack,
+   ]
+   epsilons = [0.0, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0]
+
+   _, robust_accuracy = fbn.evaluate_l2(fmodel, x, y, attacks=attacks, epsilons=epsilons)
+   print(robust_accuracy)
+
+   # Plot an accuracy-distortion curve
+   plt.plot(epsilons, robust_accuracy)
+
 Other Frameworks
 ----------------
 
