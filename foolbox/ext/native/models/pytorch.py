@@ -15,11 +15,13 @@ class PyTorchModel:
             self.device = device
 
         if model.training:
-            warnings.warn(
-                "The PyTorch model is in training mode and therefore might"
-                " not be deterministic. Call the eval() method to set it in"
-                " evaluation mode if this is not intended."
-            )
+            with warnings.catch_warnings():
+                warnings.simplefilter("always")
+                warnings.warn(
+                    "The PyTorch model is in training mode and therefore might"
+                    " not be deterministic. Call the eval() method to set it in"
+                    " evaluation mode if this is not intended."
+                )
         self._model = model.to(self.device)
         self._init_preprocessing(preprocessing)
 
