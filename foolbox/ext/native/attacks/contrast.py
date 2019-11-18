@@ -11,13 +11,13 @@ class L2ContrastReductionAttack:
     def __init__(self, model):
         self.model = model
 
-    def __call__(self, inputs, labels, *, l2):
+    def __call__(self, inputs, labels, *, epsilon):
         x = ep.astensor(inputs)
         min_, max_ = self.model.bounds()
         target = (max_ + min_) / 2
         v = target - x
         norms = flatten(v).square().sum(axis=-1).sqrt()
-        x = x + l2 / atleast_kd(norms, v.ndim) * v
+        x = x + epsilon / atleast_kd(norms, v.ndim) * v
         x = x.clip(min_, max_)
         return x.tensor
 
