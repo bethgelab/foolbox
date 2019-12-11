@@ -7,6 +7,7 @@ from .projected_gradient_descent import ProjectedGradientDescentAttack  # noqa: 
 from .contrast import L2ContrastReductionAttack  # noqa: F401
 from .contrast import BinarySearchContrastReductionAttack  # noqa: F401
 from .contrast import LinearSearchContrastReductionAttack  # noqa: F401
+from .inversion import InversionAttack  # noga: F401
 
 FGM = L2FastGradientAttack
 FGSM = LinfinityFastGradientAttack
