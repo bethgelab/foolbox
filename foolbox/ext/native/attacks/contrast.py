@@ -17,7 +17,9 @@ class L2ContrastReductionAttack:
         target = (max_ + min_) / 2
         v = target - x
         norms = flatten(v).square().sum(axis=-1).sqrt()
-        x = x + epsilon / atleast_kd(norms, v.ndim) * v
+        scale = epsilon / atleast_kd(norms, v.ndim)
+        scale = ep.minimum(scale, 1)
+        x = x + scale * v
         x = x.clip(min_, max_)
         return x.tensor
 
