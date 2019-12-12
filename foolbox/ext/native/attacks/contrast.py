@@ -43,8 +43,9 @@ class BinarySearchContrastReductionAttack:
         N = len(x)
         x0 = x
 
-        lower_bound = np.zeros((N,))
-        upper_bound = np.ones((N,))
+        npdtype = x.numpy().dtype
+        lower_bound = np.zeros((N,), dtype=npdtype)
+        upper_bound = np.ones((N,), dtype=npdtype)
 
         epsilons = lower_bound
 
@@ -69,7 +70,7 @@ class LinearSearchContrastReductionAttack:
     def __init__(self, model):
         self.model = model
 
-    def __call__(self, inputs, labels, *, num_steps=1000):
+    def __call__(self, inputs, labels, *, steps=1000):
         x = ep.astensor(inputs)
         y = ep.astensor(labels)
         assert x.shape[0] == y.shape[0]
@@ -82,8 +83,9 @@ class LinearSearchContrastReductionAttack:
         N = len(x)
         x0 = x
 
-        epsilons = np.linspace(0, 1, num=num_steps + 1)
-        best = np.ones((N,))
+        npdtype = x.numpy().dtype
+        epsilons = np.linspace(0, 1, num=steps + 1, dtype=npdtype)
+        best = np.ones((N,), dtype=npdtype)
 
         for epsilon in epsilons:
             # TODO: reduce the batch size to the ones that haven't been sucessful
@@ -93,10 +95,13 @@ class LinearSearchContrastReductionAttack:
             is_adv = (classes != labels).numpy()
 
             best = np.minimum(
-                np.logical_not(is_adv).astype(np.float32)
-                + is_adv.astype(np.float32) * epsilon,
+                np.logical_not(is_adv).astype(npdtype)
+                + is_adv.astype(npdtype) * epsilon,
                 best,
             )
+
+            if (best < 1).all():
+                break
 
         best = ep.from_numpy(x0, best)
         x = x0 + atleast_kd(best, x0.ndim) * v

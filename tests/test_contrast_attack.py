@@ -31,7 +31,7 @@ def test_l2_contrast_reduction_attack():
     y = fmodel.forward(x).argmax(axis=-1)
 
     attack = L2ContrastReductionAttack(fmodel)
-    advs = attack(x, y, l2=20.0)
+    advs = attack(x, y, epsilon=20.0)
 
     perturbations = ep.astensor(advs - x)
     norms = flatten(perturbations).square().sum(axis=-1).sqrt()
