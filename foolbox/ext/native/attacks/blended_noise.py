@@ -33,7 +33,7 @@ class LinearSearchBlendedUniformNoiseAttack:
                 is_adv = is_adv_
             else:
                 cond1 = is_adv.astype(x.dtype)
-                cond2 = is_adv.astype(x.dtype)
+                cond2 = is_adv_.astype(x.dtype)
                 random = cond1 * random + (1 - cond1) * cond2 * random_
                 is_adv = is_adv.logical_or(is_adv_)
 
