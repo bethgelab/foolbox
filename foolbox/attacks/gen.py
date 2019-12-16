@@ -20,7 +20,7 @@ class GenAttack(Attack):
            Cho-Jui Hsieh, Mani Srivastava,
            "GenAttack: Practical Black-box Attacks with Gradient-Free
            Optimization",
-            https://arxiv.org/abs/1607.02533
+            https://arxiv.org/abs/1805.11090
     """
 
     @generator_decorator
