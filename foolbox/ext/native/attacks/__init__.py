@@ -10,6 +10,7 @@ from .contrast import BinarySearchContrastReductionAttack  # noqa: F401
 from .contrast import LinearSearchContrastReductionAttack  # noqa: F401
 from .inversion import InversionAttack  # noqa: F401
 from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
+from .boundary_attack import BoundaryAttack  # noqa: F401
 
 FGM = L2FastGradientAttack
 FGSM = LinfinityFastGradientAttack
