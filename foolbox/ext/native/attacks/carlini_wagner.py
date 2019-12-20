@@ -112,11 +112,11 @@ class L2CarliniWagnerAttack:
             consts_ = ep.from_numpy(x, consts.astype(np.float32))
 
             for iteration in range(max_iterations):
-                (loss, (x, logits)), gradient = loss_aux_and_grad(
+                (loss, (perturbed, logits)), gradient = loss_aux_and_grad(
                     delta.tensor, consts_.tensor
                 )
                 loss = ep.astensor(loss)
-                x = ep.astensor(x)
+                perturbed = ep.astensor(perturbed)
                 logits = ep.astensor(logits)
                 gradient = ep.astensor(gradient)
                 delta += optimizer(gradient, learning_rate)
@@ -130,13 +130,15 @@ class L2CarliniWagnerAttack:
                 found_advs_iter = is_adv(logits)
                 found_advs = np.logical_or(found_advs, found_advs_iter.numpy())
 
-                norms = flatten(x).square().sum(axis=-1).sqrt()
-                new_best = (
-                    norms < best_advs_norms
-                ).float32() * found_advs_iter.float32()
-                new_best = atleast_kd(new_best, best_advs.ndim)
-                best_advs = new_best * x + (1 - new_best) * best_advs
-                best_advs_norms = ep.minimum(norms, best_advs_norms)
+                norms = flatten(perturbed - x).square().sum(axis=-1).sqrt()
+                closer = norms < best_advs_norms
+                new_best = closer.float32() * found_advs_iter.float32()
+
+                best_advs = (
+                    atleast_kd(new_best, best_advs.ndim) * perturbed
+                    + (1 - atleast_kd(new_best, best_advs.ndim)) * best_advs
+                )
+                best_advs_norms = new_best * norms + (1 - new_best) * best_advs_norms
 
             upper_bounds = np.where(found_advs, consts, upper_bounds)
             lower_bounds = np.where(found_advs, lower_bounds, consts)
