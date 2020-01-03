@@ -6,6 +6,7 @@ import logging
 from ..utils import flatten
 from ..utils import atleast_kd
 from . import LinearSearchBlendedUniformNoiseAttack
+from ..tensorboard import TensorBoard
 
 
 def misclassification(
@@ -55,9 +56,9 @@ class BoundaryAttack:
         Differences to the original reference implementation:
         * We do not perform internal operations with float64
         * The samples within a batch can currently influence each other a bit
-        * We don't perform additional the additional convergence confirmation
-        * Probably more ...
-        # TODO: add differences caused by merging both loops
+        * We don't perform the additional convergence confirmation
+        * The success rate tracking changed a bit
+        * Some other changes due to batching and merged loops
 
         Parameters
         ----------
@@ -70,10 +71,7 @@ class BoundaryAttack:
             summaries will be disabled (default). If None, the logdir will be
             runs/CURRENT_DATETIME_HOSTNAME.
         """
-        if tensorboard or (tensorboard is None):
-            from tensorboardX import SummaryWriter
-
-            tensorboard = SummaryWriter(logdir=tensorboard)
+        tb = TensorBoard(logdir=tensorboard)
 
         originals = ep.astensor(inputs)
         labels = ep.astensor(labels)
@@ -101,8 +99,7 @@ class BoundaryAttack:
         spherical_steps = ep.ones(originals, N) * spherical_step
         source_steps = ep.ones(originals, N) * source_step
 
-        if tensorboard:
-            tensorboard.add_scalar("overall/batchsize", N, 0)
+        tb.scalar("batchsize", N, 0)
 
         # create two queues for each sample to track success rates
         # (used to update the hyper parameters)
@@ -114,10 +111,12 @@ class BoundaryAttack:
         for step in range(1, steps + 1):
             converged = source_steps < source_step_convergance
             if converged.all():
-                break  # TODO
+                break
             converged = atleast_kd(converged, ndim)
 
             # TODO: performance: ignore those that have converged
+            # (we could select the non-converged ones, but we currently
+            # cannot easily invert this in the end using EagerPy)
 
             unnormalized_source_directions = originals - best_advs
             source_norms = l2norms(unnormalized_source_directions)
@@ -127,8 +126,6 @@ class BoundaryAttack:
 
             # only check spherical candidates every k steps
             check_spherical_and_update_stats = step % update_stats_every_k == 0
-
-            # TODO ORIGINAL START OF INNER LOOP
 
             candidates, spherical_candidates = draw_proposals(
                 bounds,
@@ -166,59 +163,21 @@ class BoundaryAttack:
             cond = converged.logical_not().logical_and(is_best_adv)
             best_advs = ep.where(cond, candidates, best_advs)
 
-            if tensorboard:
-                tensorboard.add_scalar(
-                    "step/converged", converged.float32().mean().item(), step
-                )
-                tensorboard.add_scalar(
-                    "step/updating_stats", check_spherical_and_update_stats, step
-                )
-                tensorboard.add_scalar(
-                    "step/norms/mean", source_norms.mean().item(), step
-                )
-                tensorboard.add_histogram(
-                    "step/norms/histogram", source_norms.numpy(), step
-                )
-                tensorboard.add_scalar(
-                    "step/is_adv", is_adv.float32().mean().item(), step
-                )
-                if spherical_is_adv is not None:
-                    tensorboard.add_scalar(
-                        "step/spherical_is_adv",
-                        spherical_is_adv.float32().mean().item(),
-                        step,
-                    )
-                tensorboard.add_scalar(
-                    "step/candidates/distances/mean", distances.mean().item(), step
-                )
-                tensorboard.add_histogram(
-                    "step/candidates/distances", distances.numpy(), step
-                )
-                tensorboard.add_scalar(
-                    "step/candidates/closer", closer.float32().mean().item(), step
-                )
-                tensorboard.add_scalar(
-                    "step/candidates/is_best_adv",
-                    is_best_adv.float32().mean().item(),
-                    step,
-                )
-                tensorboard.add_scalar(
-                    "step/new_best_adv_including_converged",
-                    is_best_adv.float32().mean().item(),
-                    step,
-                )
-                tensorboard.add_scalar(
-                    "step/new_best_adv", cond.float32().mean().item(), step
-                )
-
-            # TODO: ORIGINAL END OF INNER LOOP
+            tb.probability("converged", converged, step)
+            tb.scalar("updated_stats", check_spherical_and_update_stats, step)
+            tb.histogram("norms", source_norms, step)
+            tb.probability("is_adv", is_adv, step)
+            if spherical_is_adv is not None:
+                tb.probability("spherical_is_adv", spherical_is_adv, step)
+            tb.histogram("candidates/distances", distances, step)
+            tb.probability("candidates/closer", closer, step)
+            tb.probability("candidates/is_best_adv", is_best_adv, step)
+            tb.probability("new_best_adv_including_converged", is_best_adv, step)
+            tb.probability("new_best_adv", cond, step)
 
             if check_spherical_and_update_stats:
                 full = stats_spherical_adversarial.isfull()
-                if tensorboard:
-                    tensorboard.add_scalar(
-                        "step/spherical_stats/full", full.float32().mean().item(), step
-                    )
+                tb.probability("spherical_stats/full", full, step)
                 if full.any():
                     probs = stats_spherical_adversarial.mean()
                     cond1 = ep.logical_and(probs > 0.5, full)
@@ -236,35 +195,22 @@ class BoundaryAttack:
                         cond2, source_steps / step_adaptation, source_steps
                     )
                     stats_spherical_adversarial.clear(ep.logical_or(cond1, cond2))
-                    if tensorboard:
-                        ps = probs.numpy()[full.numpy()]
-                        tensorboard.add_scalar(
-                            "step/spherical_stats/isfull/success_rate/mean",
-                            ps.mean().item(),
-                            step,
-                        )
-                        tensorboard.add_scalar(
-                            "step/spherical_stats/isfull/too_linear",
-                            cond1.float32().mean().item()
-                            / full.float32().mean().item(),
-                            step,
-                        )
-                        tensorboard.add_scalar(
-                            "step/spherical_stats/isfull/too_nonlinear",
-                            cond2.float32().mean().item()
-                            / full.float32().mean().item(),
-                            step,
-                        )
+                    tb.conditional_mean(
+                        "spherical_stats/isfull/success_rate/mean", probs, full, step,
+                    )
+                    tb.probability_ratio(
+                        "spherical_stats/isfull/too_linear", cond1, full, step,
+                    )
+                    tb.probability_ratio(
+                        "spherical_stats/isfull/too_nonlinear", cond2, full, step,
+                    )
 
                 full = stats_step_adversarial.isfull()
-                if tensorboard:
-                    tensorboard.add_scalar(
-                        "step/step_stats/full", full.float32().mean().item(), step
-                    )
+                tb.probability("step_stats/full", full, step)
                 if full.any():
                     probs = stats_step_adversarial.mean()
-                    # TODO: algorithm: changed the two values because we are tracking p(source_step_sucess) instead
-                    # of p(source_step_success | spherical_step_sucess) that was tracked before
+                    # TODO: algorithm: changed the two values because we are currently tracking p(source_step_sucess)
+                    # instead of p(source_step_success | spherical_step_sucess) that was tracked before
                     cond1 = ep.logical_and(probs > 0.25, full)
                     source_steps = ep.where(
                         cond1, source_steps * step_adaptation, source_steps
@@ -274,43 +220,19 @@ class BoundaryAttack:
                         cond2, source_steps / step_adaptation, source_steps
                     )
                     stats_step_adversarial.clear(ep.logical_or(cond1, cond2))
-                    if tensorboard:
-                        ps = probs.numpy()[full.numpy()]
-                        tensorboard.add_scalar(
-                            "step/step_stats/isfull/success_rate/mean",
-                            ps.mean().item(),
-                            step,
-                        )
-                        tensorboard.add_scalar(
-                            "step/step_stats/isfull/success_rate_too_high",
-                            cond1.float32().mean().item()
-                            / full.float32().mean().item(),
-                            step,
-                        )
-                        tensorboard.add_scalar(
-                            "step/step_stats/isfull/success_rate_too_low",
-                            cond2.float32().mean().item()
-                            / full.float32().mean().item(),
-                            step,
-                        )
+                    tb.conditional_mean(
+                        "step_stats/isfull/success_rate/mean", probs, full, step,
+                    )
+                    tb.probability_ratio(
+                        "step_stats/isfull/success_rate_too_high", cond1, full, step,
+                    )
+                    tb.probability_ratio(
+                        "step_stats/isfull/success_rate_too_low", cond2, full, step,
+                    )
 
-            if tensorboard:
-                tensorboard.add_scalar(
-                    "step/spherical_step/mean", spherical_steps.mean().item(), step
-                )
-                tensorboard.add_histogram(
-                    "step/spherical_steps/histogram", spherical_steps.numpy(), step
-                )
-                tensorboard.add_scalar(
-                    "step/source_step/mean", source_steps.mean().item(), step
-                )
-                tensorboard.add_histogram(
-                    "step/source_step/histogram", source_steps.numpy(), step
-                )
-
-        if tensorboard:
-            tensorboard.close()
-
+            tb.histogram("spherical_step", spherical_steps, step)
+            tb.histogram("source_step", source_steps, step)
+        tb.close()
         return best_advs.tensor
 
 
