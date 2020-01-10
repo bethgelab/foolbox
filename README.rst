@@ -14,12 +14,15 @@
     :target: https://github.com/ambv/black
 
 
+===================================
+Foolbox Native (a.k.a. Foolbox 3.0)
+===================================
 
-=======
-Foolbox
-=======
+Foolbox Native will be the next big release of Foolbox, completely rewritten from the ground up for maximum performance. You can now check out our  `preview <https://github.com/jonasrauber/foolbox-native>`_ version.
 
-**NEW: Foolbox Native is now available!** Check out the `preview <https://github.com/jonasrauber/foolbox-native>`_.
+===========
+Foolbox 2.0
+===========
 
 Foolbox is a Python toolbox to create adversarial examples that fool neural networks. It requires `Python`, `NumPy` and `SciPy`.
 
