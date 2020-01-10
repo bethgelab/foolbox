@@ -1,3 +1,4 @@
+import pytest
 import eagerpy as ep
 import numpy as np
 import torch
@@ -5,7 +6,25 @@ import torch.nn as nn
 
 from foolbox.ext.native.models import PyTorchModel
 from foolbox.ext.native.attacks import L2AdditiveGaussianNoiseAttack
+from foolbox.ext.native.attacks import L2AdditiveUniformNoiseAttack
+from foolbox.ext.native.attacks import LinfAdditiveUniformNoiseAttack
 from foolbox.ext.native.attacks import L2RepeatedAdditiveGaussianNoiseAttack
+from foolbox.ext.native.attacks import L2RepeatedAdditiveUniformNoiseAttack
+from foolbox.ext.native.attacks import LinfRepeatedAdditiveUniformNoiseAttack
+
+
+Attacks = [
+    L2AdditiveGaussianNoiseAttack,
+    L2AdditiveUniformNoiseAttack,
+    LinfAdditiveUniformNoiseAttack,
+]
+
+
+RepeatedAttacks = [
+    L2RepeatedAdditiveGaussianNoiseAttack,
+    L2RepeatedAdditiveUniformNoiseAttack,
+    LinfRepeatedAdditiveUniformNoiseAttack,
+]
 
 
 def misclassification(
@@ -15,7 +34,8 @@ def misclassification(
     return classes != labels
 
 
-def test_additive_gaussian_noise_attack():
+@pytest.mark.parametrize("Attack", Attacks)
+def test_additive_noise_attack(Attack):
     channels = 3
     batch_size = 8
     h = w = 32
@@ -35,16 +55,17 @@ def test_additive_gaussian_noise_attack():
     x = torch.from_numpy(x).to(fmodel.device)
     y = fmodel.forward(x).argmax(axis=-1)
 
-    attack = L2AdditiveGaussianNoiseAttack(fmodel)
+    attack = Attack(fmodel)
     advs = attack(x, y, epsilon=20.0)
 
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert (y_advs == y).float().mean() < 0.8
+    assert (y_advs == y).float().mean() < 0.9
 
 
-def test_repeated_additive_gaussian_noise_attack():
+@pytest.mark.parametrize("Attack", RepeatedAttacks)
+def test_repeated_additive_noise_attack(Attack):
     channels = 3
     batch_size = 8
     h = w = 32
@@ -64,7 +85,7 @@ def test_repeated_additive_gaussian_noise_attack():
     x = torch.from_numpy(x).to(fmodel.device)
     y = fmodel.forward(x).argmax(axis=-1)
 
-    attack = L2RepeatedAdditiveGaussianNoiseAttack(fmodel)
+    attack = Attack(fmodel)
     advs = attack(x, y, epsilon=20.0, criterion=misclassification)
 
     y_advs = fmodel.forward(advs).argmax(axis=-1)
