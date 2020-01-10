@@ -10,7 +10,7 @@ from .base import generator_decorator
 class BinarizationRefinementAttack(Attack):
     """For models that preprocess their inputs by binarizing the
     inputs, this attack can improve adversarials found by other
-    attacks. It does os by utilizing information about the
+    attacks. It does so by utilizing information about the
     binarization and mapping values to the corresponding value in
     the clean input or to the right side of the threshold.
 
