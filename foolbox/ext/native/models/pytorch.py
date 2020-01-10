@@ -108,13 +108,13 @@ class PyTorchModel:
             grad = x.grad
             assert grad.shape == x.shape
             loss = loss.detach()
-            if isinstance(aux, torch.Tensor):
-                aux = aux.detach()
-            elif isinstance(aux, tuple):
-                aux = tuple(
-                    t.detach() if isinstance(t, torch.Tensor) else t for t in aux
-                )
             if has_aux:
+                if isinstance(aux, torch.Tensor):
+                    aux = aux.detach()
+                elif isinstance(aux, tuple):
+                    aux = tuple(
+                        t.detach() if isinstance(t, torch.Tensor) else t for t in aux
+                    )
                 return (loss, aux), grad
             else:
                 return loss, grad
