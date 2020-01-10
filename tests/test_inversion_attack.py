@@ -1,9 +1,7 @@
-import eagerpy as ep
 import numpy as np
 import torch
 import torch.nn as nn
 
-from foolbox.ext.native.utils import flatten
 from foolbox.ext.native.models import PyTorchModel
 from foolbox.ext.native.attacks import InversionAttack
 
