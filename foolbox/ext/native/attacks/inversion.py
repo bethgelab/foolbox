@@ -1,8 +1,4 @@
-import numpy as np
 import eagerpy as ep
-
-from ..utils import flatten
-from ..utils import atleast_kd
 
 
 class InversionAttack:
