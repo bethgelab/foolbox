@@ -150,8 +150,7 @@ class BrendelBethgeAttack:
             Number of binary search steps used to find the adversarial boundary
             between the starting point and the clean image.
         """
-        if tensorboard:
-            tb = TensorBoard(logdir=tensorboard)
+        tb = TensorBoard(logdir=tensorboard)
 
         originals = ep.astensor(inputs)
         labels = ep.astensor(labels)
@@ -200,8 +199,7 @@ class BrendelBethgeAttack:
         
         starting_points = self.mid_points(x0, x1, upper_bound, bounds)
         
-        if tensorboard:
-            tb.scalar("batchsize", N, 0)
+        tb.scalar("batchsize", N, 0)
         
         # function to compute logits_diff and gradient
         def loss_fun(x, mask=None):
@@ -319,13 +317,11 @@ class BrendelBethgeAttack:
             # add step to current perturbation
             x = (x + ep.astensor(deltas)).reshape(original_shape)
 
-            if tensorboard:
-                tb.probability("converged", converged, step)
-                tb.histogram("norms", source_norms, step)
-                tb.histogram("candidates/distances", distances, step)
+            tb.probability("converged", converged, step)
+            tb.histogram("norms", source_norms, step)
+            tb.histogram("candidates/distances", distances, step)
 
-        if tensorboard:
-            tb.close()
+        tb.close()
         
         return best_advs.tensor
 
