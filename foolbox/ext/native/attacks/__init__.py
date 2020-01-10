@@ -10,6 +10,8 @@ from .contrast import BinarySearchContrastReductionAttack  # noqa: F401
 from .contrast import LinearSearchContrastReductionAttack  # noqa: F401
 from .inversion import InversionAttack  # noqa: F401
 from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
+from .additive_noise import L2AdditiveGaussianNoiseAttack  # noqa: F401
+from .additive_noise import L2RepeatedAdditiveGaussianNoiseAttack  # noqa: F401
 from .saltandpepper import SaltAndPepperNoiseAttack  # noqa: F401
 from .binarization import BinarizationRefinementAttack  # noqa: F401
 
