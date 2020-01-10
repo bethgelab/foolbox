@@ -1,404 +1,497 @@
 import numpy as np
 import eagerpy as ep
+from collections.abc import Callable
+import logging
+import warnings
+
 from numba import jitclass
 
-_epsilon = np.sqrt(np.finfo(float).eps)
+from ..utils import flatten
+from ..utils import atleast_kd
+from . import LinearSearchBlendedUniformNoiseAttack
+from ..tensorboard import TensorBoard
+
 EPS = 1e-10
-norm = np.linalg.norm
+
+class Misclassification:
+    def __init__(self):
+        pass
+
+    def __call__(
+        self,
+        inputs: ep.Tensor,
+        labels: ep.Tensor,
+        perturbed: ep.Tensor,
+        logits: ep.Tensor,
+    ) -> ep.Tensor:
+        classes = logits.argmax(axis=-1)
+        return classes != labels
+
+    def loss(
+        self,
+        inputs: ep.Tensor,
+        labels: ep.Tensor,
+        perturbed: ep.Tensor,
+        logits: ep.Tensor,
+    ) -> ep.Tensor:
+        c_minimize = labels
+        c_maximize = best_other_classes(logits, labels)
+        rows = np.arange(len(logits))
+        return logits[rows, c_minimize] - logits[rows, c_maximize]
+
+
+class TargetedMisclassification:
+    def __init__(self, target_classes: ep.Tensor):
+        self.target_classes = target_classes
+
+    def __call__(
+        self,
+        inputs: ep.Tensor,
+        labels: ep.Tensor,
+        perturbed: ep.Tensor,
+        logits: ep.Tensor,
+    ) -> ep.Tensor:
+        classes = logits.argmax(axis=-1)
+        return classes == self.target_classes
+
+    def loss(
+        self,
+        inputs: ep.Tensor,
+        labels: ep.Tensor,
+        perturbed: ep.Tensor,
+        logits: ep.Tensor,
+    ) -> ep.Tensor:
+        c_minimize = best_other_classes(logits, target_classes)
+        c_maximize = target_classes
+        rows = np.arange(len(logits))
+        return logits[rows, c_minimize] - logits[rows, c_maximize]
 
 
 class BrendelBethgeAttack:
-    """ Base class for the Brendel & Bethge adversarial attack described in [1]_.
-
+    """ Base class for the Brendel & Bethge adversarial attack [1]_, a powerful 
+    gradient-based adversarial attack that follows the adversarial boundary 
+    (the boundary between the space of adversarial and non-adversarial images as 
+    defined by the adversarial criterion) to find the minimum distance to the 
+    clean image.
+    
+    This is the reference implementation of the Brendel & Bethge attack.
+    
+    Notes
+    -----
+    Implementation slightly differs from the attack in the paper in that the initial 
+    binary search is always using the full 10 steps (for ease of implementation).
+    
     References
     ----------
-    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer, Ivan Ustyuzhaninov, Matthias Bethge,
-    "Accurate, reliable and fast robustness evaluation",
-    https://arxiv.org/abs/1907.01003
-
+    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+           Ivan Ustyuzhaninov, Matthias Bethge,
+           "Accurate, reliable and fast robustness evaluation",
+           33rd Conference on Neural Information Processing Systems (2019)
+           https://arxiv.org/abs/1907.01003
     """
-
     def __init__(self, model):
         self.model = model
+        self._optimizer = self.instantiate_optimizer()
 
     def __call__(
         self,
         inputs,
         labels,
         *,
-        epsilon=None,
+        starting_points=None,
+        init_attack=None,
+        criterion: Callable = Misclassification(),
         overshoot=1.1,
-        max_iterations=100,
+        steps=100,
         lr=1,
         momentum=0.8,
-        starting_point=None,
+        tensorboard=False,
+        binary_search_steps=10,
     ):
-        """The Brendel & Bethge adversarial attack.
+        """Applies the Brendel & Bethge attack.
 
         Parameters
         ----------
-        input_or_adv : `numpy.ndarray` or :class:`Adversarial`
-            The original, unperturbed input as a `numpy.ndarray` or
-            an :class:`Adversarial` instance.
-        label : int
-            The reference label of the original input. Must be passed
-            if `a` is a `numpy.ndarray`, must not be passed if `a` is
-            an :class:`Adversarial` instance.
-        unpack : bool
-            If true, returns the adversarial input, otherwise returns
-            the Adversarial object.
-        max_iterations : int
-            Number of steps for the optimization.
-        epsilon : float or None, optional
-            If not None the optimisation stops once it reaches a distance
-            epsilon between original and adversarial image.
+        inputs : Tensor that matches model type
+            The original clean inputs.
+        labels : Integer tensor that matches model type
+            The reference labels for the inputs.
+        starting_point : Tensor of same type and shape as inputs
+            Adversarial inputs to use as a starting points, in particular
+            for targeted attacks.
+        init_attack : :class: `Attack` or Callable
+            Attack or callable to use to find a starting points. Defaults to
+            BlendedUniformNoiseAttack. Only used of starting_points is None.
+        criterion : Callable
+            A callable that returns true if the given logits of perturbed
+            inputs should be considered adversarial w.r.t. to the given labels
+            and unperturbed inputs.
+        overshoot : float
+            If 1 the attack tries to return exactly to the adversarial boundary
+            in each iteration. For higher values the attack tries to overshoot
+            over the boundary to ensure that the perturbed sample in each iteration
+            is adversarial.
+        steps : int
+            Maximum number of iterations to run. Might converge and stop
+            before that.
         lr : float
-            Scaling factor for the trust region radius. Smaller values lead
-            to smaller steps in each iteration which allows the attack to stay
-            in closer vicinity to the decision boundary.
-        overshoot: float, optional
-            A small overshoot biases the attack to stay in the adversarial region
-            (instead of sticking exactly to the decision boundary). Value should be
-            slightly above 1.
-        momentum: float, optional
-            Momentum term that smoothes the normal vector of the decision boundary
-            over several steps.
+            Trust region radius, behaves similar to a learning rate. Smaller values
+            decrease the step size in each iteration and ensure that the attack
+            follows the boundary more faithfully.
+        momentum : float
+            Averaging of the boundary estimation over multiple steps. A momentum of
+            zero would always take the current estimate while values closer to one
+            average over a larger number of iterations.
+        tensorboard : str
+            The log directory for TensorBoard summaries. If False, TensorBoard
+            summaries will be disabled (default). If None, the logdir will be
+            runs/CURRENT_DATETIME_HOSTNAME.
+        binary_search_steps : int
+            Number of binary search steps used to find the adversarial boundary
+            between the starting point and the clean image.
         """
-        x = ep.astensor(inputs)
-        N = len(x)
+        if tensorboard:
+            tb = TensorBoard(logdir=tensorboard)
 
-        a = input_or_adv
-        del input_or_adv
-        del label
-        del unpack
+        originals = ep.astensor(inputs)
+        labels = ep.astensor(labels)
 
-        if not a.has_gradient():
-            logger.fatal(
-                "Applied gradient-based attack to model that "
-                "does not provide gradients."
-            )
-            return
+        def is_adversarial(p: ep.Tensor) -> ep.Tensor:
+            """For each input in x, returns true if it is an adversarial for
+            the given model and criterion"""
+            logits = ep.astensor(self.model.forward(p.tensor))
+            return criterion(originals, labels, p, logits)
 
-        min_, max_ = a.bounds()
+        if starting_points is None:
+            if init_attack is None:
+                init_attack = LinearSearchBlendedUniformNoiseAttack
+                logging.info(
+                    f"Neither starting_points nor init_attack given. Falling"
+                    f" back to {init_attack.__name__} for initialization."
+                )
+            elif callable(init_attack):
+                starting_points = init_attack(inputs, labels)
+            else:
+                starting_points = init_attack(self.model)(inputs, labels)
 
-        original_image = a.original_image
-        original_label = a.original_class
-        bounds = a.bounds()
-        x0 = original_image.flatten()
+        best_advs = ep.astensor(starting_points)
+        assert is_adversarial(best_advs).all()
+        
+        # perform binary search to find adversarial boundary
+        # TODO: Implement more efficient search with breaking condition
+        N = len(originals)
+        ndim = originals.ndim
+        bounds = self.model.bounds()
+        min_, max_ = bounds
 
-        # make abortion condition available everywhere
-        self.epsilon = epsilon
+        x0 = originals
+        x0_np_flatten = x0.numpy().reshape((N, -1))
+        x1 = best_advs
 
-        # instantiate optimizer
-        _optimizer = self.instantiate_optimizer()
+        lower_bound = ep.zeros(x0, shape=(N,))
+        upper_bound = ep.ones(x0, shape=(N,))
 
-        # test initial point
-        logits, is_adv = yield from a.predictions(starting_point)
-
-        # get suitable starting point
-        x = yield from self._get_starting_point(
-            a, bounds, original_image, starting_point=starting_point
-        )
-
-        if self.epsilon is not None:
-            if a.distance.value <= epsilon:
-                return None
-
+        for _ in range(binary_search_steps):
+            epsilons = (lower_bound + upper_bound) / 2
+            mid_points = self.mid_points(x0, x1, epsilons, bounds)
+            is_advs = is_adversarial(mid_points)
+            lower_bound = ep.where(is_advs, lower_bound, epsilons)
+            upper_bound = ep.where(is_advs, epsilons, upper_bound)
+        
+        starting_points = self.mid_points(x0, x1, upper_bound, bounds)
+        
+        if tensorboard:
+            tb.scalar("batchsize", N, 0)
+        
+        # function to compute logits_diff and gradient
+        def loss_fun(x, mask=None):
+            logits = ep.astensor(self.model.forward(x))
+            if mask is None:
+                logits_diffs = criterion.loss(originals, labels, ep.astensor(x), logits)
+            else:
+                logits_diffs = criterion.loss(originals[mask], labels[mask], ep.astensor(x), logits)
+            return logits_diffs.sum().tensor, (logits_diffs.tensor,)
+        
+        value_and_grad = self.model.value_and_grad(loss_fun, has_aux=True)
+        
+        def logits_diff_and_grads(x, mask=None):
+            (loss, (logits_diffs,)), boundary = value_and_grad(x, mask)
+            return ep.astensor(logits_diffs).numpy(), ep.astensor(boundary).numpy()
+        
+        x = starting_points
+        lrs = lr * np.ones(N)
+        converged = np.zeros(N, dtype=np.bool)
+        mask = x0.ones(N).bool()
+        np_mask = np.ones(N, dtype=np.bool)
         rate_normalization = np.prod(x.shape) * (max_ - min_)
-
-        # stop if last three updates of adv_distance is not decreasing
-        adv_distance_history = []
-        num_of_nones = 0
-        logger.info(f'Batch size is {x.shape[0]}')
-
-        for i in range(max_iterations):
-            logger.info(f"Starting iteration number {i}")
-            # get logits and local boundary geometry
-            try:
-                x = np.clip(x, min_ + EPS, max_ - EPS)
-                logits, is_adv = yield from a.predictions(x)
-            except AssertionError:
-                logger.exception("Assertion Error: ", x.min(), x.max(), min_, max_)
-            logits_diff, _boundary = yield from self.normal_vector(a, x, logits)
-
-            if _boundary.flatten().dot(_boundary.flatten()) < 1e-13:
+        original_shape = x.shape
+        
+        adv_distance_history = [[] for _ in range(N)]
+        
+        for step in range(1, steps + 1):
+            if converged.all():
                 break
 
+            # get logits and local boundary geometry
+            # TODO: only perform forward pass on non-converged samples
+            logits_diffs, _boundary = logits_diff_and_grads(x[mask].tensor, mask)
+            
+            # record optimal adversarials
+            distances = self.norms(originals - x)
+            source_norms = self.norms(originals - best_advs)
+            
+            closer = distances < source_norms
+            is_advs = logits_diffs < 0
+            closer = closer[mask].logical_and(ep.from_numpy(x, is_advs))
+            
+            x_np_flatten = x.numpy().reshape((N, -1))
+            
+            if closer.any():
+                _best_advs = best_advs.numpy()
+                _closer = closer.numpy().flatten()
+                for idx in np.arange(N)[np_mask][_closer]:
+                    _best_advs[idx] = x_np_flatten[idx].reshape(original_shape[1:])
+            
+            best_advs = ep.from_numpy(x, _best_advs)
+            
+#             print(step, distances.numpy(), source_norms.numpy())
+            np_distances = distances.numpy()
+    
             # denoise estimate of boundary using a short history of the boundary
-            if i == 0:
+            if step == 1:
                 boundary = _boundary
             else:
-                boundary = (1 - momentum) * _boundary + momentum * boundary
+                boundary[np_mask] = (1 - momentum) * _boundary + momentum * boundary[np_mask]
+            
+            for k, sample in enumerate(np.arange(N)[np_mask]):
+                # record current distance
+                if logits_diffs[k] < 0:
+                    adv_distance_history[sample].append(np_distances[sample])
 
-            if boundary.flatten().dot(boundary.flatten()) < 1e-13:
-                break
+                # adjust learning rates if progress is too slow
+                if len(adv_distance_history[sample]) > 10:
+                    past_dist = adv_distance_history[sample][-4]
+                    noprogress = np_distances[sample] / past_dist - 1 > -0.001
+                    if noprogress:
+                        if np.random.randint(10) == 5:
+                            lrs[sample] /= 2
 
-            logger.debug(
-                f"Iteration {i}: logit = {logits[a.original_class]:.2}, logit-diff = {logits_diff:.2}, "
-                f"current dist. = {float(a.normalized_distance(x).value):.4}, best distance = {float(a.distance.value):.4}"
-            )
-
+                if lrs[sample] < 1e-6:
+                    converged[sample] = True
+                    mask = mask.index_update(sample, False)
+                    np_mask[sample] = False
+                
             # compute optimal step within trust region depending on metric
-            original_shape = x.shape
-            x = x.flatten()
-            region = lr * rate_normalization
+            x = x.reshape((N, -1))
+            region = lrs * rate_normalization
 
             # we aim to slight overshoot over the boundary to stay within the adversarial region
-            corr_logits_diff = (
-                overshoot * logits_diff
-                if logits_diff < 0
-                else (2 - overshoot) * logits_diff
-            )
+            corr_logits_diffs = np.where(-logits_diffs < 0,
+                                         -overshoot * logits_diffs,
+                                         -(2 - overshoot) * logits_diffs
+                                         )
 
             # employ solver to find optimal step within trust region
-            delta = _optimizer.solve(
-                x0,
-                x,
-                boundary.flatten(),
-                bounds[0],
-                bounds[1],
-                corr_logits_diff,
-                region,
-            )
-
-            try:
-                x += delta
-            except TypeError:
-                if num_of_nones < 5:
-                    num_of_nones += 1
+            # for each sample
+            deltas, k = [], 0
+            
+            for sample in range(N):
+                if converged[sample]:
+                    # don't perform optimisation on converged samples
+                    deltas.append(np.zeros_like(x0_np_flatten[sample]))
                 else:
-                    break
-
+                    _x0 = x0_np_flatten[sample]
+                    _x = x_np_flatten[sample]
+                    _b = boundary[k].flatten()
+                    _c = corr_logits_diffs[k]
+                    r = region[sample]
+                                        
+                    delta = self._optimizer.solve(_x0, _x, _b, bounds[0], bounds[1], _c, r)
+                    deltas.append(delta)
+                    
+                    k += 1   # idx of masked sample
+                
+            deltas = np.stack(deltas)
+            deltas = ep.from_numpy(x, deltas.astype(np.float32))
+            
+#             print(f'Step {step} / {converged[0]}, lr = {lrs[0]}, distance = {distances[0]:.3f} ({source_norms[0]:.3f}), diff = {logits_diffs[0]:.3f}')
+            
             # add step to current perturbation
-            x = x.reshape(original_shape)
-            x = np.clip(x, min_, max_)
+            x = (x + ep.astensor(deltas)).reshape(original_shape)
 
-            # early stopping if progress stalls
-            if logits_diff > 0:
-                adv_distance_history.append(a.distance.value)
+            if tensorboard:
+                tb.probability("converged", converged, step)
+                tb.histogram("norms", source_norms, step)
+                tb.histogram("candidates/distances", distances, step)
 
-            if len(adv_distance_history) > 4:
-                past_distance = adv_distance_history[-4]
-                if np.abs(a.distance.value - past_distance) / past_distance < 0.001:
-                    logger.debug(
-                        f"Progress is too slow. Finishing optimization after {i} steps."
-                    )
-                    if np.random.randint(10) == 5:
-                        lr /= 2
-                        logger.debug("new lr = ", lr)
-
-                # sometimes distance_value is not really updated any more because the logit-diff is < 0
-                if logits_diff < 0:
-                    if (
-                        np.abs(a.normalized_distance(x).value - past_distance)
-                        / past_distance
-                        < 0.001
-                    ):
-                        logger.debug(
-                            f"Progress is too slow. Finishing optimization after {i} steps."
-                        )
-                        if np.random.randint(10) == 5:
-                            lr /= 2
-                            logger.debug("new lr = ", lr)
-
-            if epsilon is not None:
-                if a.distance.value <= epsilon:
-                    break
-
-            if lr < 1e-6:
-                break
-
-    def _initial_binary_search(self, x0, x1, a, max_iter=10, corridor=0.1):
-        eps0, eps1 = 0, 1
-
-        for i in range(max_iter):
-            mid_point = self.mid_point(x0, x1, (eps0 + eps1) / 2, a.bounds())
-            # mid_point = (x0 + x1) / 2
-            logits, adv = yield from a.predictions(mid_point)
-
-            # break condition
-            l1, l2 = np.argsort(logits)[::-1][:2]
-            sec_label = l1 if l1 != a.original_class else l2
-            log1, log2 = logits[sec_label], logits[a.original_class]
-
-            if abs(log1 - log2) / abs(log2) < corridor:
-                break
-            elif self.epsilon is not None:
-                if a.distance.value <= self.epsilon:
-                    break
-
-            if adv:
-                eps1 = (eps0 + eps1) / 2
-            else:
-                eps0 = (eps0 + eps1) / 2
-
-        return mid_point
-
-    def _get_starting_point(self, a, bounds, x0, corridor=0.1, starting_point=None):
-        if starting_point is None:
-            logger.debug(
-                "No starting point is given. Falling back to random initialization, but other starting points "
-                "like FGSM or DeepFool might be more query efficient and better."
-            )
-            starting_point = "random"
-
-        if type(starting_point) == str:
-            if starting_point == "random":
-                logger.debug("Starting random search")
-                # this could potentially be done better for different metrics
-                x = np.random.uniform(bounds[0], bounds[1], size=x0.shape).astype(
-                    np.float32
-                )
-                logits, adv = yield from a.predictions(x)
-                while not adv:  # draw noise until image is adversarial
-                    logger.debug("f", a.original_class, logits.argmax())
-                    x = np.random.uniform(bounds[0], bounds[1], size=x0.shape).astype(
-                        np.float32
-                    )
-
-                logger.debug("Perform binary search")
-                x = yield from self._initial_binary_search(
-                    x0, x, a, max_iter=10, corridor=corridor
-                )
-        else:
-            if callable(starting_point):
-                x = starting_point(a)
-            else:
-                x = starting_point
-            x = yield from self._initial_binary_search(
-                x0, x, a, max_iter=10, corridor=corridor
-            )
-
-        return x
-
-    @classmethod
-    def normal_vector(cls, a, x, logits):
-        """Returns the loss and the gradient of the loss w.r.t. x,
-        assuming that logits = model(x)."""
-
-        targeted = a.target_class() is not None
-        if targeted:
-            c_minimize = cls.best_other_class(logits, a.target_class())
-            c_maximize = a.target_class()
-        else:
-            c_minimize = a.original_class
-            c_maximize = cls.best_other_class(logits, a.original_class)
-
-        logits_diff = logits[c_minimize] - logits[c_maximize]
-
-        # calculate the gradient of total_loss w.r.t. x
-        logits_diff_grad = np.zeros_like(logits)
-        logits_diff_grad[c_minimize] = 1
-        logits_diff_grad[c_maximize] = -1
-        is_adv_loss_grad = yield from a.backward(logits_diff_grad, x)
-
-        return -logits_diff, is_adv_loss_grad
-
-    @staticmethod
-    def best_other_class(logits, exclude):
-        """Returns the index of the largest logit, ignoring the class that
-        is passed as `exclude`."""
-        other_logits = logits - onehot_like(logits, exclude, value=np.inf)
-        return np.argmax(other_logits)
+        if tensorboard:
+            tb.close()
+        
+        return best_advs.tensor
 
     def instantiate_optimizer(self):
         raise NotImplementedError
+        
+    def norms(self, x):
+        raise NotImplementedError
+
+        
+def best_other_classes(logits, exclude):
+    other_logits = logits - ep.onehot_like(logits, exclude, value=np.inf)
+    return other_logits.argmax(axis=-1)
 
 
 class L2BrendelBethgeAttack(BrendelBethgeAttack):
-    """ Brendel & Bethge adversarial attack described in [1]_ that minimizes the L2 distance.
-
+    """ L2 variant of the Brendel & Bethge adversarial attack [1]_, a powerful 
+    gradient-based adversarial attack that follows the adversarial boundary 
+    (the boundary between the space of adversarial and non-adversarial images as 
+    defined by the adversarial criterion) to find the minimum distance to the 
+    clean image.
+    
+    This is the reference implementation of the Brendel & Bethge attack.
+    
     References
     ----------
-    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer, Ivan Ustyuzhaninov, Matthias Bethge,
-    "Accurate, reliable and fast robustness evaluation",
-    https://arxiv.org/abs/1907.01003
-
+    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+           Ivan Ustyuzhaninov, Matthias Bethge,
+           "Accurate, reliable and fast robustness evaluation",
+           33rd Conference on Neural Information Processing Systems (2019)
+           https://arxiv.org/abs/1907.01003
     """
 
     def instantiate_optimizer(self):
+        if len(L2Optimizer._ctor.signatures) == 0:
+            # optimiser is not yet compiled, give user a warning/notice
+            warnings.warn('At the first initialisation the optimizer needs to be compiled. This may take between 20 to 60 seconds.')
+            
         return L2Optimizer()
+    
+    def norms(self, x):
+        return flatten(x).square().sum(axis=-1).sqrt()
 
-    def mid_point(self, x0, x1, epsilon, bounds):
+    def mid_points(self, x0, x1, epsilons, bounds):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
-        return epsilon * x1 + (1 - epsilon) * x0
+        
+        # get epsilons in right shape for broadcasting
+        epsilons = epsilons.reshape(epsilons.shape + (1,) * (x0.ndim - 1))
+        return epsilons * x1 + (1 - epsilons) * x0
 
 
 class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
-    """ Brendel & Bethge adversarial attack described in [1]_ that minimizes the L-infinity distance.
-
+    """ L-infinity variant of the Brendel & Bethge adversarial attack [1]_, a powerful 
+    gradient-based adversarial attack that follows the adversarial boundary 
+    (the boundary between the space of adversarial and non-adversarial images as 
+    defined by the adversarial criterion) to find the minimum distance to the 
+    clean image.
+    
+    This is the reference implementation of the Brendel & Bethge attack.
+    
     References
     ----------
-    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer, Ivan Ustyuzhaninov, Matthias Bethge,
-    "Accurate, reliable and fast robustness evaluation",
-    https://arxiv.org/abs/1907.01003
-
+    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+           Ivan Ustyuzhaninov, Matthias Bethge,
+           "Accurate, reliable and fast robustness evaluation",
+           33rd Conference on Neural Information Processing Systems (2019)
+           https://arxiv.org/abs/1907.01003
     """
 
     def instantiate_optimizer(self):
         return LinfOptimizer()
+    
+    def norms(self, x):
+        return flatten(x).abs().max(axis=-1)
 
-    def mid_point(self, x0, x1, epsilon, bounds):
+    def mid_points(self, x0, x1, epsilons, bounds):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         delta = x1 - x0
         min_, max_ = bounds
         s = max_ - min_
-        clipped_delta = np.clip(delta, -epsilon * s, epsilon * s)
+        # get epsilons in right shape for broadcasting
+        epsilons = epsilons.reshape(epsilons.shape + (1,) * (x0.ndim - 1))
+        
+        clipped_delta = ep.where(delta < -epsilons * s, -epsilons * s, delta)
+        clipped_delta = ep.where(delta > epsilons * s, epsilons * s, delta)
         return x0 + clipped_delta
 
 
 class L1BrendelBethgeAttack(BrendelBethgeAttack):
-    """ Brendel & Bethge adversarial attack described in [1]_ that minimizes the L1 distance.
-
+    """ L1 variant of the Brendel & Bethge adversarial attack [1]_, a powerful 
+    gradient-based adversarial attack that follows the adversarial boundary 
+    (the boundary between the space of adversarial and non-adversarial images as 
+    defined by the adversarial criterion) to find the minimum distance to the 
+    clean image.
+    
+    This is the reference implementation of the Brendel & Bethge attack.
+    
     References
     ----------
-    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer, Ivan Ustyuzhaninov, Matthias Bethge,
-    "Accurate, reliable and fast robustness evaluation",
-    https://arxiv.org/abs/1907.01003
-
+    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+           Ivan Ustyuzhaninov, Matthias Bethge,
+           "Accurate, reliable and fast robustness evaluation",
+           33rd Conference on Neural Information Processing Systems (2019)
+           https://arxiv.org/abs/1907.01003
     """
 
     def instantiate_optimizer(self):
         return L1Optimizer()
 
-    def mid_point(self, x0, x1, epsilon, bounds):
+    def norms(self, x):
+        return flatten(x).abs().sum(axis=-1)
+    
+    def mid_points(self, x0, x1, epsilons, bounds):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
-        threshold = (bounds[1] - bounds[0]) * (1 - epsilon)
-        mask = np.abs(x1 - x0) > threshold
-        new_x = x0.copy()
-        new_x[mask] += (np.sign(x1 - x0) * (np.abs(x1 - x0) - threshold))[mask]
+        
+        # get epsilons in right shape for broadcasting
+        epsilons = epsilons.reshape(epsilons.shape + (1,) * (x0.ndim - 1))
+        
+        threshold = (bounds[1] - bounds[0]) * (1 - epsilons)
+        mask = (x1 - x0).abs() > threshold
+        new_x = ep.where(mask, x0 + (x1 - x0).sign() * ((x1 - x0).abs() - threshold), x0)
         return new_x
 
 
 class L0BrendelBethgeAttack(BrendelBethgeAttack):
-    """ Brendel & Bethge adversarial attack described in [1]_ that minimizes the L0 distance.
-
+    """ L0 variant of the Brendel & Bethge adversarial attack [1]_, a powerful 
+    gradient-based adversarial attack that follows the adversarial boundary 
+    (the boundary between the space of adversarial and non-adversarial images as 
+    defined by the adversarial criterion) to find the minimum distance to the 
+    clean image.
+    
+    This is the reference implementation of the Brendel & Bethge attack.
+    
     References
     ----------
-    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer, Ivan Ustyuzhaninov, Matthias Bethge,
-    "Accurate, reliable and fast robustness evaluation",
-    https://arxiv.org/abs/1907.01003
-
+    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+           Ivan Ustyuzhaninov, Matthias Bethge,
+           "Accurate, reliable and fast robustness evaluation",
+           33rd Conference on Neural Information Processing Systems (2019)
+           https://arxiv.org/abs/1907.01003
     """
 
     def instantiate_optimizer(self):
         return L0Optimizer()
 
-    def mid_point(self, x0, x1, epsilon, bounds):
+    def norms(self, x):
+        return (flatten(x).abs() > 1e-4).sum(axis=-1)
+    
+    def mid_points(self, x0, x1, epsilons, bounds):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
-        threshold = (bounds[1] - bounds[0]) * epsilon
-        mask = np.abs(x1 - x0) < threshold
-        new_x = x0.copy()
-        new_x[mask] = x1[mask]
+        
+        # get epsilons in right shape for broadcasting
+        epsilons = epsilons.reshape(epsilons.shape + (1,) * (x0.ndim - 1))
+        
+        threshold = (bounds[1] - bounds[0]) * epsilons
+        mask = ep.abs(x1 - x0) < threshold
+        new_x = ep.where(mask, x1, x0)
         return new_x
-
+    
 
 @jitclass(spec=[])
 class BFGSB(object):
@@ -414,8 +507,8 @@ class BFGSB(object):
         if maxiter is None:
             maxiter = N * 200
 
-        l = bounds[:, 0]  # np.array([b[0] for b in bounds])
-        u = bounds[:, 1]  # np.array([b[1] for b in bounds])
+        l = bounds[:, 0]
+        u = bounds[:, 1]
 
         func_calls = 0
 
@@ -448,7 +541,6 @@ class BFGSB(object):
                     pg_norm = np.abs(gv)
 
             if pg_norm < pgtol:
-                # logging.info("Stopping due to projected gradient criterium.")
                 break
 
             # get cauchy point
@@ -462,11 +554,9 @@ class BFGSB(object):
             func_calls += fnev
 
             if alpha_k is None:
-                # logging.info("Stopping due to alphak being None.")
                 break
 
             if np.abs(old_fval - old_old_fval) <= (ftol + ftol * np.abs(old_fval)):
-                # logging.info("Stopping due to function criterion.")
                 break
 
             qkp1 = self._project(qk + alpha_k * pk, l, u)
@@ -509,8 +599,7 @@ class BFGSB(object):
 
             for v in range(N):
                 for w in range(N):
-                    # change this to the update formula of the Hessian (not inverse Hessian)
-                    Hk[v, w] += yk[v] * yk[w] * rhok - Hk_sk[v] * Hk_sk[w] * rsk_Hk_s
+                    Hk[v, w] += yk[v] * yk[w] * rhok - Hk_sk[v] * Hk_sk[w] * rsk_Hk_sk
 
         return qk
 
@@ -608,6 +697,7 @@ class BFGSB(object):
             alpha = min(temp1, alpha)
 
         return x_cp + alpha * Z.dot(d[~fixed])
+    
 
     def _project(self, q, l, u):
         N = q.shape[0]
@@ -669,15 +759,6 @@ class BFGSB(object):
             derphi0 = np.sign(derphi0) * 1e-8
 
         alpha1 = min(1.0, 1.01 * 2 * (phi0 - old_old_fval) / derphi0)
-
-        # print(
-        #     "   (ls) initial alpha1: ",
-        #     alpha1,
-        #     phi0 - old_old_fval,
-        #     phi0,
-        #     old_old_fval,
-        #     derphi0,
-        # )
 
         if alpha1 == 0:
             # This shouldn't happen. Perhaps the increment has slipped below
@@ -754,9 +835,6 @@ class BFGSB(object):
                         a_j = self._quadmin(a_lo, phi_lo, derphi_lo, a_hi, phi_hi)
                         if (a_j is None) or (a_j > b - qchk) or (a_j < a + qchk):
                             a_j = a_lo + 0.5 * dalpha
-                    #                print "Using bisection."
-                    #            else: print "Using quadratic."
-                    #        else: print "Using cubic."
 
                     # Check new value of a_j
                     _xkp1 = self._project(xk + a_j * pk, l, u)
@@ -873,14 +951,10 @@ class BFGSB(object):
                         a_j = self._quadmin(a_lo, phi_lo, derphi_lo, a_hi, phi_hi)
                         if (a_j is None) or (a_j > b - qchk) or (a_j < a + qchk):
                             a_j = a_lo + 0.5 * dalpha
-                    #                print "Using bisection."
-                    #            else: print "Using quadratic."
-                    #        else: print "Using cubic."
 
                     # Check new value of a_j
                     _xkp1 = self._project(xk + a_j * pk, l, u)
                     phi_aj, _ls_ingfk = fun_and_jac(_xkp1, *args)
-                    # print("call #3: ", phi_aj, _xkp1)
                     derphi_aj = 0
                     for v in range(N):
                         derphi_aj += _ls_ingfk[v] * pk[v]
@@ -929,7 +1003,6 @@ class BFGSB(object):
             phi_a0 = phi_a1
             _xkp1 = self._project(xk + alpha1 * pk, l, u)
             phi_a1, _ls_ingfk = fun_and_jac(_xkp1, *args)
-            # print("call #4: ", phi_a1, _xkp1)
             _ls_fc += 1
             derphi_a0 = derphi_a1
 
@@ -1632,7 +1705,6 @@ class LinfOptimizer(Optimizer):
 
             k += 1
             epsilon = (eps_high - eps_low) / 2.0 + eps_low
-            # print(k, func_calls, epsilon, eps_high, eps_low, fun)
 
             if k > 20:
                 break
@@ -1690,8 +1762,6 @@ class LinfOptimizer(Optimizer):
             constraint in each step.
         """
         N = x.shape[0]
-        # print("")
-        # print("Starting fun with ", epsilon, lambda0)
 
         # new box constraints
         _ell, _u = self._Linf_bounds(x0, epsilon, ell, u)
@@ -1717,7 +1787,6 @@ class LinfOptimizer(Optimizer):
                 min_c += b[n] * (_u[n] - x[n])
 
         if c > max_c or c < min_c:
-            # print("Problem not solvable (boundary cannot be reached)", c, max_c, min_c)
             return -np.inf, k, _lambda
 
         while True:
@@ -1741,10 +1810,8 @@ class LinfOptimizer(Optimizer):
 
             if 0.9999 * np.abs(c) - EPS < np.abs(_c) < 1.0001 * np.abs(c) + EPS:
                 if norm > r ** 2:
-                    # print("Problem cannot be solved (norm outside of trust region).")
                     return -np.inf, k, _lambda
                 else:
-                    # print("Problem solved with lambda=", _lambda)
                     return -epsilon, k, _lambda
             else:
                 # update lambda according to active variables
@@ -1753,7 +1820,6 @@ class LinfOptimizer(Optimizer):
                 else:
                     lambda_min = _lambda
                 #
-                # print("Update _lambda", _lambda, c, _c, last_c, max_c, min_c)
                 if _active_bnorm == 0:
                     # update is stepping out of feasible region, fallback to binary search
                     _lambda = (lambda_max - lambda_min) / 2 + lambda_min
@@ -1767,11 +1833,6 @@ class LinfOptimizer(Optimizer):
                 ):
                     # update is stepping out of feasible region, fallback to binary search
                     _lambda = (lambda_max - lambda_min) / 2 + lambda_min
-
-            #if k > 500:
-            #    rnd = np.random.randint(100000000)
-            #    np.save(f'/mnt/qb/wbrendel/gradient_boundary_attack/backup/Linf_{rnd}.npy', [x0, x, b, ell, u, c, r, lambda0])
-            #    return -np.inf, k, _lambda
 
     def _get_final_delta(self, lam, eps, x0, x, b, min_, max_, c, r, touchup=True):
         N = x.shape[0]
@@ -1870,7 +1931,6 @@ class L0Optimizer(Optimizer):
         b_argsort = np.argsort(np.abs(total_b))[::-1]
 
         for idx in b_argsort:
-            # print(idx, bdotdelta, b[idx], total_b[idx])
             if np.abs(c - bdotdelta) > np.abs(total_b[idx]):
                 delta[idx] += total[idx]
                 bdotdelta += total_b[idx]
@@ -1955,7 +2015,6 @@ class L0Optimizer(Optimizer):
         x_bar = vertices[sort_ind[:n]].sum(axis=0) / n
 
         while True:
-            # print("Iterate ", nit, " with current f_val: ", f_val)
             shrink = False
 
             # Check termination
@@ -2370,4 +2429,3 @@ class L0Optimizer(Optimizer):
 
     def _distance(self, x0, x):
         return np.sum(np.abs(x - x0) > EPS)
-
