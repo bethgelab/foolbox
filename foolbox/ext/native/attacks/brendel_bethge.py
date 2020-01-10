@@ -168,10 +168,9 @@ class BrendelBethgeAttack:
                     f"Neither starting_points nor init_attack given. Falling"
                     f" back to {init_attack.__name__} for initialization."
                 )
+                starting_points = init_attack(self.model)(inputs, labels)
             elif callable(init_attack):
                 starting_points = init_attack(inputs, labels)
-            else:
-                starting_points = init_attack(self.model)(inputs, labels)
 
         best_advs = ep.astensor(starting_points)
         assert is_adversarial(best_advs).all()
