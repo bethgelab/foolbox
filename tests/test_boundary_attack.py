@@ -1,12 +1,14 @@
+import eagerpy as ep
 import numpy as np
 import torch
 import torch.nn as nn
 
+from foolbox.ext.native.utils import flatten
 from foolbox.ext.native.models import PyTorchModel
-from foolbox.ext.native.attacks import InversionAttack
+from foolbox.ext.native.attacks import BoundaryAttack
 
 
-def test_inversion_attack():
+def test_boundary_attack():
     channels = 3
     batch_size = 8
     h = w = 32
@@ -26,10 +28,13 @@ def test_inversion_attack():
     x = torch.from_numpy(x).to(fmodel.device)
     y = fmodel.forward(x).argmax(axis=-1)
 
-    attack = InversionAttack(fmodel)
-    advs = attack(x, y)
+    attack = BoundaryAttack(fmodel)
+    advs = attack(x, y, steps=1000)
 
+    perturbations = ep.astensor(advs - x)
+    norms = flatten(perturbations).square().sum(axis=-1).sqrt()
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert (y_advs == y).float().mean() < 1
+    assert norms.max().item() <= 15.0
+    assert (y_advs == y).float().mean() == 0

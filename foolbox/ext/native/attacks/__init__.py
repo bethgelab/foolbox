@@ -12,6 +12,16 @@ from .inversion import InversionAttack  # noqa: F401
 from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
 from .brendel_bethge import L0BrendelBethgeAttack, L1BrendelBethgeAttack, L2BrendelBethgeAttack, LinfinityBrendelBethgeAttack # noqa: F401
 from .precomputed_samples import PrecomputedSamplesAttack
+from .additive_noise import L2AdditiveGaussianNoiseAttack  # noqa: F401
+from .additive_noise import L2AdditiveUniformNoiseAttack  # noqa: F401
+from .additive_noise import LinfAdditiveUniformNoiseAttack  # noqa: F401
+from .additive_noise import L2RepeatedAdditiveGaussianNoiseAttack  # noqa: F401
+from .additive_noise import L2RepeatedAdditiveUniformNoiseAttack  # noqa: F401
+from .additive_noise import LinfRepeatedAdditiveUniformNoiseAttack  # noqa: F401
+from .saltandpepper import SaltAndPepperNoiseAttack  # noqa: F401
+from .binarization import BinarizationRefinementAttack  # noqa: F401
+from .boundary_attack import BoundaryAttack  # noqa: F401
+from .blur import GaussianBlurAttack  # noqa: F401
 
 FGM = L2FastGradientAttack
 FGSM = LinfinityFastGradientAttack

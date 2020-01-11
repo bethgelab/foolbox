@@ -21,9 +21,9 @@ class TensorBoard:
     """
 
     def __init__(self, logdir):
-        from tensorboardX import SummaryWriter
-
         if logdir or (logdir is None):
+            from tensorboardX import SummaryWriter
+
             self.writer = SummaryWriter(logdir=logdir)
         else:
             self.writer = None
