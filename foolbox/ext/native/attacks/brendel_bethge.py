@@ -102,8 +102,10 @@ class BrendelBethgeAttack:
         init_attack=None,
         criterion: Callable = Misclassification(),
         overshoot=1.1,
-        steps=100,
-        lr=1,
+        steps=1000,
+        lr=1e-3,
+        lr_decay=0.5,
+        lr_reduction_interval=50,
         momentum=0.8,
         tensorboard=False,
         binary_search_steps=10,
@@ -222,8 +224,10 @@ class BrendelBethgeAttack:
         np_mask = np.ones(N, dtype=np.bool)
         rate_normalization = np.prod(x.shape) * (max_ - min_)
         original_shape = x.shape
+        _best_advs = best_advs.numpy()
         
-        adv_distance_history = [[] for _ in range(N)]
+#         source_norms = self.norms(originals - best_advs).numpy()
+#         adv_distance_history = [[source_norms[k]] for k in range(N)]
         
         for step in range(1, steps + 1):
             if converged.all():
@@ -260,23 +264,31 @@ class BrendelBethgeAttack:
             else:
                 boundary[np_mask] = (1 - momentum) * _boundary + momentum * boundary[np_mask]
             
-            for k, sample in enumerate(np.arange(N)[np_mask]):
-                # record current distance
-                if logits_diffs[k] < 0:
-                    adv_distance_history[sample].append(np_distances[sample])
+            # learning rate adaptation
+            if (step + 1) % lr_reduction_interval == 0:
+                lrs *= lr_decay
+            
+#             for k, sample in enumerate(np.arange(N)[np_mask]):
+#                 # record current distance
+#                 if logits_diffs[k] < 0:
+#                     adv_distance_history[sample].append(np_distances[sample])
+#                 else:
+#                     adv_distance_history[sample].append(adv_distance_history[sample][-1])
 
-                # adjust learning rates if progress is too slow
-                if len(adv_distance_history[sample]) > 10:
-                    past_dist = adv_distance_history[sample][-4]
-                    noprogress = np_distances[sample] / past_dist - 1 > -0.001
-                    if noprogress:
-                        if np.random.randint(10) == 5:
-                            lrs[sample] /= 2
+#                 # adjust learning rates if progress is too slow
+#                 print(len(adv_distance_history[sample]))
+#                 if len(adv_distance_history[sample]) > rate_reduction_steps:
+#                     past_dist = adv_distance_history[sample][-rate_reduction_steps]
+#                     cur_dist = adv_distance_history[sample][-1]
+#                     noprogress = cur_dist / past_dist - 1 > -0.001
+#                     if noprogress:
+#                         if np.random.randint(10) == 5:
+#                             lrs[sample] /= 2
 
-                if lrs[sample] < 1e-6:
-                    converged[sample] = True
-                    mask = mask.index_update(sample, False)
-                    np_mask[sample] = False
+#                 if lrs[sample] < 1e-9:
+#                     converged[sample] = True
+#                     mask = mask.index_update(sample, False)
+#                     np_mask[sample] = False
                 
             # compute optimal step within trust region depending on metric
             x = x.reshape((N, -1))
@@ -306,12 +318,18 @@ class BrendelBethgeAttack:
                     delta = self._optimizer.solve(_x0, _x, _b, bounds[0], bounds[1], _c, r)
                     deltas.append(delta)
                     
+#                     if sample == 1:
+#                         print(f'    {_c} {_b.dot(delta)}')
+                    
                     k += 1   # idx of masked sample
                 
             deltas = np.stack(deltas)
             deltas = ep.from_numpy(x, deltas.astype(np.float32))
             
-#             print(f'Step {step} / {converged[0]}, lr = {lrs[0]}, distance = {distances[0]:.3f} ({source_norms[0]:.3f}), diff = {logits_diffs[0]:.3f}')
+#             if np_mask[1] and np_mask[0]:
+#                 print(f'Step {step} / {converged[1]}, lr = {lrs[1]}, distance = {distances[1]:.3f} ({source_norms[1]:.3f}), diff = {logits_diffs[1]:.3f}')
+#             else:
+#                 print(f'Step {step} / {converged[1]}, lr = {lrs[1]}, distance = {distances[1]:.3f} ({source_norms[1]:.3f}), diff = NONE')
             
             # add step to current perturbation
             x = (x + ep.astensor(deltas)).reshape(original_shape)
