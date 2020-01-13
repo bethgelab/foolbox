@@ -29,15 +29,15 @@ def test_l0_brendel_bethge_attack():
     y = fmodel.forward(x).argmax(axis=-1)
 
     attack = L0BrendelBethgeAttack(fmodel)
-    advs = attack(x, y)
+    advs = attack(x, y, steps=250, lr_reduction_interval=20)
 
     perturbations = ep.astensor(advs - x)
-    norms = flatten(perturbations).square().sum(axis=-1).sqrt()
+    norms = (flatten(perturbations).square() > 1e-5).sum(axis=-1)
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert norms.max().item() <= 40.0 + 1e-7
-    assert (y_advs == y).float().mean() < 1
+    assert norms.max().item() <= 32 * 32 * 3 / 2
+    assert (y_advs == y).float().mean() < 1e-5
 
 
 def test_l1_brendel_bethge_attack():
@@ -61,15 +61,15 @@ def test_l1_brendel_bethge_attack():
     y = fmodel.forward(x).argmax(axis=-1)
 
     attack = L1BrendelBethgeAttack(fmodel)
-    advs = attack(x, y)
+    advs = attack(x, y, steps=100, lr_reduction_interval=10)
 
     perturbations = ep.astensor(advs - x)
-    norms = flatten(perturbations).square().sum(axis=-1).sqrt()
+    norms = flatten(perturbations).abs().sum(axis=-1)
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert norms.max().item() <= 40.0 + 1e-7
-    assert (y_advs == y).float().mean() < 1
+    assert norms.max().item() <= 32 * 32 * 3 / 2
+    assert (y_advs == y).float().mean() < 1e-5
 
 
 def test_l2_brendel_bethge_attack():
@@ -93,7 +93,7 @@ def test_l2_brendel_bethge_attack():
     y = fmodel.forward(x).argmax(axis=-1)
 
     attack = L2BrendelBethgeAttack(fmodel)
-    advs = attack(x, y)
+    advs = attack(x, y, steps=100, lr_reduction_interval=10)
 
     perturbations = ep.astensor(advs - x)
     norms = flatten(perturbations).square().sum(axis=-1).sqrt()
@@ -101,7 +101,7 @@ def test_l2_brendel_bethge_attack():
 
     assert x.shape == advs.shape
     assert norms.max().item() <= 40.0 + 1e-7
-    assert (y_advs == y).float().mean() < 1
+    assert (y_advs == y).float().mean() < 1e-5
 
 
 def test_linfinity_brendel_bethge_attack():
@@ -125,12 +125,12 @@ def test_linfinity_brendel_bethge_attack():
     y = fmodel.forward(x).argmax(axis=-1)
 
     attack = LinfinityBrendelBethgeAttack(fmodel)
-    advs = attack(x, y)
+    advs = attack(x, y, steps=100, lr_reduction_interval=10)
 
     perturbations = ep.astensor(advs - x)
-    norms = flatten(perturbations).square().sum(axis=-1).sqrt()
+    norms = flatten(perturbations).abs().max(axis=-1)
     y_advs = fmodel.forward(advs).argmax(axis=-1)
 
     assert x.shape == advs.shape
-    assert norms.max().item() <= 40.0 + 1e-7
+    assert norms.max().item() <= 0.5 + 1e-5
     assert (y_advs == y).float().mean() < 1
