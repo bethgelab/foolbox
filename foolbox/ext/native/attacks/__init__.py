@@ -10,6 +10,8 @@ from .contrast import BinarySearchContrastReductionAttack  # noqa: F401
 from .contrast import LinearSearchContrastReductionAttack  # noqa: F401
 from .inversion import InversionAttack  # noqa: F401
 from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
+from .brendel_bethge import L0BrendelBethgeAttack, L1BrendelBethgeAttack, L2BrendelBethgeAttack, LinfinityBrendelBethgeAttack # noqa: F401
+from .precomputed_samples import PrecomputedSamplesAttack
 from .additive_noise import L2AdditiveGaussianNoiseAttack  # noqa: F401
 from .additive_noise import L2AdditiveUniformNoiseAttack  # noqa: F401
 from .additive_noise import LinfAdditiveUniformNoiseAttack  # noqa: F401
