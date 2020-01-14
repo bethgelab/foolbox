@@ -6,11 +6,27 @@ from collections.abc import Callable
 import logging
 import warnings
 
-from numba import jitclass
+try:
+    from numba import jitclass
+except (ModuleNotFoundError, ImportError) as e:
+    # delay the error until the attack is initialized
+    NUMBA_IMPORT_ERROR = e
+
+    def jitclass(*args, **kwargs):
+        def decorator(c):
+            return c
+
+        return decorator
+
+
+else:
+    NUMBA_IMPORT_ERROR = None  # type: ignore
+
 
 from ..utils import flatten
 from . import LinearSearchBlendedUniformNoiseAttack
 from ..tensorboard import TensorBoard
+from ..models.base import Model
 
 EPS = 1e-10
 
@@ -95,8 +111,11 @@ class BrendelBethgeAttack(ABC):
     """
 
     def __init__(self, model):
-        self.model = model
-        self._optimizer = self.instantiate_optimizer()
+        if NUMBA_IMPORT_ERROR is not None:
+            raise NUMBA_IMPORT_ERROR
+
+        self.model: Model = model
+        self._optimizer: Optimizer = self.instantiate_optimizer()
 
     def __call__(
         self,
@@ -1069,7 +1088,10 @@ class BFGSB(object):
         return xmin
 
 
-spec = [("bfgsb", BFGSB.class_type.instance_type)]  # type: ignore
+if NUMBA_IMPORT_ERROR is None:
+    spec = [("bfgsb", BFGSB.class_type.instance_type)]
+else:
+    spec = []  # type: ignore
 
 
 class Optimizer(object):
