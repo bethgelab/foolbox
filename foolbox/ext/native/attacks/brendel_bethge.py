@@ -7,11 +7,11 @@ import warnings
 from numba import jitclass
 
 from ..utils import flatten
-from ..utils import atleast_kd
 from . import LinearSearchBlendedUniformNoiseAttack
 from ..tensorboard import TensorBoard
 
 EPS = 1e-10
+
 
 class Misclassification:
     def __init__(self):
@@ -68,21 +68,21 @@ class TargetedMisclassification:
 
 
 class BrendelBethgeAttack:
-    """ Base class for the Brendel & Bethge adversarial attack [1]_, a powerful 
-    gradient-based adversarial attack that follows the adversarial boundary 
-    (the boundary between the space of adversarial and non-adversarial images as 
-    defined by the adversarial criterion) to find the minimum distance to the 
+    """ Base class for the Brendel & Bethge adversarial attack [1]_, a powerful
+    gradient-based adversarial attack that follows the adversarial boundary
+    (the boundary between the space of adversarial and non-adversarial images as
+    defined by the adversarial criterion) to find the minimum distance to the
     clean image.
-    
+
     This is the reference implementation of the Brendel & Bethge attack.
-    
+
     Notes
     -----
     Implementation differs from the attack used in the paper in two ways:
     * The initial binary search is always using the full 10 steps (for ease of implementation).
     * The adaptation of the trust region over the course of optimisation is less
       greedy but is more robust, reliable and simpler (decay every K steps)
-    
+
     References
     ----------
     .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
@@ -91,6 +91,7 @@ class BrendelBethgeAttack:
            33rd Conference on Neural Information Processing Systems (2019)
            https://arxiv.org/abs/1907.01003
     """
+
     def __init__(self, model):
         self.model = model
         self._optimizer = self.instantiate_optimizer()
@@ -146,7 +147,7 @@ class BrendelBethgeAttack:
             The trust region lr is multiplied with lr_decay in regular intervals (see
             lr_reduction_interval).
         lr_num_decay : int
-            Number of learning rate decays in regular intervals of 
+            Number of learning rate decays in regular intervals of
             length steps / lr_num_decay.
         momentum : float
             Averaging of the boundary estimation over multiple steps. A momentum of
@@ -184,7 +185,7 @@ class BrendelBethgeAttack:
 
         best_advs = ep.astensor(starting_points)
         assert is_adversarial(best_advs).all()
-        
+
         # perform binary search to find adversarial boundary
         # TODO: Implement more efficient search with breaking condition
         N = len(originals)
@@ -205,26 +206,28 @@ class BrendelBethgeAttack:
             is_advs = is_adversarial(mid_points)
             lower_bound = ep.where(is_advs, lower_bound, epsilons)
             upper_bound = ep.where(is_advs, epsilons, upper_bound)
-        
+
         starting_points = self.mid_points(x0, x1, upper_bound, bounds)
-        
+
         tb.scalar("batchsize", N, 0)
-        
+
         # function to compute logits_diff and gradient
         def loss_fun(x, mask=None):
             logits = ep.astensor(self.model.forward(x))
             if mask is None:
                 logits_diffs = criterion.loss(originals, labels, ep.astensor(x), logits)
             else:
-                logits_diffs = criterion.loss(originals[mask], labels[mask], ep.astensor(x), logits)
+                logits_diffs = criterion.loss(
+                    originals[mask], labels[mask], ep.astensor(x), logits
+                )
             return logits_diffs.sum().tensor, (logits_diffs.tensor,)
-        
+
         value_and_grad = self.model.value_and_grad(loss_fun, has_aux=True)
-        
+
         def logits_diff_and_grads(x, mask=None):
             (loss, (logits_diffs,)), boundary = value_and_grad(x, mask)
             return ep.astensor(logits_diffs).numpy(), ep.astensor(boundary).numpy()
-        
+
         x = starting_points
         lrs = lr * np.ones(N)
         lr_reduction_interval = min(1, int(steps / lr_num_decay))
@@ -234,7 +237,7 @@ class BrendelBethgeAttack:
         rate_normalization = np.prod(x.shape) * (max_ - min_)
         original_shape = x.shape
         _best_advs = best_advs.numpy()
-        
+
         for step in range(1, steps + 1):
             if converged.all():
                 break
@@ -242,49 +245,52 @@ class BrendelBethgeAttack:
             # get logits and local boundary geometry
             # TODO: only perform forward pass on non-converged samples
             logits_diffs, _boundary = logits_diff_and_grads(x[mask].tensor, mask)
-            
+
             # record optimal adversarials
             distances = self.norms(originals - x)
             source_norms = self.norms(originals - best_advs)
-            
+
             closer = distances < source_norms
             is_advs = logits_diffs < 0
             closer = closer[mask].logical_and(ep.from_numpy(x, is_advs))
-            
+
             x_np_flatten = x.numpy().reshape((N, -1))
-            
+
             if closer.any():
                 _best_advs = best_advs.numpy()
                 _closer = closer.numpy().flatten()
                 for idx in np.arange(N)[np_mask][_closer]:
                     _best_advs[idx] = x_np_flatten[idx].reshape(original_shape[1:])
-            
+
             best_advs = ep.from_numpy(x, _best_advs)
-    
+
             # denoise estimate of boundary using a short history of the boundary
             if step == 1:
                 boundary = _boundary
             else:
-                boundary[np_mask] = (1 - momentum) * _boundary + momentum * boundary[np_mask]
-            
+                boundary[np_mask] = (1 - momentum) * _boundary + momentum * boundary[
+                    np_mask
+                ]
+
             # learning rate adaptation
             if (step + 1) % lr_reduction_interval == 0:
                 lrs *= lr_decay
-                
+
             # compute optimal step within trust region depending on metric
             x = x.reshape((N, -1))
             region = lrs * rate_normalization
 
             # we aim to slight overshoot over the boundary to stay within the adversarial region
-            corr_logits_diffs = np.where(-logits_diffs < 0,
-                                         -overshoot * logits_diffs,
-                                         -(2 - overshoot) * logits_diffs
-                                         )
+            corr_logits_diffs = np.where(
+                -logits_diffs < 0,
+                -overshoot * logits_diffs,
+                -(2 - overshoot) * logits_diffs,
+            )
 
             # employ solver to find optimal step within trust region
             # for each sample
             deltas, k = [], 0
-            
+
             for sample in range(N):
                 if converged[sample]:
                     # don't perform optimisation on converged samples
@@ -295,15 +301,17 @@ class BrendelBethgeAttack:
                     _b = boundary[k].flatten()
                     _c = corr_logits_diffs[k]
                     r = region[sample]
-                                        
-                    delta = self._optimizer.solve(_x0, _x, _b, bounds[0], bounds[1], _c, r)
+
+                    delta = self._optimizer.solve(
+                        _x0, _x, _b, bounds[0], bounds[1], _c, r
+                    )
                     deltas.append(delta)
-                    
-                    k += 1   # idx of masked sample
-                
+
+                    k += 1  # idx of masked sample
+
             deltas = np.stack(deltas)
             deltas = ep.from_numpy(x, deltas.astype(np.float32))
-            
+
             # add step to current perturbation
             x = (x + ep.astensor(deltas)).reshape(original_shape)
 
@@ -312,30 +320,30 @@ class BrendelBethgeAttack:
             tb.histogram("candidates/distances", distances, step)
 
         tb.close()
-        
+
         return best_advs.tensor
 
     def instantiate_optimizer(self):
         raise NotImplementedError
-        
+
     def norms(self, x):
         raise NotImplementedError
 
-        
+
 def best_other_classes(logits, exclude):
     other_logits = logits - ep.onehot_like(logits, exclude, value=np.inf)
     return other_logits.argmax(axis=-1)
 
 
 class L2BrendelBethgeAttack(BrendelBethgeAttack):
-    """ L2 variant of the Brendel & Bethge adversarial attack [1]_, a powerful 
-    gradient-based adversarial attack that follows the adversarial boundary 
-    (the boundary between the space of adversarial and non-adversarial images as 
-    defined by the adversarial criterion) to find the minimum distance to the 
+    """ L2 variant of the Brendel & Bethge adversarial attack [1]_, a powerful
+    gradient-based adversarial attack that follows the adversarial boundary
+    (the boundary between the space of adversarial and non-adversarial images as
+    defined by the adversarial criterion) to find the minimum distance to the
     clean image.
-    
+
     This is the reference implementation of the Brendel & Bethge attack.
-    
+
     References
     ----------
     .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
@@ -348,10 +356,12 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
     def instantiate_optimizer(self):
         if len(L2Optimizer._ctor.signatures) == 0:
             # optimiser is not yet compiled, give user a warning/notice
-            warnings.warn('At the first initialisation the optimizer needs to be compiled. This may take between 20 to 60 seconds.')
-            
+            warnings.warn(
+                "At the first initialisation the optimizer needs to be compiled. This may take between 20 to 60 seconds."
+            )
+
         return L2Optimizer()
-    
+
     def norms(self, x):
         return flatten(x).square().sum(axis=-1).sqrt()
 
@@ -359,21 +369,21 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
-        
+
         # get epsilons in right shape for broadcasting
         epsilons = epsilons.reshape(epsilons.shape + (1,) * (x0.ndim - 1))
         return epsilons * x1 + (1 - epsilons) * x0
 
 
 class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
-    """ L-infinity variant of the Brendel & Bethge adversarial attack [1]_, a powerful 
-    gradient-based adversarial attack that follows the adversarial boundary 
-    (the boundary between the space of adversarial and non-adversarial images as 
-    defined by the adversarial criterion) to find the minimum distance to the 
+    """ L-infinity variant of the Brendel & Bethge adversarial attack [1]_, a powerful
+    gradient-based adversarial attack that follows the adversarial boundary
+    (the boundary between the space of adversarial and non-adversarial images as
+    defined by the adversarial criterion) to find the minimum distance to the
     clean image.
-    
+
     This is the reference implementation of the Brendel & Bethge attack.
-    
+
     References
     ----------
     .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
@@ -385,7 +395,7 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
 
     def instantiate_optimizer(self):
         return LinfOptimizer()
-    
+
     def norms(self, x):
         return flatten(x).abs().max(axis=-1)
 
@@ -397,21 +407,21 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
         s = max_ - min_
         # get epsilons in right shape for broadcasting
         epsilons = epsilons.reshape(epsilons.shape + (1,) * (x0.ndim - 1))
-        
+
         clipped_delta = ep.where(delta < -epsilons * s, -epsilons * s, delta)
         clipped_delta = ep.where(delta > epsilons * s, epsilons * s, delta)
         return x0 + clipped_delta
 
 
 class L1BrendelBethgeAttack(BrendelBethgeAttack):
-    """ L1 variant of the Brendel & Bethge adversarial attack [1]_, a powerful 
-    gradient-based adversarial attack that follows the adversarial boundary 
-    (the boundary between the space of adversarial and non-adversarial images as 
-    defined by the adversarial criterion) to find the minimum distance to the 
+    """ L1 variant of the Brendel & Bethge adversarial attack [1]_, a powerful
+    gradient-based adversarial attack that follows the adversarial boundary
+    (the boundary between the space of adversarial and non-adversarial images as
+    defined by the adversarial criterion) to find the minimum distance to the
     clean image.
-    
+
     This is the reference implementation of the Brendel & Bethge attack.
-    
+
     References
     ----------
     .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
@@ -426,30 +436,32 @@ class L1BrendelBethgeAttack(BrendelBethgeAttack):
 
     def norms(self, x):
         return flatten(x).abs().sum(axis=-1)
-    
+
     def mid_points(self, x0, x1, epsilons, bounds):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
-        
+
         # get epsilons in right shape for broadcasting
         epsilons = epsilons.reshape(epsilons.shape + (1,) * (x0.ndim - 1))
-        
+
         threshold = (bounds[1] - bounds[0]) * (1 - epsilons)
         mask = (x1 - x0).abs() > threshold
-        new_x = ep.where(mask, x0 + (x1 - x0).sign() * ((x1 - x0).abs() - threshold), x0)
+        new_x = ep.where(
+            mask, x0 + (x1 - x0).sign() * ((x1 - x0).abs() - threshold), x0
+        )
         return new_x
 
 
 class L0BrendelBethgeAttack(BrendelBethgeAttack):
-    """ L0 variant of the Brendel & Bethge adversarial attack [1]_, a powerful 
-    gradient-based adversarial attack that follows the adversarial boundary 
-    (the boundary between the space of adversarial and non-adversarial images as 
-    defined by the adversarial criterion) to find the minimum distance to the 
+    """ L0 variant of the Brendel & Bethge adversarial attack [1]_, a powerful
+    gradient-based adversarial attack that follows the adversarial boundary
+    (the boundary between the space of adversarial and non-adversarial images as
+    defined by the adversarial criterion) to find the minimum distance to the
     clean image.
-    
+
     This is the reference implementation of the Brendel & Bethge attack.
-    
+
     References
     ----------
     .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
@@ -464,20 +476,20 @@ class L0BrendelBethgeAttack(BrendelBethgeAttack):
 
     def norms(self, x):
         return (flatten(x).abs() > 1e-4).sum(axis=-1)
-    
+
     def mid_points(self, x0, x1, epsilons, bounds):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
-        
+
         # get epsilons in right shape for broadcasting
         epsilons = epsilons.reshape(epsilons.shape + (1,) * (x0.ndim - 1))
-        
+
         threshold = (bounds[1] - bounds[0]) * epsilons
         mask = ep.abs(x1 - x0) < threshold
         new_x = ep.where(mask, x1, x0)
         return new_x
-    
+
 
 @jitclass(spec=[])
 class BFGSB(object):
@@ -534,7 +546,15 @@ class BFGSB(object):
             qk1 = self._subspace_min(qk, l, u, x_cp, _gfk.copy(), Hk)
             pk = qk1 - qk
 
-            alpha_k, fc, gc, old_fval, old_old_fval, gfkp1, fnev = self._line_search_wolfe(
+            (
+                alpha_k,
+                fc,
+                gc,
+                old_fval,
+                old_old_fval,
+                gfkp1,
+                fnev,
+            ) = self._line_search_wolfe(
                 fun_and_jac, qk, pk, _gfk, old_fval, old_old_fval, l, u, args
             )
             func_calls += fnev
@@ -683,7 +703,6 @@ class BFGSB(object):
             alpha = min(temp1, alpha)
 
         return x_cp + alpha * Z.dot(d[~fixed])
-    
 
     def _project(self, q, l, u):
         N = q.shape[0]
@@ -1017,7 +1036,7 @@ class BFGSB(object):
             return None
         denom = (db * dc) ** 2 * (db - dc)
         A = dc ** 2 * (fb - fa - C * db) - db ** 2 * (fc - fa - C * dc)
-        B = -dc ** 3 * (fb - fa - C * db) + db ** 3 * (fc - fa - C * dc)
+        B = -(dc ** 3) * (fb - fa - C * db) + db ** 3 * (fc - fa - C * dc)
 
         A /= denom
         B /= denom
@@ -1246,7 +1265,7 @@ class Optimizer(object):
         t = 1 / (2 * _mu + EPS)
 
         g = -_mu * r ** 2
-        grad_mu = -r ** 2
+        grad_mu = -(r ** 2)
 
         for n in range(N):
             d = -s * b[n] * t
