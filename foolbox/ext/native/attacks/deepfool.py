@@ -1,13 +1,14 @@
 import eagerpy as ep
 import numpy as np
 import logging
+from abc import ABC
 from abc import abstractmethod
 
 from ..utils import flatten
 from ..utils import atleast_kd
 
 
-class DeepFoolAttack:
+class DeepFoolAttack(ABC):
     """A simple and fast gradient-based adversarial attack.
 
     Implementes DeepFool introduced in [1]_.

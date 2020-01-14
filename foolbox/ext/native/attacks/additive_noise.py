@@ -1,3 +1,4 @@
+from abc import ABC
 from abc import abstractmethod
 import eagerpy as ep
 
@@ -5,7 +6,7 @@ from ..utils import flatten
 from ..utils import atleast_kd
 
 
-class BaseAdditiveNoiseAttack:
+class BaseAdditiveNoiseAttack(ABC):
     def __init__(self, model):
         self.model = model
 
@@ -60,7 +61,7 @@ class LinfAdditiveUniformNoiseAttack(LinfMixin, UniformMixin, BaseAdditiveNoiseA
     pass
 
 
-class BaseRepeatedAdditiveNoiseAttack:
+class BaseRepeatedAdditiveNoiseAttack(ABC):
     def __init__(self, model):
         self.model = model
 
