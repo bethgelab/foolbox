@@ -2,7 +2,7 @@ import eagerpy as ep
 import numpy as np
 
 
-class PrecomputedSamplesAttack:
+class DatasetAttack:
     """This is a helper attack that makes it straight-forward to choose initialisation points
        for boundary-type attacks from a given data set. All it does is to store samples and
        the predicted responses of a given model in order to select suitable adversarial images

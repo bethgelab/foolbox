@@ -16,7 +16,7 @@ from .brendel_bethge import (  # noqa: F401
     L2BrendelBethgeAttack,
     LinfinityBrendelBethgeAttack,
 )
-from .precomputed_samples import PrecomputedSamplesAttack  # noqa: F401
+from .dataset_attack import DatasetAttack  # noqa: F401
 from .additive_noise import L2AdditiveGaussianNoiseAttack  # noqa: F401
 from .additive_noise import L2AdditiveUniformNoiseAttack  # noqa: F401
 from .additive_noise import LinfAdditiveUniformNoiseAttack  # noqa: F401
