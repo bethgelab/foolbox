@@ -1,4 +1,3 @@
-# initialisation attack from existing validation images
 import eagerpy as ep
 import numpy as np
 
