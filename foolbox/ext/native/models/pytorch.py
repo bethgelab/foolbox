@@ -1,9 +1,10 @@
 import torch
 import torch.nn.functional as F
 import warnings
+from .base import Model
 
 
-class PyTorchModel:
+class PyTorchModel(Model):
     def __init__(self, model, bounds, device=None, preprocessing=None):
         self._bounds = bounds
 

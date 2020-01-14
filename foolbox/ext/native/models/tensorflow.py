@@ -1,7 +1,8 @@
 import tensorflow as tf
+from .base import Model
 
 
-class TensorFlowModel:
+class TensorFlowModel(Model):
     def __init__(self, model, bounds, device=None, preprocessing=None):
         assert tf.executing_eagerly()
         self._bounds = bounds

@@ -1,6 +1,7 @@
 import jax.numpy as np
 from jax.scipy.special import logsumexp
 import jax
+from .base import Model
 
 
 def crossentropy(logits, labels):
@@ -10,7 +11,7 @@ def crossentropy(logits, labels):
     return ce
 
 
-class JAXModel:
+class JAXModel(Model):
     def __init__(self, model, bounds, preprocessing=None):
         preprocess = self._create_preprocessing_fun(preprocessing)
 
