@@ -73,8 +73,8 @@ def samples(
     return images, labels
 
 
-def flatten(x: ep.Tensor) -> ep.Tensor:
-    shape = (x.shape[0], -1)
+def flatten(x: ep.Tensor, keep=1) -> ep.Tensor:
+    shape = x.shape[:keep] + (-1,)
     return x.reshape(shape)
 
 

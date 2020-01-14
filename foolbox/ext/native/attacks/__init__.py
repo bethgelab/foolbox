@@ -20,6 +20,7 @@ from .saltandpepper import SaltAndPepperNoiseAttack  # noqa: F401
 from .binarization import BinarizationRefinementAttack  # noqa: F401
 from .boundary_attack import BoundaryAttack  # noqa: F401
 from .blur import GaussianBlurAttack  # noqa: F401
+from .deepfool import L2DeepFoolAttack, LinfDeepFoolAttack  # noqa: F401
 
 FGM = L2FastGradientAttack
 FGSM = LinfinityFastGradientAttack
