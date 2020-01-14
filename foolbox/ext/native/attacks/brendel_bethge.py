@@ -1,3 +1,5 @@
+from abc import ABC
+from abc import abstractmethod
 import numpy as np
 import eagerpy as ep
 from collections.abc import Callable
@@ -61,13 +63,13 @@ class TargetedMisclassification:
         perturbed: ep.Tensor,
         logits: ep.Tensor,
     ) -> ep.Tensor:
-        c_minimize = best_other_classes(logits, target_classes)
-        c_maximize = target_classes
+        c_minimize = best_other_classes(logits, self.target_classes)
+        c_maximize = self.target_classes
         rows = np.arange(len(logits))
         return logits[rows, c_minimize] - logits[rows, c_maximize]
 
 
-class BrendelBethgeAttack:
+class BrendelBethgeAttack(ABC):
     """ Base class for the Brendel & Bethge adversarial attack [1]_, a powerful
     gradient-based adversarial attack that follows the adversarial boundary
     (the boundary between the space of adversarial and non-adversarial images as
@@ -189,7 +191,6 @@ class BrendelBethgeAttack:
         # perform binary search to find adversarial boundary
         # TODO: Implement more efficient search with breaking condition
         N = len(originals)
-        ndim = originals.ndim
         bounds = self.model.bounds()
         min_, max_ = bounds
 
@@ -310,7 +311,7 @@ class BrendelBethgeAttack:
                     k += 1  # idx of masked sample
 
             deltas = np.stack(deltas)
-            deltas = ep.from_numpy(x, deltas.astype(np.float32))
+            deltas = ep.from_numpy(x, deltas.astype(np.float32))  # type: ignore
 
             # add step to current perturbation
             x = (x + ep.astensor(deltas)).reshape(original_shape)
@@ -323,10 +324,16 @@ class BrendelBethgeAttack:
 
         return best_advs.tensor
 
+    @abstractmethod
     def instantiate_optimizer(self):
         raise NotImplementedError
 
+    @abstractmethod
     def norms(self, x):
+        raise NotImplementedError
+
+    @abstractmethod
+    def mid_points(self, x0, x1, epsilons, bounds):
         raise NotImplementedError
 
 
@@ -499,13 +506,12 @@ class BFGSB(object):
     def solve(
         self, fun_and_jac, q0, bounds, args, ftol=1e-10, pgtol=-1e-5, maxiter=None
     ):
-        debug = False
         N = q0.shape[0]
 
         if maxiter is None:
             maxiter = N * 200
 
-        l = bounds[:, 0]
+        l = bounds[:, 0]  # noqa: E741
         u = bounds[:, 1]
 
         func_calls = 0
@@ -736,7 +742,7 @@ class BFGSB(object):
 
         return ls_alpha, ls_pt, gkp1, dgkp1, func_calls
 
-    def _line_search_wolfe(
+    def _line_search_wolfe(  # noqa: C901
         self, fun_and_jac, xk, pk, gfk, old_fval, old_old_fval, l, u, args
     ):
         """Find alpha that satisfies strong Wolfe conditions.
@@ -1029,7 +1035,6 @@ class BFGSB(object):
         # f(x) = A *(x-a)^3 + B*(x-a)^2 + C*(x-a) + D
 
         C = fpa
-        D = fa
         db = b - a
         dc = c - a
         if (db == 0) or (dc == 0) or (b == c):
@@ -1064,7 +1069,7 @@ class BFGSB(object):
         return xmin
 
 
-spec = [("bfgsb", BFGSB.class_type.instance_type)]
+spec = [("bfgsb", BFGSB.class_type.instance_type)]  # type: ignore
 
 
 class Optimizer(object):
@@ -1321,7 +1326,7 @@ class Optimizer(object):
 
 @jitclass(spec=spec)
 class L2Optimizer(Optimizer):
-    def optimize_distance_s_t_boundary_and_trustregion(
+    def optimize_distance_s_t_boundary_and_trustregion(  # noqa: C901
         self, x0, x, b, min_, max_, c, r
     ):
         """ Solves the L2 trust region problem
