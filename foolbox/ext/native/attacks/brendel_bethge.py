@@ -107,7 +107,7 @@ class BrendelBethgeAttack:
         steps=1000,
         lr=1e-3,
         lr_decay=0.5,
-        lr_reduction_interval=50,
+        lr_num_decay=20,
         momentum=0.8,
         tensorboard=False,
         binary_search_steps=10,
@@ -145,8 +145,9 @@ class BrendelBethgeAttack:
         lr_decay : float
             The trust region lr is multiplied with lr_decay in regular intervals (see
             lr_reduction_interval).
-        lr_reduction_interval : int
-            Length of interval after which the trust region is decayed.
+        lr_num_decay : int
+            Number of learning rate decays in regular intervals of 
+            length steps / lr_num_decay.
         momentum : float
             Averaging of the boundary estimation over multiple steps. A momentum of
             zero would always take the current estimate while values closer to one
@@ -226,6 +227,7 @@ class BrendelBethgeAttack:
         
         x = starting_points
         lrs = lr * np.ones(N)
+        lr_reduction_interval = min(1, int(steps / lr_num_decay))
         converged = np.zeros(N, dtype=np.bool)
         mask = x0.ones(N).bool()
         np_mask = np.ones(N, dtype=np.bool)
