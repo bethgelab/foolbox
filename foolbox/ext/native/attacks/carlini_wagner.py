@@ -50,7 +50,7 @@ class L2CarliniWagnerAttack:
 
         rows = np.arange(N)
 
-        def loss_fun_eagerpy(delta: ep.Tensor, consts: ep.Tensor) -> ep.Tensor:
+        def loss_fun(delta: ep.Tensor, consts: ep.Tensor) -> ep.Tensor:
             assert delta.shape == x_attack.shape
             assert consts.shape == (N,)
 
@@ -74,15 +74,7 @@ class L2CarliniWagnerAttack:
             loss = is_adv_loss.sum() + squared_norms.sum()
             return loss, (x, logits)
 
-        # the model functions (e.g. value_and_grad) currently require
-        # functions that take and return native tensors
-        def loss_fun(delta, consts):
-            delta = ep.astensor(delta)
-            consts = ep.astensor(consts)
-            loss, (x, logits) = loss_fun_eagerpy(delta, consts)
-            return loss.tensor, (x.tensor, logits.tensor)
-
-        loss_aux_and_grad = self.model.value_and_grad(loss_fun, has_aux=True)
+        loss_aux_and_grad = ep.value_and_grad_fn(x, loss_fun, has_aux=True)
 
         consts = initial_const * np.ones((N,))
         lower_bounds = np.zeros((N,))
@@ -112,13 +104,7 @@ class L2CarliniWagnerAttack:
             consts_ = ep.from_numpy(x, consts.astype(np.float32))
 
             for iteration in range(max_iterations):
-                (loss, (perturbed, logits)), gradient = loss_aux_and_grad(
-                    delta.tensor, consts_.tensor
-                )
-                loss = ep.astensor(loss)
-                perturbed = ep.astensor(perturbed)
-                logits = ep.astensor(logits)
-                gradient = ep.astensor(gradient)
+                loss, (perturbed, logits), gradient = loss_aux_and_grad(delta, consts_)
                 delta += optimizer(gradient, learning_rate)
 
                 if abort_early and iteration % (np.ceil(max_iterations / 10)) == 0:
