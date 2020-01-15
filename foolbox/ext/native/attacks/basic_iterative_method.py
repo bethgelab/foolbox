@@ -37,6 +37,10 @@ class L2BasicIterativeAttack:
         step_size=0.4,
         num_steps=10,
     ):
+        def loss_fn(inputs: ep.Tensor, labels: ep.Tensor) -> ep.Tensor:
+            logits = ep.astensor(self.model.forward(inputs.tensor))
+            return ep.crossentropy(logits, labels).sum()
+
         if rescale:
             min_, max_ = self.model.bounds()
             scale = (max_ - min_) * np.sqrt(np.prod(inputs.shape[1:]))
@@ -51,7 +55,7 @@ class L2BasicIterativeAttack:
         x0 = x
 
         for _ in range(num_steps):
-            gradients = ep.astensor(self.model.gradient(x.tensor, y.tensor))
+            _, gradients = ep.value_and_grad(loss_fn, x, y)
             gradients = normalize_l2_norms(gradients)
             x = x + step_size * gradients
             x = x0 + clip_l2_norms(x - x0, epsilon)
@@ -77,6 +81,10 @@ class LinfinityBasicIterativeAttack:
         num_steps=10,
         random_start=False,
     ):
+        def loss_fn(inputs: ep.Tensor, labels: ep.Tensor) -> ep.Tensor:
+            logits = ep.astensor(self.model.forward(inputs.tensor))
+            return ep.crossentropy(logits, labels).sum()
+
         if rescale:
             min_, max_ = self.model.bounds()
             scale = max_ - min_
@@ -95,7 +103,7 @@ class LinfinityBasicIterativeAttack:
             x = ep.clip(x, *self.model.bounds())
 
         for _ in range(num_steps):
-            gradients = ep.astensor(self.model.gradient(x.tensor, y.tensor))
+            _, gradients = ep.value_and_grad(loss_fn, x, y)
             gradients = gradients.sign()
             x = x + step_size * gradients
             x = x0 + ep.clip(x - x0, -epsilon, epsilon)
