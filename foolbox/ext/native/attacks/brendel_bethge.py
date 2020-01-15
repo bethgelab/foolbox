@@ -232,20 +232,18 @@ class BrendelBethgeAttack(ABC):
 
         # function to compute logits_diff and gradient
         def loss_fun(x, mask=None):
-            logits = ep.astensor(self.model.forward(x))
+            logits = ep.astensor(self.model.forward(x.tensor))
             if mask is None:
-                logits_diffs = criterion.loss(originals, labels, ep.astensor(x), logits)
+                logits_diffs = criterion.loss(originals, labels, x, logits)
             else:
-                logits_diffs = criterion.loss(
-                    originals[mask], labels[mask], ep.astensor(x), logits
-                )
-            return logits_diffs.sum().tensor, (logits_diffs.tensor,)
+                logits_diffs = criterion.loss(originals[mask], labels[mask], x, logits)
+            return logits_diffs.sum(), logits_diffs
 
-        value_and_grad = self.model.value_and_grad(loss_fun, has_aux=True)
+        value_and_grad = ep.value_and_grad_fn(x0, loss_fun, has_aux=True)
 
         def logits_diff_and_grads(x, mask=None):
-            (loss, (logits_diffs,)), boundary = value_and_grad(x, mask)
-            return ep.astensor(logits_diffs).numpy(), ep.astensor(boundary).numpy()
+            _, logits_diffs, boundary = value_and_grad(x, mask)
+            return logits_diffs.numpy(), boundary.numpy()
 
         x = starting_points
         lrs = lr * np.ones(N)
@@ -263,7 +261,7 @@ class BrendelBethgeAttack(ABC):
 
             # get logits and local boundary geometry
             # TODO: only perform forward pass on non-converged samples
-            logits_diffs, _boundary = logits_diff_and_grads(x[mask].tensor, mask)
+            logits_diffs, _boundary = logits_diff_and_grads(x[mask], mask)
 
             # record optimal adversarials
             distances = self.norms(originals - x)
