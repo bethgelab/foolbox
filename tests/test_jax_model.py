@@ -45,13 +45,6 @@ def test_jax_model_forward(fmodel_and_data):
     assert isinstance(output, jnp.ndarray)
 
 
-def test_jax_model_gradient(fmodel_and_data):
-    fmodel, x, y, batch_size, num_classes = fmodel_and_data
-    output = fmodel.gradient(x, y)
-    assert output.shape == x.shape
-    assert isinstance(output, jnp.ndarray)
-
-
 def test_jax_linf_basic_iterative_attack(fmodel_and_data):
     fmodel, x, y, batch_size, num_classes = fmodel_and_data
     y = ep.astensor(fmodel.forward(x)).argmax(axis=-1)

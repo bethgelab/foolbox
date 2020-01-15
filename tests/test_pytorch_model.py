@@ -49,13 +49,6 @@ def test_pytorch_model_forward(fmodel_and_data):
     assert isinstance(output, torch.Tensor)
 
 
-def test_pytorch_model_gradient(fmodel_and_data):
-    fmodel, x, y, batch_size, num_classes = fmodel_and_data
-    output = fmodel.gradient(x, y)
-    assert output.shape == x.shape
-    assert isinstance(output, torch.Tensor)
-
-
 def test_pytorch_linf_basic_iterative_attack(fmodel_and_data):
     fmodel, x, y, batch_size, num_classes = fmodel_and_data
     y = fmodel.forward(x).argmax(axis=-1)

@@ -97,13 +97,6 @@ def test_tensorflow_model_forward(fmodel_and_data):
     assert isinstance(output, tf.Tensor)
 
 
-def test_tensorflow_model_gradient(fmodel_and_data):
-    fmodel, x, y, batch_size, num_classes = fmodel_and_data
-    output = fmodel.gradient(x, y)
-    assert output.shape == x.shape
-    assert isinstance(output, tf.Tensor)
-
-
 def test_tensorflow_linf_basic_iterative_attack(fmodel_and_data):
     fmodel, x, y, batch_size, num_classes = fmodel_and_data
     y = ep.astensor(fmodel.forward(x)).argmax(axis=-1)
