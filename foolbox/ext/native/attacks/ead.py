@@ -49,7 +49,7 @@ class EADAttack:
 
         rows = np.arange(N)
 
-        def loss_fun_eagerpy(y_k: ep.Tensor, consts: ep.Tensor) -> ep.Tensor:
+        def loss_fun(y_k: ep.Tensor, consts: ep.Tensor) -> ep.Tensor:
             assert y_k.shape == x_0.shape
             assert consts.shape == (N,)
 
@@ -72,15 +72,7 @@ class EADAttack:
             loss = is_adv_loss.sum() + squared_norms.sum()
             return loss, (y_k, logits)
 
-        # the model functions (e.g. value_and_grad) currently require
-        # functions that take and return native tensors
-        def loss_fun(y_k, consts):
-            y_k = ep.astensor(y_k)
-            consts = ep.astensor(consts)
-            loss, (x, logits) = loss_fun_eagerpy(y_k, consts)
-            return loss.tensor, (x.tensor, logits.tensor)
-
-        loss_aux_and_grad = self.model.value_and_grad(loss_fun, has_aux=True)
+        loss_aux_and_grad = ep.value_and_grad_fn(x_0, loss_fun, has_aux=True)
 
         consts = initial_const * np.ones((N,))
         lower_bounds = np.zeros((N,))
@@ -116,13 +108,7 @@ class EADAttack:
                     initial_learning_rate * (1.0 - iteration / max_iterations) ** 0.5
                 )
 
-                (loss, (x, logits)), gradient = loss_aux_and_grad(
-                    x_k.tensor, consts_.tensor
-                )
-                loss = ep.astensor(loss)
-                x = ep.astensor(x)
-                logits = ep.astensor(logits)
-                gradient = ep.astensor(gradient)
+                loss, (x, logits), gradient = loss_aux_and_grad(x_k, consts_)
 
                 x_k_old = x_k
                 x_k = project_shrinkage_thresholding(
