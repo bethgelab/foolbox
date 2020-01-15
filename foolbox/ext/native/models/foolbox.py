@@ -1,5 +1,6 @@
 import foolbox
 from .base import Model
+from ..devutils import unwrap
 
 
 class Foolbox2Model(Model):
@@ -11,4 +12,5 @@ class Foolbox2Model(Model):
         return self._model.bounds()
 
     def forward(self, inputs):
-        return self._model.forward(inputs)
+        inputs, restore = unwrap(inputs)
+        return restore(self._model.forward(inputs))

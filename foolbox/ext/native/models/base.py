@@ -9,4 +9,5 @@ class Model(ABC):
 
     @abstractmethod
     def forward(self, inputs):
+        """Passes inputs through the model and returns the logits"""
         raise NotImplementedError

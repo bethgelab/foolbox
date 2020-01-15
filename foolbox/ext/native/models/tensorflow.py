@@ -1,5 +1,6 @@
 import tensorflow as tf
 from .base import Model
+from ..devutils import unwrap
 
 
 class TensorFlowModel(Model):
@@ -69,8 +70,9 @@ class TensorFlowModel(Model):
         return self._bounds
 
     def forward(self, inputs):
+        inputs, restore = unwrap(inputs)
         x = inputs
         x = self._preprocess(x)
         x = self._model(x)
         assert x.ndim == 2
-        return x
+        return restore(x)
