@@ -95,28 +95,3 @@ class PyTorchModel(Model):
         grad = x_.grad
         assert grad.shape == x_.shape
         return grad
-
-    def value_and_grad(self, f, has_aux=False):
-        def value_and_grad_(x, *args, **kwargs):
-            x = x.clone()
-            x.requires_grad_()
-            if has_aux:
-                loss, aux = f(x, *args, **kwargs)
-            else:
-                loss = f(x, *args, **kwargs)
-            loss.backward()
-            grad = x.grad
-            assert grad.shape == x.shape
-            loss = loss.detach()
-            if has_aux:
-                if isinstance(aux, torch.Tensor):
-                    aux = aux.detach()
-                elif isinstance(aux, tuple):
-                    aux = tuple(
-                        t.detach() if isinstance(t, torch.Tensor) else t for t in aux
-                    )
-                return (loss, aux), grad
-            else:
-                return loss, grad
-
-        return value_and_grad_

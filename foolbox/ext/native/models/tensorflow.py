@@ -87,20 +87,3 @@ class TensorFlowModel(Model):
         grad = tape.gradient(loss, x_)
         assert grad.shape == x_.shape
         return grad
-
-    def value_and_grad(self, f, has_aux=False):
-        def value_and_grad_(x, *args, **kwargs):
-            with tf.GradientTape() as tape:
-                tape.watch(x)
-                if has_aux:
-                    loss, aux = f(x, *args, **kwargs)
-                else:
-                    loss = f(x, *args, **kwargs)
-            grad = tape.gradient(loss, x)
-            assert grad.shape == x.shape
-            if has_aux:
-                return (loss, aux), grad
-            else:
-                return loss, grad
-
-        return value_and_grad_

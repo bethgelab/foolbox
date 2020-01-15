@@ -16,9 +16,6 @@ class FoolboxModel(Model):
     def gradient(self, inputs, labels):
         return self._model.gradient(inputs, labels)
 
-    def value_and_grad(self, f, has_aux=False):
-        raise NotImplementedError
-
     @property
     def foolbox_model(self):
         return self._model

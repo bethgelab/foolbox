@@ -14,7 +14,3 @@ class Model(ABC):
     @abstractmethod
     def gradient(self, inputs, labels):
         raise NotImplementedError
-
-    @abstractmethod
-    def value_and_grad(self, f, has_aux=False):
-        raise NotImplementedError
