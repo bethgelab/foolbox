@@ -97,30 +97,14 @@ class DeepFoolAttack(ABC):
                 f"expected loss to be 'logits' or 'crossentropy', got '{loss}'"
             )
 
-        # the model functions (e.g. value_and_grad) currently require
-        # functions that take and return native tensors
-        def loss_fun_raw(x, k):
-            x = ep.astensor(x)
-            loss, (losses, logits) = loss_fun(x, k)
-            return loss.tensor, (losses.tensor, logits.tensor)
-
-        loss_aux_and_grad_raw = self.model.value_and_grad(loss_fun_raw, has_aux=True)
-
-        def loss_aux_and_grad(x, k):
-            (loss, (losses, logits)), grad = loss_aux_and_grad_raw(x.tensor, k)
-            return (
-                (ep.astensor(loss), (ep.astensor(losses), ep.astensor(logits))),
-                ep.astensor(grad),
-            )
+        loss_aux_and_grad = ep.value_and_grad_fn(inputs, loss_fun, has_aux=True)
 
         x = x0 = inputs
         p_total = ep.zeros_like(x)
         for step in range(steps):
             # let's first get the logits using k = 1 to see if we are done
             diffs = [loss_aux_and_grad(x, 1)]
-            loss_aux, _ = diffs[0]
-            _, aux = loss_aux
-            _, logits = aux
+            _, (_, logits), _ = diffs[0]
             is_adv = logits.argmax(axis=-1) != labels
             if is_adv.all():
                 break
@@ -130,7 +114,7 @@ class DeepFoolAttack(ABC):
             diffs += [loss_aux_and_grad(x, k) for k in range(2, candidates)]
 
             # we don't need the logits
-            diffs = [(losses, grad) for (_, (losses, _)), grad in diffs]
+            diffs = [(losses, grad) for _, (losses, _), grad in diffs]
             losses = ep.stack([l for l, _ in diffs], axis=1)
             grads = ep.stack([g for _, g in diffs], axis=1)
             assert losses.shape == (N, candidates - 1)
