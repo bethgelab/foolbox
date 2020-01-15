@@ -10,7 +10,3 @@ class Model(ABC):
     @abstractmethod
     def forward(self, inputs):
         raise NotImplementedError
-
-    @abstractmethod
-    def gradient(self, inputs, labels):
-        raise NotImplementedError

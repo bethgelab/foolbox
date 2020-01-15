@@ -74,16 +74,3 @@ class TensorFlowModel(Model):
         x = self._model(x)
         assert x.ndim == 2
         return x
-
-    def gradient(self, inputs, labels):
-        x = x_ = inputs
-        y = labels
-
-        with tf.GradientTape() as tape:
-            tape.watch(x)
-            x = self.forward(x)
-            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=x)
-
-        grad = tape.gradient(loss, x_)
-        assert grad.shape == x_.shape
-        return grad

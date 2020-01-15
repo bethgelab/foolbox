@@ -1,5 +1,4 @@
 import torch
-import torch.nn.functional as F
 import warnings
 from .base import Model
 
@@ -81,17 +80,3 @@ class PyTorchModel(Model):
         x = self._model(x)
         assert x.ndim == 2
         return x
-
-    def gradient(self, inputs, labels):
-        x = inputs.clone()
-        x.requires_grad_()
-        x_ = x
-        y = labels
-        assert x.device == self.device
-        assert y.device == self.device
-        x = self.forward(x)
-        loss = F.cross_entropy(x, y)
-        loss.backward()
-        grad = x_.grad
-        assert grad.shape == x_.shape
-        return grad

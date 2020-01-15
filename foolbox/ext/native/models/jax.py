@@ -1,34 +1,12 @@
 import jax.numpy as np
-from jax.scipy.special import logsumexp
-import jax
 from .base import Model
-
-
-def crossentropy(logits, labels):
-    logprobs = logits - logsumexp(logits, axis=1, keepdims=True)
-    nll = np.take_along_axis(logprobs, np.expand_dims(labels, axis=1), axis=1)
-    ce = -np.mean(nll)
-    return ce
 
 
 class JAXModel(Model):
     def __init__(self, model, bounds, preprocessing=None):
-        preprocess = self._create_preprocessing_fun(preprocessing)
-
-        def f(x):
-            x = preprocess(x)
-            x = model(x)
-            return x
-
-        def loss(x, y):
-            logits = f(x)
-            return crossentropy(logits, y)
-
-        g = jax.grad(loss)
-
-        self._f = f
-        self._g = g
         self._bounds = bounds
+        self._model = model
+        self._preprocess = self._create_preprocessing_fun(preprocessing)
 
     def _create_preprocessing_fun(self, preprocessing):
         if preprocessing is None:
@@ -77,11 +55,8 @@ class JAXModel(Model):
         return self._bounds
 
     def forward(self, inputs):
-        logits = self._f(inputs)
-        assert logits.ndim == 2
-        return logits
-
-    def gradient(self, inputs, labels):
-        grad = self._g(inputs, labels)
-        assert grad.shape == inputs.shape
-        return grad
+        x = inputs
+        x = self._preprocess(x)
+        x = self._model(x)
+        assert x.ndim == 2
+        return x
