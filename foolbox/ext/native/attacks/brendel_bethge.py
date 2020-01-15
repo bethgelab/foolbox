@@ -5,6 +5,10 @@ import eagerpy as ep
 from collections.abc import Callable
 import logging
 import warnings
+from ..utils import flatten
+from . import LinearSearchBlendedUniformNoiseAttack
+from ..tensorboard import TensorBoard
+from ..models.base import Model
 
 try:
     from numba import jitclass
@@ -22,11 +26,6 @@ except (ModuleNotFoundError, ImportError) as e:
 else:
     NUMBA_IMPORT_ERROR = None  # type: ignore
 
-
-from ..utils import flatten
-from . import LinearSearchBlendedUniformNoiseAttack
-from ..tensorboard import TensorBoard
-from ..models.base import Model
 
 EPS = 1e-10
 
