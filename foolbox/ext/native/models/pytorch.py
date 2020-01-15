@@ -89,8 +89,7 @@ class PyTorchModel(Model):
         y = labels
         assert x.device == self.device
         assert y.device == self.device
-        x = self._preprocess(x)
-        x = self._model(x)
+        x = self.forward(x)
         loss = F.cross_entropy(x, y)
         loss.backward()
         grad = x_.grad
@@ -104,7 +103,7 @@ class PyTorchModel(Model):
             if has_aux:
                 loss, aux = f(x, *args, **kwargs)
             else:
-                loss = f(x)
+                loss = f(x, *args, **kwargs)
             loss.backward()
             grad = x.grad
             assert grad.shape == x.shape

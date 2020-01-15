@@ -81,8 +81,7 @@ class TensorFlowModel(Model):
 
         with tf.GradientTape() as tape:
             tape.watch(x)
-            x = self._preprocess(x)
-            x = self._model(x)
+            x = self.forward(x)
             loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=x)
 
         grad = tape.gradient(loss, x_)
@@ -96,7 +95,7 @@ class TensorFlowModel(Model):
                 if has_aux:
                     loss, aux = f(x, *args, **kwargs)
                 else:
-                    loss = f(x)
+                    loss = f(x, *args, **kwargs)
             grad = tape.gradient(loss, x)
             assert grad.shape == x.shape
             if has_aux:
