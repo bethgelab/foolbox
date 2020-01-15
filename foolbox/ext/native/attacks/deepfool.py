@@ -157,8 +157,18 @@ class DeepFoolAttack(ABC):
 
 
 class L2DeepFoolAttack(DeepFoolAttack):
-    def __call__(self, *args, **kwargs):
-        return super().__call__(*args, p=2, **kwargs)
+    def __call__(
+        self, inputs, labels, *, candidates=10, overshoot=0.02, steps=50, loss="logits",
+    ):
+        return super().__call__(
+            inputs,
+            labels,
+            p=2,
+            candidates=candidates,
+            overshoot=overshoot,
+            steps=steps,
+            loss=loss,
+        )
 
     def get_distances(self, losses, grads):
         return abs(losses) / (
@@ -176,8 +186,18 @@ class L2DeepFoolAttack(DeepFoolAttack):
 
 
 class LinfDeepFoolAttack(DeepFoolAttack):
-    def __call__(self, *args, **kwargs):
-        return super().__call__(*args, p=np.inf, **kwargs)
+    def __call__(
+        self, inputs, labels, *, candidates=10, overshoot=0.02, steps=50, loss="logits",
+    ):
+        return super().__call__(
+            inputs,
+            labels,
+            p=np.inf,
+            candidates=candidates,
+            overshoot=overshoot,
+            steps=steps,
+            loss=loss,
+        )
 
     def get_distances(self, losses, grads):
         return abs(losses) / (flatten(grads, keep=2).abs().sum(axis=-1) + 1e-8)
