@@ -2,8 +2,8 @@ import eagerpy as ep
 
 
 class InversionAttack:
-    """Creates "negative images" by inverting the pixel values according to
-    [1]_.
+    """Creates "negative images" by inverting the pixel values according to [1]_.
+
     References
     ----------
     .. [1] Hossein Hosseini, Baicen Xiao, Mayoore Jaiswal, Radha Poovendran,
