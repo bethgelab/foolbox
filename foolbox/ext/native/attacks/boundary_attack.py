@@ -7,28 +7,7 @@ from ..devutils import flatten
 from ..devutils import atleast_kd
 from . import LinearSearchBlendedUniformNoiseAttack
 from ..tensorboard import TensorBoard
-
-
-def misclassification(
-    inputs: ep.Tensor, labels: ep.Tensor, perturbed: ep.Tensor, logits: ep.Tensor
-) -> ep.Tensor:
-    classes = logits.argmax(axis=-1)
-    return classes != labels
-
-
-class TargetedMisclassification:
-    def __init__(self, target_classes: ep.Tensor):
-        self.target_classes = target_classes
-
-    def __call__(
-        self,
-        inputs: ep.Tensor,
-        labels: ep.Tensor,
-        perturbed: ep.Tensor,
-        logits: ep.Tensor,
-    ) -> ep.Tensor:
-        classes = logits.argmax(axis=-1)
-        return classes == self.target_classes
+from ..criteria import misclassification
 
 
 class BoundaryAttack:
