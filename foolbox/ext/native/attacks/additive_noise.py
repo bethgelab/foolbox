@@ -2,8 +2,8 @@ from abc import ABC
 from abc import abstractmethod
 import eagerpy as ep
 
-from ..utils import flatten
-from ..utils import atleast_kd
+from ..devutils import flatten
+from ..devutils import atleast_kd
 
 
 class BaseAdditiveNoiseAttack(ABC):

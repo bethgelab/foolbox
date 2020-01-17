@@ -1,7 +1,7 @@
 import numpy as np
 import eagerpy as ep
 
-from ..utils import atleast_kd
+from ..devutils import atleast_kd
 
 import warnings
 

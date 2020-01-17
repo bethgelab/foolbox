@@ -3,9 +3,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from foolbox.ext.native.utils import flatten
+from foolbox.ext.native.devutils import flatten
 from foolbox.ext.native.models import PyTorchModel
-from foolbox.ext.native.attacks import L0BrendelBethgeAttack, L1BrendelBethgeAttack, L2BrendelBethgeAttack, LinfinityBrendelBethgeAttack
+from foolbox.ext.native.attacks import (
+    L0BrendelBethgeAttack,
+    L1BrendelBethgeAttack,
+    L2BrendelBethgeAttack,
+    LinfinityBrendelBethgeAttack,
+)
 
 
 def test_l0_brendel_bethge_attack():

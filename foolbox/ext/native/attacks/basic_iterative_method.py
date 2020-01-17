@@ -1,8 +1,8 @@
 import numpy as np
 import eagerpy as ep
 
-from ..utils import flatten
-from ..utils import atleast_kd
+from ..devutils import flatten
+from ..devutils import atleast_kd
 
 
 def clip_l2_norms(x: ep.Tensor, norm) -> ep.Tensor:

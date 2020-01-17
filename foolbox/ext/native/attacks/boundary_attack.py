@@ -3,8 +3,8 @@ import eagerpy as ep
 from collections.abc import Callable
 import logging
 
-from ..utils import flatten
-from ..utils import atleast_kd
+from ..devutils import flatten
+from ..devutils import atleast_kd
 from . import LinearSearchBlendedUniformNoiseAttack
 from ..tensorboard import TensorBoard
 

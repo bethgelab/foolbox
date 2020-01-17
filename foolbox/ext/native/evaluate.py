@@ -1,7 +1,7 @@
 from inspect import signature
 import numpy as np
 import eagerpy as ep
-from .utils import flatten
+from .devutils import flatten
 
 
 def evaluate_l2(fmodel, inputs, labels, *, attacks, epsilons):

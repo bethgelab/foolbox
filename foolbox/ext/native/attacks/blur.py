@@ -3,7 +3,7 @@ import eagerpy as ep
 
 from scipy.ndimage.filters import gaussian_filter
 
-from ..utils import atleast_kd
+from ..devutils import atleast_kd
 
 
 class GaussianBlurAttack:

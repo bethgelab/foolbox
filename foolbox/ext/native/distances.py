@@ -1,5 +1,5 @@
 import eagerpy as ep
-from .utils import flatten
+from .devutils import flatten
 from .devutils import wrap
 
 

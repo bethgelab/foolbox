@@ -4,8 +4,8 @@ import logging
 from abc import ABC
 from abc import abstractmethod
 
-from ..utils import flatten
-from ..utils import atleast_kd
+from ..devutils import flatten
+from ..devutils import atleast_kd
 
 
 class DeepFoolAttack(ABC):
