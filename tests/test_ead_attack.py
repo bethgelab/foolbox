@@ -36,7 +36,6 @@ def test_ead_attack_cw():
 
     perturbations = ep.astensor(advs - x)
     perturbations_cw = ep.astensor(advs_cw - x)
-    norms = flatten(perturbations).square().sum(axis=-1).sqrt()
     y_advs = fmodel.forward(advs).argmax(axis=-1)
     y_advs_cw = fmodel.forward(advs).argmax(axis=-1)
 
