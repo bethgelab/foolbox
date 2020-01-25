@@ -1,3 +1,4 @@
+import warnings
 import eagerpy as ep
 import foolbox
 from .models import PyTorchModel
@@ -35,12 +36,15 @@ def samples(
                 data_format = "channels_first"
             elif channel_axis == 3:
                 data_format = "channels_last"
-            else:
-                raise ValueError("data_format could not be inferred from the model")
-        else:
-            raise ValueError("data_format could not be inferred from the model")
+
+    if data_format is None:
+        raise ValueError(
+            "data_format could not be inferred from the model, please specify it explicitly"
+        )
+
     if bounds is None:
         bounds = model.bounds()
+
     images, labels = foolbox.utils.samples(
         dataset=dataset,
         index=index,
@@ -49,6 +53,7 @@ def samples(
         data_format=data_format,
         bounds=bounds,
     )
+
     if isinstance(model, PyTorchModel):
         import torch
 
@@ -66,8 +71,8 @@ def samples(
         images = np.asarray(images)
         labels = np.asarray(labels)
     elif isinstance(model, Foolbox2Model):
-        images = images
-        labels = labels
+        pass
     else:
-        raise ValueError("data_format could not be inferred from the model")
+        warnings.warn(f"unknown model type {type(model)}, returning NumPy arrays")
+
     return images, labels
