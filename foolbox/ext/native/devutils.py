@@ -1,3 +1,4 @@
+"""Internal module with utility functions"""
 import eagerpy as ep
 
 

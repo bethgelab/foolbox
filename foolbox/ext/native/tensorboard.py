@@ -1,3 +1,4 @@
+"""Internal module for attacks that support logging to TensorBoard"""
 import eagerpy as ep
 from functools import wraps
 
