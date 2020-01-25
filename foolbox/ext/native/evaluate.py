@@ -1,6 +1,7 @@
-from inspect import signature
-import numpy as np
 import eagerpy as ep
+import numpy as np
+from inspect import signature
+
 from .devutils import flatten
 
 

@@ -1,10 +1,11 @@
-import tensorflow as tf
 from .base import Model
 from ..devutils import unwrap
 
 
 class TensorFlowModel(Model):
     def __init__(self, model, bounds, device=None, preprocessing=None):
+        import tensorflow as tf
+
         assert tf.executing_eagerly()
         self._bounds = bounds
 
@@ -21,6 +22,8 @@ class TensorFlowModel(Model):
         self._init_preprocessing(preprocessing)
 
     def _init_preprocessing(self, preprocessing):
+        import tensorflow as tf
+
         if preprocessing is None:
             preprocessing = dict()
         assert set(preprocessing.keys()) - {"mean", "std", "axis", "flip_axis"} == set()
@@ -56,6 +59,8 @@ class TensorFlowModel(Model):
         self._preprocessing_flip_axis = flip_axis
 
     def _preprocess(self, inputs):
+        import tensorflow as tf
+
         x = inputs
         if self._preprocessing_flip_axis is not None:
             x = tf.reverse(x, (self._preprocessing_flip_axis,))

@@ -1,6 +1,7 @@
-import eagerpy as ep
 import numpy as np
 import matplotlib.pyplot as plt
+
+from .devutils import wrap_
 
 
 def images(
@@ -15,7 +16,7 @@ def images(
     scale=1,
     **kwargs,
 ):
-    x = ep.astensor(images)
+    x = wrap_(images)
     assert x.ndim == 4
     if n is not None:
         x = x[:n]

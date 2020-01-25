@@ -21,41 +21,21 @@ def _normalize(x, bounds):
     return x
 
 
-def l0(reference, perturbed, bounds=None):
-    reference, perturbed, restore = wrap(reference, perturbed)
-    reference = _normalize(reference, bounds)
-    perturbed = _normalize(perturbed, bounds)
-    norms = ep.norms.l0(flatten(perturbed - reference), axis=-1)
-    return restore(norms)
+def _create_lx(norm):
+    def lx(reference, perturbed, bounds=None):
+        reference, perturbed, restore = wrap(reference, perturbed)
+        reference = _normalize(reference, bounds)
+        perturbed = _normalize(perturbed, bounds)
+        norms = norm(flatten(perturbed - reference), axis=-1)
+        return restore(norms)
+
+    lx.__name__ = norm.__name__
+    lx.__qualname__ = norm.__name__
+    return lx
 
 
-def l1(reference, perturbed, bounds=None):
-    reference, perturbed, restore = wrap(reference, perturbed)
-    reference = _normalize(reference, bounds)
-    perturbed = _normalize(perturbed, bounds)
-    norms = ep.norms.l1(flatten(perturbed - reference), axis=-1)
-    return restore(norms)
-
-
-def l2(reference, perturbed, bounds=None):
-    reference, perturbed, restore = wrap(reference, perturbed)
-    reference = _normalize(reference, bounds)
-    perturbed = _normalize(perturbed, bounds)
-    norms = ep.norms.l2(flatten(perturbed - reference), axis=-1)
-    return restore(norms)
-
-
-def linf(reference, perturbed, bounds=None):
-    reference, perturbed, restore = wrap(reference, perturbed)
-    reference = _normalize(reference, bounds)
-    perturbed = _normalize(perturbed, bounds)
-    norms = ep.norms.linf(flatten(perturbed - reference), axis=-1)
-    return restore(norms)
-
-
-def lp(reference, perturbed, bounds=None):
-    reference, perturbed, restore = wrap(reference, perturbed)
-    reference = _normalize(reference, bounds)
-    perturbed = _normalize(perturbed, bounds)
-    norms = ep.norms.lp(flatten(perturbed - reference), axis=-1)
-    return restore(norms)
+l0 = _create_lx(ep.norms.l0)
+l1 = _create_lx(ep.norms.l1)
+l2 = _create_lx(ep.norms.l2)
+linf = _create_lx(ep.norms.linf)
+lp = _create_lx(ep.norms.lp)

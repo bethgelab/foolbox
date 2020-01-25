@@ -1,6 +1,8 @@
-import warnings
 import eagerpy as ep
 import foolbox
+import warnings
+
+from .devutils import wrap_
 from .models import PyTorchModel
 from .models import TensorFlowModel
 from .models import JAXModel
@@ -8,7 +10,8 @@ from .models import Foolbox2Model
 
 
 def accuracy(fmodel, inputs, labels):
-    logits = ep.astensor(fmodel.forward(inputs))
+    inputs, labels = wrap_(inputs, labels)
+    logits = ep.astensor(fmodel.forward(inputs.tensor))
     predictions = logits.argmax(axis=-1)
     accuracy = (predictions == labels).float32().mean()
     return accuracy.item()

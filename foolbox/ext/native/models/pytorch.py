@@ -1,4 +1,3 @@
-import torch
 import warnings
 from .base import Model
 from ..devutils import unwrap
@@ -6,6 +5,8 @@ from ..devutils import unwrap
 
 class PyTorchModel(Model):
     def __init__(self, model, bounds, device=None, preprocessing=None):
+        import torch
+
         self._bounds = bounds
 
         if device is None:
@@ -27,6 +28,8 @@ class PyTorchModel(Model):
         self._init_preprocessing(preprocessing)
 
     def _init_preprocessing(self, preprocessing):
+        import torch
+
         if preprocessing is None:
             preprocessing = dict()
         assert set(preprocessing.keys()) - {"mean", "std", "axis", "flip_axis"} == set()
@@ -61,6 +64,8 @@ class PyTorchModel(Model):
         self._preprocessing_flip_axis = flip_axis
 
     def _preprocess(self, inputs):
+        import torch
+
         x = inputs
         if self._preprocessing_flip_axis is not None:
             x = torch.flip(x, (self._preprocessing_flip_axis,))
