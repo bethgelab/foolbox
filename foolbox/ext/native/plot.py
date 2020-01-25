@@ -23,7 +23,7 @@ def images(
         channels_first = x.shape[1] == 1 or x.shape[1] == 3
         channels_last = x.shape[-1] == 1 or x.shape[-1] == 3
         if channels_first == channels_last:
-            raise ValueError("data_format ambigous, please specify explicitly")
+            raise ValueError("data_format ambigous, please specify it explicitly")
     else:
         channels_first = data_format == "channels_first"
         channels_last = data_format == "channels_last"
