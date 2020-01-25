@@ -6,6 +6,10 @@ test:
 black:
 	black .
 
+.PHONY: blackcheck
+blackcheck:
+	black --check .
+
 .PHONY: flake8
 flake8:
 	flake8
