@@ -140,3 +140,15 @@ Unlike Foolbox:
 
   * Foolbox, on the other hand, searches for the smallest perturbation while
     guaranteeing that the returned samples are adversarial
+
+
+Development
+-----------
+
+For development, it is recommended to do a an editable installation of Foolbox
+and Foolbox native using :code:`pip install -e .` in the corresponding folders (after
+cloning the two repositories). Unfortunately, `pip` has a
+`bug <https://github.com/pypa/pip/issues/7265>`_ with editable installs and
+namespace packages like Foolbox Native. A simple workaround is to add a symlink
+to the :code:`foolbox/ext/native` folder of Foolbox Native in the :code:`foolbox/ext/` folder
+of Foolbox itself.
