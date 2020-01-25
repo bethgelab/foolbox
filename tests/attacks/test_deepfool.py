@@ -9,10 +9,7 @@ from foolbox.ext.native.models import PyTorchModel
 from foolbox.ext.native.attacks import L2DeepFoolAttack, LinfDeepFoolAttack
 
 
-Attacks = [
-    L2DeepFoolAttack,
-    LinfDeepFoolAttack,
-]
+Attacks = [L2DeepFoolAttack, LinfDeepFoolAttack]
 
 
 @pytest.mark.parametrize("Attack", Attacks)
