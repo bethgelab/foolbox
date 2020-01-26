@@ -1,4 +1,3 @@
-import eagerpy as ep
 import foolbox
 import warnings
 
@@ -11,7 +10,7 @@ from .models import Foolbox2Model
 
 def accuracy(fmodel, inputs, labels):
     inputs, labels = wrap_(inputs, labels)
-    logits = ep.astensor(fmodel.forward(inputs.tensor))
+    logits = fmodel.forward(inputs)
     predictions = logits.argmax(axis=-1)
     accuracy = (predictions == labels).float32().mean()
     return accuracy.item()
