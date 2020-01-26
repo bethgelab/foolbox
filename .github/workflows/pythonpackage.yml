@@ -33,10 +33,6 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-    - name: Install foolbox
-      run: |
-        pip install -e .
-      working-directory: "./foolbox"
     - name: Install requirements-dev.txt
       run: |
         python -m pip install --upgrade pip setuptools
@@ -50,6 +46,10 @@ jobs:
       run: |
         black --check --verbose .
       working-directory: "./foolbox_native"
+    - name: Install foolbox
+      run: |
+        pip install -e .
+      working-directory: "./foolbox"
     - name: Install package
       run: |
         pip install -e .
