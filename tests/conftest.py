@@ -70,7 +70,7 @@ def pytorch_simple_model_object():
 def pytorch_resnet18():
     import torchvision.models as models
 
-    model = models.resnet18(pretrained=True).cuda().eval()
+    model = models.resnet18(pretrained=True).eval()
     preprocessing = dict(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], axis=-3)
     fmodel = fbn.PyTorchModel(model, bounds=(0, 1), preprocessing=preprocessing)
 
