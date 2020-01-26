@@ -1,4 +1,7 @@
+import pytest
 import eagerpy as ep
+
+import foolbox.ext.native as fbn
 
 
 def test_bounds(fmodel_and_data):
@@ -29,3 +32,20 @@ def test_forward_wrapped(fmodel_and_data):
     _, num_classes = logits.shape
     assert (y >= 0).all()
     assert (y < num_classes).all()
+
+
+def test_pytorch_training_warning(request):
+    backend = request.config.option.backend
+    if backend != "pytorch":
+        pytest.skip()
+
+    import torch
+
+    class Model(torch.nn.Module):
+        def forward(self, x):
+            return x
+
+    model = Model().train()
+    bounds = (0, 1)
+    with pytest.warns(UserWarning):
+        fbn.PyTorchModel(model, bounds=bounds, device="cpu")

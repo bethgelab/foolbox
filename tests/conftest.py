@@ -34,8 +34,7 @@ def register(backend):
     return decorator
 
 
-@register("pytorch")
-def pytorch_simple_model():
+def pytorch_simple_model(device):
     import torch
 
     class Model(torch.nn.Module):
@@ -46,12 +45,24 @@ def pytorch_simple_model():
 
     model = Model().eval()
     bounds = (0, 1)
-    fmodel = fbn.PyTorchModel(model, bounds=bounds)
+    fmodel = fbn.PyTorchModel(model, bounds=bounds, device=device)
 
     x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(fmodel.forward(x.tensor)).argmax(axis=-1)
     return fmodel, x, y
+
+
+@register("pytorch")
+def pytorch_simple_model_string():
+    return pytorch_simple_model("cpu")
+
+
+@register("pytorch")
+def pytorch_simple_model_object():
+    import torch
+
+    return pytorch_simple_model(torch.device("cpu"))
 
 
 @register("pytorch")
