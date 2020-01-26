@@ -1,4 +1,3 @@
-import jax.numpy as np
 from .base import Model
 from ..devutils import unwrap
 
@@ -10,6 +9,8 @@ class JAXModel(Model):
         self._preprocess = self._create_preprocessing_fun(preprocessing)
 
     def _create_preprocessing_fun(self, preprocessing):
+        import jax.numpy as np
+
         if preprocessing is None:
             preprocessing = dict()
         assert set(preprocessing.keys()) - {"mean", "std", "axis", "flip_axis"} == set()
