@@ -12,6 +12,14 @@ def pytest_addoption(parser):
     parser.addoption("--backend")
 
 
+@pytest.fixture(scope="session")
+def dummy(request):
+    backend = request.config.option.backend
+    if backend is None:
+        pytest.skip()
+    return ep.utils.get_dummy(backend)
+
+
 def register(backend):
     def decorator(f):
         @functools.wraps(f)

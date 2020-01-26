@@ -1,4 +1,6 @@
 import eagerpy as ep
+import functools
+
 from .devutils import flatten
 from .devutils import wrap
 
@@ -11,7 +13,7 @@ from .devutils import wrap
 # * accept an optional keyword argument bounds
 
 
-def _normalize(x, bounds):
+def normalize(x, bounds):
     if bounds is None:
         return x
     min_, max_ = bounds
@@ -21,21 +23,19 @@ def _normalize(x, bounds):
     return x
 
 
-def _create_lx(norm):
-    def lx(reference, perturbed, bounds=None):
+def norm_to_distance(norm):
+    @functools.wraps(norm)
+    def distance(reference, perturbed, bounds=None):
         reference, perturbed, restore = wrap(reference, perturbed)
-        reference = _normalize(reference, bounds)
-        perturbed = _normalize(perturbed, bounds)
+        reference = normalize(reference, bounds)
+        perturbed = normalize(perturbed, bounds)
         norms = norm(flatten(perturbed - reference), axis=-1)
         return restore(norms)
 
-    lx.__name__ = norm.__name__
-    lx.__qualname__ = norm.__name__
-    return lx
+    return distance
 
 
-l0 = _create_lx(ep.norms.l0)
-l1 = _create_lx(ep.norms.l1)
-l2 = _create_lx(ep.norms.l2)
-linf = _create_lx(ep.norms.linf)
-lp = _create_lx(ep.norms.lp)
+l0 = norm_to_distance(ep.norms.l0)
+l1 = norm_to_distance(ep.norms.l1)
+l2 = norm_to_distance(ep.norms.l2)
+linf = norm_to_distance(ep.norms.linf)

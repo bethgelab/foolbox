@@ -18,7 +18,6 @@ from .distances import l0  # noqa: F401
 from .distances import l1  # noqa: F401
 from .distances import l2  # noqa: F401
 from .distances import linf  # noqa: F401
-from .distances import lp  # noqa: F401
 
 from .criteria import Misclassification  # noqa: F401
 from .criteria import misclassification  # noqa: F401
