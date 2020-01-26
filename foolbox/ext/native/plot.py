@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 from .devutils import wrap_
 
@@ -16,6 +15,8 @@ def images(
     scale=1,
     **kwargs,
 ):
+    import matplotlib.pyplot as plt
+
     x = wrap_(images)
     assert x.ndim == 4
     if n is not None:
