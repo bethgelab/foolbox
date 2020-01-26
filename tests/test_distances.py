@@ -53,4 +53,4 @@ def test_distance(reference_perturbed, p, bounds):
     diff = diff.reshape((len(diff), -1))
     desired = np.linalg.norm(diff, ord=p, axis=-1)
 
-    np.testing.assert_allclose(actual, desired, rtol=1e-6)
+    np.testing.assert_allclose(actual, desired, rtol=1e-5)
