@@ -1,4 +1,5 @@
 import foolbox.ext.native as fbn
+import eagerpy as ep
 import pytest
 
 
@@ -16,10 +17,14 @@ def test_accracy(fmodel_and_data):
 def test_samples(fmodel_and_data, batchsize):
     fmodel, x, y = fmodel_and_data
     if hasattr(fmodel, "data_format"):
-        x = fbn.samples(fmodel, batchsize=batchsize)
-        assert len(x) == batchsize
-        x = fbn.samples(fmodel, batchsize=batchsize, data_format=fmodel.data_format)
-        assert len(x) == batchsize
+        x, y = fbn.samples(fmodel, batchsize=batchsize)
+        assert len(x) == len(y) == batchsize
+        assert not ep.istensor(x)
+        assert not ep.istensor(y)
+        x, y = fbn.samples(fmodel, batchsize=batchsize, data_format=fmodel.data_format)
+        assert len(x) == len(y) == batchsize
+        assert not ep.istensor(x)
+        assert not ep.istensor(y)
         with pytest.raises(ValueError):
             data_format = {
                 "channels_first": "channels_last",
@@ -27,5 +32,9 @@ def test_samples(fmodel_and_data, batchsize):
             }[fmodel.data_format]
             fbn.samples(fmodel, batchsize=batchsize, data_format=data_format)
     else:
-        x = fbn.samples(fmodel, batchsize=batchsize, data_format="channels_first")
-        assert len(x) == batchsize
+        x, y = fbn.samples(fmodel, batchsize=batchsize, data_format="channels_first")
+        assert len(x) == len(y) == batchsize
+        assert not ep.istensor(x)
+        assert not ep.istensor(y)
+        with pytest.raises(ValueError):
+            fbn.samples(fmodel, batchsize=batchsize)

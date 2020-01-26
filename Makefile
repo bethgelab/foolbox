@@ -4,6 +4,7 @@ test:
 	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend pytorch --ignore tests/attacks/
 	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend tensorflow --ignore tests/attacks/
 	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend jax --ignore tests/attacks/
+	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend numpy --ignore tests/attacks/
 
 .PHONY: black
 black:

@@ -2,6 +2,7 @@ import functools
 import pytest
 import eagerpy as ep
 
+import foolbox
 import foolbox.ext.native as fbn
 
 
@@ -80,13 +81,14 @@ def pytorch_resnet18():
 
 
 @register("tensorflow")
-def tensorflow_simple_sequential():
+def tensorflow_simple_sequential_cpu():
     import tensorflow as tf
 
-    model = tf.keras.Sequential()
-    model.add(tf.keras.layers.GlobalAveragePooling2D())
+    with tf.device("cpu"):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.GlobalAveragePooling2D())
     bounds = (0, 1)
-    fmodel = fbn.TensorFlowModel(model, bounds=bounds)
+    fmodel = fbn.TensorFlowModel(model, bounds=bounds, device="cpu")
 
     x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
@@ -167,6 +169,41 @@ def jax_simple_model():
     x = ep.astensor(x)
     y = ep.astensor(fmodel.forward(x.tensor)).argmax(axis=-1)
     return fmodel, x, y
+
+
+def foolbox2_simple_model(channel_axis):
+    class Foolbox2DummyModel(foolbox.models.base.Model):
+        def __init__(self):
+            super().__init__(
+                bounds=(0, 1), channel_axis=channel_axis, preprocessing=(0, 1)
+            )
+
+        def forward(self, inputs):
+            if channel_axis == 1:
+                return inputs.mean(axis=(2, 3))
+            elif channel_axis == 3:
+                return inputs.mean(axis=(1, 2))
+
+        def num_classes(self):
+            return 3
+
+    model = Foolbox2DummyModel()
+    fmodel = fbn.Foolbox2Model(model)
+
+    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x = ep.astensor(x)
+    y = ep.astensor(fmodel.forward(x.tensor)).argmax(axis=-1)
+    return fmodel, x, y
+
+
+@register("numpy")
+def foolbox2_simple_model_1():
+    return foolbox2_simple_model(1)
+
+
+@register("numpy")
+def foolbox2_simple_model_3():
+    return foolbox2_simple_model(3)
 
 
 @pytest.fixture(scope="session", params=list(models.keys()))
