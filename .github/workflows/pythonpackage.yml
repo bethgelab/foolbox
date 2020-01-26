@@ -33,6 +33,14 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
+    - uses: actions/cache@v1
+      with:
+        path: ~/.torch
+        key: ${{ runner.os }}-torch
+    - uses: actions/cache@v1
+      with:
+        path: ~/.keras
+        key: ${{ runner.os }}-keras
     - name: Install requirements-dev.txt
       run: |
         python -m pip install --upgrade pip setuptools

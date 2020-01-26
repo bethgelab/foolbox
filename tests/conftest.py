@@ -35,7 +35,7 @@ def register(backend):
     return decorator
 
 
-def pytorch_simple_model(device):
+def pytorch_simple_model(device=None, preprocessing=None):
     import torch
 
     class Model(torch.nn.Module):
@@ -47,13 +47,23 @@ def pytorch_simple_model(device):
     model = Model().eval()
     bounds = (0, 1)
     fmodel = fbn.PyTorchModel(
-        model, bounds=bounds, device=device, preprocessing=dict(flip_axis=-3)
+        model, bounds=bounds, device=device, preprocessing=preprocessing
     )
 
     x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(fmodel.forward(x.tensor)).argmax(axis=-1)
     return fmodel, x, y
+
+
+@register("pytorch")
+def pytorch_simple_model_default():
+    return pytorch_simple_model()
+
+
+@register("pytorch")
+def pytorch_simple_model_default_flip():
+    return pytorch_simple_model(preprocessing=dict(flip_axis=-3))
 
 
 @register("pytorch")
@@ -70,11 +80,7 @@ def pytorch_simple_model_object():
 
 @register("pytorch")
 def pytorch_resnet18():
-    import torch
     import torchvision.models as models
-
-    if torch.cuda.is_available():
-        pytest.skip()
 
     model = models.resnet18(pretrained=True).eval()
     preprocessing = dict(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], axis=-3)
@@ -148,9 +154,6 @@ def tensorflow_simple_functional():
 @register("tensorflow")
 def tensorflow_resnet50():
     import tensorflow as tf
-
-    if not tf.test.is_gpu_available():
-        pytest.skip()
 
     model = tf.keras.applications.ResNet50(weights="imagenet")
     preprocessing = dict(flip_axis=-1, mean=[104.0, 116.0, 123.0])  # RGB to BGR
