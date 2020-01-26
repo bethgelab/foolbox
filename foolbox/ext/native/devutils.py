@@ -18,7 +18,7 @@ def unwrap(*args):
     """Unwraps all EagerPy tensors if they are not already unwrapped
     and returns a function restoring the original format"""
     if len(args) == 0:
-        return args
+        return (lambda: (),)  # restore function for 0 args
     restore = wrap_ if ep.istensor(args[0]) else unwrap_
     result = unwrap_(*args)
     return (result, restore) if len(args) == 1 else (*result, restore)
@@ -28,7 +28,7 @@ def wrap(*args):
     """Wraps all inputs as EagerPy tensors if they are not already wrapped
     and returns a function restoring the original format"""
     if len(args) == 0:
-        return args
+        return (lambda: (),)  # restore function for 0 args
     restore = wrap_ if ep.istensor(args[0]) else unwrap_
     result = wrap_(*args)
     return (result, restore) if len(args) == 1 else (*result, restore)
