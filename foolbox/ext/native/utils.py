@@ -25,8 +25,10 @@ def samples(
     if hasattr(model, "data_format"):
         if data_format is None:
             data_format = model.data_format
-        else:
-            assert data_format == model.data_format
+        elif data_format != model.data_format:
+            raise ValueError(
+                f"data_format ({data_format}) does not match model.data_format ({model.data_format})"
+            )
     elif data_format is None:
         raise ValueError(
             "data_format could not be inferred, please specify it explicitly"

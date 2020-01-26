@@ -8,12 +8,12 @@ from ..devutils import atleast_kd
 class Model(ABC):
     @abstractmethod
     def bounds(self):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     @abstractmethod
     def forward(self, inputs):
         """Passes inputs through the model and returns the logits"""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
 
 class ModelWithPreprocessing(Model):
