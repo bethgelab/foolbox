@@ -16,7 +16,12 @@ jobs:
         python-version: [3.6, 3.7]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
+      with:
+        repository: "bethgelab/foolbox"
+        path: "foolbox"
+    - uses: actions/checkout@v2
+        path "foolbox_native"
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
@@ -27,44 +32,61 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
+    - name: Install foolbox
+      run: |
+        pip install -e .
+      working-directory: "./foolbox"
     - name: Install requirements-dev.txt
       run: |
         python -m pip install --upgrade pip setuptools
         pip install -r requirements-dev.txt
+      working-directory: "./foolbox_native"
     - name: flake8
       run: |
         flake8 . --count --show-source --statistics
+      working-directory: "./foolbox_native"
     - name: black
       run: |
         black --check --verbose .
+      working-directory: "./foolbox_native"
     - name: Install package
       run: |
-        pip install .
+        pip install -e .
+        ln -s $(pwd)/foolbox/ext/native ../foolbox/foolbox/ext/
+      working-directory: "./foolbox_native"
     - name: Install requirements.txt
       run: |
         pip install -r requirements.txt
+      working-directory: "./foolbox_native"
     - name: Test with pytest
       run: |
         pytest --cov-report term-missing --cov=foolbox.ext.native --verbose --ignore tests/attacks/
+      working-directory: "./foolbox_native"
     - name: Test with pytest (NumPy)
       run: |
         pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend numpy --ignore tests/attacks/
+      working-directory: "./foolbox_native"
     - name: Test with pytest (PyTorch)
       run: |
         pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend pytorch --ignore tests/attacks/
+      working-directory: "./foolbox_native"
     - name: Test with pytest (JAX)
       run: |
         pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend jax --ignore tests/attacks/
+      working-directory: "./foolbox_native"
     - name: Test with pytest (TensorFlow)
       run: |
         pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend tensorflow --ignore tests/attacks/
+      working-directory: "./foolbox_native"
     - name: Codecov
       env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
         codecov
+      working-directory: "./foolbox_native"
     - name: Coveralls
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       run: |
         coveralls
+      working-directory: "./foolbox_native"
