@@ -21,7 +21,8 @@ jobs:
         repository: "bethgelab/foolbox"
         path: "foolbox"
     - uses: actions/checkout@v2
-        path "foolbox_native"
+      with:
+        path: "foolbox_native"
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
