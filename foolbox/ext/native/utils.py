@@ -1,11 +1,8 @@
+import eagerpy as ep
 import foolbox
 import warnings
 
 from .devutils import wrap_
-from .models import PyTorchModel
-from .models import TensorFlowModel
-from .models import JAXModel
-from .models import Foolbox2Model
 
 
 def accuracy(fmodel, inputs, labels):
@@ -25,23 +22,14 @@ def samples(
     data_format=None,
     bounds=None,
 ):
-    if data_format is None:
-        if isinstance(model, PyTorchModel):
-            data_format = "channels_first"
-        elif isinstance(model, TensorFlowModel):
-            import tensorflow as tf
-
-            data_format = tf.keras.backend.image_data_format()
-        elif isinstance(model, Foolbox2Model):
-            channel_axis = model.foolbox_model.channel_axis()
-            if channel_axis == 1:
-                data_format = "channels_first"
-            elif channel_axis == 3:
-                data_format = "channels_last"
-
-    if data_format is None:
+    if hasattr(model, "data_format"):
+        if data_format is None:
+            data_format = model.data_format
+        else:
+            assert data_format == model.data_format
+    elif data_format is None:
         raise ValueError(
-            "data_format could not be inferred from the model, please specify it explicitly"
+            "data_format could not be inferred, please specify it explicitly"
         )
 
     if bounds is None:
@@ -56,24 +44,9 @@ def samples(
         bounds=bounds,
     )
 
-    if isinstance(model, PyTorchModel):
-        import torch
-
-        images = torch.as_tensor(images).to(model.device)
-        labels = torch.as_tensor(labels).to(model.device)
-    elif isinstance(model, TensorFlowModel):
-        import tensorflow as tf
-
-        with model.device:
-            images = tf.convert_to_tensor(images)
-            labels = tf.convert_to_tensor(labels)
-    elif isinstance(model, JAXModel):
-        import jax.numpy as np
-
-        images = np.asarray(images)
-        labels = np.asarray(labels)
-    elif isinstance(model, Foolbox2Model):
-        pass
+    if hasattr(model, "dummy"):
+        images = ep.from_numpy(model.dummy, images).tensor
+        labels = ep.from_numpy(model.dummy, labels).tensor
     else:
         warnings.warn(f"unknown model type {type(model)}, returning NumPy arrays")
 

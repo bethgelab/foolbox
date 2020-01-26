@@ -12,3 +12,12 @@ class Foolbox2Model(Model):
     def forward(self, inputs):
         inputs, restore = unwrap(inputs)
         return restore(self._model.forward(inputs))
+
+    @property
+    def data_format(self):
+        channel_axis = self._model.channel_axis()
+        if channel_axis == 1:
+            data_format = "channels_first"
+        elif channel_axis == 3:
+            data_format = "channels_last"
+        return data_format
