@@ -39,7 +39,7 @@ jobs:
         black --check --verbose .
     - name: Install package
       run: |
-        pip install -e .
+        pip install .
     - name: Install requirements.txt
       run: |
         pip install -r requirements.txt
