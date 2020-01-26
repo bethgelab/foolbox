@@ -46,7 +46,9 @@ def pytorch_simple_model(device):
 
     model = Model().eval()
     bounds = (0, 1)
-    fmodel = fbn.PyTorchModel(model, bounds=bounds, device=device)
+    fmodel = fbn.PyTorchModel(
+        model, bounds=bounds, device=device, preprocessing=dict(flip_axis=-3)
+    )
 
     x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
