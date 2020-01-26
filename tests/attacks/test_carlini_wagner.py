@@ -8,6 +8,19 @@ from foolbox.ext.native.models import PyTorchModel
 from foolbox.ext.native.attacks import L2CarliniWagnerAttack
 
 
+def test_l2_carlini_wagner_attack(fmodel_and_data):
+    fmodel, x, y, batch_size, num_classes = fmodel_and_data
+    y = ep.astensor(fmodel.forward(x)).argmax(axis=-1)
+
+    attack = L2CarliniWagnerAttack(fmodel)
+    advs = attack(x, y, max_iterations=100)
+
+    y_advs = ep.astensor(fmodel.forward(advs)).argmax(axis=-1)
+
+    assert x.shape == advs.shape
+    assert (y_advs == y).float32().mean() < 1
+
+
 def test_carlini_wagner_attack():
     channels = 3
     batch_size = 8

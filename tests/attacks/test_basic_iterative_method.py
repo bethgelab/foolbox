@@ -9,6 +9,36 @@ from foolbox.ext.native.attacks import LinfinityBasicIterativeAttack
 from foolbox.ext.native.attacks import L2BasicIterativeAttack
 
 
+def test_linf_basic_iterative_attack_2(fmodel_and_data):
+    fmodel, x, y, batch_size, num_classes = fmodel_and_data
+    y = ep.astensor(fmodel.forward(x)).argmax(axis=-1)
+
+    attack = LinfinityBasicIterativeAttack(fmodel)
+    advs = attack(x, y, rescale=False, epsilon=0.3)
+
+    perturbation = ep.astensor(advs - x)
+    y_advs = ep.astensor(fmodel.forward(advs)).argmax(axis=-1)
+
+    assert x.shape == advs.shape
+    assert perturbation.abs().max() <= 0.3 + 1e-7
+    assert (y_advs == y).float32().mean() < 1
+
+
+def test_l2_basic_iterative_attack_2(fmodel_and_data):
+    fmodel, x, y, batch_size, num_classes = fmodel_and_data
+    y = ep.astensor(fmodel.forward(x)).argmax(axis=-1)
+
+    attack = L2BasicIterativeAttack(fmodel)
+    advs = attack(x, y, rescale=False, epsilon=0.3)
+
+    perturbation = ep.astensor(advs - x)
+    y_advs = ep.astensor(fmodel.forward(advs)).argmax(axis=-1)
+
+    assert x.shape == advs.shape
+    assert perturbation.abs().max() <= 0.3 + 1e-7
+    assert (y_advs == y).float32().mean() < 1
+
+
 def test_linf_basic_iterative_attack():
     channels = 3
     batch_size = 8

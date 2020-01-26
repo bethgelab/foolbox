@@ -1,6 +1,9 @@
 .PHONY: test
 test:
-	pytest --verbose
+	pytest --cov-report term-missing --cov=eagerpy --verbose tests/test_model.py
+	pytest --cov-report term-missing --cov=eagerpy --cov-append --verbose tests/test_model.py --backend pytorch
+	pytest --cov-report term-missing --cov=eagerpy --cov-append --verbose tests/test_model.py --backend tensorflow
+	pytest --cov-report term-missing --cov=eagerpy --cov-append --verbose tests/test_model.py --backend jax
 
 .PHONY: black
 black:
