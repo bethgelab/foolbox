@@ -1,9 +1,9 @@
 .PHONY: test
 test:
-	pytest --cov-report term-missing --cov=foolbox.ext.native --verbose tests/test_model.py
-	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose tests/test_model.py --backend pytorch
-	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose tests/test_model.py --backend tensorflow
-	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose tests/test_model.py --backend jax
+	pytest --cov-report term-missing --cov=foolbox.ext.native --verbose --ignore tests/attacks/
+	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend pytorch --ignore tests/attacks/
+	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend tensorflow --ignore tests/attacks/
+	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend jax --ignore tests/attacks/
 
 .PHONY: black
 black:
