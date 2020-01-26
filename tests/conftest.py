@@ -40,7 +40,7 @@ def pytorch_simple_model():
     bounds = (0, 1)
     fmodel = fbn.PyTorchModel(model, bounds=bounds)
 
-    x, _ = fbn.utils.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(fmodel.forward(x.tensor)).argmax(axis=-1)
     return fmodel, x, y
@@ -54,7 +54,7 @@ def pytorch_resnet18():
     preprocessing = dict(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], axis=-3)
     fmodel = fbn.PyTorchModel(model, bounds=(0, 1), preprocessing=preprocessing)
 
-    x, y = fbn.utils.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
@@ -69,7 +69,7 @@ def tensorflow_simple_sequential():
     bounds = (0, 1)
     fmodel = fbn.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fbn.utils.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(fmodel.forward(x.tensor)).argmax(axis=-1)
     return fmodel, x, y
@@ -92,7 +92,7 @@ def tensorflow_simple_subclassing():
     bounds = (0, 1)
     fmodel = fbn.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fbn.utils.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(fmodel.forward(x.tensor)).argmax(axis=-1)
     return fmodel, x, y
@@ -112,7 +112,7 @@ def tensorflow_simple_functional():
     bounds = (0, 1)
     fmodel = fbn.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fbn.utils.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(fmodel.forward(x.tensor)).argmax(axis=-1)
     return fmodel, x, y
@@ -126,7 +126,7 @@ def tensorflow_resnet50():
     preprocessing = dict(flip_axis=-1, mean=[104.0, 116.0, 123.0])  # RGB to BGR
     fmodel = fbn.TensorFlowModel(model, bounds=(0, 255), preprocessing=preprocessing)
 
-    x, y = fbn.utils.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
@@ -142,7 +142,9 @@ def jax_simple_model():
     bounds = (0, 1)
     fmodel = fbn.JAXModel(model, bounds=bounds)
 
-    x, _ = fbn.utils.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fbn.samples(
+        fmodel, dataset="imagenet", batchsize=16, data_format="channels_last"
+    )
     x = ep.astensor(x)
     y = ep.astensor(fmodel.forward(x.tensor)).argmax(axis=-1)
     return fmodel, x, y
