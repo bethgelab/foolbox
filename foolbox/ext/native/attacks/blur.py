@@ -34,7 +34,7 @@ class GaussianBlurAttack:
 
         epsilons = np.linspace(0, 1, num=steps + 1)[1:]
 
-        logits = ep.astensor(self.model.forward(x0.tensor))
+        logits = self.model.forward(x0)
         classes = logits.argmax(axis=-1)
         is_adv = classes != labels
         found = is_adv
@@ -53,7 +53,7 @@ class GaussianBlurAttack:
             x = np.clip(x, min_, max_)
             x = ep.from_numpy(x0, x)
 
-            logits = ep.astensor(self.model.forward(x.tensor))
+            logits = self.model.forward(x)
             classes = logits.argmax(axis=-1)
             is_adv = classes != labels
 

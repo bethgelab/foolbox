@@ -24,7 +24,7 @@ class LinearSearchBlendedUniformNoiseAttack:
             # so we might need to make very many draws if the original class
             # is that one
             random_ = ep.uniform(x, x.shape, min_, max_)
-            logits_ = ep.astensor(self.model.forward(random_.tensor))
+            logits_ = self.model.forward(random_)
             classes_ = logits_.argmax(axis=-1)
             is_adv_ = atleast_kd(classes_ != labels, x.ndim)
 
@@ -55,7 +55,7 @@ class LinearSearchBlendedUniformNoiseAttack:
         for epsilon in epsilons:
             x = (1 - epsilon) * x0 + epsilon * random
             # TODO: due to limited floating point precision, clipping can be required
-            logits = ep.astensor(self.model.forward(x.tensor))
+            logits = self.model.forward(x)
             classes = logits.argmax(axis=-1)
             is_adv = (classes != labels).numpy()
 

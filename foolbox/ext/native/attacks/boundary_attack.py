@@ -58,7 +58,7 @@ class BoundaryAttack:
         def is_adversarial(p: ep.Tensor) -> ep.Tensor:
             """For each input in x, returns true if it is an adversarial for
             the given model and criterion"""
-            logits = ep.astensor(self.model.forward(p.tensor))
+            logits = self.model.forward(p)
             return criterion(originals, labels, p, logits)
 
         if starting_points is None:
@@ -175,13 +175,13 @@ class BoundaryAttack:
                     )
                     stats_spherical_adversarial.clear(ep.logical_or(cond1, cond2))
                     tb.conditional_mean(
-                        "spherical_stats/isfull/success_rate/mean", probs, full, step,
+                        "spherical_stats/isfull/success_rate/mean", probs, full, step
                     )
                     tb.probability_ratio(
-                        "spherical_stats/isfull/too_linear", cond1, full, step,
+                        "spherical_stats/isfull/too_linear", cond1, full, step
                     )
                     tb.probability_ratio(
-                        "spherical_stats/isfull/too_nonlinear", cond2, full, step,
+                        "spherical_stats/isfull/too_nonlinear", cond2, full, step
                     )
 
                 full = stats_step_adversarial.isfull()
@@ -200,13 +200,13 @@ class BoundaryAttack:
                     )
                     stats_step_adversarial.clear(ep.logical_or(cond1, cond2))
                     tb.conditional_mean(
-                        "step_stats/isfull/success_rate/mean", probs, full, step,
+                        "step_stats/isfull/success_rate/mean", probs, full, step
                     )
                     tb.probability_ratio(
-                        "step_stats/isfull/success_rate_too_high", cond1, full, step,
+                        "step_stats/isfull/success_rate_too_high", cond1, full, step
                     )
                     tb.probability_ratio(
-                        "step_stats/isfull/success_rate_too_low", cond2, full, step,
+                        "step_stats/isfull/success_rate_too_low", cond2, full, step
                     )
 
             tb.histogram("spherical_step", spherical_steps, step)

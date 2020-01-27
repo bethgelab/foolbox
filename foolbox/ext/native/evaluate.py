@@ -19,7 +19,7 @@ def evaluate_l2(fmodel, inputs, labels, *, attacks, epsilons):
         if minimizing:
             # TODO: support hyperparameters
             xp = ep.astensor(attack(x.tensor, y.tensor))
-            logits = ep.astensor(fmodel.forward(xp.tensor))
+            logits = fmodel.forward(xp)
             predictions = logits.argmax(axis=-1)
             correct = (predictions == labels).float32().numpy().astype(np.bool)
             perturbations = xp - x
@@ -31,7 +31,7 @@ def evaluate_l2(fmodel, inputs, labels, *, attacks, epsilons):
         else:
             for j, epsilon in enumerate(epsilons):
                 xp = ep.astensor(attack(x.tensor, y.tensor, epsilon=epsilon))
-                logits = ep.astensor(fmodel.forward(xp.tensor))
+                logits = fmodel.forward(xp.tensor)
                 predictions = logits.argmax(axis=-1)
                 correct = (predictions == labels).float32().numpy().astype(np.bool)
                 perturbations = xp - x

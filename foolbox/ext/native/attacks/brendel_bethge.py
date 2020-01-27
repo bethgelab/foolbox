@@ -189,7 +189,7 @@ class BrendelBethgeAttack(ABC):
         def is_adversarial(p: ep.Tensor) -> ep.Tensor:
             """For each input in x, returns true if it is an adversarial for
             the given model and criterion"""
-            logits = ep.astensor(self.model.forward(p.tensor))
+            logits = self.model.forward(p)
             return criterion(originals, labels, p, logits)
 
         if starting_points is None:
@@ -232,7 +232,7 @@ class BrendelBethgeAttack(ABC):
 
         # function to compute logits_diff and gradient
         def loss_fun(x, mask=None):
-            logits = ep.astensor(self.model.forward(x.tensor))
+            logits = self.model.forward(x)
             if mask is None:
                 logits_diffs = criterion.loss(originals, labels, x, logits)
             else:

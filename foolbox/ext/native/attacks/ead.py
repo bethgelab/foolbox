@@ -53,7 +53,7 @@ class EADAttack:
             assert y_k.shape == x_0.shape
             assert consts.shape == (N,)
 
-            logits = ep.astensor(self.model.forward(y_k.tensor))
+            logits = self.model.forward(y_k)
 
             if targeted:
                 c_minimize = best_other_classes(logits, target_classes)

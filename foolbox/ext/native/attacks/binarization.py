@@ -38,7 +38,7 @@ class BinarizationRefinementAttack:
         def is_adversarial(p: ep.Tensor) -> ep.Tensor:
             """For each input in x, returns true if it is an adversarial for
             the given model and criterion"""
-            logits = ep.astensor(self.model.forward(p.tensor))
+            logits = self.model.forward(p)
             return criterion(originals, labels, p, logits)
 
         o = ep.astensor(inputs)

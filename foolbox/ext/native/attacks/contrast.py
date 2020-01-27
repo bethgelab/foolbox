@@ -51,7 +51,7 @@ class BinarySearchContrastReductionAttack:
 
         for _ in range(binary_search_steps):
             x = x0 + atleast_kd(ep.from_numpy(x0, epsilons), x0.ndim) * v
-            logits = ep.astensor(self.model.forward(x.tensor))
+            logits = self.model.forward(x)
             classes = logits.argmax(axis=-1)
             is_adv = (classes != labels).numpy()
             lower_bound = np.where(is_adv, lower_bound, epsilons)
@@ -90,7 +90,7 @@ class LinearSearchContrastReductionAttack:
         for epsilon in epsilons:
             # TODO: reduce the batch size to the ones that haven't been sucessful
             x = x0 + epsilon * v
-            logits = ep.astensor(self.model.forward(x.tensor))
+            logits = self.model.forward(x)
             classes = logits.argmax(axis=-1)
             is_adv = (classes != labels).numpy()
 

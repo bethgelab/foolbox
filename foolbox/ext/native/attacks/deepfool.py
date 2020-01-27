@@ -61,7 +61,7 @@ class DeepFoolAttack(ABC):
 
         N = len(inputs)
 
-        logits = ep.astensor(self.model.forward(inputs.tensor))
+        logits = self.model.forward(inputs)
         candidates = min(candidates, logits.shape[-1])
         classes = logits.argsort(axis=-1).flip(axis=-1)
         if candidates:
@@ -75,7 +75,7 @@ class DeepFoolAttack(ABC):
         if loss == "logits":
 
             def loss_fun(x: ep.Tensor, k: int) -> ep.Tensor:
-                logits = ep.astensor(self.model.forward(x.tensor))
+                logits = self.model.forward(x)
                 ik = classes[:, k]
                 l0 = logits[rows, i0]
                 lk = logits[rows, ik]
@@ -85,7 +85,7 @@ class DeepFoolAttack(ABC):
         elif loss == "crossentropy":
 
             def loss_fun(x: ep.Tensor, k: int) -> ep.Tensor:
-                logits = ep.astensor(self.model.forward(x.tensor))
+                logits = self.model.forward(x)
                 ik = classes[:, k]
                 l0 = -ep.crossentropy(logits, i0)
                 lk = -ep.crossentropy(logits, ik)
@@ -158,7 +158,7 @@ class DeepFoolAttack(ABC):
 
 class L2DeepFoolAttack(DeepFoolAttack):
     def __call__(
-        self, inputs, labels, *, candidates=10, overshoot=0.02, steps=50, loss="logits",
+        self, inputs, labels, *, candidates=10, overshoot=0.02, steps=50, loss="logits"
     ):
         return super().__call__(
             inputs,
@@ -187,7 +187,7 @@ class L2DeepFoolAttack(DeepFoolAttack):
 
 class LinfDeepFoolAttack(DeepFoolAttack):
     def __call__(
-        self, inputs, labels, *, candidates=10, overshoot=0.02, steps=50, loss="logits",
+        self, inputs, labels, *, candidates=10, overshoot=0.02, steps=50, loss="logits"
     ):
         return super().__call__(
             inputs,

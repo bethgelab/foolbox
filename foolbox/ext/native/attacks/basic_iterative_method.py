@@ -28,17 +28,10 @@ class L2BasicIterativeAttack:
         self.model = model
 
     def __call__(
-        self,
-        inputs,
-        labels,
-        *,
-        rescale=False,
-        epsilon=2.0,
-        step_size=0.4,
-        num_steps=10,
+        self, inputs, labels, *, rescale=False, epsilon=2.0, step_size=0.4, num_steps=10
     ):
         def loss_fn(inputs: ep.Tensor, labels: ep.Tensor) -> ep.Tensor:
-            logits = ep.astensor(self.model.forward(inputs.tensor))
+            logits = self.model.forward(inputs)
             return ep.crossentropy(logits, labels).sum()
 
         if rescale:
@@ -82,7 +75,7 @@ class LinfinityBasicIterativeAttack:
         random_start=False,
     ):
         def loss_fn(inputs: ep.Tensor, labels: ep.Tensor) -> ep.Tensor:
-            logits = ep.astensor(self.model.forward(inputs.tensor))
+            logits = self.model.forward(inputs)
             return ep.crossentropy(logits, labels).sum()
 
         if rescale:

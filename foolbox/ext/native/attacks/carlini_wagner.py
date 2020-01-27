@@ -55,7 +55,7 @@ class L2CarliniWagnerAttack:
             assert consts.shape == (N,)
 
             x = to_model_space(x_attack + delta)
-            logits = ep.astensor(self.model.forward(x.tensor))
+            logits = self.model.forward(x)
 
             if targeted:
                 c_minimize = best_other_classes(logits, target_classes)
