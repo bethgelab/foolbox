@@ -1,7 +1,9 @@
 import eagerpy as ep
 
+from .base import Attack
 
-class InversionAttack:
+
+class InversionAttack(Attack):
     """Creates "negative images" by inverting the pixel values according to [1]_.
 
     References
