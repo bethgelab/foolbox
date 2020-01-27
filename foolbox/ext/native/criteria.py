@@ -6,11 +6,11 @@ from .devutils import wrap
 class Criterion(ABC):
     @abstractmethod
     def __repr__(self):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     @abstractmethod
     def __call__(self, inputs, labels, perturbed, logits):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def __and__(self, other):
         return _And(self, other)
