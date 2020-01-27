@@ -7,6 +7,7 @@ import foolbox.ext.native as fbn
 
 
 models = {}
+models_for_attacks = []
 
 
 def pytest_addoption(parser):
@@ -21,7 +22,7 @@ def dummy(request):
     return ep.utils.get_dummy(backend)
 
 
-def register(backend):
+def register(backend, attack=False):
     def decorator(f):
         @functools.wraps(f)
         def model(request):
@@ -30,6 +31,8 @@ def register(backend):
             return f()
 
         models[model.__name__] = model
+        if attack:
+            models_for_attacks.append(model.__name__)
         return model
 
     return decorator
@@ -78,7 +81,7 @@ def pytorch_simple_model_object():
     return pytorch_simple_model(torch.device("cpu"))
 
 
-@register("pytorch")
+@register("pytorch", True)
 def pytorch_resnet18():
     import torchvision.models as models
 
@@ -151,7 +154,7 @@ def tensorflow_simple_functional():
     return fmodel, x, y
 
 
-@register("tensorflow")
+@register("tensorflow", True)
 def tensorflow_resnet50():
     import tensorflow as tf
 
@@ -221,3 +224,9 @@ def foolbox2_simple_model_3():
 @pytest.fixture(scope="session", params=list(models.keys()))
 def fmodel_and_data(request):
     return models[request.param](request)
+
+
+@pytest.fixture(scope="session", params=models_for_attacks)
+def fmodel_and_data_for_attacks(request):
+    fmodel, x, y = models[request.param](request)
+    return fmodel, x[:4], y[:4]
