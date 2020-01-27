@@ -59,10 +59,7 @@ class TensorBoard:
         x = x.float32().mean(axis=0).item()
         y = y.float32().mean(axis=0).item()
         if y == 0:
-            if x != 0:
-                return
-            else:
-                y = 1
+            return
         self.writer.add_scalar(tag, x / y, step)
 
     @maybenoop
