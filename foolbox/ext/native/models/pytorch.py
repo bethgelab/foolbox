@@ -29,3 +29,4 @@ class PyTorchModel(ModelWithPreprocessing):
         dummy = ep.torch.zeros(0, device=device)
         super().__init__(model, bounds, dummy, preprocessing=preprocessing)
         self.data_format = "channels_first"
+        self.device = device
