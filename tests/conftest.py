@@ -70,6 +70,22 @@ def pytorch_simple_model_default_flip():
 
 
 @register("pytorch")
+def pytorch_simple_model_default_cpu_native_tensor():
+    import torch
+
+    mean = torch.arange(3).float()
+    std = torch.ones(3) * 2
+    return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
+
+
+@register("pytorch")
+def pytorch_simple_model_default_cpu_eagerpy_tensor():
+    mean = ep.torch.arange(3).float32()
+    std = ep.torch.ones(3) * 2
+    return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
+
+
+@register("pytorch")
 def pytorch_simple_model_string():
     return pytorch_simple_model("cpu")
 
@@ -95,20 +111,42 @@ def pytorch_resnet18():
     return fmodel, x, y
 
 
-@register("tensorflow")
-def tensorflow_simple_sequential_cpu():
+def tensorflow_simple_sequential(device=None, preprocessing=None):
     import tensorflow as tf
 
-    with tf.device("cpu"):
+    with tf.device(device):
         model = tf.keras.Sequential()
         model.add(tf.keras.layers.GlobalAveragePooling2D())
     bounds = (0, 1)
-    fmodel = fbn.TensorFlowModel(model, bounds=bounds, device="cpu")
+    fmodel = fbn.TensorFlowModel(
+        model, bounds=bounds, device=device, preprocessing=preprocessing
+    )
 
     x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = fmodel.forward(x).argmax(axis=-1)
     return fmodel, x, y
+
+
+@register("tensorflow")
+def tensorflow_simple_sequential_cpu():
+    return tensorflow_simple_sequential("cpu", None)
+
+
+@register("tensorflow")
+def tensorflow_simple_sequential_native_tensors():
+    import tensorflow as tf
+
+    mean = tf.zeros(1)
+    std = tf.ones(1) * 255.0
+    return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
+
+
+@register("tensorflow")
+def tensorflow_simple_sequential_eagerpy_tensors():
+    mean = ep.tensorflow.zeros(1)
+    std = ep.tensorflow.ones(1) * 255.0
+    return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
 @register("tensorflow")

@@ -1,4 +1,5 @@
 import eagerpy as ep
+import numpy as np
 from abc import ABC, abstractmethod
 
 from ..devutils import wrap
@@ -60,14 +61,20 @@ class ModelWithPreprocessing(Model):
             assert axis < 0, "expected axis to be negative, -1 refers to the last axis"
 
         if mean is not None:
-            mean = ep.from_numpy(self.dummy, mean)
+            if isinstance(mean, self.dummy.tensor.__class__):
+                mean = ep.astensor(mean)
+            elif not isinstance(mean, ep.Tensor):
+                mean = ep.from_numpy(self.dummy, mean)
             if axis is not None:
                 assert (
                     mean.ndim == 1
                 ), f"expected a 1D mean if axis is specified, got {mean.ndim}D"
                 mean = atleast_kd(mean, -axis)
         if std is not None:
-            std = ep.from_numpy(self.dummy, std)
+            if isinstance(std, self.dummy.tensor.__class__):
+                std = ep.astensor(std)
+            elif not isinstance(std, ep.Tensor):
+                std = ep.from_numpy(self.dummy, std)
             if axis is not None:
                 assert (
                     std.ndim == 1
