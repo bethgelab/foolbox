@@ -3,7 +3,7 @@ import eagerpy as ep
 import pytest
 
 
-def test_accracy(fmodel_and_data):
+def test_accuracy(fmodel_and_data):
     fmodel, x, y = fmodel_and_data
     accuracy = fbn.accuracy(fmodel, x, y)
     assert 0 <= accuracy <= 1

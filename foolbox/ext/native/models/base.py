@@ -1,6 +1,6 @@
 import eagerpy as ep
-import numpy as np
 from abc import ABC, abstractmethod
+import copy
 
 from ..devutils import wrap
 from ..devutils import atleast_kd
@@ -15,6 +15,38 @@ class Model(ABC):
     def forward(self, inputs):
         """Passes inputs through the model and returns the logits"""
         raise NotImplementedError  # pragma: no cover
+
+    def transform_bounds(self, bounds):
+        """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
+        return TransformBoundsWrapper(self, bounds)
+
+
+class TransformBoundsWrapper(Model):
+    def __init__(self, model, bounds):
+        self._model = model
+        self._bounds = bounds
+
+    def bounds(self):
+        return self._bounds
+
+    def forward(self, inputs):
+        inputs, restore = wrap(inputs)
+        x = inputs
+        x = self._preprocess(x)
+        x = self._model.forward(x)
+        return restore(x)
+
+    def _preprocess(self, inputs):
+        x = inputs
+
+        # from bounds to (0, 1)
+        min_, max_ = self._bounds
+        x = (x - min_) / (max_ - min_)
+
+        # from (0, 1) to wrapped model bounds
+        min_, max_ = self._model.bounds()
+        x = x * (max_ - min_) + min_
+        return x
 
 
 class ModelWithPreprocessing(Model):
@@ -35,6 +67,30 @@ class ModelWithPreprocessing(Model):
         x = ep.astensor(self._model(x.tensor))
         assert x.ndim == 2
         return restore(x)
+
+    def transform_bounds(self, bounds, inplace=False):
+        """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
+        # more efficient than the base class implementation because it avoids the additional wrapper
+        a, b = self.bounds()
+        c, d = bounds
+        f = (d - c) / (b - a)
+
+        mean, std, flip_axis = self._preprocess_args
+        if mean is None:
+            mean = 0.0
+        mean = f * (mean - a) + c
+        if std is None:
+            std = 1.0
+        std = f * std
+        new_preprocess_args = (mean, std, flip_axis)
+
+        if inplace:
+            model = self
+        else:
+            model = copy.copy(self)
+        model._bounds = bounds
+        model._preprocess_args = new_preprocess_args
+        return model
 
     def _preprocess(self, inputs):
         x = inputs
