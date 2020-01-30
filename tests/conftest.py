@@ -55,7 +55,7 @@ def pytorch_simple_model(device=None, preprocessing=None):
 
     x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
-    y = fmodel.forward(x).argmax(axis=-1)
+    y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
@@ -124,7 +124,7 @@ def tensorflow_simple_sequential(device=None, preprocessing=None):
 
     x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
-    y = fmodel.forward(x).argmax(axis=-1)
+    y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
@@ -168,7 +168,7 @@ def tensorflow_simple_subclassing():
 
     x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
-    y = fmodel.forward(x).argmax(axis=-1)
+    y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
@@ -188,7 +188,7 @@ def tensorflow_simple_functional():
 
     x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
-    y = fmodel.forward(x).argmax(axis=-1)
+    y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
@@ -220,7 +220,7 @@ def jax_simple_model():
         fmodel, dataset="imagenet", batchsize=16, data_format="channels_last"
     )
     x = ep.astensor(x)
-    y = fmodel.forward(x).argmax(axis=-1)
+    y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
@@ -246,7 +246,7 @@ def foolbox2_simple_model(channel_axis):
     with pytest.warns(UserWarning):
         x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
-    y = fmodel.forward(x).argmax(axis=-1)
+    y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 

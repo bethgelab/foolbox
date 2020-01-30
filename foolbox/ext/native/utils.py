@@ -7,7 +7,7 @@ from .devutils import wrap_
 
 def accuracy(fmodel, inputs, labels):
     inputs, labels = wrap_(inputs, labels)
-    logits = fmodel.forward(inputs)
+    logits = fmodel(inputs)
     predictions = logits.argmax(axis=-1)
     accuracy = (predictions == labels).float32().mean()
     return accuracy.item()
@@ -35,7 +35,7 @@ def samples(
         )
 
     if bounds is None:
-        bounds = model.bounds()
+        bounds = model.bounds
 
     images, labels = foolbox.utils.samples(
         dataset=dataset,

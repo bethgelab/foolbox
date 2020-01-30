@@ -6,10 +6,11 @@ class Foolbox2Model(Model):
     def __init__(self, model):
         self._model = model
 
+    @property
     def bounds(self):
         return self._model.bounds()
 
-    def forward(self, inputs):
+    def __call__(self, inputs):
         inputs, restore = unwrap(inputs)
         return restore(self._model.forward(inputs))
 

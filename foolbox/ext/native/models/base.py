@@ -8,20 +8,21 @@ from ..devutils import atleast_kd
 
 
 class Model(ABC):
+    @property
     @abstractmethod
     def bounds(self):
         ...
 
     @overload
-    def forward(self, inputs: ep.Tensor) -> ep.Tensor:
+    def __call__(self, inputs: ep.Tensor) -> ep.Tensor:
         ...
 
     @overload  # noqa: F811
-    def forward(self, inputs: Any) -> Any:
+    def __call__(self, inputs: Any) -> Any:
         ...
 
     @abstractmethod  # noqa: F811
-    def forward(self, inputs):
+    def __call__(self, inputs):
         """Passes inputs through the model and returns the logits"""
         ...
 
@@ -35,14 +36,15 @@ class TransformBoundsWrapper(Model):
         self._model = model
         self._bounds = bounds
 
+    @property
     def bounds(self):
         return self._bounds
 
-    def forward(self, inputs):
+    def __call__(self, inputs):
         inputs, restore = wrap(inputs)
         x = inputs
         x = self._preprocess(x)
-        x = self._model.forward(x)
+        x = self._model.__call__(x)
         return restore(x)
 
     def _preprocess(self, inputs):
@@ -53,7 +55,7 @@ class TransformBoundsWrapper(Model):
         x = (x - min_) / (max_ - min_)
 
         # from (0, 1) to wrapped model bounds
-        min_, max_ = self._model.bounds()
+        min_, max_ = self._model.bounds
         x = x * (max_ - min_) + min_
         return x
 
@@ -67,10 +69,11 @@ class ModelWithPreprocessing(Model):
         self.dummy = dummy
         self._init_preprocessing(preprocessing)
 
+    @property
     def bounds(self):
         return self._bounds
 
-    def forward(self, inputs):
+    def __call__(self, inputs):
         inputs, restore = wrap(inputs)
         x = inputs
         x = self._preprocess(x)
@@ -80,7 +83,7 @@ class ModelWithPreprocessing(Model):
     def transform_bounds(self, bounds, inplace=False):
         """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
         # more efficient than the base class implementation because it avoids the additional wrapper
-        a, b = self.bounds()
+        a, b = self.bounds
         c, d = bounds
         f = (d - c) / (b - a)
 

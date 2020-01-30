@@ -5,7 +5,7 @@ import foolbox.ext.native as fbn
 def test_correct_unperturbed(fmodel_and_data):
     fmodel, inputs, _ = fmodel_and_data
     perturbed = inputs
-    logits = fmodel.forward(perturbed)
+    logits = fmodel(perturbed)
     labels = logits.argmax(axis=-1)
 
     is_adv = fbn.Misclassification()(inputs, labels, perturbed, logits)
@@ -30,7 +30,7 @@ def test_correct_unperturbed(fmodel_and_data):
 def test_wrong_unperturbed(fmodel_and_data):
     fmodel, inputs, _ = fmodel_and_data
     perturbed = inputs
-    logits = fmodel.forward(perturbed)
+    logits = fmodel(perturbed)
     _, num_classes = logits.shape
     labels = logits.argmax(axis=-1)
     labels = (labels + 1) % num_classes

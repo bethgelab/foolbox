@@ -8,7 +8,7 @@ import foolbox.ext.native as fbn
 
 def test_bounds(fmodel_and_data):
     fmodel, x, y = fmodel_and_data
-    min_, max_ = fmodel.bounds()
+    min_, max_ = fmodel.bounds
     assert min_ < max_
     assert (x >= min_).all()
     assert (x <= max_).all()
@@ -16,7 +16,7 @@ def test_bounds(fmodel_and_data):
 
 def test_forward_unwrapped(fmodel_and_data):
     fmodel, x, y = fmodel_and_data
-    logits = ep.astensor(fmodel.forward(x.tensor))
+    logits = ep.astensor(fmodel(x.tensor))
     assert logits.ndim == 2
     assert len(logits) == len(x) == len(y)
     _, num_classes = logits.shape
@@ -27,7 +27,7 @@ def test_forward_unwrapped(fmodel_and_data):
 def test_forward_wrapped(fmodel_and_data):
     fmodel, x, y = fmodel_and_data
     assert ep.istensor(x)
-    logits = fmodel.forward(x)
+    logits = fmodel(x)
     assert ep.istensor(logits)
     assert logits.ndim == 2
     assert len(logits) == len(x) == len(y)
@@ -56,18 +56,18 @@ def test_pytorch_training_warning(request):
 @pytest.mark.parametrize("bounds", [(0, 1), (-1.0, 1.0), (0, 255), (-32768, 32767)])
 def test_transform_bounds(fmodel_and_data, bounds):
     fmodel1, x, y = fmodel_and_data
-    logits1 = fmodel1.forward(x)
-    min1, max1 = fmodel1.bounds()
+    logits1 = fmodel1(x)
+    min1, max1 = fmodel1.bounds
 
     fmodel2 = fmodel1.transform_bounds(bounds)
-    min2, max2 = fmodel2.bounds()
+    min2, max2 = fmodel2.bounds
     x2 = (x - min1) / (max1 - min1) * (max2 - min2) + min2
-    logits2 = fmodel2.forward(x2)
+    logits2 = fmodel2(x2)
 
     np.testing.assert_allclose(logits1.numpy(), logits2.numpy(), rtol=1e-4, atol=1e-4)
 
     # to make sure fmodel1 is not changed in-place
-    logits1b = fmodel1.forward(x)
+    logits1b = fmodel1(x)
     np.testing.assert_allclose(logits1.numpy(), logits1b.numpy(), rtol=2e-6)
 
 
@@ -78,13 +78,13 @@ def test_transform_bounds_inplace(fmodel_and_data, bounds):
 
     if not isinstance(fmodel, fbn.models.base.ModelWithPreprocessing):
         pytest.skip()
-    logits1 = fmodel.forward(x)
-    min1, max1 = fmodel.bounds()
+    logits1 = fmodel(x)
+    min1, max1 = fmodel.bounds
 
     fmodel.transform_bounds(bounds, inplace=True)
-    min2, max2 = fmodel.bounds()
+    min2, max2 = fmodel.bounds
     x2 = (x - min1) / (max1 - min1) * (max2 - min2) + min2
-    logits2 = fmodel.forward(x2)
+    logits2 = fmodel(x2)
 
     np.testing.assert_allclose(logits1.numpy(), logits2.numpy(), rtol=1e-4, atol=1e-4)
 
@@ -96,38 +96,38 @@ def test_preprocessing(fmodel_and_data):
 
     preprocessing = dict(mean=[3, 3, 3], std=[5, 5, 5], axis=-3)
     fmodel = fbn.models.base.ModelWithPreprocessing(
-        fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+        fmodel._model, fmodel.bounds, fmodel.dummy, preprocessing
     )
 
     # std -> foo
     preprocessing = dict(mean=[3, 3, 3], foo=[5, 5, 5], axis=-3)
     with pytest.raises(ValueError):
         fmodel = fbn.models.base.ModelWithPreprocessing(
-            fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+            fmodel._model, fmodel.bounds, fmodel.dummy, preprocessing
         )
 
     # axis positive
     preprocessing = dict(mean=[3, 3, 3], std=[5, 5, 5], axis=1)
     with pytest.raises(ValueError):
         fmodel = fbn.models.base.ModelWithPreprocessing(
-            fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+            fmodel._model, fmodel.bounds, fmodel.dummy, preprocessing
         )
 
     preprocessing = dict(mean=3, std=5)
     fmodel = fbn.models.base.ModelWithPreprocessing(
-        fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+        fmodel._model, fmodel.bounds, fmodel.dummy, preprocessing
     )
 
     # axis with 1D mean
     preprocessing = dict(mean=3, std=[5, 5, 5], axis=-3)
     with pytest.raises(ValueError):
         fmodel = fbn.models.base.ModelWithPreprocessing(
-            fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+            fmodel._model, fmodel.bounds, fmodel.dummy, preprocessing
         )
 
     # axis with 1D std
     preprocessing = dict(mean=[3, 3, 3], std=5, axis=-3)
     with pytest.raises(ValueError):
         fmodel = fbn.models.base.ModelWithPreprocessing(
-            fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+            fmodel._model, fmodel.bounds, fmodel.dummy, preprocessing
         )
