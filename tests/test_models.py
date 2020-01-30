@@ -68,7 +68,7 @@ def test_transform_bounds(fmodel_and_data, bounds):
 
     # to make sure fmodel1 is not changed in-place
     logits1b = fmodel1.forward(x)
-    np.testing.assert_allclose(logits1.numpy(), logits1b.numpy(), rtol=1e-6)
+    np.testing.assert_allclose(logits1.numpy(), logits1b.numpy(), rtol=2e-6)
 
 
 @pytest.mark.parametrize("bounds", [(0, 1), (-1.0, 1.0), (0, 255), (-32768, 32767)])

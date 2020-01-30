@@ -35,19 +35,10 @@ def reference_perturbed(request, dummy):
 
 
 @pytest.mark.parametrize("p", [0, 1, 2, ep.inf])
-@pytest.mark.parametrize("bounds", [None, (0, 1), (0, 255), (-1, 1)])
-def test_distance(reference_perturbed, p, bounds):
+def test_distance(reference_perturbed, p):
     reference, perturbed = reference_perturbed
 
-    if bounds is None:
-        min_, max_ = 0, 1
-    else:
-        min_, max_ = bounds
-    actual = distances[p](
-        reference * (max_ - min_) + min_,
-        perturbed * (max_ - min_) + min_,
-        bounds=bounds,
-    ).numpy()
+    actual = distances[p](reference, perturbed).numpy()
 
     diff = perturbed.numpy() - reference.numpy()
     diff = diff.reshape((len(diff), -1))

@@ -1,5 +1,4 @@
 import eagerpy as ep
-import functools
 
 from .devutils import flatten
 from .devutils import wrap
@@ -10,28 +9,32 @@ from .devutils import wrap
 # * return the same format as the input -> use restore
 # * expect a batch dimension and arbitrary other dimensions -> use flatten
 # * accept two arguments, reference and perturbed
-# * accept an optional keyword argument bounds
-
-
-def normalize(x, bounds):
-    if bounds is None:
-        return x
-    min_, max_ = bounds
-    assert x.min() >= min_
-    assert x.max() <= max_
-    x = (x - min_) / (max_ - min_)
-    return x
 
 
 def norm_to_distance(norm):
-    @functools.wraps(norm)
-    def distance(reference, perturbed, bounds=None):
+    def distance(reference, perturbed):
+        """Calculates the distance from reference to perturbed using the {norm.__name__} norm.
+
+        Parameters
+        ----------
+        reference : T
+            A batch of reference inputs.
+        perturbed : T
+            A batch of perturbed inputs.
+
+        Returns
+        -------
+        T
+            Returns a 1D tensor with the {norm.__name__} distance for each sample in the batch
+
+        """
         reference, perturbed, restore = wrap(reference, perturbed)
-        reference = normalize(reference, bounds)
-        perturbed = normalize(perturbed, bounds)
         norms = norm(flatten(perturbed - reference), axis=-1)
         return restore(norms)
 
+    distance.__name__ = norm.__name__
+    distance.__qualname__ = norm.__qualname__
+    distance.__doc__ = distance.__doc__.format(norm=norm)
     return distance
 
 
