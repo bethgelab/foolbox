@@ -1,16 +1,31 @@
 import eagerpy as ep
 from abc import ABC, abstractmethod
+from typing import overload, Any
 from .devutils import wrap
 
 
 class Criterion(ABC):
     @abstractmethod
     def __repr__(self):
-        raise NotImplementedError  # pragma: no cover
+        ...
 
-    @abstractmethod
+    @overload
+    def __call__(
+        self,
+        inputs: ep.Tensor,
+        labels: ep.Tensor,
+        perturbed: ep.Tensor,
+        logits: ep.Tensor,
+    ) -> ep.Tensor:
+        ...
+
+    @overload  # noqa: F811
+    def __call__(self, inputs: Any, labels: Any, perturbed: Any, logits: Any) -> Any:
+        ...
+
+    @abstractmethod  # noqa: F811
     def __call__(self, inputs, labels, perturbed, logits):
-        raise NotImplementedError  # pragma: no cover
+        ...
 
     def __and__(self, other):
         return _And(self, other)

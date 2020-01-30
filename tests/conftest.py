@@ -243,7 +243,8 @@ def foolbox2_simple_model(channel_axis):
     model = Foolbox2DummyModel()
     fmodel = fbn.Foolbox2Model(model)
 
-    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    with pytest.warns(UserWarning):
+        x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = fmodel.forward(x).argmax(axis=-1)
     return fmodel, x, y

@@ -19,3 +19,9 @@ def test_plot(dummy):
     with pytest.raises(ValueError):
         images = ep.zeros(dummy, (10, 1, 1, 1))
         fbn.plot.images(images)
+    with pytest.raises(ValueError):
+        images = ep.zeros(dummy, (10, 32, 32))
+        fbn.plot.images(images)
+    with pytest.raises(ValueError):
+        images = ep.zeros(dummy, (10, 3, 32, 32))
+        fbn.plot.images(images, data_format="foo")

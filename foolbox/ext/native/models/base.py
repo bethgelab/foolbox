@@ -1,6 +1,7 @@
 import eagerpy as ep
 from abc import ABC, abstractmethod
 import copy
+from typing import overload, Any
 
 from ..devutils import wrap
 from ..devutils import atleast_kd
@@ -9,14 +10,22 @@ from ..devutils import atleast_kd
 class Model(ABC):
     @abstractmethod
     def bounds(self):
-        raise NotImplementedError  # pragma: no cover
+        ...
 
-    @abstractmethod
+    @overload
+    def forward(self, inputs: ep.Tensor) -> ep.Tensor:
+        ...
+
+    @overload  # noqa: F811
+    def forward(self, inputs: Any) -> Any:
+        ...
+
+    @abstractmethod  # noqa: F811
     def forward(self, inputs):
         """Passes inputs through the model and returns the logits"""
-        raise NotImplementedError  # pragma: no cover
+        ...
 
-    def transform_bounds(self, bounds):
+    def transform_bounds(self, bounds) -> "Model":
         """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
         return TransformBoundsWrapper(self, bounds)
 
@@ -51,7 +60,8 @@ class TransformBoundsWrapper(Model):
 
 class ModelWithPreprocessing(Model):
     def __init__(self, model, bounds, dummy, preprocessing=None):
-        assert callable(model)
+        if not callable(model):
+            raise ValueError("expected model to be callable")  # pragma: no cover
         self._model = model
         self._bounds = bounds
         self.dummy = dummy
@@ -65,7 +75,6 @@ class ModelWithPreprocessing(Model):
         x = inputs
         x = self._preprocess(x)
         x = ep.astensor(self._model(x.tensor))
-        assert x.ndim == 2
         return restore(x)
 
     def transform_bounds(self, bounds, inplace=False):
@@ -107,14 +116,20 @@ class ModelWithPreprocessing(Model):
     def _init_preprocessing(self, preprocessing):
         if preprocessing is None:
             preprocessing = dict()
-        assert set(preprocessing.keys()) - {"mean", "std", "axis", "flip_axis"} == set()
+        unsupported = set(preprocessing.keys()) - {"mean", "std", "axis", "flip_axis"}
+        if len(unsupported) > 0:
+            raise ValueError(
+                "found unsupported preprocessing keys: {}".format(
+                    ", ".join(unsupported)
+                )
+            )
         mean = preprocessing.get("mean", None)
         std = preprocessing.get("std", None)
         axis = preprocessing.get("axis", None)
         flip_axis = preprocessing.get("flip_axis", None)
 
-        if axis is not None:
-            assert axis < 0, "expected axis to be negative, -1 refers to the last axis"
+        if axis is not None and axis >= 0:
+            raise ValueError("expected axis to be negative, -1 refers to the last axis")
 
         if mean is not None:
             try:
@@ -122,9 +137,10 @@ class ModelWithPreprocessing(Model):
             except ValueError:
                 mean = ep.from_numpy(self.dummy, mean)
             if axis is not None:
-                assert (
-                    mean.ndim == 1
-                ), f"expected a 1D mean if axis is specified, got {mean.ndim}D"
+                if mean.ndim != 1:
+                    raise ValueError(
+                        f"expected a 1D mean if axis is specified, got {mean.ndim}D"
+                    )
                 mean = atleast_kd(mean, -axis)
         if std is not None:
             try:
@@ -132,9 +148,10 @@ class ModelWithPreprocessing(Model):
             except ValueError:
                 std = ep.from_numpy(self.dummy, std)
             if axis is not None:
-                assert (
-                    std.ndim == 1
-                ), f"expected a 1D std if axis is specified, got {std.ndim}D"
+                if std.ndim != 1:
+                    raise ValueError(
+                        f"expected a 1D std if axis is specified, got {std.ndim}D"
+                    )
                 std = atleast_kd(std, -axis)
 
         self._preprocess_args = (mean, std, flip_axis)

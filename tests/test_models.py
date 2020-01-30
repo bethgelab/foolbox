@@ -87,3 +87,47 @@ def test_transform_bounds_inplace(fmodel_and_data, bounds):
     logits2 = fmodel.forward(x2)
 
     np.testing.assert_allclose(logits1.numpy(), logits2.numpy(), rtol=1e-4, atol=1e-4)
+
+
+def test_preprocessing(fmodel_and_data):
+    fmodel, x, y = fmodel_and_data
+    if not isinstance(fmodel, fbn.models.base.ModelWithPreprocessing):
+        pytest.skip()
+
+    preprocessing = dict(mean=[3, 3, 3], std=[5, 5, 5], axis=-3)
+    fmodel = fbn.models.base.ModelWithPreprocessing(
+        fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+    )
+
+    # std -> foo
+    preprocessing = dict(mean=[3, 3, 3], foo=[5, 5, 5], axis=-3)
+    with pytest.raises(ValueError):
+        fmodel = fbn.models.base.ModelWithPreprocessing(
+            fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+        )
+
+    # axis positive
+    preprocessing = dict(mean=[3, 3, 3], std=[5, 5, 5], axis=1)
+    with pytest.raises(ValueError):
+        fmodel = fbn.models.base.ModelWithPreprocessing(
+            fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+        )
+
+    preprocessing = dict(mean=3, std=5)
+    fmodel = fbn.models.base.ModelWithPreprocessing(
+        fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+    )
+
+    # axis with 1D mean
+    preprocessing = dict(mean=3, std=[5, 5, 5], axis=-3)
+    with pytest.raises(ValueError):
+        fmodel = fbn.models.base.ModelWithPreprocessing(
+            fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+        )
+
+    # axis with 1D std
+    preprocessing = dict(mean=[3, 3, 3], std=5, axis=-3)
+    with pytest.raises(ValueError):
+        fmodel = fbn.models.base.ModelWithPreprocessing(
+            fmodel._model, fmodel.bounds(), fmodel.dummy, preprocessing
+        )

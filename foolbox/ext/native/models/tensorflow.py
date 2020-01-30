@@ -17,7 +17,10 @@ class TensorFlowModel(ModelWithPreprocessing):
     def __init__(self, model, bounds, device=None, preprocessing=None):
         import tensorflow as tf
 
-        assert tf.executing_eagerly()
+        if not tf.executing_eagerly():
+            raise ValueError(
+                "TensorFlowModel requires TensorFlow Eager Mode"
+            )  # pragma: no cover
         device = get_device(device)
         with device:
             dummy = ep.tensorflow.zeros(0)
