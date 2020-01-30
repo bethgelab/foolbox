@@ -1,13 +1,14 @@
-import eagerpy as ep
 import numpy as np
 from inspect import signature
 
 from .devutils import flatten
+from .devutils import wrap_
 
 
 def evaluate_l2(fmodel, inputs, labels, *, attacks, epsilons):
-    x = ep.astensor(inputs)
-    y = ep.astensor(labels)
+    inputs, labels = wrap_(inputs, labels)
+    x = inputs
+    y = labels
 
     attack_success = np.zeros((len(attacks), len(epsilons), len(x)), dtype=np.float32)
 
@@ -18,7 +19,7 @@ def evaluate_l2(fmodel, inputs, labels, *, attacks, epsilons):
 
         if minimizing:
             # TODO: support hyperparameters
-            xp = ep.astensor(attack(x.tensor, y.tensor))
+            xp = attack(x, y)
             logits = fmodel(xp)
             predictions = logits.argmax(axis=-1)
             correct = (predictions == labels).float32().numpy().astype(np.bool)
@@ -30,8 +31,8 @@ def evaluate_l2(fmodel, inputs, labels, *, attacks, epsilons):
                 )
         else:
             for j, epsilon in enumerate(epsilons):
-                xp = ep.astensor(attack(x.tensor, y.tensor, epsilon=epsilon))
-                logits = fmodel(xp.tensor)
+                xp = attack(x, y, epsilon=epsilon)
+                logits = fmodel(xp)
                 predictions = logits.argmax(axis=-1)
                 correct = (predictions == labels).float32().numpy().astype(np.bool)
                 perturbations = xp - x
