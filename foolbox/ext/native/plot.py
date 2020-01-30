@@ -18,7 +18,10 @@ def images(
     import matplotlib.pyplot as plt
 
     x = wrap_(images)
-    assert x.ndim == 4
+    if x.ndim != 4:
+        raise ValueError(
+            "expected images to have four dimensions: (N, C, H, W) or (N, H, W, C)"
+        )
     if n is not None:
         x = x[:n]
     if data_format is None:
@@ -29,6 +32,10 @@ def images(
     else:
         channels_first = data_format == "channels_first"
         channels_last = data_format == "channels_last"
+        if not channels_first and not channels_last:
+            raise ValueError(
+                "expected data_format to be 'channels_first' or 'channels_last'"
+            )
     assert channels_first != channels_last
     x = x.numpy()
     if channels_first:
