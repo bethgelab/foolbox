@@ -75,14 +75,14 @@ def pytorch_simple_model_default_flip():
 def pytorch_simple_model_default_cpu_native_tensor():
     import torch
 
-    mean = torch.arange(3).float()
+    mean = 0.05 * torch.arange(3).float()
     std = torch.ones(3) * 2
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
 @register("pytorch")
 def pytorch_simple_model_default_cpu_eagerpy_tensor():
-    mean = ep.torch.arange(3).float32()
+    mean = 0.05 * ep.torch.arange(3).float32()
     std = ep.torch.ones(3) * 2
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
