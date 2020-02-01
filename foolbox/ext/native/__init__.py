@@ -35,5 +35,3 @@ from .utils import samples  # noqa: F401
 
 from .attacks import Attack  # noqa: F401
 from . import attacks  # noqa: F401
-
-from .evaluate import evaluate_l2  # noqa: F401

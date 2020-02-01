@@ -1,26 +1,29 @@
+from typing import List
+from inspect import signature
 import numpy as np
 import eagerpy as ep
-from inspect import signature
 
 from .models import Model
+from .attacks import Attack
+from .types import L2
 from .devutils import flatten
 
 
-def evaluate_l2(fmodel: Model, inputs, labels, *, attacks, epsilons):
+def evaluate_l2(
+    fmodel: Model, inputs, labels, *, attacks: List[Attack], epsilons: List[L2]
+):
     x, y = ep.astensors(inputs, labels)
     del inputs, labels
 
     attack_success = np.zeros((len(attacks), len(epsilons), len(x)), dtype=np.float32)
 
     for i, attack in enumerate(attacks):
-        # TODO: update to new attack interface
-        attack = attack(fmodel)
-        sig = signature(attack.__call__)
+        sig = signature(type(attack).__init__)
         minimizing = "epsilon" not in sig.parameters
 
         if minimizing:
             # TODO: support hyperparameters
-            xp = attack(x, y)
+            xp = attack(fmodel, x, y)
             logits = fmodel(xp)
             predictions = logits.argmax(axis=-1)
             correct = (predictions == y).float32().numpy().astype(np.bool)
@@ -32,7 +35,8 @@ def evaluate_l2(fmodel: Model, inputs, labels, *, attacks, epsilons):
                 )
         else:
             for j, epsilon in enumerate(epsilons):
-                xp = attack(x, y, epsilon=epsilon)
+                attack.epsilon = epsilon  # type: ignore
+                xp = attack(fmodel, x, y)
                 logits = fmodel(xp)
                 predictions = logits.argmax(axis=-1)
                 correct = (predictions == y).float32().numpy().astype(np.bool)
