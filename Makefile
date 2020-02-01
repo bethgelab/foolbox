@@ -1,26 +1,18 @@
 .PHONY: test
 test:
-	pytest --cov-report term-missing --cov=foolbox.ext.native --verbose --ignore tests/attacks/
-	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend pytorch --ignore tests/attacks/
-	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend tensorflow --ignore tests/attacks/
-	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend jax --ignore tests/attacks/
-	pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend numpy --ignore tests/attacks/
+	pytest --cov=foolbox.ext.native
+	pytest --cov=foolbox.ext.native --cov-append --backend pytorch
+	pytest --cov=foolbox.ext.native --cov-append --backend tensorflow
+	pytest --cov=foolbox.ext.native --cov-append --backend jax
+	pytest --cov=foolbox.ext.native --cov-append --backend numpy
 
 .PHONY: testattacks
 testattacks:
-	pytest --cov-config=.attackcoveragerc --cov-report term-missing --cov=foolbox.ext.native.attacks --verbose tests/attacks/test_attacks.py
-	pytest --cov-config=.attackcoveragerc --cov-report term-missing --cov=foolbox.ext.native.attacks --cov-append --verbose --backend pytorch tests/attacks/test_attacks.py
-	pytest --cov-config=.attackcoveragerc --cov-report term-missing --cov=foolbox.ext.native.attacks --cov-append --verbose --backend tensorflow tests/attacks/test_attacks.py
-	pytest --cov-config=.attackcoveragerc --cov-report term-missing --cov=foolbox.ext.native.attacks --cov-append --verbose --backend jax tests/attacks/test_attacks.py
-	pytest --cov-config=.attackcoveragerc --cov-report term-missing --cov=foolbox.ext.native.attacks --cov-append --verbose --backend numpy tests/attacks/test_attacks.py
-
-.PHONY: testattacksall
-testattacksall:
-	pytest --cov-config=.attackcoveragerc --cov-report term-missing --cov=foolbox.ext.native.attacks --verbose
-	pytest --cov-config=.attackcoveragerc --cov-report term-missing --cov=foolbox.ext.native.attacks --cov-append --verbose --backend pytorch
-	pytest --cov-config=.attackcoveragerc --cov-report term-missing --cov=foolbox.ext.native.attacks --cov-append --verbose --backend tensorflow
-	pytest --cov-config=.attackcoveragerc --cov-report term-missing --cov=foolbox.ext.native.attacks --cov-append --verbose --backend jax
-	pytest --cov-config=.attackcoveragerc --cov-report term-missing --cov=foolbox.ext.native.attacks --cov-append --verbose --backend numpy
+	pytest --cov=foolbox.ext.native.attacks tests/attacks/
+	pytest --cov=foolbox.ext.native.attacks tests/attacks/ --cov-append --backend pytorch
+	pytest --cov=foolbox.ext.native.attacks tests/attacks/ --cov-append --backend tensorflow
+	pytest --cov=foolbox.ext.native.attacks tests/attacks/ --cov-append --backend jax
+	pytest --cov=foolbox.ext.native.attacks tests/attacks/ --cov-append --backend numpy
 
 .PHONY: black
 black:

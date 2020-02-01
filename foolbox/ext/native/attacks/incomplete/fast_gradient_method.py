@@ -5,9 +5,7 @@ from .basic_iterative_method import LinfinityBasicIterativeAttack
 class L2FastGradientAttack(L2BasicIterativeAttack):
     """L2 Fast Gradient Method (FGM)"""
 
-    def __call__(
-        self, inputs, labels, *, rescale=False, epsilon=2.0,
-    ):
+    def __call__(self, inputs, labels, *, rescale=False, epsilon=2.0):
         return super().__call__(
             inputs,
             labels,
@@ -21,9 +19,7 @@ class L2FastGradientAttack(L2BasicIterativeAttack):
 class LinfinityFastGradientAttack(LinfinityBasicIterativeAttack):
     """Fast Gradient Sign Method (FGSM)"""
 
-    def __call__(
-        self, inputs, labels, *, rescale=False, epsilon=0.3,
-    ):
+    def __call__(self, inputs, labels, *, rescale=False, epsilon=0.3):
         return super().__call__(
             inputs,
             labels,
