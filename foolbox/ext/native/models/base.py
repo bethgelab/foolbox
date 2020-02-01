@@ -66,7 +66,7 @@ ModelType = TypeVar("ModelType", bound="ModelWithPreprocessing")
 
 
 class ModelWithPreprocessing(Model):
-    def __init__(
+    def __init__(  # type: ignore
         self,
         model: Callable[..., ep.types.NativeTensor],
         bounds: Bounds,
@@ -98,6 +98,12 @@ class ModelWithPreprocessing(Model):
     def transform_bounds(self: ModelType, bounds: Bounds, inplace=False) -> ModelType:
         """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
         # more efficient than the base class implementation because it avoids the additional wrapper
+        if self.bounds == bounds:
+            if inplace:
+                return self
+            else:
+                return copy.copy(self)
+
         a, b = self.bounds
         c, d = bounds
         f = (d - c) / (b - a)

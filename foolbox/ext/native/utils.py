@@ -41,7 +41,7 @@ def samples(
     if bounds is None:
         bounds = fmodel.bounds
 
-    images, labels = foolbox.utils.samples(
+    images, labels = foolbox.utils.samples(  # type: ignore
         dataset=dataset,
         index=index,
         batchsize=batchsize,

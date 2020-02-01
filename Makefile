@@ -28,7 +28,7 @@ flake8:
 
 .PHONY: mypy
 mypy:
-	mypy -m foolbox.ext.native
+	mypy -p foolbox.ext.native
 
 .PHONY: install
 install:
