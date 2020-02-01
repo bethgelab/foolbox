@@ -1,4 +1,4 @@
-from typing import cast, TypeVar
+from typing import TypeVar, Tuple
 import eagerpy as ep
 
 from ..types import Bounds
@@ -9,12 +9,13 @@ T = TypeVar("T")
 
 
 class Foolbox2Model(Model):
-    def __init__(self, model):
+    def __init__(self, model) -> None:
         self._model = model
 
     @property
     def bounds(self) -> Bounds:
-        return cast(Bounds, self._model.bounds())
+        bounds: Tuple[float, float] = self._model.bounds()
+        return Bounds(*bounds)
 
     def __call__(self, inputs: T) -> T:
         x, restore_type = ep.astensor_(inputs)

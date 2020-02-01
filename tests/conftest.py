@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Callable, Tuple, Dict
 import functools
 import pytest
 import eagerpy as ep
@@ -6,12 +6,13 @@ import eagerpy as ep
 import foolbox
 import foolbox.ext.native as fbn
 
+ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 
-models = {}
+models: Dict[str, Callable[..., ModelAndData]] = {}
 models_for_attacks = []
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser) -> None:
     parser.addoption("--backend")
 
 
@@ -24,13 +25,16 @@ def dummy(request) -> ep.Tensor:
     return ep.utils.get_dummy(backend)
 
 
-def register(backend: str, attack=False):
+def register(backend: str, attack=False) -> Callable[[Callable], Callable]:
     def decorator(f):
         @functools.wraps(f)
         def model(request):
             if request.config.option.backend != backend:
                 pytest.skip()
             return f()
+
+        global models
+        global models_for_attacks
 
         models[model.__name__] = model
         if attack:
@@ -40,7 +44,7 @@ def register(backend: str, attack=False):
     return decorator
 
 
-def pytorch_simple_model(device=None, preprocessing=None):
+def pytorch_simple_model(device=None, preprocessing=None) -> ModelAndData:
     import torch
 
     class Model(torch.nn.Module):
@@ -113,7 +117,7 @@ def pytorch_resnet18():
     return fmodel, x, y
 
 
-def tensorflow_simple_sequential(device=None, preprocessing=None):
+def tensorflow_simple_sequential(device=None, preprocessing=None) -> ModelAndData:
     import tensorflow as tf
 
     with tf.device(device):
@@ -131,12 +135,12 @@ def tensorflow_simple_sequential(device=None, preprocessing=None):
 
 
 @register("tensorflow")
-def tensorflow_simple_sequential_cpu():
+def tensorflow_simple_sequential_cpu() -> ModelAndData:
     return tensorflow_simple_sequential("cpu", None)
 
 
 @register("tensorflow")
-def tensorflow_simple_sequential_native_tensors():
+def tensorflow_simple_sequential_native_tensors() -> ModelAndData:
     import tensorflow as tf
 
     mean = tf.zeros(1)
@@ -145,18 +149,18 @@ def tensorflow_simple_sequential_native_tensors():
 
 
 @register("tensorflow")
-def tensorflow_simple_sequential_eagerpy_tensors():
+def tensorflow_simple_sequential_eagerpy_tensors() -> ModelAndData:
     mean = ep.tensorflow.zeros(1)
     std = ep.tensorflow.ones(1) * 255.0
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
 @register("tensorflow")
-def tensorflow_simple_subclassing():
+def tensorflow_simple_subclassing() -> ModelAndData:
     import tensorflow as tf
 
     class Model(tf.keras.Model):  # type: ignore
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__()
             self.pool = tf.keras.layers.GlobalAveragePooling2D()
 
@@ -175,7 +179,7 @@ def tensorflow_simple_subclassing():
 
 
 @register("tensorflow")
-def tensorflow_simple_functional():
+def tensorflow_simple_functional() -> ModelAndData:
     import tensorflow as tf
 
     channels = 3
@@ -195,7 +199,7 @@ def tensorflow_simple_functional():
 
 
 @register("tensorflow", True)
-def tensorflow_resnet50():
+def tensorflow_resnet50() -> ModelAndData:
     import tensorflow as tf
 
     model = tf.keras.applications.ResNet50(weights="imagenet")
@@ -209,7 +213,7 @@ def tensorflow_resnet50():
 
 
 @register("jax")
-def jax_simple_model():
+def jax_simple_model() -> ModelAndData:
     import jax
 
     def model(x):
@@ -226,9 +230,9 @@ def jax_simple_model():
     return fmodel, x, y
 
 
-def foolbox2_simple_model(channel_axis):
-    class Foolbox2DummyModel(foolbox.models.base.Model):
-        def __init__(self):
+def foolbox2_simple_model(channel_axis) -> ModelAndData:
+    class Foolbox2DummyModel(foolbox.models.base.Model):  # type: ignore
+        def __init__(self) -> None:
             super().__init__(
                 bounds=(0, 1), channel_axis=channel_axis, preprocessing=(0, 1)
             )
@@ -253,21 +257,23 @@ def foolbox2_simple_model(channel_axis):
 
 
 @register("numpy")
-def foolbox2_simple_model_1():
+def foolbox2_simple_model_1() -> ModelAndData:
     return foolbox2_simple_model(1)
 
 
 @register("numpy")
-def foolbox2_simple_model_3():
+def foolbox2_simple_model_3() -> ModelAndData:
     return foolbox2_simple_model(3)
 
 
 @pytest.fixture(scope="session", params=list(models.keys()))
-def fmodel_and_data(request):
+def fmodel_and_data(request) -> ModelAndData:
+    global models
     return models[request.param](request)
 
 
 @pytest.fixture(scope="session", params=models_for_attacks)
-def fmodel_and_data_for_attacks(request):
+def fmodel_and_data_for_attacks(request) -> ModelAndData:
+    global models
     fmodel, x, y = models[request.param](request)
     return fmodel, x[:4], y[:4]

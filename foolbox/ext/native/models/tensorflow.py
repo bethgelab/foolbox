@@ -1,7 +1,7 @@
 from typing import cast, Any
 import eagerpy as ep
 
-from ..types import Bounds
+from ..types import BoundsInput
 from .base import ModelWithPreprocessing
 
 
@@ -16,7 +16,9 @@ def get_device(device) -> Any:
 
 
 class TensorFlowModel(ModelWithPreprocessing):
-    def __init__(self, model, bounds: Bounds, device=None, preprocessing: dict = None):
+    def __init__(
+        self, model, bounds: BoundsInput, device=None, preprocessing: dict = None
+    ):
         import tensorflow as tf
 
         if not tf.executing_eagerly():

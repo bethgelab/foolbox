@@ -4,6 +4,7 @@ import copy
 import eagerpy as ep
 
 from ..types import Bounds
+from ..types import BoundsInput
 from ..devutils import atleast_kd
 
 
@@ -22,16 +23,16 @@ class Model(ABC):
         """Passes inputs through the model and returns the logits"""
         ...
 
-    def transform_bounds(self, bounds: Bounds) -> "Model":
+    def transform_bounds(self, bounds: BoundsInput) -> "Model":
         """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
         # subclasses can provide more efficient implementations
         return TransformBoundsWrapper(self, bounds)
 
 
 class TransformBoundsWrapper(Model):
-    def __init__(self, model: Model, bounds: Bounds):
+    def __init__(self, model: Model, bounds: BoundsInput):
         self._model = model
-        self._bounds = bounds
+        self._bounds = Bounds(*bounds)
 
     @property
     def bounds(self) -> Bounds:
@@ -43,9 +44,9 @@ class TransformBoundsWrapper(Model):
         z = self._model(y)
         return restore_type(z)
 
-    def transform_bounds(self, bounds: Bounds, inplace=False) -> Model:
+    def transform_bounds(self, bounds: BoundsInput, inplace=False) -> Model:
         if inplace:
-            self._bounds = bounds
+            self._bounds = Bounds(*bounds)
             return self
         else:
             # using the wrapped model instead of self to avoid
@@ -72,7 +73,7 @@ class ModelWithPreprocessing(Model):
     def __init__(  # type: ignore
         self,
         model: Callable[..., ep.types.NativeTensor],
-        bounds: Bounds,
+        bounds: BoundsInput,
         dummy: ep.Tensor,
         preprocessing: dict = None,
     ):
@@ -80,7 +81,7 @@ class ModelWithPreprocessing(Model):
             raise ValueError("expected model to be callable")  # pragma: no cover
 
         self._model = model
-        self._bounds = bounds
+        self._bounds = Bounds(*bounds)
         self._dummy = dummy
         self._preprocess_args = self._process_preprocessing(preprocessing)
 
@@ -98,7 +99,9 @@ class ModelWithPreprocessing(Model):
         z = ep.astensor(self._model(y.raw))
         return restore_type(z)
 
-    def transform_bounds(self: ModelType, bounds: Bounds, inplace=False) -> ModelType:
+    def transform_bounds(
+        self: ModelType, bounds: BoundsInput, inplace=False
+    ) -> ModelType:
         """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
         # more efficient than the base class implementation because it avoids the additional wrapper
         if self.bounds == bounds:
@@ -125,7 +128,7 @@ class ModelWithPreprocessing(Model):
             model = self
         else:
             model = copy.copy(self)
-        model._bounds = bounds
+        model._bounds = Bounds(*bounds)
         model._preprocess_args = (mean, std, flip_axis)
         return model
 

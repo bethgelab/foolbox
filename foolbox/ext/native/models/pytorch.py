@@ -2,7 +2,7 @@ from typing import Any
 import warnings
 import eagerpy as ep
 
-from ..types import Bounds
+from ..types import BoundsInput
 from .base import ModelWithPreprocessing
 
 
@@ -17,7 +17,9 @@ def get_device(device) -> Any:
 
 
 class PyTorchModel(ModelWithPreprocessing):
-    def __init__(self, model, bounds: Bounds, device=None, preprocessing: dict = None):
+    def __init__(
+        self, model, bounds: BoundsInput, device=None, preprocessing: dict = None
+    ) -> None:
         if model.training:
             with warnings.catch_warnings():
                 warnings.simplefilter("always")

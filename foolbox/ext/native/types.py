@@ -1,6 +1,13 @@
-from typing import Tuple, NewType
+from typing import NewType, NamedTuple, Union, Tuple
 
-Bounds = Tuple[float, float]
+
+class Bounds(NamedTuple):
+    lower: float
+    upper: float
+
+
+BoundsInput = Union[Bounds, Tuple[float, float]]
+
 
 L0 = NewType("L0", float)
 L1 = NewType("L1", float)
