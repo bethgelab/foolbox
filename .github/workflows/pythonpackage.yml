@@ -74,6 +74,7 @@ jobs:
     - name: mypy (tests)
       run: |
         mypy tests/
+        mypy tests/attacks/
       working-directory: "./foolbox_native"
     - name: Test with pytest
       run: |

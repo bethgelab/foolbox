@@ -1,11 +1,11 @@
-from typing import cast
+from typing import cast, Any
 import eagerpy as ep
 
 from ..types import Bounds
 from .base import ModelWithPreprocessing
 
 
-def get_device(device):
+def get_device(device) -> Any:
     import tensorflow as tf
 
     if device is None:

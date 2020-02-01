@@ -1,11 +1,12 @@
-import eagerpy as ep
+from typing import Any
 import warnings
+import eagerpy as ep
 
 from ..types import Bounds
 from .base import ModelWithPreprocessing
 
 
-def get_device(device):
+def get_device(device) -> Any:
     import torch
 
     if device is None:

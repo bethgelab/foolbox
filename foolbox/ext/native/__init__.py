@@ -14,11 +14,10 @@ from . import types  # noqa: F401
 # user-facing modules
 # -------------------
 
-from .distances import l0  # noqa: F401
-from .distances import l1  # noqa: F401
-from .distances import l2  # noqa: F401
-from .distances import linf  # noqa: F401
+from .distances import Distance  # noqa: F401
+from . import distances  # noqa: F401
 
+from .criteria import Criterion  # noqa: F401
 from .criteria import Misclassification  # noqa: F401
 from .criteria import misclassification  # noqa: F401
 from .criteria import TargetedMisclassification  # noqa: F401
@@ -34,7 +33,7 @@ from .models import Foolbox2Model  # noqa: F401
 from .utils import accuracy  # noqa: F401
 from .utils import samples  # noqa: F401
 
-from . import attacks  # noqa: F401
 from .attacks import Attack  # noqa: F401
+from . import attacks  # noqa: F401
 
 from .evaluate import evaluate_l2  # noqa: F401

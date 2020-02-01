@@ -53,8 +53,11 @@ class TransformBoundsWrapper(Model):
             return TransformBoundsWrapper(self._model, bounds)
 
     def _preprocess(self, inputs: ep.TensorType) -> ep.TensorType:
+        if self.bounds == self._model.bounds:
+            return inputs
+
         # from bounds to (0, 1)
-        min_, max_ = self._bounds
+        min_, max_ = self.bounds
         x = (inputs - min_) / (max_ - min_)
 
         # from (0, 1) to wrapped model bounds

@@ -3,7 +3,12 @@ import pytest
 import foolbox.ext.native as fbn
 import eagerpy as ep
 
-distances = {0: fbn.l0, 1: fbn.l1, 2: fbn.l2, ep.inf: fbn.linf}
+distances = {
+    0: fbn.distances.l0,
+    1: fbn.distances.l1,
+    2: fbn.distances.l2,
+    ep.inf: fbn.distances.linf,
+}
 
 data = {}
 
