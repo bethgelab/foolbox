@@ -9,6 +9,7 @@ L2 = fbn.types.L2
 attacks: List[fbn.Attack] = [
     fbn.attacks.InversionAttack(),
     fbn.attacks.L2ContrastReductionAttack(L2(100.0)),
+    fbn.attacks.BinarySearchContrastReductionAttack(),
 ]
 
 
