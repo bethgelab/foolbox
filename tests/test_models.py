@@ -93,6 +93,38 @@ def test_transform_bounds_inplace(fmodel_and_data, bounds):
     np.testing.assert_allclose(logits1.numpy(), logits2.numpy(), rtol=1e-4, atol=1e-4)
 
 
+@pytest.mark.parametrize("bounds", [(0, 1), (-1.0, 1.0), (0, 255), (-32768, 32767)])
+def test_transform_bounds_wrapper(fmodel_and_data, bounds):
+    fmodel1, x, y = fmodel_and_data
+    fmodel1 = copy.copy(fmodel1)  # to avoid interference with other tests
+
+    logits1 = fmodel1(x)
+    min1, max1 = fmodel1.bounds
+
+    fmodel2 = fbn.models.TransformBoundsWrapper(fmodel1, bounds)
+    min2, max2 = fmodel2.bounds
+    x2 = (x - min1) / (max1 - min1) * (max2 - min2) + min2
+    logits2 = fmodel2(x2)
+
+    np.testing.assert_allclose(logits1.numpy(), logits2.numpy(), rtol=1e-4, atol=1e-4)
+
+    # to make sure fmodel1 is not changed in-place
+    logits1b = fmodel1(x)
+    np.testing.assert_allclose(logits1.numpy(), logits1b.numpy(), rtol=2e-6)
+
+    fmodel1c = fmodel2.transform_bounds(fmodel1.bounds)
+    logits1c = fmodel1c(x)
+    np.testing.assert_allclose(logits1.numpy(), logits1c.numpy(), rtol=1e-4, atol=1e-4)
+
+    # to make sure fmodel2 is not changed in-place
+    logits2b = fmodel2(x2)
+    np.testing.assert_allclose(logits2.numpy(), logits2b.numpy(), rtol=2e-6)
+
+    fmodel2.transform_bounds(fmodel1.bounds, inplace=True)
+    logits1d = fmodel2(x)
+    np.testing.assert_allclose(logits1d.numpy(), logits1.numpy(), rtol=2e-6)
+
+
 def test_preprocessing(fmodel_and_data):
     fmodel, x, y = fmodel_and_data
     if not isinstance(fmodel, fbn.models.base.ModelWithPreprocessing):
