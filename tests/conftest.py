@@ -1,3 +1,4 @@
+from typing import Optional
 import functools
 import pytest
 import eagerpy as ep
@@ -16,9 +17,10 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session")
 def dummy(request) -> ep.Tensor:
-    backend: str = request.config.option.backend
+    backend: Optional[str] = request.config.option.backend
     if backend is None:
         pytest.skip()
+        assert False
     return ep.utils.get_dummy(backend)
 
 
@@ -153,7 +155,7 @@ def tensorflow_simple_sequential_eagerpy_tensors():
 def tensorflow_simple_subclassing():
     import tensorflow as tf
 
-    class Model(tf.keras.Model):
+    class Model(tf.keras.Model):  # type: ignore
         def __init__(self):
             super().__init__()
             self.pool = tf.keras.layers.GlobalAveragePooling2D()

@@ -29,6 +29,7 @@ flake8:
 .PHONY: mypy
 mypy:
 	mypy -p foolbox.ext.native
+	mypy tests/
 
 .PHONY: install
 install:

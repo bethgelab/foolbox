@@ -67,6 +67,14 @@ jobs:
       run: |
         pip install -r requirements.txt
       working-directory: "./foolbox_native"
+    - name: mypy (package)
+      run: |
+        mypy -p foolbox.ext.native
+      working-directory: "./foolbox_native"
+    - name: mypy (tests)
+      run: |
+        mypy tests/
+      working-directory: "./foolbox_native"
     - name: Test with pytest
       run: |
         pytest --cov-report term-missing --cov=foolbox.ext.native --verbose --ignore tests/attacks/
