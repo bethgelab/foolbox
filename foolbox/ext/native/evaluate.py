@@ -24,8 +24,7 @@ def evaluate_l2(
         if minimizing:
             # TODO: support hyperparameters
             xp = attack(fmodel, x, y)
-            logits = fmodel(xp)
-            predictions = logits.argmax(axis=-1)
+            predictions = fmodel(xp).argmax(axis=-1)
             correct = (predictions == y).float32().numpy().astype(np.bool)
             perturbations = xp - x
             norms = flatten(perturbations).square().sum(axis=-1).sqrt().numpy()
@@ -37,8 +36,7 @@ def evaluate_l2(
             for j, epsilon in enumerate(epsilons):
                 attack.epsilon = epsilon  # type: ignore
                 xp = attack(fmodel, x, y)
-                logits = fmodel(xp)
-                predictions = logits.argmax(axis=-1)
+                predictions = fmodel(xp).argmax(axis=-1)
                 correct = (predictions == y).float32().numpy().astype(np.bool)
                 perturbations = xp - x
                 norms = flatten(perturbations).square().sum(axis=-1).sqrt().numpy()

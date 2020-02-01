@@ -20,7 +20,7 @@ class Model(ABC):
 
     @abstractmethod  # noqa: F811
     def __call__(self, inputs: T) -> T:
-        """Passes inputs through the model and returns the logits"""
+        """Passes inputs through the model and returns the model's output"""
         ...
 
     def transform_bounds(self, bounds: BoundsInput) -> "Model":

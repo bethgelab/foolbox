@@ -12,10 +12,10 @@ class Criterion(ABC):
         ...
 
     @abstractmethod
-    def __call__(self, inputs: T, labels: T, perturbed: T, logits: T) -> T:
+    def __call__(self, perturbed: T, outputs: T) -> T:
         ...
 
-    def __and__(self, other):
+    def __and__(self, other) -> "_And":
         return _And(self, other)
 
 
@@ -28,8 +28,8 @@ class _And(Criterion):
     def __repr__(self):
         return f"{self.a!r} & {self.b!r}"
 
-    def __call__(self, inputs: T, labels: T, perturbed: T, logits: T) -> T:
-        args, restore_type = ep.astensors_(inputs, labels, perturbed, logits)
+    def __call__(self, perturbed: T, outputs: T) -> T:
+        args, restore_type = ep.astensors_(perturbed, outputs)
         a = self.a(*args)
         b = self.b(*args)
         is_adv = ep.logical_and(a, b)
@@ -37,19 +37,20 @@ class _And(Criterion):
 
 
 class Misclassification(Criterion):
+    def __init__(self, labels) -> None:
+        super().__init__()
+        self.labels: ep.Tensor = ep.astensor(labels)
+
     def __repr__(self):
-        return f"{self.__class__.__name__}()"
+        return f"{self.__class__.__name__}({self.labels!r})"
 
-    def __call__(self, inputs: T, labels: T, perturbed: T, logits: T) -> T:
-        (labels_, logits_), restore_type = ep.astensors_(labels, logits)
-        del inputs, labels, perturbed, logits
+    def __call__(self, perturbed: T, outputs: T) -> T:
+        outputs_, restore_type = ep.astensor_(outputs)
+        del perturbed, outputs
 
-        classes = logits_.argmax(axis=-1)
-        is_adv = classes != labels_
+        classes = outputs_.argmax(axis=-1)
+        is_adv = classes != self.labels
         return restore_type(is_adv)
-
-
-misclassification = Misclassification()
 
 
 class TargetedMisclassification(Criterion):
@@ -60,9 +61,10 @@ class TargetedMisclassification(Criterion):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.target_classes!r})"
 
-    def __call__(self, inputs: T, labels: T, perturbed: T, logits: T) -> T:
-        logits_, restore_type = ep.astensor_(logits)
+    def __call__(self, perturbed: T, outputs: T) -> T:
+        outputs_, restore_type = ep.astensor_(outputs)
+        del perturbed, outputs
 
-        classes = logits_.argmax(axis=-1)
+        classes = outputs_.argmax(axis=-1)
         is_adv = classes == self.target_classes
         return restore_type(is_adv)

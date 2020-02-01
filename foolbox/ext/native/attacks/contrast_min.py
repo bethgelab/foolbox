@@ -1,3 +1,4 @@
+from typing import Union
 import eagerpy as ep
 
 from ..devutils import atleast_kd
@@ -5,11 +6,11 @@ from ..devutils import atleast_kd
 from ..models import Model
 
 from ..criteria import Criterion
-from ..criteria import misclassification
 
 from .base import MinimizationAttack
 from .base import T
 from .base import get_is_adversarial
+from .base import get_criterion
 
 
 class BinarySearchContrastReductionAttack(MinimizationAttack):
@@ -21,18 +22,14 @@ class BinarySearchContrastReductionAttack(MinimizationAttack):
         self.target = target
 
     def __call__(
-        self,
-        model: Model,
-        inputs: T,
-        labels: T,
-        *,
-        criterion: Criterion = misclassification,
+        self, model: Model, inputs: T, criterion_or_labels: Union[Criterion, T]
     ) -> T:
 
-        (x, y), restore_type = ep.astensors_(inputs, labels)
-        del inputs, labels
+        x, restore_type = ep.astensor_(inputs)
+        criterion = get_criterion(criterion_or_labels)
+        del inputs, criterion_or_labels
 
-        is_adversarial = get_is_adversarial(criterion, x, y, model)
+        is_adversarial = get_is_adversarial(criterion, model)
 
         min_, max_ = model.bounds
         target = min_ + self.target * (max_ - min_)
@@ -63,18 +60,14 @@ class LinearSearchContrastReductionAttack(MinimizationAttack):
         self.target = target
 
     def __call__(
-        self,
-        model: Model,
-        inputs: T,
-        labels: T,
-        *,
-        criterion: Criterion = misclassification,
+        self, model: Model, inputs: T, criterion_or_labels: Union[Criterion, T]
     ) -> T:
 
-        (x, y), restore_type = ep.astensors_(inputs, labels)
-        del inputs, labels
+        x, restore_type = ep.astensor_(inputs)
+        criterion = get_criterion(criterion_or_labels)
+        del inputs, criterion_or_labels
 
-        is_adversarial = get_is_adversarial(criterion, x, y, model)
+        is_adversarial = get_is_adversarial(criterion, model)
 
         min_, max_ = model.bounds
         target = min_ + self.target * (max_ - min_)

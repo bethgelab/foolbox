@@ -11,8 +11,7 @@ def accuracy(fmodel: Model, inputs, labels) -> float:
     inputs_, labels_ = ep.astensors(inputs, labels)
     del inputs, labels
 
-    logits = fmodel(inputs_)
-    predictions = logits.argmax(axis=-1)
+    predictions = fmodel(inputs_).argmax(axis=-1)
     accuracy = (predictions == labels_).float32().mean()
     return accuracy.item()
 

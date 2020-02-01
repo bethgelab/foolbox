@@ -17,9 +17,9 @@ class InversionAttack(MinimizationAttack):
             https://arxiv.org/abs/1607.02533
     """
 
-    def __call__(self, model: Model, inputs: T, labels=None) -> T:
+    def __call__(self, model: Model, inputs: T, criterion_or_labels=None) -> T:
         x, restore_type = ep.astensor_(inputs)
-        del inputs, labels
+        del inputs, criterion_or_labels
 
         min_, max_ = model.bounds
         x = min_ + max_ - x
