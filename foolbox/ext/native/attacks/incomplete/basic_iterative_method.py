@@ -1,11 +1,15 @@
-import numpy as np
 import eagerpy as ep
+
+from ..models.base import Model
 
 from ..devutils import flatten
 from ..devutils import atleast_kd
+from ..devutils import wrap
+
+from .base import FixedEpsilonAttack
 
 
-def clip_l2_norms(x: ep.Tensor, norm) -> ep.Tensor:
+def clip_l2_norms(x: ep.Tensor, norm: float) -> ep.Tensor:
     norms = flatten(x).square().sum(axis=-1).sqrt()
     norms = ep.maximum(norms, 1e-12)  # avoid divsion by zero
     factor = ep.minimum(1, norm / norms)  # clipping -> decreasing but not increasing
@@ -21,85 +25,68 @@ def normalize_l2_norms(x: ep.Tensor) -> ep.Tensor:
     return x * factor
 
 
-class L2BasicIterativeAttack:
+class L2BasicIterativeAttack(FixedEpsilonAttack):
     """L2 Basic Iterative Method"""
 
-    def __init__(self, model):
-        self.model = model
+    # TODO: document the typical hyperparameters for inputs in [0, 1]
+    # epsilon = 2.0
+    # stepsize = 0.4
 
-    def __call__(
-        self, inputs, labels, *, rescale=False, epsilon=2.0, step_size=0.4, num_steps=10
-    ):
-        def loss_fn(inputs: ep.Tensor, labels: ep.Tensor) -> ep.Tensor:
-            logits = self.model.forward(inputs)
+    def __init__(self, epsilon, stepsize, steps=10):
+        self.epsilon = epsilon
+        self.stepsize = stepsize
+        self.steps = steps
+
+    def __call__(self, model: Model, inputs, labels):
+        inputs, labels, restore = wrap(inputs, labels)
+
+        def loss_fn(inputs):
+            logits = model.forward(inputs)
             return ep.crossentropy(logits, labels).sum()
 
-        if rescale:
-            min_, max_ = self.model.bounds()
-            scale = (max_ - min_) * np.sqrt(np.prod(inputs.shape[1:]))
-            epsilon = epsilon * scale
-            step_size = step_size * scale
+        x = x0 = inputs
 
-        x = ep.astensor(inputs)
-        y = ep.astensor(labels)
-        assert x.shape[0] == y.shape[0]
-        assert y.ndim == 1
-
-        x0 = x
-
-        for _ in range(num_steps):
-            _, gradients = ep.value_and_grad(loss_fn, x, y)
+        for _ in range(self.steps):
+            _, gradients = ep.value_and_grad(loss_fn, x)
             gradients = normalize_l2_norms(gradients)
-            x = x + step_size * gradients
-            x = x0 + clip_l2_norms(x - x0, epsilon)
-            x = ep.clip(x, *self.model.bounds())
+            x = x + self.stepsize * gradients
+            x = x0 + clip_l2_norms(x - x0, self.epsilon)
+            x = ep.clip(x, *model.bounds())
 
-        return x.tensor
+        return restore(x)
 
 
-class LinfinityBasicIterativeAttack:
+class LinfinityBasicIterativeAttack(FixedEpsilonAttack):
     """L-infinity Basic Iterative Method"""
 
-    def __init__(self, model):
-        self.model = model
+    def __init__(self, epsilon, stepsize, steps=10, random_start=False):
+        self.epsilon = epsilon
+        self.stepsize = stepsize
+        self.steps = steps
+        self.random_start = random_start
 
-    def __call__(
-        self,
-        inputs,
-        labels,
-        *,
-        rescale=False,
-        epsilon=0.3,
-        step_size=0.05,
-        num_steps=10,
-        random_start=False,
-    ):
-        def loss_fn(inputs: ep.Tensor, labels: ep.Tensor) -> ep.Tensor:
-            logits = self.model.forward(inputs)
+        # TODO: document typical parameters for [0, 1]
+        # epsilon=0.3,
+        # step_size=0.05,
+
+    def __call__(self, model: Model, inputs, labels):
+        inputs, labels, restore = wrap(inputs, labels)
+
+        def loss_fn(inputs):
+            logits = model.forward(inputs)
             return ep.crossentropy(logits, labels).sum()
 
-        if rescale:
-            min_, max_ = self.model.bounds()
-            scale = max_ - min_
-            epsilon = epsilon * scale
-            step_size = step_size * scale
+        x = x0 = inputs
 
-        x = ep.astensor(inputs)
-        y = ep.astensor(labels)
-        assert x.shape[0] == y.shape[0]
-        assert y.ndim == 1
+        if self.random_start:
+            x = x + ep.uniform(x, x.shape, -self.epsilon, self.epsilon)
+            x = ep.clip(x, *model.bounds())
 
-        x0 = x
-
-        if random_start:
-            x = x + ep.uniform(x, x.shape, -epsilon, epsilon)
-            x = ep.clip(x, *self.model.bounds())
-
-        for _ in range(num_steps):
-            _, gradients = ep.value_and_grad(loss_fn, x, y)
+        for _ in range(self.steps):
+            _, gradients = ep.value_and_grad(loss_fn, x)
             gradients = gradients.sign()
-            x = x + step_size * gradients
-            x = x0 + ep.clip(x - x0, -epsilon, epsilon)
-            x = ep.clip(x, *self.model.bounds())
+            x = x + self.stepsize * gradients
+            x = x0 + ep.clip(x - x0, -self.epsilon, self.epsilon)
+            x = ep.clip(x, *model.bounds())
 
-        return x.tensor
+        return restore(x)

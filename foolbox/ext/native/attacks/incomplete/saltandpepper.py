@@ -1,39 +1,78 @@
 import eagerpy as ep
+from typing import Optional
+
+from ..criteria import misclassification
 
 from ..devutils import flatten
 from ..devutils import atleast_kd
+from ..devutils import wrap
+
+from .base import MinimizationAttack
+from .base import get_is_adversarial
+
+from ..models.base import Model
 
 
-class SaltAndPepperNoiseAttack:
-    """
+class SaltAndPepperNoiseAttack(MinimizationAttack):
+    """Increases the amount of salt and pepper noise until the input is misclassified.
+
     Parameters
     ----------
-    channel_axis : int or None
-        If None, all elements of the input will be perturbed indepdently.
+    steps
+        The number of steps to run
+    across_channels
+        Whether the noise should be the same across all channels
     """
 
-    def __init__(self, model, channel_axis):
-        self.model = model
-        self.channel_axis = channel_axis
+    def __init__(self, steps: int = 1000, across_channels: bool = True):
+        self.steps = steps
+        self.across_channels = across_channels
 
-    def __call__(self, inputs, labels, *, criterion, steps=1000):
-        originals = ep.astensor(inputs)
-        labels = ep.astensor(labels)
+    def __call__(
+        self,
+        model: Model,
+        inputs,
+        labels,
+        *,
+        criterion=misclassification,
+        channel_axis: Optional[int] = None,
+    ):
+        """
+        Parameters
+        ----------
+        channel_axis
+            The axis across which the noise should be the same (if across_channels is True).
+            If None, will be automatically inferred from the model if possible.
+        """
+        inputs, labels, restore = wrap(inputs, labels)
+        is_adversarial = get_is_adversarial(criterion, inputs, labels, model)
 
-        def is_adversarial(p: ep.Tensor) -> ep.Tensor:
-            """For each input in x, returns true if it is an adversarial for
-            the given model and criterion"""
-            logits = self.model.forward(p)
-            return criterion(originals, labels, p, logits)
-
-        x0 = ep.astensor(inputs)
-
+        x0 = inputs
         N = len(x0)
         shape = list(x0.shape)
-        if self.channel_axis is not None:
-            shape[self.channel_axis] = 1
+        if self.across_channels and x0.ndim > 2:
+            if channel_axis is None and not hasattr(model, "data_format"):
+                raise ValueError(
+                    "cannot infer the data_format from the model, please specify"
+                    " channel_axis when calling the attack"
+                )
+            elif channel_axis is None:
+                data_format = model.data_format  # type: ignore
+                if (
+                    data_format is None
+                    or data_format != "channels_first"
+                    and data_format != "channels_last"
+                ):
+                    raise ValueError(
+                        f"expected data_format to be 'channels_first' or 'channels_last'"
+                    )
+                channel_axis = 1 if data_format == "channels_first" else x0.ndim - 1
+            elif not 0 <= channel_axis < x0.ndim:
+                raise ValueError(f"expected channel_axis to be in [0, {x0.ndim})")
 
-        min_, max_ = self.model.bounds()
+            shape[channel_axis] = 1
+
+        min_, max_ = model.bounds()
         r = max_ - min_
 
         result = x0
@@ -41,10 +80,10 @@ class SaltAndPepperNoiseAttack:
         best_advs_norms = ep.where(is_adv, ep.zeros(x0, N), ep.full(x0, N, ep.inf))
         min_probability = ep.zeros(x0, N)
         max_probability = ep.ones(x0, N)
-        stepsizes = max_probability / steps
+        stepsizes = max_probability / self.steps
         p = stepsizes
 
-        for step in range(steps):
+        for step in range(self.steps):
             # add salt and pepper
             u = ep.uniform(x0, shape)
             p_ = atleast_kd(p, x0.ndim)
@@ -68,7 +107,7 @@ class SaltAndPepperNoiseAttack:
             max_probability = ep.where(
                 is_best_adv, ep.minimum(p * 1.2, 1.0), max_probability
             )
-            remaining = steps - step
+            remaining = self.steps - step
             stepsizes = ep.where(
                 is_best_adv, (max_probability - min_probability) / remaining, stepsizes
             )
@@ -76,4 +115,4 @@ class SaltAndPepperNoiseAttack:
             p = ep.where(ep.logical_or(is_best_adv, reset), min_probability, p)
             p = ep.minimum(p + stepsizes, max_probability)
 
-        return result.tensor
+        return restore(result)
