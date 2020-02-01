@@ -16,9 +16,8 @@ class L2ContrastReductionAttack(FixedEpsilonAttack):
 
     Parameters
     ----------
-    target : float
+    target
         Target relative to the bounds from 0 (min) to 1 (max) towards which the contrast is reduced
-
     """
 
     def __init__(self, epsilon: L2, target: float = 0.5) -> None:
