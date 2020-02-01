@@ -18,8 +18,8 @@ class Foolbox2Model(Model):
 
     def __call__(self, inputs: T) -> T:
         x, restore_type = ep.astensor_(inputs)
-        y: ep.types.NativeTensor = self._model.forward(x.numpy())
-        z = ep.astensor(y)
+        y = self._model.forward(x.numpy())
+        z = ep.from_numpy(x, y)
         return restore_type(z)
 
     @property
