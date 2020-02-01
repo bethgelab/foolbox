@@ -8,11 +8,11 @@ test:
 
 .PHONY: testattacks
 testattacks:
-	pytest --pdb --cov=foolbox.ext.native.attacks tests/attacks/
-	pytest --pdb --cov=foolbox.ext.native.attacks tests/attacks/ --cov-append --backend pytorch
-	pytest --pdb --cov=foolbox.ext.native.attacks tests/attacks/ --cov-append --backend tensorflow
-	pytest --pdb --cov=foolbox.ext.native.attacks tests/attacks/ --cov-append --backend jax
-	pytest --pdb --cov=foolbox.ext.native.attacks tests/attacks/ --cov-append --backend numpy
+	pytest --pdb --cov=foolbox.ext.native.attacks tests/test_attacks.py tests/attacks/
+	pytest --pdb --cov=foolbox.ext.native.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend pytorch
+	pytest --pdb --cov=foolbox.ext.native.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend tensorflow
+	pytest --pdb --cov=foolbox.ext.native.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend jax
+	pytest --pdb --cov=foolbox.ext.native.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend numpy
 
 .PHONY: black
 black:

@@ -6,7 +6,10 @@ from .contrast import L2ContrastReductionAttack  # noqa: F401
 
 # MinimizatonAttack subclasses
 from .inversion import InversionAttack  # noqa: F401
-from .contrast_min import BinarySearchContrastReductionAttack  # noqa: F401
+from .contrast_min import (  # noqa: F401
+    BinarySearchContrastReductionAttack,
+    LinearSearchContrastReductionAttack,
+)
 
 
 # from .basic_iterative_method import L2BasicIterativeAttack  # noqa: F401

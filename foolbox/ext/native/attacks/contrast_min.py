@@ -50,5 +50,52 @@ class BinarySearchContrastReductionAttack(MinimizationAttack):
 
         epsilons = upper_bound
         eps = atleast_kd(epsilons, x.ndim)
-        x = x + eps * direction
-        return restore_type(x)
+        xp = x + eps * direction
+        return restore_type(xp)
+
+
+class LinearSearchContrastReductionAttack(MinimizationAttack):
+    """Reduces the contrast of the input using a linear search to find the
+    smallest adversarial perturbation"""
+
+    def __init__(self, steps: int = 1000, target: float = 0.5):
+        self.steps = steps
+        self.target = target
+
+    def __call__(
+        self,
+        model: Model,
+        inputs: T,
+        labels: T,
+        *,
+        criterion: Criterion = misclassification,
+    ) -> T:
+
+        (x, y), restore_type = ep.astensors_(inputs, labels)
+        del inputs, labels
+
+        is_adversarial = get_is_adversarial(criterion, x, y, model)
+
+        min_, max_ = model.bounds
+        target = min_ + self.target * (max_ - min_)
+        direction = target - x
+
+        best = ep.ones(x, len(x))
+
+        epsilon = 0.0
+        stepsize = 1.0 / self.steps
+        for _ in range(self.steps):
+            # TODO: reduce the batch size to the ones that have not yet been sucessful
+
+            is_adv = is_adversarial(x + epsilon * direction)
+            is_best_adv = ep.logical_and(is_adv, best == 1)
+            best = ep.where(is_best_adv, epsilon, best)
+
+            if (best < 1).all():
+                break
+
+            epsilon += stepsize
+
+        eps = atleast_kd(best, x.ndim)
+        xp = x + eps * direction
+        return restore_type(xp)
