@@ -45,3 +45,9 @@ def test_distance(reference_perturbed, p):
     desired = np.linalg.norm(diff, ord=p, axis=-1)
 
     np.testing.assert_allclose(actual, desired, rtol=1e-5)
+
+
+@pytest.mark.parametrize("p", [0, 1, 2, ep.inf])
+def test_distance_repr_str(p):
+    assert str(p) in repr(distances[p])
+    assert str(p) in str(distances[p])

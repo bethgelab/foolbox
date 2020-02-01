@@ -47,20 +47,20 @@ class TensorBoard:
 
     @maybenoop
     def conditional_mean(self, tag, x: ep.Tensor, cond: ep.Tensor, step):
-        cond = cond.numpy()
-        if ~cond.any():
+        cond_ = cond.numpy()
+        if ~cond_.any():
             return
-        x = x.numpy()
-        x = x[cond]
-        self.writer.add_scalar(tag, x.mean(axis=0).item(), step)
+        x_ = x.numpy()
+        x_ = x_[cond_]
+        self.writer.add_scalar(tag, x_.mean(axis=0).item(), step)
 
     @maybenoop
     def probability_ratio(self, tag, x: ep.Tensor, y: ep.Tensor, step):
-        x = x.float32().mean(axis=0).item()
-        y = y.float32().mean(axis=0).item()
-        if y == 0:
+        x_ = x.float32().mean(axis=0).item()
+        y_ = y.float32().mean(axis=0).item()
+        if y_ == 0:
             return
-        self.writer.add_scalar(tag, x / y, step)
+        self.writer.add_scalar(tag, x_ / y_, step)
 
     @maybenoop
     def histogram(self, tag, x: ep.Tensor, step, *, first=True):

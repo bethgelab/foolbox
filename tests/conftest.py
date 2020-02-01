@@ -15,14 +15,14 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture(scope="session")
-def dummy(request):
-    backend = request.config.option.backend
+def dummy(request) -> ep.Tensor:
+    backend: str = request.config.option.backend
     if backend is None:
         pytest.skip()
     return ep.utils.get_dummy(backend)
 
 
-def register(backend, attack=False):
+def register(backend: str, attack=False):
     def decorator(f):
         @functools.wraps(f)
         def model(request):

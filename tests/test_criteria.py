@@ -1,5 +1,5 @@
-import eagerpy as ep
 import foolbox.ext.native as fbn
+import eagerpy as ep
 
 
 def test_correct_unperturbed(fmodel_and_data):

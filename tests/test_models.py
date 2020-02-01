@@ -16,7 +16,7 @@ def test_bounds(fmodel_and_data):
 
 def test_forward_unwrapped(fmodel_and_data):
     fmodel, x, y = fmodel_and_data
-    logits = ep.astensor(fmodel(x.tensor))
+    logits = ep.astensor(fmodel(x.raw))
     assert logits.ndim == 2
     assert len(logits) == len(x) == len(y)
     _, num_classes = logits.shape
@@ -70,6 +70,10 @@ def test_transform_bounds(fmodel_and_data, bounds):
     logits1b = fmodel1(x)
     np.testing.assert_allclose(logits1.numpy(), logits1b.numpy(), rtol=2e-6)
 
+    fmodel1c = fmodel2.transform_bounds(fmodel1.bounds)
+    logits1c = fmodel1c(x)
+    np.testing.assert_allclose(logits1.numpy(), logits1c.numpy(), rtol=1e-4, atol=1e-4)
+
 
 @pytest.mark.parametrize("bounds", [(0, 1), (-1.0, 1.0), (0, 255), (-32768, 32767)])
 def test_transform_bounds_inplace(fmodel_and_data, bounds):
@@ -95,6 +99,16 @@ def test_preprocessing(fmodel_and_data):
         pytest.skip()
 
     preprocessing = dict(mean=[3, 3, 3], std=[5, 5, 5], axis=-3)
+    fmodel = fbn.models.base.ModelWithPreprocessing(
+        fmodel._model, fmodel.bounds, fmodel.dummy, preprocessing
+    )
+
+    preprocessing = dict(mean=[3, 3, 3], axis=-3)
+    fmodel = fbn.models.base.ModelWithPreprocessing(
+        fmodel._model, fmodel.bounds, fmodel.dummy, preprocessing
+    )
+
+    preprocessing = dict(mean=np.array([3, 3, 3]), axis=-3)
     fmodel = fbn.models.base.ModelWithPreprocessing(
         fmodel._model, fmodel.bounds, fmodel.dummy, preprocessing
     )

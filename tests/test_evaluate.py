@@ -1,23 +1,17 @@
 import pytest
 import foolbox.ext.native as fbn
 
-from foolbox.ext.native.attacks import L2BasicIterativeAttack
-from foolbox.ext.native.attacks import L2CarliniWagnerAttack
-from foolbox.ext.native.attacks import L2ContrastReductionAttack
-from foolbox.ext.native.attacks import BinarySearchContrastReductionAttack
-from foolbox.ext.native.attacks import LinearSearchContrastReductionAttack
-
 
 def test_evaluate(fmodel_and_data):
     pytest.skip()
     fmodel, x, y = fmodel_and_data
 
     attacks = [
-        L2BasicIterativeAttack,
-        L2CarliniWagnerAttack,
-        L2ContrastReductionAttack,
-        BinarySearchContrastReductionAttack,
-        LinearSearchContrastReductionAttack,
+        # L2BasicIterativeAttack,
+        # L2CarliniWagnerAttack,
+        # L2ContrastReductionAttack,
+        # BinarySearchContrastReductionAttack,
+        # LinearSearchContrastReductionAttack,
     ]
     epsilons = [0.0, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0]
 

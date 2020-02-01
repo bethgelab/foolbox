@@ -1,86 +1,101 @@
-import eagerpy as ep
+from typing import TypeVar, Callable, Any, Optional, Tuple
 from abc import ABC, abstractmethod
 import copy
-from typing import overload, Any
+import eagerpy as ep
 
-from ..devutils import wrap
+from ..types import Bounds
 from ..devutils import atleast_kd
+
+
+T = TypeVar("T")
+PreprocessArgs = Tuple[Optional[ep.Tensor], Optional[ep.Tensor], Optional[int]]
 
 
 class Model(ABC):
     @property
     @abstractmethod
-    def bounds(self):
-        ...
-
-    @overload
-    def __call__(self, inputs: ep.Tensor) -> ep.Tensor:
-        ...
-
-    @overload  # noqa: F811
-    def __call__(self, inputs: Any) -> Any:
+    def bounds(self) -> Bounds:
         ...
 
     @abstractmethod  # noqa: F811
-    def __call__(self, inputs):
+    def __call__(self, inputs: T) -> T:
         """Passes inputs through the model and returns the logits"""
         ...
 
-    def transform_bounds(self, bounds) -> "Model":
+    def transform_bounds(self, bounds: Bounds) -> "Model":
         """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
+        # subclasses can provide more efficient implementations
         return TransformBoundsWrapper(self, bounds)
 
 
 class TransformBoundsWrapper(Model):
-    def __init__(self, model, bounds):
+    def __init__(self, model: Model, bounds: Bounds):
         self._model = model
         self._bounds = bounds
 
     @property
-    def bounds(self):
+    def bounds(self) -> Bounds:
         return self._bounds
 
-    def __call__(self, inputs):
-        inputs, restore = wrap(inputs)
-        x = inputs
-        x = self._preprocess(x)
-        x = self._model.__call__(x)
-        return restore(x)
+    def __call__(self, inputs: T) -> T:
+        x, restore_type = ep.astensor_(inputs)
+        y = self._preprocess(x)
+        z = self._model(y)
+        return restore_type(z)
 
-    def _preprocess(self, inputs):
-        x = inputs
+    def transform_bounds(self, bounds: Bounds, inplace=False) -> Model:
+        if inplace:
+            self._bounds = bounds
+            return self
+        else:
+            # using the wrapped model instead of self to avoid
+            # unnessary sequences of wrappers
+            return TransformBoundsWrapper(self._model, bounds)
 
+    def _preprocess(self, inputs: ep.TensorType) -> ep.TensorType:
         # from bounds to (0, 1)
         min_, max_ = self._bounds
-        x = (x - min_) / (max_ - min_)
+        x = (inputs - min_) / (max_ - min_)
 
         # from (0, 1) to wrapped model bounds
         min_, max_ = self._model.bounds
-        x = x * (max_ - min_) + min_
-        return x
+        return x * (max_ - min_) + min_
+
+
+ModelType = TypeVar("ModelType", bound="ModelWithPreprocessing")
 
 
 class ModelWithPreprocessing(Model):
-    def __init__(self, model, bounds, dummy, preprocessing=None):
+    def __init__(
+        self,
+        model: Callable[..., ep.types.NativeTensor],
+        bounds: Bounds,
+        dummy: ep.Tensor,
+        preprocessing: dict = None,
+    ):
         if not callable(model):
             raise ValueError("expected model to be callable")  # pragma: no cover
+
         self._model = model
         self._bounds = bounds
-        self.dummy = dummy
-        self._init_preprocessing(preprocessing)
+        self._dummy = dummy
+        self._preprocess_args = self._process_preprocessing(preprocessing)
 
     @property
-    def bounds(self):
+    def bounds(self) -> Bounds:
         return self._bounds
 
-    def __call__(self, inputs):
-        inputs, restore = wrap(inputs)
-        x = inputs
-        x = self._preprocess(x)
-        x = ep.astensor(self._model(x.tensor))
-        return restore(x)
+    @property
+    def dummy(self) -> ep.Tensor:
+        return self._dummy
 
-    def transform_bounds(self, bounds, inplace=False):
+    def __call__(self, inputs: T) -> T:
+        x, restore_type = ep.astensor_(inputs)
+        y = self._preprocess(x)
+        z = ep.astensor(self._model(y.raw))
+        return restore_type(z)
+
+    def transform_bounds(self: ModelType, bounds: Bounds, inplace=False) -> ModelType:
         """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
         # more efficient than the base class implementation because it avoids the additional wrapper
         a, b = self.bounds
@@ -88,25 +103,26 @@ class ModelWithPreprocessing(Model):
         f = (d - c) / (b - a)
 
         mean, std, flip_axis = self._preprocess_args
+
         if mean is None:
-            mean = 0.0
+            mean = ep.zeros(self._dummy, 1)
         mean = f * (mean - a) + c
+
         if std is None:
-            std = 1.0
+            std = ep.ones(self._dummy, 1)
         std = f * std
-        new_preprocess_args = (mean, std, flip_axis)
 
         if inplace:
             model = self
         else:
             model = copy.copy(self)
         model._bounds = bounds
-        model._preprocess_args = new_preprocess_args
+        model._preprocess_args = (mean, std, flip_axis)
         return model
 
-    def _preprocess(self, inputs):
-        x = inputs
+    def _preprocess(self, inputs: ep.Tensor) -> ep.Tensor:
         mean, std, flip_axis = self._preprocess_args
+        x = inputs
         if flip_axis is not None:
             x = x.flip(axis=flip_axis)
         if mean is not None:
@@ -116,45 +132,48 @@ class ModelWithPreprocessing(Model):
         assert x.dtype == inputs.dtype
         return x
 
-    def _init_preprocessing(self, preprocessing):
+    def _process_preprocessing(self, preprocessing: Optional[dict]) -> PreprocessArgs:
         if preprocessing is None:
             preprocessing = dict()
+
         unsupported = set(preprocessing.keys()) - {"mean", "std", "axis", "flip_axis"}
         if len(unsupported) > 0:
-            raise ValueError(
-                "found unsupported preprocessing keys: {}".format(
-                    ", ".join(unsupported)
-                )
-            )
+            raise ValueError(f"unknown preprocessing key: {unsupported.pop()}")
+
         mean = preprocessing.get("mean", None)
         std = preprocessing.get("std", None)
         axis = preprocessing.get("axis", None)
         flip_axis = preprocessing.get("flip_axis", None)
 
-        if axis is not None and axis >= 0:
-            raise ValueError("expected axis to be negative, -1 refers to the last axis")
-
-        if mean is not None:
+        def to_tensor(x: Any) -> Optional[ep.Tensor]:
+            if x is None:
+                return None
+            if isinstance(x, ep.Tensor):
+                return x
             try:
-                mean = ep.astensor(mean)
+                y = ep.astensor(x)  # might raise ValueError
+                if not isinstance(y, type(self._dummy)):
+                    raise ValueError
+                return y
             except ValueError:
-                mean = ep.from_numpy(self.dummy, mean)
-            if axis is not None:
-                if mean.ndim != 1:
-                    raise ValueError(
-                        f"expected a 1D mean if axis is specified, got {mean.ndim}D"
-                    )
-                mean = atleast_kd(mean, -axis)
-        if std is not None:
-            try:
-                std = ep.astensor(std)
-            except ValueError:
-                std = ep.from_numpy(self.dummy, std)
-            if axis is not None:
-                if std.ndim != 1:
-                    raise ValueError(
-                        f"expected a 1D std if axis is specified, got {std.ndim}D"
-                    )
-                std = atleast_kd(std, -axis)
+                return ep.from_numpy(self._dummy, x)
 
-        self._preprocess_args = (mean, std, flip_axis)
+        mean_ = to_tensor(mean)
+        std_ = to_tensor(std)
+
+        def apply_axis(x: Optional[ep.Tensor], axis: int) -> Optional[ep.Tensor]:
+            if x is None:
+                return None
+            if x.ndim != 1:
+                raise ValueError(f"non-None axis requires a 1D tensor, got {x.ndim}D")
+            if axis >= 0:
+                raise ValueError(
+                    "expected axis to be None or negative, -1 refers to the last axis"
+                )
+            return atleast_kd(x, -axis)
+
+        if axis is not None:
+            mean_ = apply_axis(mean_, axis)
+            std_ = apply_axis(std_, axis)
+
+        return mean_, std_, flip_axis

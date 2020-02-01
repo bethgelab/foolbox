@@ -1,18 +1,19 @@
 import numpy as np
+import eagerpy as ep
 from inspect import signature
 
+from .models import Model
 from .devutils import flatten
-from .devutils import wrap_
 
 
-def evaluate_l2(fmodel, inputs, labels, *, attacks, epsilons):
-    inputs, labels = wrap_(inputs, labels)
-    x = inputs
-    y = labels
+def evaluate_l2(fmodel: Model, inputs, labels, *, attacks, epsilons):
+    x, y = ep.astensors(inputs, labels)
+    del inputs, labels
 
     attack_success = np.zeros((len(attacks), len(epsilons), len(x)), dtype=np.float32)
 
     for i, attack in enumerate(attacks):
+        # TODO: update to new attack interface
         attack = attack(fmodel)
         sig = signature(attack.__call__)
         minimizing = "epsilon" not in sig.parameters
@@ -22,7 +23,7 @@ def evaluate_l2(fmodel, inputs, labels, *, attacks, epsilons):
             xp = attack(x, y)
             logits = fmodel(xp)
             predictions = logits.argmax(axis=-1)
-            correct = (predictions == labels).float32().numpy().astype(np.bool)
+            correct = (predictions == y).float32().numpy().astype(np.bool)
             perturbations = xp - x
             norms = flatten(perturbations).square().sum(axis=-1).sqrt().numpy()
             for j, epsilon in enumerate(epsilons):
@@ -34,7 +35,7 @@ def evaluate_l2(fmodel, inputs, labels, *, attacks, epsilons):
                 xp = attack(x, y, epsilon=epsilon)
                 logits = fmodel(xp)
                 predictions = logits.argmax(axis=-1)
-                correct = (predictions == labels).float32().numpy().astype(np.bool)
+                correct = (predictions == y).float32().numpy().astype(np.bool)
                 perturbations = xp - x
                 norms = flatten(perturbations).square().sum(axis=-1).sqrt().numpy()
                 # TODO: relax this norm check or pass a slightly stricter norm to the attack

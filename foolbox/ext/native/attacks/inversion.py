@@ -1,9 +1,12 @@
 import eagerpy as ep
 
-from .base import Attack
+from ..models import Model
+
+from .base import MinimizationAttack
+from .base import T
 
 
-class InversionAttack(Attack):
+class InversionAttack(MinimizationAttack):
     """Creates "negative images" by inverting the pixel values according to [1]_.
 
     References
@@ -14,11 +17,10 @@ class InversionAttack(Attack):
             https://arxiv.org/abs/1607.02533
     """
 
-    def __init__(self, model):
-        self.model = model
+    def __call__(self, model: Model, inputs: T, labels=None) -> T:
+        x, restore_type = ep.astensor_(inputs)
+        del inputs, labels
 
-    def __call__(self, inputs, labels):
-        x = ep.astensor(inputs)
-        min_, max_ = self.model.bounds()
+        min_, max_ = model.bounds
         x = min_ + max_ - x
-        return x.tensor
+        return restore_type(x)

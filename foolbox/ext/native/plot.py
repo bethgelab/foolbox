@@ -1,23 +1,23 @@
+from typing import Tuple, Any
 import numpy as np
-
-from .devutils import wrap_
+import eagerpy as ep
 
 
 def images(
-    images,
+    images: Any,
     *,
-    n=None,
-    data_format=None,
-    bounds=(0, 1),
-    ncols=None,
-    nrows=None,
-    figsize=None,
-    scale=1,
+    n: int = None,
+    data_format: str = None,
+    bounds: Tuple[float, float] = (0, 1),
+    ncols: int = None,
+    nrows: int = None,
+    figsize: Tuple[float, float] = None,
+    scale: float = 1,
     **kwargs,
 ):
     import matplotlib.pyplot as plt
 
-    x = wrap_(images)
+    x: ep.Tensor = ep.astensor(images)
     if x.ndim != 4:
         raise ValueError(
             "expected images to have four dimensions: (N, C, H, W) or (N, H, W, C)"
@@ -46,6 +46,7 @@ def images(
     if nrows is None and ncols is None:
         nrows = 1
     if ncols is None:
+        assert nrows is not None
         ncols = (len(x) + nrows - 1) // nrows
     elif nrows is None:
         nrows = (len(x) + ncols - 1) // ncols

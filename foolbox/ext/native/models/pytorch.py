@@ -1,6 +1,7 @@
 import eagerpy as ep
 import warnings
 
+from ..types import Bounds
 from .base import ModelWithPreprocessing
 
 
@@ -15,7 +16,7 @@ def get_device(device):
 
 
 class PyTorchModel(ModelWithPreprocessing):
-    def __init__(self, model, bounds, device=None, preprocessing=None):
+    def __init__(self, model, bounds: Bounds, device=None, preprocessing: dict = None):
         if model.training:
             with warnings.catch_warnings():
                 warnings.simplefilter("always")
@@ -24,9 +25,11 @@ class PyTorchModel(ModelWithPreprocessing):
                     " not be deterministic. Call the eval() method to set it in"
                     " evaluation mode if this is not intended."
                 )
+
         device = get_device(device)
         model = model.to(device)
         dummy = ep.torch.zeros(0, device=device)
-        super().__init__(model, bounds, dummy, preprocessing=preprocessing)
+        super().__init__(model, bounds=bounds, dummy=dummy, preprocessing=preprocessing)
+
         self.data_format = "channels_first"
         self.device = device

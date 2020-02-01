@@ -1,19 +1,31 @@
+from abc import ABC, abstractmethod
+from typing import TypeVar
 import eagerpy as ep
 
 from .devutils import flatten
-from .devutils import wrap
 
 
-# all distances should
-# * accept native tensors and EagerPy tensors -> use wrap
-# * return the same format as the input -> use restore
-# * expect a batch dimension and arbitrary other dimensions -> use flatten
-# * accept two arguments, reference and perturbed
+T = TypeVar("T")
 
 
-def norm_to_distance(norm):
-    def distance(reference, perturbed):
-        """Calculates the distance from reference to perturbed using the {norm.__name__} norm.
+class Distance(ABC):
+    @abstractmethod
+    def __call__(self, reference: T, perturbed: T) -> T:
+        ...
+
+
+class LpDistance(Distance):
+    def __init__(self, p: float):
+        self.p = p
+
+    def __repr__(self):
+        return f"LpDistance({self.p})"
+
+    def __str__(self):
+        return f"L{self.p} distance"
+
+    def __call__(self, reference: T, perturbed: T) -> T:
+        """Calculates the distance from reference to perturbed using the Lp norm.
 
         Parameters
         ----------
@@ -25,20 +37,15 @@ def norm_to_distance(norm):
         Returns
         -------
         T
-            Returns a 1D tensor with the {norm.__name__} distance for each sample in the batch
+            Returns a batch of distances as a 1D tensor.
 
         """
-        reference, perturbed, restore = wrap(reference, perturbed)
-        norms = norm(flatten(perturbed - reference), axis=-1)
-        return restore(norms)
-
-    distance.__name__ = norm.__name__
-    distance.__qualname__ = norm.__qualname__
-    distance.__doc__ = distance.__doc__.format(norm=norm)
-    return distance
+        (x, y), restore_type = ep.astensors_(reference, perturbed)
+        norms = ep.norms.lp(flatten(y - x), self.p, axis=-1)
+        return restore_type(norms)
 
 
-l0 = norm_to_distance(ep.norms.l0)
-l1 = norm_to_distance(ep.norms.l1)
-l2 = norm_to_distance(ep.norms.l2)
-linf = norm_to_distance(ep.norms.linf)
+l0 = LpDistance(0)
+l1 = LpDistance(1)
+l2 = LpDistance(2)
+linf = LpDistance(ep.inf)

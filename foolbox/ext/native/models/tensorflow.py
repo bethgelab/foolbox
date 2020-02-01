@@ -1,5 +1,7 @@
+from typing import cast
 import eagerpy as ep
 
+from ..types import Bounds
 from .base import ModelWithPreprocessing
 
 
@@ -14,20 +16,23 @@ def get_device(device):
 
 
 class TensorFlowModel(ModelWithPreprocessing):
-    def __init__(self, model, bounds, device=None, preprocessing=None):
+    def __init__(self, model, bounds: Bounds, device=None, preprocessing: dict = None):
         import tensorflow as tf
 
         if not tf.executing_eagerly():
             raise ValueError(
                 "TensorFlowModel requires TensorFlow Eager Mode"
             )  # pragma: no cover
+
         device = get_device(device)
         with device:
             dummy = ep.tensorflow.zeros(0)
         super().__init__(model, bounds, dummy, preprocessing=preprocessing)
 
+        self.device = device
+
     @property
-    def data_format(self):
+    def data_format(self) -> str:
         import tensorflow as tf
 
-        return tf.keras.backend.image_data_format()
+        return cast(str, tf.keras.backend.image_data_format())
