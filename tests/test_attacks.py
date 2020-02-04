@@ -10,7 +10,7 @@ attacks: List[fbn.Attack] = [
     fbn.attacks.InversionAttack(),
     fbn.attacks.L2ContrastReductionAttack(L2(100.0)),
     fbn.attacks.BinarySearchContrastReductionAttack(),
-    fbn.attacks.LinearSearchContrastReductionAttack(),
+    fbn.attacks.LinearSearchContrastReductionAttack(steps=20),
     fbn.attacks.L2CarliniWagnerAttack(binary_search_steps=3, steps=50),
 ]
 
