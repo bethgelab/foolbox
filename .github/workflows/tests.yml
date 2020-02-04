@@ -78,23 +78,23 @@ jobs:
       working-directory: "./foolbox_native"
     - name: Test with pytest
       run: |
-        pytest --cov-report term-missing --cov=foolbox.ext.native --verbose --ignore tests/attacks/
+        pytest --skipslow --cov-report term-missing --cov=foolbox.ext.native --verbose --ignore tests/attacks/
       working-directory: "./foolbox_native"
     - name: Test with pytest (NumPy)
       run: |
-        pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend numpy --ignore tests/attacks/
+        pytest --skipslow --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend numpy --ignore tests/attacks/
       working-directory: "./foolbox_native"
     - name: Test with pytest (PyTorch)
       run: |
-        pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend pytorch --ignore tests/attacks/
+        pytest --skipslow --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend pytorch --ignore tests/attacks/
       working-directory: "./foolbox_native"
     - name: Test with pytest (JAX)
       run: |
-        pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend jax --ignore tests/attacks/
+        pytest --skipslow --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend jax --ignore tests/attacks/
       working-directory: "./foolbox_native"
     - name: Test with pytest (TensorFlow)
       run: |
-        pytest --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend tensorflow --ignore tests/attacks/
+        pytest --skipslow --cov-report term-missing --cov=foolbox.ext.native --cov-append --verbose --backend tensorflow --ignore tests/attacks/
       working-directory: "./foolbox_native"
     - name: Codecov
       continue-on-error: true
