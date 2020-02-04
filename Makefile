@@ -6,6 +6,14 @@ test:
 	pytest --cov=foolbox.ext.native --cov-append --backend jax
 	pytest --cov=foolbox.ext.native --cov-append --backend numpy
 
+.PHONY: test
+testskipslow:
+	pytest --skipslow --cov=foolbox.ext.native
+	pytest --skipslow --cov=foolbox.ext.native --cov-append --backend pytorch
+	pytest --skipslow --cov=foolbox.ext.native --cov-append --backend tensorflow
+	pytest --skipslow --cov=foolbox.ext.native --cov-append --backend jax
+	pytest --skipslow --cov=foolbox.ext.native --cov-append --backend numpy
+
 .PHONY: testattacks
 testattacks:
 	pytest --pdb --cov=foolbox.ext.native.attacks tests/test_attacks.py tests/attacks/

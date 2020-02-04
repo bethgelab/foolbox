@@ -14,6 +14,7 @@ models_for_attacks = []
 
 def pytest_addoption(parser) -> None:
     parser.addoption("--backend")
+    parser.addoption("--skipslow", action="store_true")
 
 
 @pytest.fixture(scope="session")
@@ -25,13 +26,13 @@ def dummy(request) -> ep.Tensor:
     return ep.utils.get_dummy(backend)
 
 
-def register(backend: str, attack=False) -> Callable[[Callable], Callable]:
+def register(backend: str, *, attack=True) -> Callable[[Callable], Callable]:
     def decorator(f):
         @functools.wraps(f)
         def model(request):
             if request.config.option.backend != backend:
                 pytest.skip()
-            return f()
+            return f(request)
 
         global models
         global models_for_attacks
@@ -66,17 +67,17 @@ def pytorch_simple_model(device=None, preprocessing=None) -> ModelAndData:
 
 
 @register("pytorch")
-def pytorch_simple_model_default():
+def pytorch_simple_model_default(request):
     return pytorch_simple_model()
 
 
 @register("pytorch")
-def pytorch_simple_model_default_flip():
+def pytorch_simple_model_default_flip(request):
     return pytorch_simple_model(preprocessing=dict(flip_axis=-3))
 
 
 @register("pytorch")
-def pytorch_simple_model_default_cpu_native_tensor():
+def pytorch_simple_model_default_cpu_native_tensor(request):
     import torch
 
     mean = 0.05 * torch.arange(3).float()
@@ -84,27 +85,30 @@ def pytorch_simple_model_default_cpu_native_tensor():
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
-@register("pytorch")
-def pytorch_simple_model_default_cpu_eagerpy_tensor():
+@register("pytorch", attack=False)
+def pytorch_simple_model_default_cpu_eagerpy_tensor(request):
     mean = 0.05 * ep.torch.arange(3).float32()
     std = ep.torch.ones(3) * 2
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
-@register("pytorch")
-def pytorch_simple_model_string():
+@register("pytorch", attack=False)
+def pytorch_simple_model_string(request):
     return pytorch_simple_model("cpu")
 
 
-@register("pytorch")
-def pytorch_simple_model_object():
+@register("pytorch", attack=False)
+def pytorch_simple_model_object(request):
     import torch
 
     return pytorch_simple_model(torch.device("cpu"))
 
 
-@register("pytorch", True)
-def pytorch_resnet18():
+@register("pytorch")
+def pytorch_resnet18(request):
+    if request.config.option.skipslow:
+        pytest.skip()
+
     import torchvision.models as models
 
     model = models.resnet18(pretrained=True).eval()
@@ -135,12 +139,12 @@ def tensorflow_simple_sequential(device=None, preprocessing=None) -> ModelAndDat
 
 
 @register("tensorflow")
-def tensorflow_simple_sequential_cpu() -> ModelAndData:
+def tensorflow_simple_sequential_cpu(request) -> ModelAndData:
     return tensorflow_simple_sequential("cpu", None)
 
 
 @register("tensorflow")
-def tensorflow_simple_sequential_native_tensors() -> ModelAndData:
+def tensorflow_simple_sequential_native_tensors(request) -> ModelAndData:
     import tensorflow as tf
 
     mean = tf.zeros(1)
@@ -148,15 +152,15 @@ def tensorflow_simple_sequential_native_tensors() -> ModelAndData:
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
-@register("tensorflow")
-def tensorflow_simple_sequential_eagerpy_tensors() -> ModelAndData:
+@register("tensorflow", attack=False)
+def tensorflow_simple_sequential_eagerpy_tensors(request) -> ModelAndData:
     mean = ep.tensorflow.zeros(1)
     std = ep.tensorflow.ones(1) * 255.0
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
 @register("tensorflow")
-def tensorflow_simple_subclassing() -> ModelAndData:
+def tensorflow_simple_subclassing(request) -> ModelAndData:
     import tensorflow as tf
 
     class Model(tf.keras.Model):  # type: ignore
@@ -179,7 +183,7 @@ def tensorflow_simple_subclassing() -> ModelAndData:
 
 
 @register("tensorflow")
-def tensorflow_simple_functional() -> ModelAndData:
+def tensorflow_simple_functional(request) -> ModelAndData:
     import tensorflow as tf
 
     channels = 3
@@ -198,8 +202,11 @@ def tensorflow_simple_functional() -> ModelAndData:
     return fmodel, x, y
 
 
-@register("tensorflow", True)
-def tensorflow_resnet50() -> ModelAndData:
+@register("tensorflow")
+def tensorflow_resnet50(request) -> ModelAndData:
+    if request.config.option.skipslow:
+        pytest.skip()
+
     import tensorflow as tf
 
     model = tf.keras.applications.ResNet50(weights="imagenet")
@@ -213,7 +220,7 @@ def tensorflow_resnet50() -> ModelAndData:
 
 
 @register("jax")
-def jax_simple_model() -> ModelAndData:
+def jax_simple_model(request) -> ModelAndData:
     import jax
 
     def model(x):
@@ -257,12 +264,12 @@ def foolbox2_simple_model(channel_axis) -> ModelAndData:
 
 
 @register("numpy")
-def foolbox2_simple_model_1() -> ModelAndData:
+def foolbox2_simple_model_1(request) -> ModelAndData:
     return foolbox2_simple_model(1)
 
 
 @register("numpy")
-def foolbox2_simple_model_3() -> ModelAndData:
+def foolbox2_simple_model_3(request) -> ModelAndData:
     return foolbox2_simple_model(3)
 
 
