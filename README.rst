@@ -12,6 +12,8 @@
 Foolbox Native
 ==============
 
+**WARNING: The latest Foolbox Native release on PyPI (0.8.0) requires EagerPy 0.15.0 (newer versions will not work). We are currently making major changes to Foolbox Native. With the next version, this will be fixed.**
+
 Foolbox Native is an extension for `Foolbox <https://github.com/bethgelab/foolbox>`_
 that tries to bring native performance to Foolbox. This extension is a
 prototype with the goal of ultimately becoming part of Foolbox itself.
