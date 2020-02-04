@@ -21,14 +21,12 @@ class BinarySearchContrastReductionAttack(MinimizationAttack):
         self.binary_search_steps = binary_search_steps
         self.target = target
 
-    def __call__(
-        self, model: Model, inputs: T, criterion_or_labels: Union[Criterion, T]
-    ) -> T:
+    def __call__(self, model: Model, inputs: T, criterion: Union[Criterion, T]) -> T:
 
         x, restore_type = ep.astensor_(inputs)
-        criterion = get_criterion(criterion_or_labels)
-        del inputs, criterion_or_labels
+        del inputs
 
+        criterion = get_criterion(criterion)
         is_adversarial = get_is_adversarial(criterion, model)
 
         min_, max_ = model.bounds
@@ -59,14 +57,12 @@ class LinearSearchContrastReductionAttack(MinimizationAttack):
         self.steps = steps
         self.target = target
 
-    def __call__(
-        self, model: Model, inputs: T, criterion_or_labels: Union[Criterion, T]
-    ) -> T:
+    def __call__(self, model: Model, inputs: T, criterion: Union[Criterion, T]) -> T:
 
         x, restore_type = ep.astensor_(inputs)
-        criterion = get_criterion(criterion_or_labels)
-        del inputs, criterion_or_labels
+        del inputs
 
+        criterion = get_criterion(criterion)
         is_adversarial = get_is_adversarial(criterion, model)
 
         min_, max_ = model.bounds

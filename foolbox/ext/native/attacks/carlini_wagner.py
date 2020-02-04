@@ -47,22 +47,22 @@ class L2CarliniWagnerAttack(MinimizationAttack):
         self,
         model: Model,
         inputs: T,
-        criterion_or_labels: Union[Misclassification, TargetedMisclassification, T],
+        criterion: Union[Misclassification, TargetedMisclassification, T],
     ) -> T:
 
         x, restore_type = ep.astensor_(inputs)
-        criterion = get_criterion(criterion_or_labels)
-        del inputs, criterion_or_labels
+        criterion_ = get_criterion(criterion)
+        del inputs, criterion
 
         N = len(x)
 
-        if isinstance(criterion, Misclassification):
+        if isinstance(criterion_, Misclassification):
             targeted = False
-            classes = criterion.labels
+            classes = criterion_.labels
             change_classes_logits = self.confidence
-        elif isinstance(criterion, TargetedMisclassification):
+        elif isinstance(criterion_, TargetedMisclassification):
             targeted = True
-            classes = criterion.target_classes
+            classes = criterion_.target_classes
             change_classes_logits = -self.confidence
         else:
             raise ValueError("unsupported criterion")
@@ -70,7 +70,7 @@ class L2CarliniWagnerAttack(MinimizationAttack):
         def is_adversarial(perturbed: ep.Tensor, logits: ep.Tensor) -> ep.Tensor:
             if change_classes_logits != 0:
                 logits += ep.onehot_like(logits, classes, value=change_classes_logits)
-            return criterion(perturbed, logits)
+            return criterion_(perturbed, logits)
 
         if classes.shape != (N,):
             name = "target_classes" if targeted else "labels"

@@ -1,5 +1,5 @@
+from typing import Callable, TypeVar, Any, Union
 from abc import ABC, abstractmethod
-from typing import Callable, TypeVar, Union
 import eagerpy as ep
 
 from ..models.base import Model
@@ -8,6 +8,7 @@ from ..criteria import Misclassification
 
 
 T = TypeVar("T")
+CriterionType = TypeVar("CriterionType", bound=Criterion)
 
 
 class Attack(ABC):
@@ -42,9 +43,8 @@ def get_is_adversarial(
     return is_adversarial
 
 
-def get_criterion(criterion_or_labels: Union[Criterion, T]) -> Criterion:
-    if isinstance(criterion_or_labels, Criterion):
-        criterion = criterion_or_labels
+def get_criterion(criterion: Union[Criterion, Any]) -> Criterion:
+    if isinstance(criterion, Criterion):
+        return criterion
     else:
-        criterion = Misclassification(criterion_or_labels)
-    return criterion
+        return Misclassification(criterion)

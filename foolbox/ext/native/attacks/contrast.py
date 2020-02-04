@@ -24,9 +24,9 @@ class L2ContrastReductionAttack(FixedEpsilonAttack):
         self.epsilon = epsilon
         self.target = target
 
-    def __call__(self, model: Model, inputs: T, criterion_or_labels=None) -> T:
+    def __call__(self, model: Model, inputs: T, criterion=None) -> T:
         x, restore_type = ep.astensor_(inputs)
-        del inputs, criterion_or_labels
+        del inputs, criterion
 
         min_, max_ = model.bounds
         target = min_ + self.target * (max_ - min_)
