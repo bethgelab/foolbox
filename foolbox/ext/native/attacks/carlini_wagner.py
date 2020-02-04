@@ -85,7 +85,7 @@ class L2CarliniWagnerAttack(MinimizationAttack):
         x_attack = to_attack_space(x)
         reconstsructed_x = to_model_space(x_attack)
 
-        rows = np.arange(N)
+        rows = range(N)
 
         def loss_fun(
             delta: ep.Tensor, consts: ep.Tensor
