@@ -1,10 +1,9 @@
-from typing import TypeVar, Callable, Any, Optional, Tuple
+from typing import TypeVar, Callable, Optional, Tuple, Any
 from abc import ABC, abstractmethod
 import copy
 import eagerpy as ep
 
-from ..types import Bounds
-from ..types import BoundsInput
+from ..types import Bounds, BoundsInput, Preprocessing
 from ..devutils import atleast_kd
 
 
@@ -75,7 +74,7 @@ class ModelWithPreprocessing(Model):
         model: Callable[..., ep.types.NativeTensor],
         bounds: BoundsInput,
         dummy: ep.Tensor,
-        preprocessing: dict = None,
+        preprocessing: Preprocessing = None,
     ):
         if not callable(model):
             raise ValueError("expected model to be callable")  # pragma: no cover
@@ -144,7 +143,7 @@ class ModelWithPreprocessing(Model):
         assert x.dtype == inputs.dtype
         return x
 
-    def _process_preprocessing(self, preprocessing: Optional[dict]) -> PreprocessArgs:
+    def _process_preprocessing(self, preprocessing: Preprocessing) -> PreprocessArgs:
         if preprocessing is None:
             preprocessing = dict()
 

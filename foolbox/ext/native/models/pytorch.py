@@ -2,7 +2,8 @@ from typing import Any
 import warnings
 import eagerpy as ep
 
-from ..types import BoundsInput
+from ..types import BoundsInput, Preprocessing
+
 from .base import ModelWithPreprocessing
 
 
@@ -18,7 +19,11 @@ def get_device(device) -> Any:
 
 class PyTorchModel(ModelWithPreprocessing):
     def __init__(
-        self, model, bounds: BoundsInput, device=None, preprocessing: dict = None
+        self,
+        model,
+        bounds: BoundsInput,
+        device=None,
+        preprocessing: Preprocessing = None,
     ) -> None:
         import torch
 

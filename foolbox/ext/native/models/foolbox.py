@@ -2,6 +2,7 @@ from typing import TypeVar, Tuple
 import eagerpy as ep
 
 from ..types import Bounds
+
 from .base import Model
 
 

@@ -1,4 +1,4 @@
-from typing import Tuple, Any
+from typing import Tuple, Any, Optional
 import numpy as np
 import eagerpy as ep
 
@@ -6,12 +6,12 @@ import eagerpy as ep
 def images(
     images: Any,
     *,
-    n: int = None,
-    data_format: str = None,
+    n: Optional[int] = None,
+    data_format: Optional[str] = None,
     bounds: Tuple[float, float] = (0, 1),
-    ncols: int = None,
-    nrows: int = None,
-    figsize: Tuple[float, float] = None,
+    ncols: Optional[int] = None,
+    nrows: Optional[int] = None,
+    figsize: Optional[Tuple[float, float]] = None,
     scale: float = 1,
     **kwargs,
 ):
