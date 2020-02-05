@@ -15,6 +15,7 @@ attacks: List[AttackGradientType] = [
     (fbn.attacks.LinearSearchContrastReductionAttack(steps=20), False),
     (fbn.attacks.L2CarliniWagnerAttack(binary_search_steps=3, steps=50), True),
     (fbn.attacks.NewtonFoolAttack(), True),
+    (fbn.attacks.L2ContrastReductionAttack(L2(100.0)).repeat(3), False),
 ]
 
 
