@@ -22,9 +22,9 @@ class NewtonFoolAttack(MinimizationAttack):
            https://dl.acm.org/citation.cfm?id=3134635
     """
 
-    def __init__(self, max_iter: int = 100, eta: float = 0.01):
-        self.max_iter = max_iter
-        self.eta = eta
+    def __init__(self, steps: int = 100, stepsize: float = 0.01):
+        self.steps = steps
+        self.stepsize = stepsize
 
     def __call__(
         self, model: Model, inputs: T, criterion: Union[Misclassification, T]
@@ -59,7 +59,7 @@ class NewtonFoolAttack(MinimizationAttack):
             loss = scores.sum()
             return loss, (scores, pred)
 
-        for i in range(self.max_iter):
+        for i in range(self.steps):
             # (1) get the scores and gradients
             _, (scores, pred), gradients = ep.value_aux_and_grad(loss_fun, x)
 
@@ -71,7 +71,7 @@ class NewtonFoolAttack(MinimizationAttack):
             gradients_l2_norm = flatten(gradients.square()).sum(1)
 
             # (3) calculate delta
-            a = self.eta * x_l2_norm * gradients_l2_norm
+            a = self.stepsize * x_l2_norm * gradients_l2_norm
             b = pred_scores - 1.0 / num_classes
 
             delta = ep.minimum(a, b)
