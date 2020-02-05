@@ -6,24 +6,27 @@ import foolbox.ext.native as fbn
 
 L2 = fbn.types.L2
 
-attacks: List[fbn.Attack] = [
-    fbn.attacks.InversionAttack(),
-    fbn.attacks.L2ContrastReductionAttack(L2(100.0)),
-    fbn.attacks.BinarySearchContrastReductionAttack(),
-    fbn.attacks.LinearSearchContrastReductionAttack(steps=20),
-    fbn.attacks.L2CarliniWagnerAttack(binary_search_steps=3, steps=50),
+AttackGradientType = Tuple[fbn.Attack, bool]
+
+attacks: List[AttackGradientType] = [
+    (fbn.attacks.InversionAttack(), False),
+    (fbn.attacks.L2ContrastReductionAttack(L2(100.0)), False),
+    (fbn.attacks.BinarySearchContrastReductionAttack(), False),
+    (fbn.attacks.LinearSearchContrastReductionAttack(steps=20), False),
+    (fbn.attacks.L2CarliniWagnerAttack(binary_search_steps=3, steps=50), True),
+    (fbn.attacks.NewtonFoolAttack(), True),
 ]
 
 
-@pytest.mark.parametrize("attack", attacks)
+@pytest.mark.parametrize("attack_type", attacks)
 def test_untargeted_attacks(
-    fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor], attack: fbn.Attack
+    fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor],
+    attack_type: AttackGradientType,
 ) -> None:
+    attack, attack_uses_grad = attack_type
 
     fmodel, x, y = fmodel_and_data
-    if isinstance(x, ep.NumPyTensor) and isinstance(
-        attack, fbn.attacks.L2CarliniWagnerAttack
-    ):
+    if isinstance(x, ep.NumPyTensor) and attack_uses_grad:
         pytest.skip()
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
@@ -32,20 +35,20 @@ def test_untargeted_attacks(
     assert fbn.accuracy(fmodel, advs, y) < fbn.accuracy(fmodel, x, y)
 
 
-targeted_attacks: List[fbn.Attack] = [
-    fbn.attacks.L2CarliniWagnerAttack(binary_search_steps=3, steps=50)
+targeted_attacks: List[AttackGradientType] = [
+    (fbn.attacks.L2CarliniWagnerAttack(binary_search_steps=3, steps=50), True)
 ]
 
 
-@pytest.mark.parametrize("attack", targeted_attacks)
+@pytest.mark.parametrize("attack_type", targeted_attacks)
 def test_targeted_attacks(
-    fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor], attack: fbn.Attack
+    fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor],
+    attack_type: AttackGradientType,
 ) -> None:
 
+    attack, attack_uses_grad = attack_type
     fmodel, x, y = fmodel_and_data
-    if isinstance(x, ep.NumPyTensor) and isinstance(
-        attack, fbn.attacks.L2CarliniWagnerAttack
-    ):
+    if isinstance(x, ep.NumPyTensor) and attack_uses_grad:
         pytest.skip()
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))

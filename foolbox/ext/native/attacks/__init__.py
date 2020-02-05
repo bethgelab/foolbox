@@ -4,6 +4,8 @@ from .base import Attack  # noqa: F401
 from .contrast import L2ContrastReductionAttack  # noqa: F401
 
 
+from .newtonfool import NewtonFoolAttack  # noqa: F401
+
 # MinimizatonAttack subclasses
 from .inversion import InversionAttack  # noqa: F401
 from .contrast_min import (  # noqa: F401
