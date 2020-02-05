@@ -3,41 +3,42 @@ import eagerpy as ep
 
 from ..models import Model
 
-from .base import MinimizationAttack
-from .base import get_criterion
-from .base import T
 from ..criteria import Misclassification
-import numpy as np
 
 from ..devutils import atleast_kd, flatten
 
+from .base import MinimizationAttack
+from .base import get_criterion
+from .base import T
+
 
 class NewtonFoolAttack(MinimizationAttack):
-    """Implements the NewtonFool Attack.
-        The attack was introduced in [1]_.
-        References
-        ----------
-        .. [1] Uyeong Jang et al., "Objective Metrics and Gradient Descent
-               Algorithms for Adversarial Examples in Machine Learning",
-               https://dl.acm.org/citation.cfm?id=3134635
-       """
+    """NewtonFool Attack introduced in [1]_
+
+    References
+    ----------
+    .. [1] Uyeong Jang et al., "Objective Metrics and Gradient Descent
+           Algorithms for Adversarial Examples in Machine Learning",
+           https://dl.acm.org/citation.cfm?id=3134635
+    """
 
     def __init__(self, max_iter: int = 100, eta: float = 0.01):
         self.max_iter = max_iter
         self.eta = eta
 
     def __call__(
-        self, model: Model, inputs: T, criterion_or_labels: Union[Misclassification, T]
+        self, model: Model, inputs: T, criterion: Union[Misclassification, T]
     ) -> T:
+
         x, restore_type = ep.astensor_(inputs)
-        criterion = get_criterion(criterion_or_labels)
-        del inputs, criterion_or_labels
+        criterion_ = get_criterion(criterion)
+        del inputs, criterion
 
         N = len(x)
-        rows = np.arange(N)
+        rows = range(N)
 
-        if isinstance(criterion, Misclassification):
-            classes = criterion.labels
+        if isinstance(criterion_, Misclassification):
+            classes = criterion_.labels
         else:
             raise ValueError("unsupported criterion")
 
@@ -55,7 +56,6 @@ class NewtonFoolAttack(MinimizationAttack):
             scores = ep.softmax(logits)
             pred = scores.argmax(-1)
             loss = scores.sum()
-
             return loss, (scores, pred)
 
         for i in range(self.max_iter):
