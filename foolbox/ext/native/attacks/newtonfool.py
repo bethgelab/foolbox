@@ -52,6 +52,7 @@ class NewtonFoolAttack(MinimizationAttack):
         x_l2_norm = flatten(x.square()).sum(1)
 
         def loss_fun(x):
+            # TODO: this is wrong!
             logits = model(x)
             scores = ep.softmax(logits)
             pred = scores.argmax(-1)
