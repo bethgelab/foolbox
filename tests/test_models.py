@@ -22,6 +22,8 @@ def test_forward_unwrapped(fmodel_and_data):
     _, num_classes = logits.shape
     assert (y >= 0).all()
     assert (y < num_classes).all()
+    if hasattr(logits.raw, "requires_grad"):
+        assert not logits.raw.requires_grad
 
 
 def test_forward_wrapped(fmodel_and_data):
@@ -34,6 +36,8 @@ def test_forward_wrapped(fmodel_and_data):
     _, num_classes = logits.shape
     assert (y >= 0).all()
     assert (y < num_classes).all()
+    if hasattr(logits.raw, "requires_grad"):
+        assert not logits.raw.requires_grad
 
 
 def test_pytorch_training_warning(request):
