@@ -189,7 +189,7 @@ class PointwiseAttack(Attack):
                 "Invalid starting point provided. Please provide a starting "
                 "point that is adversarial."
             )
-            return
+            return  # type: ignore
 
         if init_attack is None:
             init_attack = SaltAndPepperNoiseAttack

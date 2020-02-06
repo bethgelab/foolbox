@@ -47,7 +47,7 @@ print(tensorflow.__version__)
 # print(theano.__version__)
 # print(mxnet.__version__)
 # print(keras.__version__)
-print(torch.__version__)
+print(torch.__version__)  # type: ignore
 print(jax.__version__)
 
 

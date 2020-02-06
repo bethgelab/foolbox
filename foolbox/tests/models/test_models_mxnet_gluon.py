@@ -6,7 +6,7 @@ from foolbox.models import MXNetGluonModel
 from mxnet.gluon import HybridBlock
 
 
-class MeanBrightnessNet(HybridBlock):
+class MeanBrightnessNet(HybridBlock):  # type: ignore
     def hybrid_forward(self, F, x, *args, **kwargs):
         return mx.nd.mean(x, axis=(2, 3))
 
