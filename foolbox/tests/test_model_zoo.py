@@ -4,6 +4,7 @@ import foolbox
 import sys
 import pytest
 from foolbox.zoo.model_loader import ModelLoader
+from foolbox.zoo.git_cloner import GitCloneError
 from os.path import join, dirname
 
 
@@ -29,7 +30,10 @@ test_data = [
 @pytest.mark.parametrize("url, dim", test_data)
 def test_loading_model(url, dim):
     # download model
-    model = zoo.get_model(url)
+    try:
+        model = zoo.get_model(url)
+    except GitCloneError:
+        pytest.skip()
 
     # create a dummy image
     x = np.zeros(dim, dtype=np.float32)

@@ -5,14 +5,14 @@ test:
 
 .PHONY: test
 testsetup:
-	pip3 install --upgrade numpy
-	pip3 install --upgrade scipy
-	pip3 install -r requirements-dev.txt
+	pip3 install --upgrade pip
 	pip3 uninstall tensorflow
 	pip3 uninstall tensorflow-cpu
-	pip3 install --upgrade tensorflow==1.14
+	pip3 uninstall tensorflow-gpu
 	pip3 uninstall torch torchvision
-	pip install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+	pip3 install -r requirements-dev.txt
+	pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+	pip3 install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
 
 .PHONY: black
 black:
