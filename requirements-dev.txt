@@ -14,7 +14,7 @@ responses==0.10.9
 randomgen==1.18.1
 mypy==0.761
 pre-commit==2.0.1
-tensorflow==1.14
+tensorflow==1.15.2
 theano==1.0.4
 keras==2.1.5
 mxnet==1.4.1
