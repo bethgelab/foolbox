@@ -35,7 +35,6 @@ class NewtonFoolAttack(MinimizationAttack):
         del inputs, criterion
 
         N = len(x)
-        rows = range(N)
 
         if isinstance(criterion_, Misclassification):
             classes = criterion_.labels
@@ -52,20 +51,18 @@ class NewtonFoolAttack(MinimizationAttack):
         x_l2_norm = flatten(x.square()).sum(1)
 
         def loss_fun(x: ep.Tensor) -> Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]:
-            # TODO: this is wrong!
             logits = model(x)
             scores = ep.softmax(logits)
-            pred = scores.argmax(-1)
-            loss = scores.sum()
-            return loss, (scores, pred)
+            pred_scores = scores[range(N), classes]
+            loss = pred_scores.sum()
+            return loss, (scores, pred_scores)
 
         for i in range(self.steps):
             # (1) get the scores and gradients
-            _, (scores, pred), gradients = ep.value_aux_and_grad(loss_fun, x)
+            _, (scores, pred_scores), gradients = ep.value_aux_and_grad(loss_fun, x)
 
-            pred_scores = scores[rows, classes]
-
-            num_classes = pred.shape[-1]
+            pred = scores.argmax(-1)
+            num_classes = scores.shape[-1]
 
             # (2) calculate gradient norm
             gradients_l2_norm = flatten(gradients.square()).sum(1)
@@ -79,14 +76,13 @@ class NewtonFoolAttack(MinimizationAttack):
             # (4) stop the attack if an adversarial example has been found
             # this is not described in the paper but otherwise once the prob. drops
             # below chance level the likelihood is not decreased but increased
-            is_adversarial = (pred != classes).float32()
-            delta *= is_adversarial
+            is_not_adversarial = (pred == classes).float32()
+            delta *= is_not_adversarial
 
             # (5) calculate & apply current perturbation
-            x -= (
-                atleast_kd(delta / gradients_l2_norm.square(), gradients.ndim)
-                * gradients
-            )
+            a = atleast_kd(delta / gradients_l2_norm.square(), gradients.ndim)
+            x -= a * gradients
+
             x = ep.clip(x, min_, max_)
 
         return restore_type(x)
