@@ -160,7 +160,7 @@ def test_inplace(bn_model, bn_adversarial, bn_label):
     attack = TestAttack()
     attack(bn_adversarial)
     assert bn_adversarial.perturbed is not None
-    assert bn_adversarial.distance.value > 0
+    assert bn_adversarial.distance.value > 0  # type: ignore
     assert np.argmax(bn_model.forward_one(bn_adversarial.unperturbed)) == bn_label
     assert np.argmax(bn_model.forward_one(bn_adversarial.perturbed)) != bn_label
     assert not (bn_adversarial.perturbed == bn_adversarial.unperturbed).all()

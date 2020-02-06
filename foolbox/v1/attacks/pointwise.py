@@ -200,7 +200,7 @@ class PointwiseAttack(Attack):
             assert (
                 a.perturbed is not None
             ), "Invalid starting point provided. Please provide a starting point that is adversarial."
-            return
+            return  # type: ignore
 
         if init_attack is None:
             init_attack = SaltAndPepperNoiseAttack

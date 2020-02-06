@@ -1,7 +1,6 @@
 foolbox/ext/native
 worktrees/
 .mypy_cache
-Makefile
 wip/
 .pytest_cache/
 
