@@ -5,7 +5,6 @@ sphinx==1.8.5
 docutils==0.15
 sphinx-autobuild==0.7.1
 sphinx_rtd_theme==0.4.3
-twine==3.1.1
 pytest==5.3.5
 pytest-cov==2.8.1
 flake8==3.7.9

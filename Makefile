@@ -1,7 +1,7 @@
 .PHONY: test
 test:
-	pytest --ignore=foolbox/tests/models/test_models_tensorflow_eager.py --ignore=foolbox/tests/models/test_models_caffe.py
-	pytest --cov-append foolbox/tests/models/test_models_tensorflow_eager.py
+	pytest --pdb --ignore=foolbox/tests/models/test_models_tensorflow_eager.py --ignore=foolbox/tests/models/test_models_caffe.py
+	pytest --pdb --cov-append foolbox/tests/models/test_models_tensorflow_eager.py
 
 .PHONY: test
 testsetup:
@@ -45,6 +45,7 @@ build:
 
 .PHONY: release
 release: build
+	pip3 install twine==3.1.1
 	twine upload dist/foolbox-$(shell cat foolbox/VERSION).tar.gz
 
 .PHONY: docs
