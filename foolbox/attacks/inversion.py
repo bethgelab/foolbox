@@ -11,7 +11,7 @@ class InversionAttack(Attack):
     .. [1] Hossein Hosseini, Baicen Xiao, Mayoore Jaiswal, Radha Poovendran,
            "On the Limitation of Convolutional Neural Networks in Recognizing
            Negative Images",
-            https://arxiv.org/abs/1703.06857
+           https://arxiv.org/abs/1703.06857
 
     """
 

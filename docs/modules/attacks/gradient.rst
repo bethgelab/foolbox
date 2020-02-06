@@ -99,10 +99,6 @@ Gradient-based attacks
    :members:
    :special-members:
 
-.. autoclass:: LBFGSAttack
-   :members:
-   :special-members:
-
 .. autoclass:: DeepFoolAttack
    :members:
    :special-members:
@@ -120,10 +116,6 @@ Gradient-based attacks
    :special-members:
 
 .. autoclass:: ADefAttack
-   :members:
-   :special-members:
-
-.. autoclass:: SLSQPAttack
    :members:
    :special-members:
 
@@ -148,10 +140,6 @@ Gradient-based attacks
    :special-members:
 
 .. autoclass:: DecoupledDirectionNormL2Attack
-   :members:
-   :special-members:
-
-.. autoclass:: SparseFoolAttack
    :members:
    :special-members:
 

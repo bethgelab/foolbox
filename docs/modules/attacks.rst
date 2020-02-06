@@ -1,5 +1,5 @@
 :mod:`foolbox.attacks`
-================================
+======================
 
 .. automodule:: foolbox.attacks
 
@@ -41,20 +41,17 @@
    AdamRandomPGD
    MomentumIterativeAttack
    MomentumIterativeMethod
-   LBFGSAttack
    DeepFoolAttack
    NewtonFoolAttack
    DeepFoolL2Attack
    DeepFoolLinfinityAttack
    ADefAttack
-   SLSQPAttack
    SaliencyMapAttack
    IterativeGradientAttack
    IterativeGradientSignAttack
    CarliniWagnerL2Attack
    EADAttack
    DecoupledDirectionNormL2Attack
-   SparseFoolAttack
    SparseL1BasicIterativeAttack
    VirtualAdversarialAttack
 
@@ -65,7 +62,6 @@
 
    SinglePixelAttack
    LocalSearchAttack
-   ApproximateLBFGSAttack
 
 
 .. rubric:: :doc:`attacks/decision`

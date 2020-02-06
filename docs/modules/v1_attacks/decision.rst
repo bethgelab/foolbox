@@ -1,7 +1,7 @@
 Decision-based attacks
------------------
+----------------------
 
-.. currentmodule:: foolbox.attacks
+.. currentmodule:: foolbox.v1.attacks
 
 .. autoclass:: BoundaryAttack
    :members:
@@ -42,9 +42,5 @@ Decision-based attacks
    :special-members:
 
 .. autoclass:: HopSkipJumpAttack
-   :members:
-   :special-members:
-
-.. autoclass:: GenAttack
    :members:
    :special-members:

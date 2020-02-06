@@ -1,5 +1,5 @@
 :mod:`foolbox.distances`
-==================================
+========================
 
 .. automodule:: foolbox.distances
 

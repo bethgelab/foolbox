@@ -164,14 +164,18 @@ def _create_vec_field(fval, gradf, d1x, d2x, color_axis, smooth=0):
 
 class ADefAttack(Attack):
     """Adversarial attack that distorts the image, i.e. changes the locations
-    of pixels. The algorithm is described in [1]_,
+    of pixels.
+
+    The algorithm is described in [1]_,
     a Repository with the original code can be found in [2]_.
+
     References
     ----------
-    .. [1]_ Rima Alaifari, Giovanni S. Alberti, and Tandri Gauksson:
-            "ADef: an Iterative Algorithm to Construct Adversarial
-            Deformations", https://arxiv.org/abs/1804.07729
-    .. [2]_ https://gitlab.math.ethz.ch/tandrig/ADef/tree/master
+    .. [1] Rima Alaifari, Giovanni S. Alberti, and Tandri Gauksson:
+           "ADef: an Iterative Algorithm to Construct Adversarial
+           Deformations", https://arxiv.org/abs/1804.07729
+    .. [2] https://gitlab.math.ethz.ch/tandrig/ADef/tree/master
+
     """
 
     def _initialize(self):

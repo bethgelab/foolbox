@@ -1,5 +1,5 @@
 Decision-based attacks
------------------
+----------------------
 
 .. currentmodule:: foolbox.attacks
 
