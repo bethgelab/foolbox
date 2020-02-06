@@ -1,7 +1,7 @@
 Gradient-based attacks
 ----------------------
 
-.. currentmodule:: foolbox.attacks
+.. currentmodule:: foolbox.v1.attacks
 
 .. autoclass:: GradientAttack
    :members:
@@ -152,13 +152,5 @@ Gradient-based attacks
    :special-members:
 
 .. autoclass:: SparseFoolAttack
-   :members:
-   :special-members:
-
-.. autoclass:: SparseL1BasicIterativeAttack
-   :members:
-   :special-members:
-
-.. autoclass:: VirtualAdversarialAttack
    :members:
    :special-members:

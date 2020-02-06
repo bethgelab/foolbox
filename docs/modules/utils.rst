@@ -1,5 +1,5 @@
 :mod:`foolbox.utils`
-==============================
+====================
 
 .. automodule:: foolbox.utils
 

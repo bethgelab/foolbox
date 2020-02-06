@@ -1,5 +1,6 @@
 numpydoc>=0.6.0
-sphinx>=1.6.2
+sphinx<2.0.0
+docutils<0.16
 sphinx-autobuild>=0.6.0
 sphinx_rtd_theme>=0.2.4
 twine>=1.9.1

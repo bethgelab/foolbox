@@ -1,5 +1,5 @@
 :mod:`foolbox.adversarial`
-====================================
+==========================
 
 .. automodule:: foolbox.adversarial
 

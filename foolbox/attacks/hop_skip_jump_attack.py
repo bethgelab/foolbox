@@ -18,24 +18,22 @@ class HopSkipJumpAttack(Attack):
 
     Notes
     -----
-    Features:
-    * ability to switch between two types of distances: MSE and Linf.
-    * ability to continue previous attacks by passing an instance of the
+    - ability to switch between two types of distances: MSE and Linf.
+    - ability to continue previous attacks by passing an instance of the
       Adversarial class
-    * ability to pass an explicit starting point; especially to initialize
+    - ability to pass an explicit starting point; especially to initialize
       a targeted attack
-    * ability to pass an alternative attack used for initialization
-    * ability to specify the batch size
+    - ability to pass an alternative attack used for initialization
+    - ability to specify the batch size
+
+    HopSkipJumpAttack was originally proposed by Chen, Jordan and
+    Wainwright. It is a decision-based attack that requires access to output
+    labels of a model alone.
+    The implementation in Foolbox is based on Boundary Attack.
 
     References
     ----------
-    ..
-    HopSkipJumpAttack was originally proposed by Chen, Jordan and
-    Wainwright.
-    It is a decision-based attack that requires access to output
-    labels of a model alone.
-    Paper link: https://arxiv.org/abs/1904.02144
-    The implementation in Foolbox is based on Boundary Attack.
+    .. [1] https://arxiv.org/abs/1904.02144
 
     """
 

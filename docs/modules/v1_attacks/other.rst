@@ -1,16 +1,12 @@
 Other attacks
 -------------
 
-.. currentmodule:: foolbox.attacks
+.. currentmodule:: foolbox.v1.attacks
 
 .. autoclass:: BinarizationRefinementAttack
    :members:
    :special-members:
 
 .. autoclass:: PrecomputedAdversarialsAttack
-   :members:
-   :special-members:
-
-.. autoclass:: InversionAttack
    :members:
    :special-members:

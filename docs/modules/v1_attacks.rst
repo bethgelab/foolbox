@@ -55,8 +55,6 @@
    EADAttack
    DecoupledDirectionNormL2Attack
    SparseFoolAttack
-   SparseL1BasicIterativeAttack
-   VirtualAdversarialAttack
 
 .. rubric:: :doc:`v1_attacks/score`
 
@@ -83,7 +81,6 @@
    SaltAndPepperNoiseAttack
    BlendedUniformNoiseAttack
    BoundaryAttackPlusPlus
-   GenAttack
    HopSkipJumpAttack
 
 
@@ -94,4 +91,3 @@
 
    BinarizationRefinementAttack
    PrecomputedAdversarialsAttack
-   InversionAttack

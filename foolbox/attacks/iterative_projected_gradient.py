@@ -13,14 +13,7 @@ from ..optimizers import GDOptimizer
 
 
 class IterativeProjectedGradientBaseAttack(Attack):
-    """Base class for iterative (projected) gradient attacks.
-
-    Concrete subclasses should implement as_generator, _gradient
-    and _clip_perturbation.
-
-    TODO: add support for other loss-functions, e.g. the CW loss function,
-    see https://github.com/MadryLab/mnist_challenge/blob/master/pgd_attack.py
-    """
+    """Base class for iterative (projected) gradient attacks."""
 
     @abstractmethod
     def _gradient(self, a, x, class_, strict=True, gradient_args={}):
@@ -386,7 +379,7 @@ class LinfinityBasicIterativeAttack(
     ----------
     .. [1] Alexey Kurakin, Ian Goodfellow, Samy Bengio,
            "Adversarial examples in the physical world",
-            https://arxiv.org/abs/1607.02533
+           https://arxiv.org/abs/1607.02533
 
     .. seealso:: :class:`ProjectedGradientDescentAttack`
 

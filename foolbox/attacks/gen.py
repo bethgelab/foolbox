@@ -20,7 +20,7 @@ class GenAttack(Attack):
            Cho-Jui Hsieh, Mani Srivastava,
            "GenAttack: Practical Black-box Attacks with Gradient-Free
            Optimization",
-            https://arxiv.org/abs/1805.11090
+           https://arxiv.org/abs/1805.11090
     """
 
     @generator_decorator
@@ -40,6 +40,7 @@ class GenAttack(Attack):
         Can either try to find an adversarial perturbation for a fixed epsilon
         distance or perform a binary search over epsilon values in order to find
         a minimal perturbation.
+
         Parameters
         ----------
         inputs : `numpy.ndarray`

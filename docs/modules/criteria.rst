@@ -1,5 +1,5 @@
 :mod:`foolbox.criteria`
-=================================
+=======================
 
 .. automodule:: foolbox.criteria
 

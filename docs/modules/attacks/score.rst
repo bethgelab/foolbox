@@ -1,5 +1,5 @@
 Score-based attacks
------------------
+-------------------
 
 .. currentmodule:: foolbox.attacks
 
@@ -8,9 +8,5 @@ Score-based attacks
    :special-members:
 
 .. autoclass:: LocalSearchAttack
-   :members:
-   :special-members:
-
-.. autoclass:: ApproximateLBFGSAttack
    :members:
    :special-members:

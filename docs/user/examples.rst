@@ -268,7 +268,7 @@ using ``np.transpose(image, (1, 2, 0))``.
 
 
 Creating a targeted adversarial for the Keras ResNet model
-=========================================================
+==========================================================
 
 .. code-block:: python3
 

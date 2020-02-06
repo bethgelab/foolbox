@@ -12,7 +12,7 @@ class SparseFoolAttack(Attack):
     sparse adversarial perturbations.
 
     Implements SparseFool introduced in [1]_.
-    The official code is provided in [3]_.
+    The official code is provided in [2]_.
 
     References
     ----------
@@ -20,11 +20,7 @@ class SparseFoolAttack(Attack):
            "SparseFool: a few pixels make a big difference",
            https://arxiv.org/abs/1811.02248
 
-    .. [2] Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
-           "DeepFool: a simple and accurate method to fool deep neural
-           networks", https://arxiv.org/abs/1511.04599
-
-    .. [3] https://github.com/LTS4/SparseFool
+    .. [2] https://github.com/LTS4/SparseFool
 
     """
 
@@ -113,7 +109,7 @@ class SparseFoolAttack(Attack):
 
         """Approximates the decision boundary as an affine hyperplane.
         The approximation is done using a slightly modified version of
-        the unconstrained DeepFool introduced in [2]_.
+        the unconstrained DeepFool.
 
         Parameters
         ----------
@@ -228,7 +224,7 @@ class SparseFoolAttack(Attack):
     def l1_linear_solver(cls, initial_point, boundary_point, normal, min_, max_):
 
         """Computes the L1 solution (perturbation) to the linearized problem.
-        It corresponds to algorithm 1 in [1]_.
+        It corresponds to algorithm 1.
 
         Parameters
         ----------
