@@ -1,5 +1,3 @@
-# mypy: disallow_untyped_defs
-
 from abc import ABC, abstractmethod
 from typing import TypeVar
 import eagerpy as ep

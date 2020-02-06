@@ -1,5 +1,3 @@
-# mypy: disallow_untyped_defs
-
 from typing import TypeVar, Callable, Optional, Tuple, Any
 from abc import ABC, abstractmethod
 import copy

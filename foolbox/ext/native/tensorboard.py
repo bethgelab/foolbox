@@ -1,5 +1,3 @@
-# mypy: disallow_untyped_defs
-
 """Internal module for attacks that support logging to TensorBoard"""
 from typing import Union, Callable, TypeVar, Any, cast
 from typing_extensions import Literal

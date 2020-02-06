@@ -1,5 +1,3 @@
-# mypy: disallow_untyped_defs
-
 from typing import TypeVar, Tuple, Any
 import eagerpy as ep
 

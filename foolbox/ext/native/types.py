@@ -1,5 +1,3 @@
-# mypy: disallow_untyped_defs
-
 from typing import NewType, NamedTuple, Union, Tuple, Optional, Dict, Any
 
 

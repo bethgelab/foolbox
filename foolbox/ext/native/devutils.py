@@ -1,5 +1,3 @@
-# mypy: disallow_untyped_defs
-
 """Internal module with utility functions"""
 import eagerpy as ep
 

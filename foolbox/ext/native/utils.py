@@ -1,5 +1,3 @@
-# mypy: disallow_untyped_defs
-
 from typing import Optional, Tuple, Any
 import eagerpy as ep
 import foolbox

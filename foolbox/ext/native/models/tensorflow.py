@@ -1,5 +1,3 @@
-# mypy: disallow_untyped_defs
-
 from typing import cast, Any
 import eagerpy as ep
 
