@@ -278,12 +278,14 @@ class BoundaryAttack(Attack):
                     " please install the randomgen"
                     " module (e.g. pip install randomgen)"
                 )
+            if hasattr(randomgen, "RandomGenerator"):
+                RandomGenerator = randomgen.RandomGenerator
+            else:
+                RandomGenerator = randomgen.Generator
 
             def sample_std_normal(thread_id, shape, dtype):
                 # create a thread-specifc RNG
-                rng = randomgen.RandomGenerator(
-                    randomgen.Xoroshiro128(seed=20 + thread_id)
-                )
+                rng = RandomGenerator(randomgen.Xoroshiro128(seed=20 + thread_id))
 
                 t = threading.currentThread()
                 while getattr(t, "do_run", True):
@@ -714,7 +716,11 @@ class BoundaryAttack(Attack):
                     " please install the randomgen"
                     " module (e.g. pip install randomgen)"
                 )
-            rng = randomgen.RandomGenerator()
+            if hasattr(randomgen, "RandomGenerator"):
+                RandomGenerator = randomgen.RandomGenerator
+            else:
+                RandomGenerator = randomgen.Generator
+            rng = RandomGenerator()
 
         # ===========================================================
         # perform initial work
@@ -812,7 +818,11 @@ class BoundaryAttack(Attack):
                     " please install the randomgen"
                     " module (e.g. pip install randomgen)"
                 )
-            rng = randomgen.RandomGenerator()
+            if hasattr(randomgen, "RandomGenerator"):
+                RandomGenerator = randomgen.RandomGenerator
+            else:
+                RandomGenerator = randomgen.Generator
+            rng = RandomGenerator()
 
         # ===========================================================
         # perform initial work
