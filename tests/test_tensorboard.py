@@ -1,10 +1,14 @@
+from typing import Union, Any
+from typing_extensions import Literal
 import pytest
 import eagerpy as ep
 import foolbox.ext.native as fbn
 
 
 @pytest.mark.parametrize("logdir", [False, "temp"])
-def test_tensorboard(logdir, tmp_path, dummy):
+def test_tensorboard(
+    logdir: Union[Literal[False], None, str], tmp_path: Any, dummy: ep.Tensor
+) -> None:
     if logdir == "temp":
         logdir = tmp_path
 

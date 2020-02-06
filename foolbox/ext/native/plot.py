@@ -1,3 +1,5 @@
+# mypy: disallow_untyped_defs
+
 from typing import Tuple, Any, Optional
 import numpy as np
 import eagerpy as ep
@@ -13,8 +15,8 @@ def images(
     nrows: Optional[int] = None,
     figsize: Optional[Tuple[float, float]] = None,
     scale: float = 1,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> None:
     import matplotlib.pyplot as plt
 
     x: ep.Tensor = ep.astensor(images)

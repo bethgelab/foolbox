@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple, Any
 from inspect import signature
 import numpy as np
 import eagerpy as ep
@@ -10,8 +10,13 @@ from .devutils import flatten
 
 
 def evaluate_l2(
-    fmodel: Model, inputs, labels, *, attacks: List[Attack], epsilons: List[L2]
-):
+    fmodel: Model,
+    inputs: Any,
+    labels: Any,
+    *,
+    attacks: List[Attack],
+    epsilons: List[L2],
+) -> Tuple[Any, Any]:
     x, y = ep.astensors(inputs, labels)
     del inputs, labels
 

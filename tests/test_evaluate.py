@@ -1,10 +1,13 @@
+from typing import Tuple
 import pytest
 import foolbox.ext.native as fbn
+import eagerpy as ep
 
 
-def test_evaluate(fmodel_and_data):
+def test_evaluate(fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]) -> None:
     pytest.skip()
-    fmodel, x, y = fmodel_and_data
+    assert False
+    fmodel, x, y = fmodel_and_data  # type: ignore
 
     attacks = [
         # L2BasicIterativeAttack,

@@ -1,3 +1,5 @@
+# mypy: disallow_untyped_defs
+
 from typing import cast, Any
 import eagerpy as ep
 
@@ -6,7 +8,7 @@ from ..types import BoundsInput, Preprocessing
 from .base import ModelWithPreprocessing
 
 
-def get_device(device) -> Any:
+def get_device(device: Any) -> Any:
     import tensorflow as tf
 
     if device is None:
@@ -19,11 +21,11 @@ def get_device(device) -> Any:
 class TensorFlowModel(ModelWithPreprocessing):
     def __init__(
         self,
-        model,
+        model: Any,
         bounds: BoundsInput,
-        device=None,
+        device: Any = None,
         preprocessing: Preprocessing = None,
-    ):
+    ) -> None:
         import tensorflow as tf
 
         if not tf.executing_eagerly():

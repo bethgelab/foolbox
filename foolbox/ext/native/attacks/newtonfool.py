@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 import eagerpy as ep
 
 from ..models import Model
@@ -51,7 +51,7 @@ class NewtonFoolAttack(MinimizationAttack):
 
         x_l2_norm = flatten(x.square()).sum(1)
 
-        def loss_fun(x):
+        def loss_fun(x: ep.Tensor) -> Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]:
             # TODO: this is wrong!
             logits = model(x)
             scores = ep.softmax(logits)

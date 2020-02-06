@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Tuple, Dict
+from typing import Optional, Callable, Tuple, Dict, Any
 import functools
 import pytest
 import eagerpy as ep
@@ -12,13 +12,13 @@ models: Dict[str, Callable[..., ModelAndData]] = {}
 models_for_attacks = []
 
 
-def pytest_addoption(parser) -> None:
+def pytest_addoption(parser: Any) -> None:
     parser.addoption("--backend")
     parser.addoption("--skipslow", action="store_true")
 
 
 @pytest.fixture(scope="session")
-def dummy(request) -> ep.Tensor:
+def dummy(request: Any) -> ep.Tensor:
     backend: Optional[str] = request.config.option.backend
     if backend is None:
         pytest.skip()
@@ -26,10 +26,10 @@ def dummy(request) -> ep.Tensor:
     return ep.utils.get_dummy(backend)
 
 
-def register(backend: str, *, attack=True) -> Callable[[Callable], Callable]:
-    def decorator(f):
+def register(backend: str, *, attack: bool = True) -> Callable[[Callable], Callable]:
+    def decorator(f: Callable[[Any], ModelAndData]) -> Callable[[Any], ModelAndData]:
         @functools.wraps(f)
-        def model(request):
+        def model(request: Any) -> ModelAndData:
             if request.config.option.backend != backend:
                 pytest.skip()
             return f(request)
@@ -45,11 +45,13 @@ def register(backend: str, *, attack=True) -> Callable[[Callable], Callable]:
     return decorator
 
 
-def pytorch_simple_model(device=None, preprocessing=None) -> ModelAndData:
+def pytorch_simple_model(
+    device: Any = None, preprocessing: fbn.types.Preprocessing = None
+) -> ModelAndData:
     import torch
 
     class Model(torch.nn.Module):
-        def forward(self, x):
+        def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore
             x = torch.mean(x, 3)
             x = torch.mean(x, 2)
             return x
@@ -67,17 +69,17 @@ def pytorch_simple_model(device=None, preprocessing=None) -> ModelAndData:
 
 
 @register("pytorch")
-def pytorch_simple_model_default(request):
+def pytorch_simple_model_default(request: Any) -> ModelAndData:
     return pytorch_simple_model()
 
 
 @register("pytorch")
-def pytorch_simple_model_default_flip(request):
+def pytorch_simple_model_default_flip(request: Any) -> ModelAndData:
     return pytorch_simple_model(preprocessing=dict(flip_axis=-3))
 
 
 @register("pytorch")
-def pytorch_simple_model_default_cpu_native_tensor(request):
+def pytorch_simple_model_default_cpu_native_tensor(request: Any) -> ModelAndData:
     import torch
 
     mean = 0.05 * torch.arange(3).float()
@@ -86,26 +88,26 @@ def pytorch_simple_model_default_cpu_native_tensor(request):
 
 
 @register("pytorch", attack=False)
-def pytorch_simple_model_default_cpu_eagerpy_tensor(request):
+def pytorch_simple_model_default_cpu_eagerpy_tensor(request: Any) -> ModelAndData:
     mean = 0.05 * ep.torch.arange(3).float32()
     std = ep.torch.ones(3) * 2
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
 @register("pytorch", attack=False)
-def pytorch_simple_model_string(request):
+def pytorch_simple_model_string(request: Any) -> ModelAndData:
     return pytorch_simple_model("cpu")
 
 
 @register("pytorch", attack=False)
-def pytorch_simple_model_object(request):
+def pytorch_simple_model_object(request: Any) -> ModelAndData:
     import torch
 
     return pytorch_simple_model(torch.device("cpu"))
 
 
 @register("pytorch")
-def pytorch_resnet18(request):
+def pytorch_resnet18(request: Any) -> ModelAndData:
     if request.config.option.skipslow:
         pytest.skip()
 
@@ -121,7 +123,9 @@ def pytorch_resnet18(request):
     return fmodel, x, y
 
 
-def tensorflow_simple_sequential(device=None, preprocessing=None) -> ModelAndData:
+def tensorflow_simple_sequential(
+    device: Optional[str] = None, preprocessing: fbn.types.Preprocessing = None
+) -> ModelAndData:
     import tensorflow as tf
 
     with tf.device(device):
@@ -139,12 +143,12 @@ def tensorflow_simple_sequential(device=None, preprocessing=None) -> ModelAndDat
 
 
 @register("tensorflow")
-def tensorflow_simple_sequential_cpu(request) -> ModelAndData:
+def tensorflow_simple_sequential_cpu(request: Any) -> ModelAndData:
     return tensorflow_simple_sequential("cpu", None)
 
 
 @register("tensorflow")
-def tensorflow_simple_sequential_native_tensors(request) -> ModelAndData:
+def tensorflow_simple_sequential_native_tensors(request: Any) -> ModelAndData:
     import tensorflow as tf
 
     mean = tf.zeros(1)
@@ -153,14 +157,14 @@ def tensorflow_simple_sequential_native_tensors(request) -> ModelAndData:
 
 
 @register("tensorflow", attack=False)
-def tensorflow_simple_sequential_eagerpy_tensors(request) -> ModelAndData:
+def tensorflow_simple_sequential_eagerpy_tensors(request: Any) -> ModelAndData:
     mean = ep.tensorflow.zeros(1)
     std = ep.tensorflow.ones(1) * 255.0
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
 @register("tensorflow")
-def tensorflow_simple_subclassing(request) -> ModelAndData:
+def tensorflow_simple_subclassing(request: Any) -> ModelAndData:
     import tensorflow as tf
 
     class Model(tf.keras.Model):  # type: ignore
@@ -168,7 +172,7 @@ def tensorflow_simple_subclassing(request) -> ModelAndData:
             super().__init__()
             self.pool = tf.keras.layers.GlobalAveragePooling2D()
 
-        def call(self, x):
+        def call(self, x: tf.Tensor) -> tf.Tensor:  # type: ignore
             x = self.pool(x)
             return x
 
@@ -183,7 +187,7 @@ def tensorflow_simple_subclassing(request) -> ModelAndData:
 
 
 @register("tensorflow")
-def tensorflow_simple_functional(request) -> ModelAndData:
+def tensorflow_simple_functional(request: Any) -> ModelAndData:
     import tensorflow as tf
 
     channels = 3
@@ -203,7 +207,7 @@ def tensorflow_simple_functional(request) -> ModelAndData:
 
 
 @register("tensorflow")
-def tensorflow_resnet50(request) -> ModelAndData:
+def tensorflow_resnet50(request: Any) -> ModelAndData:
     if request.config.option.skipslow:
         pytest.skip()
 
@@ -220,10 +224,10 @@ def tensorflow_resnet50(request) -> ModelAndData:
 
 
 @register("jax")
-def jax_simple_model(request) -> ModelAndData:
+def jax_simple_model(request: Any) -> ModelAndData:
     import jax
 
-    def model(x):
+    def model(x: Any) -> Any:
         return jax.numpy.mean(x, axis=(1, 2))
 
     bounds = (0, 1)
@@ -237,20 +241,20 @@ def jax_simple_model(request) -> ModelAndData:
     return fmodel, x, y
 
 
-def foolbox2_simple_model(channel_axis) -> ModelAndData:
+def foolbox2_simple_model(channel_axis: int) -> ModelAndData:
     class Foolbox2DummyModel(foolbox.models.base.Model):  # type: ignore
         def __init__(self) -> None:
             super().__init__(
                 bounds=(0, 1), channel_axis=channel_axis, preprocessing=(0, 1)
             )
 
-        def forward(self, inputs):
+        def forward(self, inputs: Any) -> Any:
             if channel_axis == 1:
                 return inputs.mean(axis=(2, 3))
             elif channel_axis == 3:
                 return inputs.mean(axis=(1, 2))
 
-        def num_classes(self):
+        def num_classes(self) -> int:
             return 3
 
     model = Foolbox2DummyModel()
@@ -264,23 +268,23 @@ def foolbox2_simple_model(channel_axis) -> ModelAndData:
 
 
 @register("numpy")
-def foolbox2_simple_model_1(request) -> ModelAndData:
+def foolbox2_simple_model_1(request: Any) -> ModelAndData:
     return foolbox2_simple_model(1)
 
 
 @register("numpy")
-def foolbox2_simple_model_3(request) -> ModelAndData:
+def foolbox2_simple_model_3(request: Any) -> ModelAndData:
     return foolbox2_simple_model(3)
 
 
 @pytest.fixture(scope="session", params=list(models.keys()))
-def fmodel_and_data(request) -> ModelAndData:
+def fmodel_and_data(request: Any) -> ModelAndData:
     global models
     return models[request.param](request)
 
 
 @pytest.fixture(scope="session", params=models_for_attacks)
-def fmodel_and_data_for_attacks(request) -> ModelAndData:
+def fmodel_and_data_for_attacks(request: Any) -> ModelAndData:
     global models
     fmodel, x, y = models[request.param](request)
     return fmodel, x[:4], y[:4]

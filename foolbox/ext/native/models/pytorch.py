@@ -1,4 +1,6 @@
-from typing import Any
+# mypy: disallow_untyped_defs
+
+from typing import Any, cast
 import warnings
 import eagerpy as ep
 
@@ -7,7 +9,7 @@ from ..types import BoundsInput, Preprocessing
 from .base import ModelWithPreprocessing
 
 
-def get_device(device) -> Any:
+def get_device(device: Any) -> Any:
     import torch
 
     if device is None:
@@ -20,12 +22,15 @@ def get_device(device) -> Any:
 class PyTorchModel(ModelWithPreprocessing):
     def __init__(
         self,
-        model,
+        model: Any,
         bounds: BoundsInput,
-        device=None,
+        device: Any = None,
         preprocessing: Preprocessing = None,
     ) -> None:
         import torch
+
+        if not isinstance(model, torch.nn.Module):
+            raise ValueError("expected model to be a torch.nn.Module instance")
 
         if model.training:
             with warnings.catch_warnings():
@@ -41,9 +46,10 @@ class PyTorchModel(ModelWithPreprocessing):
         dummy = ep.torch.zeros(0, device=device)
 
         # we need to make sure the output only requires_grad if the input does
-        def _model(x):
+        def _model(x: torch.Tensor) -> torch.Tensor:
             with torch.set_grad_enabled(x.requires_grad):
-                return model(x)
+                result = cast(torch.Tensor, model(x))
+            return result
 
         super().__init__(
             _model, bounds=bounds, dummy=dummy, preprocessing=preprocessing

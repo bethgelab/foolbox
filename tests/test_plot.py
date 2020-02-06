@@ -3,7 +3,7 @@ import eagerpy as ep
 import foolbox.ext.native as fbn
 
 
-def test_plot(dummy):
+def test_plot(dummy: ep.Tensor) -> None:
     # just tests that the calls don't throw any errors
     images = ep.zeros(dummy, (10, 3, 32, 32))
     fbn.plot.images(images)

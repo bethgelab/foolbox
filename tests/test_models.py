@@ -1,3 +1,4 @@
+from typing import Tuple, Any
 import pytest
 import eagerpy as ep
 import numpy as np
@@ -5,8 +6,10 @@ import copy
 
 import foolbox.ext.native as fbn
 
+ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 
-def test_bounds(fmodel_and_data):
+
+def test_bounds(fmodel_and_data: ModelAndData) -> None:
     fmodel, x, y = fmodel_and_data
     min_, max_ = fmodel.bounds
     assert min_ < max_
@@ -14,7 +17,7 @@ def test_bounds(fmodel_and_data):
     assert (x <= max_).all()
 
 
-def test_forward_unwrapped(fmodel_and_data):
+def test_forward_unwrapped(fmodel_and_data: ModelAndData) -> None:
     fmodel, x, y = fmodel_and_data
     logits = ep.astensor(fmodel(x.raw))
     assert logits.ndim == 2
@@ -26,7 +29,7 @@ def test_forward_unwrapped(fmodel_and_data):
         assert not logits.raw.requires_grad
 
 
-def test_forward_wrapped(fmodel_and_data):
+def test_forward_wrapped(fmodel_and_data: ModelAndData) -> None:
     fmodel, x, y = fmodel_and_data
     assert ep.istensor(x)
     logits = fmodel(x)
@@ -40,7 +43,7 @@ def test_forward_wrapped(fmodel_and_data):
         assert not logits.raw.requires_grad
 
 
-def test_pytorch_training_warning(request):
+def test_pytorch_training_warning(request: Any) -> None:
     backend = request.config.option.backend
     if backend != "pytorch":
         pytest.skip()
@@ -48,7 +51,7 @@ def test_pytorch_training_warning(request):
     import torch
 
     class Model(torch.nn.Module):
-        def forward(self, x):
+        def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore
             return x
 
     model = Model().train()
@@ -58,7 +61,9 @@ def test_pytorch_training_warning(request):
 
 
 @pytest.mark.parametrize("bounds", [(0, 1), (-1.0, 1.0), (0, 255), (-32768, 32767)])
-def test_transform_bounds(fmodel_and_data, bounds):
+def test_transform_bounds(
+    fmodel_and_data: ModelAndData, bounds: fbn.types.BoundsInput
+) -> None:
     fmodel1, x, y = fmodel_and_data
     logits1 = fmodel1(x)
     min1, max1 = fmodel1.bounds
@@ -80,12 +85,15 @@ def test_transform_bounds(fmodel_and_data, bounds):
 
 
 @pytest.mark.parametrize("bounds", [(0, 1), (-1.0, 1.0), (0, 255), (-32768, 32767)])
-def test_transform_bounds_inplace(fmodel_and_data, bounds):
+def test_transform_bounds_inplace(
+    fmodel_and_data: ModelAndData, bounds: fbn.types.BoundsInput
+) -> None:
     fmodel, x, y = fmodel_and_data
     fmodel = copy.copy(fmodel)  # to avoid interference with other tests
 
     if not isinstance(fmodel, fbn.models.base.ModelWithPreprocessing):
         pytest.skip()
+        assert False
     logits1 = fmodel(x)
     min1, max1 = fmodel.bounds
 
@@ -98,7 +106,9 @@ def test_transform_bounds_inplace(fmodel_and_data, bounds):
 
 
 @pytest.mark.parametrize("bounds", [(0, 1), (-1.0, 1.0), (0, 255), (-32768, 32767)])
-def test_transform_bounds_wrapper(fmodel_and_data, bounds):
+def test_transform_bounds_wrapper(
+    fmodel_and_data: ModelAndData, bounds: fbn.types.BoundsInput
+) -> None:
     fmodel1, x, y = fmodel_and_data
     fmodel1 = copy.copy(fmodel1)  # to avoid interference with other tests
 
@@ -129,10 +139,11 @@ def test_transform_bounds_wrapper(fmodel_and_data, bounds):
     np.testing.assert_allclose(logits1d.numpy(), logits1.numpy(), rtol=2e-6)
 
 
-def test_preprocessing(fmodel_and_data):
+def test_preprocessing(fmodel_and_data: ModelAndData) -> None:
     fmodel, x, y = fmodel_and_data
     if not isinstance(fmodel, fbn.models.base.ModelWithPreprocessing):
         pytest.skip()
+        assert False
 
     preprocessing = dict(mean=[3, 3, 3], std=[5, 5, 5], axis=-3)
     fmodel = fbn.models.base.ModelWithPreprocessing(

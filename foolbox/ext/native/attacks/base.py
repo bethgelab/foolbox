@@ -16,8 +16,8 @@ CriterionType = TypeVar("CriterionType", bound=Criterion)
 
 class Attack(ABC):
     @abstractmethod
-    def __call__(self, model: Model, inputs: T, criterion_or_labels) -> T:
-        # in principle, the type of criterion_or_labels is Union[Criterion, T]
+    def __call__(self, model: Model, inputs: T, criterion: Any) -> T:
+        # in principle, the type of criterion is Union[Criterion, T]
         # but we want to give subclasses the option to specify the supported
         # criteria explicitly (i.e. specifying a stricter type constraint)
         ...
@@ -66,7 +66,7 @@ class Repeated(AttackWrapper):
 
         return restore_type(best)
 
-    def repeat(self, times: int):
+    def repeat(self, times: int) -> "Repeated":
         return Repeated(self._attack, self._times * times)
 
 

@@ -1,9 +1,12 @@
+from typing import Union, Any
 import eagerpy as ep
 
 from ..devutils import flatten
 from ..devutils import atleast_kd
 
 from ..types import L2
+
+from ..criteria import Criterion
 
 from ..models import Model
 
@@ -24,7 +27,9 @@ class L2ContrastReductionAttack(FixedEpsilonAttack):
         self.epsilon = epsilon
         self.target = target
 
-    def __call__(self, model: Model, inputs: T, criterion=None) -> T:
+    def __call__(
+        self, model: Model, inputs: T, criterion: Union[Criterion, Any] = None
+    ) -> T:
         x, restore_type = ep.astensor_(inputs)
         del inputs, criterion
 

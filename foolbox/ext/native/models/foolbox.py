@@ -1,4 +1,6 @@
-from typing import TypeVar, Tuple
+# mypy: disallow_untyped_defs
+
+from typing import TypeVar, Tuple, Any
 import eagerpy as ep
 
 from ..types import Bounds
@@ -10,7 +12,7 @@ T = TypeVar("T")
 
 
 class Foolbox2Model(Model):
-    def __init__(self, model) -> None:
+    def __init__(self, model: Any) -> None:
         self._model = model
 
     @property

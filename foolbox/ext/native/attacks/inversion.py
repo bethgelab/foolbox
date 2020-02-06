@@ -1,4 +1,7 @@
+from typing import Union, Any
 import eagerpy as ep
+
+from ..criteria import Criterion
 
 from ..models import Model
 
@@ -17,7 +20,9 @@ class InversionAttack(MinimizationAttack):
             https://arxiv.org/abs/1607.02533
     """
 
-    def __call__(self, model: Model, inputs: T, criterion=None) -> T:
+    def __call__(
+        self, model: Model, inputs: T, criterion: Union[Criterion, Any] = None
+    ) -> T:
         x, restore_type = ep.astensor_(inputs)
         del inputs, criterion
 

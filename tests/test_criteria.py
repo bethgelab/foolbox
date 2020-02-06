@@ -60,18 +60,18 @@ def test_repr_object() -> None:
     assert repr(object()).startswith("<")
 
 
-def test_repr_misclassification(dummy) -> None:
+def test_repr_misclassification(dummy: ep.Tensor) -> None:
     labels = ep.arange(dummy, 10)
     assert not repr(fbn.Misclassification(labels)).startswith("<")
 
 
-def test_repr_and(dummy) -> None:
+def test_repr_and(dummy: ep.Tensor) -> None:
     labels = ep.arange(dummy, 10)
     assert not repr(
         fbn.Misclassification(labels) & fbn.Misclassification(labels)
     ).startswith("<")
 
 
-def test_repr_targeted_misclassification(dummy) -> None:
+def test_repr_targeted_misclassification(dummy: ep.Tensor) -> None:
     target_classes = ep.arange(dummy, 10)
     assert not repr(fbn.TargetedMisclassification(target_classes)).startswith("<")

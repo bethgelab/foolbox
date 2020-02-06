@@ -1,4 +1,6 @@
-from typing import Optional, Tuple
+# mypy: disallow_untyped_defs
+
+from typing import Optional, Tuple, Any
 import eagerpy as ep
 import foolbox
 import warnings
@@ -7,7 +9,7 @@ from .types import Bounds
 from .models import Model
 
 
-def accuracy(fmodel: Model, inputs, labels) -> float:
+def accuracy(fmodel: Model, inputs: Any, labels: Any) -> float:
     inputs_, labels_ = ep.astensors(inputs, labels)
     del inputs, labels
 
@@ -17,20 +19,20 @@ def accuracy(fmodel: Model, inputs, labels) -> float:
 
 
 def samples(
-    fmodel,
-    dataset="imagenet",
-    index=0,
-    batchsize=1,
+    fmodel: Model,
+    dataset: str = "imagenet",
+    index: int = 0,
+    batchsize: int = 1,
     shape: Tuple[int, int] = (224, 224),
     data_format: Optional[str] = None,
     bounds: Optional[Bounds] = None,
-):
+) -> Any:
     if hasattr(fmodel, "data_format"):
         if data_format is None:
-            data_format = fmodel.data_format
-        elif data_format != fmodel.data_format:
+            data_format = fmodel.data_format  # type: ignore
+        elif data_format != fmodel.data_format:  # type: ignore
             raise ValueError(
-                f"data_format ({data_format}) does not match model.data_format ({fmodel.data_format})"
+                f"data_format ({data_format}) does not match model.data_format ({fmodel.data_format})"  # type: ignore
             )
     elif data_format is None:
         raise ValueError(
@@ -49,9 +51,9 @@ def samples(
         bounds=bounds,
     )
 
-    if hasattr(fmodel, "dummy") and fmodel.dummy is not None:
-        images = ep.from_numpy(fmodel.dummy, images).raw
-        labels = ep.from_numpy(fmodel.dummy, labels).raw
+    if hasattr(fmodel, "dummy") and fmodel.dummy is not None:  # type: ignore
+        images = ep.from_numpy(fmodel.dummy, images).raw  # type: ignore
+        labels = ep.from_numpy(fmodel.dummy, labels).raw  # type: ignore
     else:
         warnings.warn(f"unknown model type {type(fmodel)}, returning NumPy arrays")
 

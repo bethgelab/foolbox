@@ -1,3 +1,5 @@
+# mypy: disallow_untyped_defs
+
 from typing import TypeVar, Callable, Optional, Tuple, Any
 from abc import ABC, abstractmethod
 import copy
@@ -43,7 +45,7 @@ class TransformBoundsWrapper(Model):
         z = self._model(y)
         return restore_type(z)
 
-    def transform_bounds(self, bounds: BoundsInput, inplace=False) -> Model:
+    def transform_bounds(self, bounds: BoundsInput, inplace: bool = False) -> Model:
         if inplace:
             self._bounds = Bounds(*bounds)
             return self
@@ -99,7 +101,7 @@ class ModelWithPreprocessing(Model):
         return restore_type(z)
 
     def transform_bounds(
-        self: ModelType, bounds: BoundsInput, inplace=False
+        self: ModelType, bounds: BoundsInput, inplace: bool = False
     ) -> ModelType:
         """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
         # more efficient than the base class implementation because it avoids the additional wrapper
