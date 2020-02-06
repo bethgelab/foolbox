@@ -11,7 +11,7 @@ F = TypeVar("F", bound=FuncType)
 
 def maybenoop(f: F) -> F:
     @wraps(f)
-    def wrapper(self: TensorBoard, *args: Any, **kwds: Any) -> None:
+    def wrapper(self: "TensorBoard", *args: Any, **kwds: Any) -> None:
         if self.writer is None:
             return
         return f(self, *args, **kwds)
