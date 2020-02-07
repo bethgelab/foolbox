@@ -1,3 +1,5 @@
+**WARNING: This README is subject to change and has not been updated for this repo**
+
 .. image:: https://badge.fury.io/py/foolbox-native.svg
     :target: https://badge.fury.io/py/foolbox-native
 

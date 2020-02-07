@@ -15,8 +15,7 @@ exclude = '''
   | build
   | dist
 
-  # specific to Foolbox Native
-  | worktrees
+  # specific to Foolbox
   | .pytest_cache
 )/
 '''

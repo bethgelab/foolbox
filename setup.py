@@ -1,8 +1,8 @@
-from setuptools import setup
-from setuptools import find_namespace_packages
+from setuptools import setup  # type: ignore
+from setuptools import find_packages
 from os.path import join, dirname
 
-with open(join(dirname(__file__), "foolbox/ext/native/VERSION")) as f:
+with open(join(dirname(__file__), "foolbox/VERSION")) as f:
     version = f.read().strip()
 
 try:
@@ -14,14 +14,14 @@ except IOError:
     README = ""
 
 
-install_requires = ["numpy", "scipy", "setuptools", "foolbox>=2.3.0", "eagerpy==0.19.0"]
+install_requires = ["numpy", "scipy", "setuptools", "eagerpy==0.19.0"]
 tests_require = ["pytest", "pytest-cov"]
 
 
 setup(
-    name="foolbox-native",
+    name="foolbox",
     version=version,
-    description="Foolbox Native is an extension for Foolbox that tries to bring native performance to Foolbox. This extension is a prototype with the goal of ultimately becoming part of Foolbox itself.",
+    description="Foolbox Native is an adversarial attacks library that works natively with PyTorch, TensorFlow and JAX",
     long_description=README,
     long_description_content_type="text/x-rst",
     classifiers=[
@@ -31,14 +31,15 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
     keywords="",
     author="Jonas Rauber",
     author_email="git@jonasrauber.de",
-    url="https://github.com/jonasrauber/foolbox-native",
+    url="https://github.com/bethgelab/foolbox",
     license="",
-    packages=find_namespace_packages(include=["foolbox.*"]),
+    packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
     install_requires=install_requires,

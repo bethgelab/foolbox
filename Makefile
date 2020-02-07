@@ -1,26 +1,26 @@
 .PHONY: test
 test:
-	pytest --pdb --cov=foolbox.ext.native
-	pytest --pdb --cov=foolbox.ext.native --cov-append --backend pytorch
-	pytest --pdb --cov=foolbox.ext.native --cov-append --backend tensorflow
-	pytest --pdb --cov=foolbox.ext.native --cov-append --backend jax
-	pytest --pdb --cov=foolbox.ext.native --cov-append --backend numpy
+	pytest --pdb --cov=foolbox
+	pytest --pdb --cov=foolbox --cov-append --backend pytorch
+	pytest --pdb --cov=foolbox --cov-append --backend tensorflow
+	pytest --pdb --cov=foolbox --cov-append --backend jax
+	pytest --pdb --cov=foolbox --cov-append --backend numpy
 
 .PHONY: test
 testskipslow:
-	pytest --pdb --skipslow --cov=foolbox.ext.native
-	pytest --pdb --skipslow --cov=foolbox.ext.native --cov-append --backend pytorch
-	pytest --pdb --skipslow --cov=foolbox.ext.native --cov-append --backend tensorflow
-	pytest --pdb --skipslow --cov=foolbox.ext.native --cov-append --backend jax
-	pytest --pdb --skipslow --cov=foolbox.ext.native --cov-append --backend numpy
+	pytest --pdb --skipslow --cov=foolbox
+	pytest --pdb --skipslow --cov=foolbox --cov-append --backend pytorch
+	pytest --pdb --skipslow --cov=foolbox --cov-append --backend tensorflow
+	pytest --pdb --skipslow --cov=foolbox --cov-append --backend jax
+	pytest --pdb --skipslow --cov=foolbox --cov-append --backend numpy
 
 .PHONY: testattacks
 testattacks:
-	pytest --pdb --cov=foolbox.ext.native.attacks tests/test_attacks.py tests/attacks/
-	pytest --pdb --cov=foolbox.ext.native.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend pytorch
-	pytest --pdb --cov=foolbox.ext.native.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend tensorflow
-	pytest --pdb --cov=foolbox.ext.native.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend jax
-	pytest --pdb --cov=foolbox.ext.native.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend numpy
+	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py tests/attacks/
+	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend pytorch
+	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend tensorflow
+	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend jax
+	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend numpy
 
 .PHONY: black
 black:
@@ -36,7 +36,7 @@ flake8:
 
 .PHONY: mypy
 mypy:
-	mypy -p foolbox.ext.native
+	mypy -p foolbox
 	mypy tests/
 	# mypy tests/attacks/
 
@@ -54,9 +54,9 @@ build:
 
 .PHONY: commit
 commit:
-	git add foolbox/ext/native/VERSION
-	git commit -m 'Version $(shell cat foolbox/ext/native/VERSION)'
+	git add foolbox/VERSION
+	git commit -m 'Version $(shell cat foolbox/VERSION)'
 
 .PHONY: release
 release: build
-	twine upload dist/foolbox-native-$(shell cat foolbox/ext/native/VERSION).tar.gz
+	twine upload dist/foolbox-$(shell cat foolbox/VERSION).tar.gz
