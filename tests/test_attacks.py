@@ -2,7 +2,7 @@ from typing import List, Tuple
 import pytest
 import eagerpy as ep
 
-import foolbox.ext.native as fbn
+import foolbox as fbn
 
 L2 = fbn.types.L2
 Linf = fbn.types.Linf

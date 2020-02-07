@@ -2,7 +2,7 @@ from typing import Union, Any
 from typing_extensions import Literal
 import pytest
 import eagerpy as ep
-import foolbox.ext.native as fbn
+import foolbox as fbn
 
 
 @pytest.mark.parametrize("logdir", [False, "temp"])

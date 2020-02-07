@@ -1,6 +1,6 @@
 import pytest
 import eagerpy as ep
-import foolbox.ext.native as fbn
+import foolbox as fbn
 
 
 def test_plot(dummy: ep.Tensor) -> None:

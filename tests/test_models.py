@@ -4,7 +4,7 @@ import eagerpy as ep
 import numpy as np
 import copy
 
-import foolbox.ext.native as fbn
+import foolbox as fbn
 
 ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 

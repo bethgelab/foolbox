@@ -1,5 +1,5 @@
 import pytest
-import foolbox.ext.native as fbn
+import foolbox as fbn
 import eagerpy as ep
 
 

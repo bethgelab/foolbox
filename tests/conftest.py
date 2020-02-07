@@ -4,7 +4,7 @@ import pytest
 import eagerpy as ep
 
 import foolbox
-import foolbox.ext.native as fbn
+import foolbox as fbn
 
 ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 
@@ -241,40 +241,40 @@ def jax_simple_model(request: Any) -> ModelAndData:
     return fmodel, x, y
 
 
-def foolbox2_simple_model(channel_axis: int) -> ModelAndData:
-    class Foolbox2DummyModel(foolbox.models.base.Model):  # type: ignore
-        def __init__(self) -> None:
-            super().__init__(
-                bounds=(0, 1), channel_axis=channel_axis, preprocessing=(0, 1)
-            )
-
-        def forward(self, inputs: Any) -> Any:
-            if channel_axis == 1:
-                return inputs.mean(axis=(2, 3))
-            elif channel_axis == 3:
-                return inputs.mean(axis=(1, 2))
-
-        def num_classes(self) -> int:
-            return 3
-
-    model = Foolbox2DummyModel()
-    fmodel = fbn.Foolbox2Model(model)
-
-    with pytest.warns(UserWarning):
-        x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
-    x = ep.astensor(x)
-    y = fmodel(x).argmax(axis=-1)
-    return fmodel, x, y
-
-
-@register("numpy")
-def foolbox2_simple_model_1(request: Any) -> ModelAndData:
-    return foolbox2_simple_model(1)
+# def foolbox2_simple_model(channel_axis: int) -> ModelAndData:
+#     class Foolbox2DummyModel(foolbox.models.base.Model):  # type: ignore
+#         def __init__(self) -> None:
+#             super().__init__(
+#                 bounds=(0, 1), channel_axis=channel_axis, preprocessing=(0, 1)
+#             )
+#
+#         def forward(self, inputs: Any) -> Any:
+#             if channel_axis == 1:
+#                 return inputs.mean(axis=(2, 3))
+#             elif channel_axis == 3:
+#                 return inputs.mean(axis=(1, 2))
+#
+#         def num_classes(self) -> int:
+#             return 3
+#
+#     model = Foolbox2DummyModel()
+#     fmodel = fbn.Foolbox2Model(model)
+#
+#     with pytest.warns(UserWarning):
+#         x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+#     x = ep.astensor(x)
+#     y = fmodel(x).argmax(axis=-1)
+#     return fmodel, x, y
 
 
-@register("numpy")
-def foolbox2_simple_model_3(request: Any) -> ModelAndData:
-    return foolbox2_simple_model(3)
+# @register("numpy")
+# def foolbox2_simple_model_1(request: Any) -> ModelAndData:
+#     return foolbox2_simple_model(1)
+
+
+# @register("numpy")
+# def foolbox2_simple_model_3(request: Any) -> ModelAndData:
+#     return foolbox2_simple_model(3)
 
 
 @pytest.fixture(scope="session", params=list(models.keys()))
