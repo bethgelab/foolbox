@@ -1,18 +1,18 @@
 .PHONY: test
 test:
-	pytest --cov=foolbox.ext.native
-	pytest --cov=foolbox.ext.native --cov-append --backend pytorch
-	pytest --cov=foolbox.ext.native --cov-append --backend tensorflow
-	pytest --cov=foolbox.ext.native --cov-append --backend jax
-	pytest --cov=foolbox.ext.native --cov-append --backend numpy
+	pytest --pdb --cov=foolbox.ext.native
+	pytest --pdb --cov=foolbox.ext.native --cov-append --backend pytorch
+	pytest --pdb --cov=foolbox.ext.native --cov-append --backend tensorflow
+	pytest --pdb --cov=foolbox.ext.native --cov-append --backend jax
+	pytest --pdb --cov=foolbox.ext.native --cov-append --backend numpy
 
 .PHONY: test
 testskipslow:
-	pytest --skipslow --cov=foolbox.ext.native
-	pytest --skipslow --cov=foolbox.ext.native --cov-append --backend pytorch
-	pytest --skipslow --cov=foolbox.ext.native --cov-append --backend tensorflow
-	pytest --skipslow --cov=foolbox.ext.native --cov-append --backend jax
-	pytest --skipslow --cov=foolbox.ext.native --cov-append --backend numpy
+	pytest --pdb --skipslow --cov=foolbox.ext.native
+	pytest --pdb --skipslow --cov=foolbox.ext.native --cov-append --backend pytorch
+	pytest --pdb --skipslow --cov=foolbox.ext.native --cov-append --backend tensorflow
+	pytest --pdb --skipslow --cov=foolbox.ext.native --cov-append --backend jax
+	pytest --pdb --skipslow --cov=foolbox.ext.native --cov-append --backend numpy
 
 .PHONY: testattacks
 testattacks:
