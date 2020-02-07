@@ -12,3 +12,4 @@ repos:
   rev: v0.761
   hooks:
   - id: mypy
+    args: ["--config-file setup.cfg"]
