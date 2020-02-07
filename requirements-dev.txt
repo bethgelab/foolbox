@@ -1,4 +1,4 @@
-python-coveralls==2.9.3
+coveralls==1.10.0
 mypy==0.761
 flake8==3.7.9
 pytest==5.3.5
