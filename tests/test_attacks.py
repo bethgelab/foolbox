@@ -1,4 +1,4 @@
-from typing import List, Tuple, Type, TypeVar
+from typing import List, Tuple
 import pytest
 import eagerpy as ep
 
