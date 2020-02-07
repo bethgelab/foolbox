@@ -1,20 +1,17 @@
 import pytest
-import mxnet as mx
 import numpy as np
 
 from foolbox.models import MXNetGluonModel
-from mxnet.gluon import HybridBlock
-
-
-class MeanBrightnessNet(HybridBlock):  # type: ignore
-    def hybrid_forward(self, F, x, *args, **kwargs):
-        return mx.nd.mean(x, axis=(2, 3))
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model(num_classes):
+def test_model(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
+
+    class MeanBrightnessNet(mxnet.gluon.HybridBlock):
+        def hybrid_forward(self, F, x, *args, **kwargs):
+            return mxnet.nd.mean(x, axis=(2, 3))
 
     block = MeanBrightnessNet()
 
@@ -45,14 +42,18 @@ def test_model(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model_gradient(num_classes):
+def test_model_gradient(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
+
+    class MeanBrightnessNet(mxnet.gluon.HybridBlock):
+        def hybrid_forward(self, F, x, *args, **kwargs):
+            return mxnet.nd.mean(x, axis=(2, 3))
 
     block = MeanBrightnessNet()
 
     model = MXNetGluonModel(
-        block, ctx=mx.cpu(), num_classes=num_classes, bounds=bounds, channel_axis=1
+        block, ctx=mxnet.cpu(), num_classes=num_classes, bounds=bounds, channel_axis=1
     )
 
     test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
@@ -73,14 +74,18 @@ def test_model_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model_forward_gradient(num_classes):
+def test_model_forward_gradient(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
+
+    class MeanBrightnessNet(mxnet.gluon.HybridBlock):
+        def hybrid_forward(self, F, x, *args, **kwargs):
+            return mxnet.nd.mean(x, axis=(2, 3))
 
     block = MeanBrightnessNet()
 
     model = MXNetGluonModel(
-        block, ctx=mx.cpu(), num_classes=num_classes, bounds=bounds, channel_axis=1
+        block, ctx=mxnet.cpu(), num_classes=num_classes, bounds=bounds, channel_axis=1
     )
 
     test_images = np.random.rand(5, channels, 5, 5).astype(np.float32)
@@ -102,14 +107,18 @@ def test_model_forward_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model_backward(num_classes):
+def test_model_backward(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
+
+    class MeanBrightnessNet(mxnet.gluon.HybridBlock):
+        def hybrid_forward(self, F, x, *args, **kwargs):
+            return mxnet.nd.mean(x, axis=(2, 3))
 
     block = MeanBrightnessNet()
 
     model = MXNetGluonModel(
-        block, ctx=mx.cpu(), num_classes=num_classes, bounds=bounds, channel_axis=1
+        block, ctx=mxnet.cpu(), num_classes=num_classes, bounds=bounds, channel_axis=1
     )
 
     test_image = np.random.rand(channels, 5, 5).astype(np.float32)

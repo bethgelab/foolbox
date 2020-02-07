@@ -30,23 +30,22 @@ def test_caffe_model(bn_model_caffe, num_classes):
     assert model.num_classes() == num_classes
 
 
-def test_caffe_model_gradient(tmpdir):
-    import caffe
-    from caffe import layers as L
-
+def test_caffe_model_gradient(request, caffe, tmpdir):
     bounds = (0, 255)
     channels = num_classes = 1000
 
     net_spec = caffe.NetSpec()
-    net_spec.data = L.Input(name="data", shape=dict(dim=[1, num_classes, 5, 5]))
-    net_spec.reduce_1 = L.Reduction(
+    net_spec.data = caffe.layers.Input(
+        name="data", shape=dict(dim=[1, num_classes, 5, 5])
+    )
+    net_spec.reduce_1 = caffe.layers.Reduction(
         net_spec.data, reduction_param={"operation": 4, "axis": 3}
     )
-    net_spec.output = L.Reduction(
+    net_spec.output = caffe.layers.Reduction(
         net_spec.reduce_1, reduction_param={"operation": 4, "axis": 2}
     )
-    net_spec.label = L.Input(name="label", shape=dict(dim=[1]))
-    net_spec.loss = L.SoftmaxWithLoss(net_spec.output, net_spec.label)
+    net_spec.label = caffe.layers.Input(name="label", shape=dict(dim=[1]))
+    net_spec.loss = caffe.layers.SoftmaxWithLoss(net_spec.output, net_spec.label)
     wf = tmpdir.mkdir("test_models_caffe").join(
         "test_caffe_model_gradient_proto_{}.prototxt".format(num_classes)
     )
@@ -76,23 +75,22 @@ def test_caffe_model_gradient(tmpdir):
     )
 
 
-def test_caffe_model_forward_gradient(tmpdir):
-    import caffe
-    from caffe import layers as L
-
+def test_caffe_model_forward_gradient(request, caffe, tmpdir):
     bounds = (0, 255)
     channels = num_classes = 1000
 
     net_spec = caffe.NetSpec()
-    net_spec.data = L.Input(name="data", shape=dict(dim=[1, num_classes, 5, 5]))
-    net_spec.reduce_1 = L.Reduction(
+    net_spec.data = caffe.layers.Input(
+        name="data", shape=dict(dim=[1, num_classes, 5, 5])
+    )
+    net_spec.reduce_1 = caffe.layers.Reduction(
         net_spec.data, reduction_param={"operation": 4, "axis": 3}
     )
-    net_spec.output = L.Reduction(
+    net_spec.output = caffe.layers.Reduction(
         net_spec.reduce_1, reduction_param={"operation": 4, "axis": 2}
     )
-    net_spec.label = L.Input(name="label", shape=dict(dim=[1]))
-    net_spec.loss = L.SoftmaxWithLoss(net_spec.output, net_spec.label)
+    net_spec.label = caffe.layers.Input(name="label", shape=dict(dim=[1]))
+    net_spec.loss = caffe.layers.SoftmaxWithLoss(net_spec.output, net_spec.label)
     wf = tmpdir.mkdir("test_models_caffe").join(
         "test_caffe_model_gradient_proto_{}.prototxt".format(num_classes)
     )
@@ -145,23 +143,22 @@ def test_caffe_backward(bn_model_caffe, num_classes):
     np.testing.assert_almost_equal(test_grad, manual_grad)
 
 
-def test_caffe_model_preprocessing_shape_change(tmpdir):
-    import caffe
-    from caffe import layers as L
-
+def test_caffe_model_preprocessing_shape_change(request, caffe, tmpdir):
     bounds = (0, 255)
     channels = num_classes = 1000
 
     net_spec = caffe.NetSpec()
-    net_spec.data = L.Input(name="data", shape=dict(dim=[1, num_classes, 5, 5]))
-    net_spec.reduce_1 = L.Reduction(
+    net_spec.data = caffe.layers.Input(
+        name="data", shape=dict(dim=[1, num_classes, 5, 5])
+    )
+    net_spec.reduce_1 = caffe.layers.Reduction(
         net_spec.data, reduction_param={"operation": 4, "axis": 3}
     )
-    net_spec.output = L.Reduction(
+    net_spec.output = caffe.layers.Reduction(
         net_spec.reduce_1, reduction_param={"operation": 4, "axis": 2}
     )
-    net_spec.label = L.Input(name="label", shape=dict(dim=[1]))
-    net_spec.loss = L.SoftmaxWithLoss(net_spec.output, net_spec.label)
+    net_spec.label = caffe.layers.Input(name="label", shape=dict(dim=[1]))
+    net_spec.loss = caffe.layers.SoftmaxWithLoss(net_spec.output, net_spec.label)
     wf = tmpdir.mkdir("test_models_caffe").join(
         "test_caffe_model_preprocessing_shape_change_{}.prototxt".format(num_classes)
     )

@@ -1,19 +1,16 @@
 import pytest
 import numpy as np
-import tensorflow as tf
 
 from foolbox.models import TensorFlowEagerModel
 
-tf.enable_eager_execution()
-
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_eager_model(num_classes):
+def test_eager_model(tfe, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfe.reduce_mean(images, axis=(1, 2))
         return logits
 
     model = TensorFlowEagerModel(
@@ -41,13 +38,13 @@ def test_eager_model(num_classes):
     assert model.num_classes() == num_classes
 
 
-def test_eager_model_preprocessing():
+def test_eager_model_preprocessing(tfe):
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfe.reduce_mean(images, axis=(1, 2))
         return logits
 
     model = mean_brightness_net
@@ -83,13 +80,13 @@ def test_eager_model_preprocessing():
     np.testing.assert_array_almost_equal(p1 - p1.max(), p3 - p3.max(), decimal=5)
 
 
-def test_eager_model_gradient():
+def test_eager_model_gradient(tfe):
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfe.reduce_mean(images, axis=(1, 2))
         return logits
 
     model = mean_brightness_net
@@ -122,13 +119,13 @@ def test_eager_model_gradient():
     )
 
 
-def test_eager_model_forward_gradient():
+def test_eager_model_forward_gradient(tfe):
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfe.reduce_mean(images, axis=(1, 2))
         return logits
 
     model = mean_brightness_net
@@ -166,12 +163,12 @@ def test_eager_model_forward_gradient():
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_eager_backward(num_classes):
+def test_eager_backward(tfe, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfe.reduce_mean(images, axis=(1, 2))
         return logits
 
     model = mean_brightness_net
@@ -191,18 +188,18 @@ def test_eager_backward(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_eager_auto_classes(num_classes):
+def test_eager_auto_classes(tfe, num_classes):
     """tests whether num_classes can be detected automatically"""
     bounds = (0, 255)
 
     def create_model():
         data_format = "channels_first"
         input_shape = [1, 28, 28]
-        l = tf.keras.layers  # noqa: E741
+        l = tfe.keras.layers  # noqa: E741
         max_pool = l.MaxPooling2D(
             (2, 2), (2, 2), padding="same", data_format=data_format
         )
-        return tf.keras.Sequential(
+        return tfe.keras.Sequential(
             [
                 l.Reshape(target_shape=input_shape, input_shape=(28 * 28,)),
                 l.Conv2D(
@@ -210,7 +207,7 @@ def test_eager_auto_classes(num_classes):
                     5,
                     padding="same",
                     data_format=data_format,
-                    activation=tf.nn.relu,
+                    activation=tfe.nn.relu,
                 ),
                 max_pool,
                 l.Conv2D(
@@ -218,11 +215,11 @@ def test_eager_auto_classes(num_classes):
                     5,
                     padding="same",
                     data_format=data_format,
-                    activation=tf.nn.relu,
+                    activation=tfe.nn.relu,
                 ),
                 max_pool,
                 l.Flatten(),
-                l.Dense(1024, activation=tf.nn.relu),
+                l.Dense(1024, activation=tfe.nn.relu),
                 l.Dropout(0.4),
                 l.Dense(num_classes),
             ]
@@ -234,11 +231,11 @@ def test_eager_auto_classes(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_eager_auto_classes_fail(num_classes):
+def test_eager_auto_classes_fail(tfe, num_classes):
     bounds = (0, 255)
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfe.reduce_mean(images, axis=(1, 2))
         return logits
 
     model = mean_brightness_net

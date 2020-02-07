@@ -1,23 +1,20 @@
 import pytest
 import numpy as np
-from lasagne.layers import GlobalPoolLayer
-from lasagne.layers import InputLayer
-import theano.tensor as T
 
 from foolbox.models import LasagneModel
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_lasagne_model(num_classes):
+def test_lasagne_model(theano, lasagne, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = GlobalPoolLayer(images)
+        logits = lasagne.layers.GlobalPoolLayer(images)
         return logits
 
-    images_var = T.tensor4("images", dtype="float32")
-    images = InputLayer((None, channels, 5, 5), images_var)
+    images_var = theano.tensor.tensor4("images", dtype="float32")
+    images = lasagne.layers.InputLayer((None, channels, 5, 5), images_var)
     logits = mean_brightness_net(images)
 
     model = LasagneModel(images, logits, bounds=bounds)
@@ -44,16 +41,16 @@ def test_lasagne_model(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_lasagne_gradient(num_classes):
+def test_lasagne_gradient(theano, lasagne, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = GlobalPoolLayer(images)
+        logits = lasagne.layers.GlobalPoolLayer(images)
         return logits
 
-    images_var = T.tensor4("images", dtype="float32")
-    images = InputLayer((None, channels, 5, 5), images_var)
+    images_var = theano.tensor.tensor4("images", dtype="float32")
+    images = lasagne.layers.InputLayer((None, channels, 5, 5), images_var)
     logits = mean_brightness_net(images)
 
     preprocessing = (
@@ -81,21 +78,21 @@ def test_lasagne_gradient(num_classes):
 
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
-        1e5 * (l2 - l1), 1e5 * epsilon * np.linalg.norm(g1) ** 2, decimal=1
+        1e4 * (l2 - l1), 1e4 * epsilon * np.linalg.norm(g1) ** 2, decimal=1
     )
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_lasagne_forward_gradient(num_classes):
+def test_lasagne_forward_gradient(theano, lasagne, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = GlobalPoolLayer(images)
+        logits = lasagne.layers.GlobalPoolLayer(images)
         return logits
 
-    images_var = T.tensor4("images", dtype="float32")
-    images = InputLayer((None, channels, 5, 5), images_var)
+    images_var = theano.tensor.tensor4("images", dtype="float32")
+    images = lasagne.layers.InputLayer((None, channels, 5, 5), images_var)
     logits = mean_brightness_net(images)
 
     preprocessing = (
@@ -128,16 +125,16 @@ def test_lasagne_forward_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_lasagne_backward(num_classes):
+def test_lasagne_backward(theano, lasagne, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = GlobalPoolLayer(images)
+        logits = lasagne.layers.GlobalPoolLayer(images)
         return logits
 
-    images_var = T.tensor4("images", dtype="float32")
-    images = InputLayer((None, channels, 5, 5), images_var)
+    images_var = theano.tensor.tensor4("images", dtype="float32")
+    images = lasagne.layers.InputLayer((None, channels, 5, 5), images_var)
     logits = mean_brightness_net(images)
 
     model = LasagneModel(images, logits, bounds=bounds)

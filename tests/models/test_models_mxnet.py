@@ -1,27 +1,26 @@
 import pytest
-import mxnet as mx
 import numpy as np
 
 from foolbox.models import MXNetModel
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model(num_classes):
+def test_model(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = mx.symbol.mean(images, axis=(2, 3))
+        logits = mxnet.symbol.mean(images, axis=(2, 3))
         return logits
 
-    images = mx.symbol.Variable("images")
+    images = mxnet.symbol.Variable("images")
     logits = mean_brightness_net(images)
 
     model = MXNetModel(
         images,
         logits,
         {},
-        ctx=mx.cpu(),
+        ctx=mxnet.cpu(),
         num_classes=num_classes,
         bounds=bounds,
         channel_axis=1,
@@ -50,15 +49,15 @@ def test_model(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model_gradient(num_classes):
+def test_model_gradient(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = mx.symbol.mean(images, axis=(2, 3))
+        logits = mxnet.symbol.mean(images, axis=(2, 3))
         return logits
 
-    images = mx.symbol.Variable("images")
+    images = mxnet.symbol.Variable("images")
     logits = mean_brightness_net(images)
 
     preprocessing = (
@@ -70,7 +69,7 @@ def test_model_gradient(num_classes):
         images,
         logits,
         {},
-        ctx=mx.cpu(),
+        ctx=mxnet.cpu(),
         num_classes=num_classes,
         bounds=bounds,
         preprocessing=preprocessing,
@@ -95,15 +94,15 @@ def test_model_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model_forward_gradient(num_classes):
+def test_model_forward_gradient(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = mx.symbol.mean(images, axis=(2, 3))
+        logits = mxnet.symbol.mean(images, axis=(2, 3))
         return logits
 
-    images = mx.symbol.Variable("images")
+    images = mxnet.symbol.Variable("images")
     logits = mean_brightness_net(images)
 
     preprocessing = (
@@ -115,7 +114,7 @@ def test_model_forward_gradient(num_classes):
         images,
         logits,
         {},
-        ctx=mx.cpu(),
+        ctx=mxnet.cpu(),
         num_classes=num_classes,
         bounds=bounds,
         preprocessing=preprocessing,
@@ -141,22 +140,22 @@ def test_model_forward_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model_backward(num_classes):
+def test_model_backward(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = mx.symbol.mean(images, axis=(2, 3))
+        logits = mxnet.symbol.mean(images, axis=(2, 3))
         return logits
 
-    images = mx.symbol.Variable("images")
+    images = mxnet.symbol.Variable("images")
     logits = mean_brightness_net(images)
 
     model = MXNetModel(
         images,
         logits,
         {},
-        ctx=mx.cpu(),
+        ctx=mxnet.cpu(),
         num_classes=num_classes,
         bounds=bounds,
         channel_axis=1,

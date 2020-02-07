@@ -1,0 +1,10 @@
+-r requirements-dev.txt
+responses==0.10.9
+pillow==7.0.0
+randomgen==1.18.1
+tensorflow==2.1.0
+theano==1.0.4
+keras==2.3.1
+mxnet==1.5.1.post0
+jax==0.1.57
+jaxlib==0.1.37

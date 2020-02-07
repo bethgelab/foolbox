@@ -24,3 +24,19 @@ def test_base_model():
     with TestModel(bounds=(0, 1), channel_axis=1) as model:
         assert model.bounds() == (0, 1)
         assert model.channel_axis() == 1
+
+
+def test_backend(request):
+    backend = request.config.option.backend
+    if backend is None:
+        return
+    assert backend in [
+        "tensorflow-graph",
+        "tensorflow-eager",
+        "pytorch",
+        "jax",
+        "keras",
+        "mxnet",
+        "theano",
+        "caffe",
+    ]

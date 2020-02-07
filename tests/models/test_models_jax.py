@@ -5,9 +5,7 @@ from foolbox.models import JAXModel
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_jax_model(num_classes):
-    import jax.numpy as jnp
-
+def test_jax_model(jnp, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
@@ -37,9 +35,7 @@ def test_jax_model(num_classes):
     assert model.num_classes() == num_classes
 
 
-def test_jax_model_preprocessing():
-    import jax.numpy as jnp
-
+def test_jax_model_preprocessing(jnp):
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
@@ -78,9 +74,7 @@ def test_jax_model_preprocessing():
     np.testing.assert_array_almost_equal(p1 - p1.max(), p3 - p3.max(), decimal=5)
 
 
-def test_jax_model_gradient():
-    import jax.numpy as jnp
-
+def test_jax_model_gradient(jnp):
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
@@ -114,9 +108,7 @@ def test_jax_model_gradient():
     )
 
 
-def test_jax_model_forward_gradient():
-    import jax.numpy as jnp
-
+def test_jax_model_forward_gradient(jnp):
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
@@ -151,9 +143,7 @@ def test_jax_model_forward_gradient():
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_jax_backward(num_classes):
-    import jax.numpy as jnp
-
+def test_jax_backward(jnp, num_classes):
     bounds = (0, 255)
     channels = num_classes
 

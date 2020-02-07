@@ -1,20 +1,19 @@
 import pytest
 import numpy as np
-import theano.tensor as T
 
 from foolbox.models import TheanoModel
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_theano_model(num_classes):
+def test_theano_model(theano, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = T.mean(images, axis=(2, 3))
+        logits = theano.tensor.mean(images, axis=(2, 3))
         return logits
 
-    images = T.tensor4("images")
+    images = theano.tensor.tensor4("images")
     logits = mean_brightness_net(images)
 
     model = TheanoModel(images, logits, num_classes=num_classes, bounds=bounds)
@@ -41,15 +40,15 @@ def test_theano_model(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_theano_gradient(num_classes):
+def test_theano_gradient(theano, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = T.mean(images, axis=(2, 3))
+        logits = theano.tensor.mean(images, axis=(2, 3))
         return logits
 
-    images = T.tensor4("images")
+    images = theano.tensor.tensor4("images")
     logits = mean_brightness_net(images)
 
     preprocessing = (
@@ -88,15 +87,15 @@ def test_theano_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_theano_forward_gradient(num_classes):
+def test_theano_forward_gradient(theano, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = T.mean(images, axis=(2, 3))
+        logits = theano.tensor.mean(images, axis=(2, 3))
         return logits
 
-    images = T.tensor4("images")
+    images = theano.tensor.tensor4("images")
     logits = mean_brightness_net(images)
 
     preprocessing = (
@@ -135,15 +134,15 @@ def test_theano_forward_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_theano_backward(num_classes):
+def test_theano_backward(theano, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = T.mean(images, axis=(2, 3))
+        logits = theano.tensor.mean(images, axis=(2, 3))
         return logits
 
-    images = T.tensor4("images")
+    images = theano.tensor.tensor4("images")
     logits = mean_brightness_net(images)
 
     model = TheanoModel(images, logits, num_classes=num_classes, bounds=bounds)
