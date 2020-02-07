@@ -40,7 +40,10 @@ class TensorFlowEagerModel(DifferentiableModel):
         # delay import until class is instantiated
         import tensorflow as tf
 
-        assert tf.executing_eagerly()
+        if not tf.executing_eagerly():
+            raise RuntimeError(
+                "TensorFlow not in eager mode, consider using TensorFlowModel"
+            )
 
         super(TensorFlowEagerModel, self).__init__(
             bounds=bounds, channel_axis=channel_axis, preprocessing=preprocessing

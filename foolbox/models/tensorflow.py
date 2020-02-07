@@ -41,6 +41,12 @@ class TensorFlowModel(DifferentiableModel):
         # delay import until class is instantiated
         import tensorflow as tf
 
+        if tf.executing_eagerly():
+            raise RuntimeError(
+                "TensorFlow in eager mode, consider using TensorFlowEagerModel"
+            )
+        tf = tf.compat.v1
+
         session = tf.get_default_session()
         if session is None:
             logging.warning(
@@ -119,6 +125,12 @@ class TensorFlowModel(DifferentiableModel):
 
         """
         import tensorflow as tf
+
+        if tf.executing_eagerly():
+            raise RuntimeError(
+                "TensorFlow in eager mode, consider using TensorFlowEagerModel"
+            )
+        tf = tf.compat.v1
 
         if channel_axis == "auto":
             if tf.keras.backend.image_data_format() == "channels_first":
