@@ -218,7 +218,7 @@ def test_keras_model_forward_gradients():
 
     _, g1 = model.forward_and_gradient(test_images, test_labels)
 
-    test_label_array = np.array([test_labels])
+    test_label_array = np.array(test_labels)
     l1 = model._loss_fn([test_images - eps / 2 * g1, test_label_array])[0]
     l2 = model._loss_fn([test_images + eps / 2 * g1, test_label_array])[0]
 

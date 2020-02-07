@@ -110,7 +110,7 @@ class PyTorchModel(DifferentiableModel):
         inputs.requires_grad_()
 
         predictions = self._model(inputs)
-        ce = nn.CrossEntropyLoss()
+        ce = nn.CrossEntropyLoss(reduction="sum")
         loss = ce(predictions, target)
         loss.backward()
         grad = inputs.grad
@@ -141,7 +141,7 @@ class PyTorchModel(DifferentiableModel):
         inputs.requires_grad_()
 
         predictions = self._model(inputs)
-        ce = nn.CrossEntropyLoss()
+        ce = nn.CrossEntropyLoss(reduction="sum")
         loss = ce(predictions, labels)
         loss.backward()
         grad = inputs.grad
@@ -169,7 +169,7 @@ class PyTorchModel(DifferentiableModel):
         inputs.requires_grad_()
 
         predictions = self._model(inputs)
-        ce = nn.CrossEntropyLoss()
+        ce = nn.CrossEntropyLoss(reduction="sum")
         loss = ce(predictions, target)
         loss.backward()
         grad = inputs.grad
@@ -195,7 +195,7 @@ class PyTorchModel(DifferentiableModel):
             inputs = inputs[0]
 
         predictions = self._model(inputs)
-        ce = nn.CrossEntropyLoss()
+        ce = nn.CrossEntropyLoss(reduction="sum")
         loss = ce(predictions, target)
         loss = loss.cpu().numpy()
         return loss
