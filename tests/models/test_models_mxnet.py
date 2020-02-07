@@ -1,27 +1,35 @@
 import pytest
 import numpy as np
-import theano.tensor as T
 
-from foolbox.models import TheanoModel
+from foolbox.models import MXNetModel
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_theano_model(num_classes):
+def test_model(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = T.mean(images, axis=(2, 3))
+        logits = mxnet.symbol.mean(images, axis=(2, 3))
         return logits
 
-    images = T.tensor4("images")
+    images = mxnet.symbol.Variable("images")
     logits = mean_brightness_net(images)
 
-    model = TheanoModel(images, logits, num_classes=num_classes, bounds=bounds)
+    model = MXNetModel(
+        images,
+        logits,
+        {},
+        ctx=mxnet.cpu(),
+        num_classes=num_classes,
+        bounds=bounds,
+        channel_axis=1,
+    )
 
     test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
     test_label = 7
 
+    # Tests
     assert model.forward(test_images).shape == (2, num_classes)
 
     test_logits = model.forward_one(test_images[0])
@@ -41,15 +49,15 @@ def test_theano_model(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_theano_gradient(num_classes):
+def test_model_gradient(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = T.mean(images, axis=(2, 3))
+        logits = mxnet.symbol.mean(images, axis=(2, 3))
         return logits
 
-    images = T.tensor4("images")
+    images = mxnet.symbol.Variable("images")
     logits = mean_brightness_net(images)
 
     preprocessing = (
@@ -57,76 +65,27 @@ def test_theano_gradient(num_classes):
         np.random.uniform(size=(channels, 5, 5)) + 1,
     )
 
-    model = TheanoModel(
+    model = MXNetModel(
         images,
         logits,
+        {},
+        ctx=mxnet.cpu(),
         num_classes=num_classes,
-        preprocessing=preprocessing,
         bounds=bounds,
+        preprocessing=preprocessing,
+        channel_axis=1,
     )
 
-    # theano and lasagne calculate the cross-entropy from the probbilities
-    # rather than combining softmax and cross-entropy calculation; they
-    # therefore have lower numerical accuracy
-    epsilon = 1e-3
-
-    np.random.seed(23)
-    test_image = np.random.rand(channels, 5, 5).astype(np.float32)
+    test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
+    test_image = test_images[0]
     test_label = 7
 
+    epsilon = 1e-2
     _, g1 = model.forward_and_gradient_one(test_image, test_label)
+    l1 = model._loss_fn(test_image - epsilon / 2 * g1, test_label)
+    l2 = model._loss_fn(test_image + epsilon / 2 * g1, test_label)
 
-    l1 = model._loss_fn(test_image[None] - epsilon / 2 * g1, [test_label])
-    l2 = model._loss_fn(test_image[None] + epsilon / 2 * g1, [test_label])
-
-    assert 1e5 * (l2 - l1) > 1
-
-    # make sure that gradient is numerically correct
-    np.testing.assert_array_almost_equal(
-        1e5 * (l2 - l1), 1e5 * epsilon * np.linalg.norm(g1) ** 2, decimal=1
-    )
-
-
-@pytest.mark.parametrize("num_classes", [10, 1000])
-def test_theano_forward_gradient(num_classes):
-    bounds = (0, 255)
-    channels = num_classes
-
-    def mean_brightness_net(images):
-        logits = T.mean(images, axis=(2, 3))
-        return logits
-
-    images = T.tensor4("images")
-    logits = mean_brightness_net(images)
-
-    preprocessing = (
-        np.arange(num_classes)[:, None, None],
-        np.random.uniform(size=(channels, 5, 5)) + 1,
-    )
-
-    model = TheanoModel(
-        images,
-        logits,
-        num_classes=num_classes,
-        preprocessing=preprocessing,
-        bounds=bounds,
-    )
-
-    # theano and lasagne calculate the cross-entropy from the probbilities
-    # rather than combining softmax and cross-entropy calculation; they
-    # therefore have lower numerical accuracy
-    epsilon = 1e-3
-
-    np.random.seed(23)
-    test_images = np.random.rand(5, channels, 5, 5).astype(np.float32)
-    test_labels = [7] * 5
-
-    _, g1 = model.forward_and_gradient(test_images, test_labels)
-
-    l1 = model._loss_fn(test_images - epsilon / 2 * g1, test_labels)
-    l2 = model._loss_fn(test_images + epsilon / 2 * g1, test_labels)
-
-    assert 1e5 * (l2 - l1) > 1
+    assert 1e4 * (l2 - l1) > 1
 
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
@@ -135,18 +94,72 @@ def test_theano_forward_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_theano_backward(num_classes):
+def test_model_forward_gradient(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = T.mean(images, axis=(2, 3))
+        logits = mxnet.symbol.mean(images, axis=(2, 3))
         return logits
 
-    images = T.tensor4("images")
+    images = mxnet.symbol.Variable("images")
     logits = mean_brightness_net(images)
 
-    model = TheanoModel(images, logits, num_classes=num_classes, bounds=bounds)
+    preprocessing = (
+        np.arange(num_classes)[:, None, None],
+        np.random.uniform(size=(channels, 5, 5)) + 1,
+    )
+
+    model = MXNetModel(
+        images,
+        logits,
+        {},
+        ctx=mxnet.cpu(),
+        num_classes=num_classes,
+        bounds=bounds,
+        preprocessing=preprocessing,
+        channel_axis=1,
+    )
+
+    test_images = np.random.rand(5, channels, 5, 5).astype(np.float32)
+    test_labels = [7] * 5
+
+    epsilon = 1e-2
+    _, g1 = model.forward_and_gradient(test_images, test_labels)
+    l1 = model._loss_fn(test_images - epsilon / 2 * g1, test_labels)
+    l2 = model._loss_fn(test_images + epsilon / 2 * g1, test_labels)
+
+    assert np.all(1e4 * (l2 - l1) > 1)
+
+    # make sure that gradient is numerically correct
+    np.testing.assert_array_almost_equal(
+        1e4 * (l2 - l1),
+        1e4 * epsilon * (np.linalg.norm(g1.reshape(len(g1), -1), axis=(-1)) ** 2).sum(),
+        decimal=1,
+    )
+
+
+@pytest.mark.parametrize("num_classes", [10, 1000])
+def test_model_backward(mxnet, num_classes):
+    bounds = (0, 255)
+    channels = num_classes
+
+    def mean_brightness_net(images):
+        logits = mxnet.symbol.mean(images, axis=(2, 3))
+        return logits
+
+    images = mxnet.symbol.Variable("images")
+    logits = mean_brightness_net(images)
+
+    model = MXNetModel(
+        images,
+        logits,
+        {},
+        ctx=mxnet.cpu(),
+        num_classes=num_classes,
+        bounds=bounds,
+        channel_axis=1,
+    )
 
     test_image = np.random.rand(channels, 5, 5).astype(np.float32)
     test_grad_pre = np.random.rand(num_classes).astype(np.float32)

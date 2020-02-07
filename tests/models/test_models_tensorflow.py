@@ -1,25 +1,24 @@
 import pytest
-import tensorflow as tf
 import numpy as np
 
 from foolbox.models import TensorFlowModel
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_tensorflow_model(num_classes):
+def test_tensorflow_model(request, tfg, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfg.reduce_mean(images, axis=(1, 2))
         return logits
 
-    g = tf.Graph()
+    g = tfg.Graph()
     with g.as_default():
-        images = tf.placeholder(tf.float32, (None, 5, 5, channels))
+        images = tfg.placeholder(tfg.float32, (None, 5, 5, channels))
         logits = mean_brightness_net(images)
 
-    with tf.Session(graph=g):
+    with tfg.Session(graph=g):
         model = TensorFlowModel(images, logits, bounds=bounds)
 
         assert model.session is not None
@@ -46,17 +45,17 @@ def test_tensorflow_model(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_tensorflow_model_cm(num_classes):
+def test_tensorflow_model_cm(request, tfg, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfg.reduce_mean(images, axis=(1, 2))
         return logits
 
-    g = tf.Graph()
+    g = tfg.Graph()
     with g.as_default():
-        images = tf.placeholder(tf.float32, (None, 5, 5, channels))
+        images = tfg.placeholder(tfg.float32, (None, 5, 5, channels))
         logits = mean_brightness_net(images)
 
     with TensorFlowModel(images, logits, bounds=bounds) as model:
@@ -83,12 +82,12 @@ def test_tensorflow_model_cm(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_tensorflow_preprocessing(num_classes):
+def test_tensorflow_preprocessing(request, tfg, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfg.reduce_mean(images, axis=(1, 2))
         return logits
 
     q = (
@@ -96,9 +95,9 @@ def test_tensorflow_preprocessing(num_classes):
         np.random.uniform(size=(5, 5, channels)) + 1,
     )
 
-    g = tf.Graph()
+    g = tfg.Graph()
     with g.as_default():
-        images = tf.placeholder(tf.float32, (None, 5, 5, channels))
+        images = tfg.placeholder(tfg.float32, (None, 5, 5, channels))
         logits = mean_brightness_net(images)
 
     with TensorFlowModel(images, logits, bounds=bounds, preprocessing=q) as model:
@@ -125,12 +124,12 @@ def test_tensorflow_preprocessing(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_tensorflow_gradient(num_classes):
+def test_tensorflow_gradient(request, tfg, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfg.reduce_mean(images, axis=(1, 2))
         return logits
 
     q = (
@@ -138,9 +137,9 @@ def test_tensorflow_gradient(num_classes):
         np.random.uniform(size=(5, 5, channels)) + 1,
     )
 
-    g = tf.Graph()
+    g = tfg.Graph()
     with g.as_default():
-        images = tf.placeholder(tf.float32, (None, 5, 5, channels))
+        images = tfg.placeholder(tfg.float32, (None, 5, 5, channels))
         logits = mean_brightness_net(images)
 
     with TensorFlowModel(images, logits, bounds=bounds, preprocessing=q) as model:
@@ -165,12 +164,12 @@ def test_tensorflow_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_tensorflow_forward_gradient(num_classes):
+def test_tensorflow_forward_gradient(request, tfg, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfg.reduce_mean(images, axis=(1, 2))
         return logits
 
     q = (
@@ -178,9 +177,9 @@ def test_tensorflow_forward_gradient(num_classes):
         np.random.uniform(size=(5, 5, channels)) + 1,
     )
 
-    g = tf.Graph()
+    g = tfg.Graph()
     with g.as_default():
-        images = tf.placeholder(tf.float32, (None, 5, 5, channels))
+        images = tfg.placeholder(tfg.float32, (None, 5, 5, channels))
         logits = mean_brightness_net(images)
 
     with TensorFlowModel(images, logits, bounds=bounds, preprocessing=q) as model:
@@ -209,20 +208,20 @@ def test_tensorflow_forward_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_tensorflow_backward(num_classes):
+def test_tensorflow_backward(request, tfg, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfg.reduce_mean(images, axis=(1, 2))
         return logits
 
-    g = tf.Graph()
+    g = tfg.Graph()
     with g.as_default():
-        images = tf.placeholder(tf.float32, (None, 5, 5, channels))
+        images = tfg.placeholder(tfg.float32, (None, 5, 5, channels))
         logits = mean_brightness_net(images)
 
-    with tf.Session(graph=g):
+    with tfg.Session(graph=g):
         model = TensorFlowModel(images, logits, bounds=bounds)
 
         assert model.session is not None
@@ -241,21 +240,21 @@ def test_tensorflow_backward(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_tensorflow_model_non_diff(num_classes):
+def test_tensorflow_model_non_diff(request, tfg, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfg.reduce_mean(images, axis=(1, 2))
         return logits
 
-    g = tf.Graph()
+    g = tfg.Graph()
     with g.as_default():
-        images = tf.placeholder(tf.float32, (None, 5, 5, channels))
-        images_nd = tf.cast(images > 0, tf.float32)
+        images = tfg.placeholder(tfg.float32, (None, 5, 5, channels))
+        images_nd = tfg.cast(images > 0, tfg.float32)
         logits = mean_brightness_net(images_nd)
 
-    with tf.Session(graph=g):
+    with tfg.Session(graph=g):
         model = TensorFlowModel(images, logits, bounds=bounds)
 
         assert model.session is not None
@@ -267,17 +266,17 @@ def test_tensorflow_model_non_diff(num_classes):
         assert (test_gradient == 0).all()
 
 
-def test_tf_keras_constructor():
+def test_tf_keras_constructor(request, tfg):
     bounds = (0, 255)
 
     def create_model():
         data_format = "channels_last"
         input_shape = [28, 28, 1]
-        l = tf.keras.layers  # noqa: E741
+        l = tfg.keras.layers  # noqa: E741
         max_pool = l.MaxPooling2D(
             (2, 2), (2, 2), padding="same", data_format=data_format
         )
-        return tf.keras.Sequential(
+        return tfg.keras.Sequential(
             [
                 l.Conv2D(
                     32,
@@ -285,7 +284,7 @@ def test_tf_keras_constructor():
                     padding="same",
                     data_format=data_format,
                     input_shape=input_shape,
-                    activation=tf.nn.relu,
+                    activation=tfg.nn.relu,
                 ),
                 max_pool,
                 l.Conv2D(
@@ -293,11 +292,11 @@ def test_tf_keras_constructor():
                     5,
                     padding="same",
                     data_format=data_format,
-                    activation=tf.nn.relu,
+                    activation=tfg.nn.relu,
                 ),
                 max_pool,
                 l.Flatten(),
-                l.Dense(1024, activation=tf.nn.relu),
+                l.Dense(1024, activation=tfg.nn.relu),
                 l.Dropout(0.4),
                 l.Dense(10),
             ]
@@ -307,17 +306,17 @@ def test_tf_keras_constructor():
     fmodel = TensorFlowModel.from_keras(model, bounds=bounds)
     assert fmodel.num_classes() == 10
 
-    fmodel.session.run(tf.global_variables_initializer())
+    fmodel.session.run(tfg.global_variables_initializer())
 
     test_images = np.random.rand(2, 28, 28, 1).astype(np.float32)
     assert fmodel.forward(test_images).shape == (2, 10)
 
 
-def test_tf_keras_exception():
+def test_tf_keras_exception(request, tfg):
     bounds = (0, 255)
 
     def mean_brightness_net(images):
-        logits = tf.reduce_mean(images, axis=(1, 2))
+        logits = tfg.reduce_mean(images, axis=(1, 2))
         return logits
 
     model = mean_brightness_net

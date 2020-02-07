@@ -1,19 +1,15 @@
 import pytest
 import numpy as np
-import torch
 
 from foolbox.models import PyTorchModel
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_pytorch_model(num_classes):
-    import torch
-    import torch.nn as nn
-
+def test_pytorch_model(torch, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
-    class Net(nn.Module):
+    class Net(torch.nn.Module):
         def __init__(self):
             super(Net, self).__init__()
 
@@ -23,7 +19,7 @@ def test_pytorch_model(num_classes):
             logits = x
             return logits
 
-    model = Net()
+    model = Net().eval()
     model = PyTorchModel(model, bounds=bounds, num_classes=num_classes)
 
     test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
@@ -47,15 +43,12 @@ def test_pytorch_model(num_classes):
     assert model.num_classes() == num_classes
 
 
-def test_pytorch_model_preprocessing():
-    import torch
-    import torch.nn as nn
-
+def test_pytorch_model_preprocessing(torch):
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
 
-    class Net(nn.Module):
+    class Net(torch.nn.Module):
         def __init__(self):
             super(Net, self).__init__()
 
@@ -65,7 +58,7 @@ def test_pytorch_model_preprocessing():
             logits = x
             return logits
 
-    model = Net()
+    model = Net().eval()
     preprocessing = (
         np.arange(num_classes)[:, None, None],
         np.random.uniform(size=(channels, 5, 5)) + 1,
@@ -97,15 +90,12 @@ def test_pytorch_model_preprocessing():
     np.testing.assert_array_almost_equal(p1 - p1.max(), p3 - p3.max(), decimal=5)
 
 
-def test_pytorch_model_gradient():
-    import torch
-    import torch.nn as nn
-
+def test_pytorch_model_gradient(torch):
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
 
-    class Net(nn.Module):
+    class Net(torch.nn.Module):
         def __init__(self):
             super(Net, self).__init__()
 
@@ -115,7 +105,7 @@ def test_pytorch_model_gradient():
             logits = x
             return logits
 
-    model = Net()
+    model = Net().eval()
     preprocessing = (
         np.arange(num_classes)[:, None, None],
         np.random.uniform(size=(channels, 5, 5)) + 1,
@@ -144,15 +134,12 @@ def test_pytorch_model_gradient():
     )
 
 
-def test_pytorch_model_forward_gradient():
-    import torch
-    import torch.nn as nn
-
+def test_pytorch_model_forward_gradient(torch):
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
 
-    class Net(nn.Module):
+    class Net(torch.nn.Module):
         def __init__(self):
             super(Net, self).__init__()
 
@@ -162,7 +149,7 @@ def test_pytorch_model_forward_gradient():
             logits = x
             return logits
 
-    model = Net()
+    model = Net().eval()
     preprocessing = (
         np.arange(num_classes)[:, None, None],
         np.random.uniform(size=(channels, 5, 5)) + 1,
@@ -183,23 +170,20 @@ def test_pytorch_model_forward_gradient():
     l1 = model._loss_fn(test_images - epsilon / 2 * g1, test_labels)
     l2 = model._loss_fn(test_images + epsilon / 2 * g1, test_labels)
 
-    assert 1e5 * (l2 - l1) > 1
+    assert 1e4 * (l2 - l1) > 1
 
     # make sure that gradient is numerically correct
     np.testing.assert_array_almost_equal(
-        1e5 * (l2 - l1), 1e5 * epsilon * np.linalg.norm(g1) ** 2, decimal=1
+        1e4 * (l2 - l1), 1e4 * epsilon * np.linalg.norm(g1) ** 2, decimal=1
     )
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_pytorch_backward(num_classes):
-    import torch
-    import torch.nn as nn
-
+def test_pytorch_backward(torch, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
-    class Net(nn.Module):
+    class Net(torch.nn.Module):
         def __init__(self):
             super(Net, self).__init__()
 
@@ -209,7 +193,7 @@ def test_pytorch_backward(num_classes):
             logits = x
             return logits
 
-    model = Net()
+    model = Net().eval()
     model = PyTorchModel(model, bounds=bounds, num_classes=num_classes)
 
     test_image = np.random.rand(channels, 5, 5).astype(np.float32)
@@ -225,15 +209,12 @@ def test_pytorch_backward(num_classes):
     np.testing.assert_almost_equal(test_grad, manual_grad)
 
 
-def test_pytorch_model_preprocessing_shape_change():
-    import torch
-    import torch.nn as nn
-
+def test_pytorch_model_preprocessing_shape_change(torch):
     num_classes = 1000
     bounds = (0, 255)
     channels = num_classes
 
-    class Net(nn.Module):
+    class Net(torch.nn.Module):
         def __init__(self):
             super(Net, self).__init__()
 
@@ -243,7 +224,7 @@ def test_pytorch_model_preprocessing_shape_change():
             logits = x
             return logits
 
-    model = Net()
+    model = Net().eval()
 
     model1 = PyTorchModel(model, bounds=bounds, num_classes=num_classes)
 
@@ -290,7 +271,7 @@ def test_pytorch_model_preprocessing_shape_change():
     np.testing.assert_array_almost_equal(g1, g2)
 
 
-def test_pytorch_device(bn_model_pytorch):
+def test_pytorch_device(torch, bn_model_pytorch):
     m = bn_model_pytorch
     model1 = PyTorchModel(
         m._model, bounds=m.bounds(), num_classes=m.num_classes(), device="cpu"

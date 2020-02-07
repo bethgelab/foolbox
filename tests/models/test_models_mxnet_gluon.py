@@ -1,30 +1,22 @@
 import pytest
-import mxnet as mx
 import numpy as np
 
-from foolbox.models import MXNetModel
+from foolbox.models import MXNetGluonModel
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model(num_classes):
+def test_model(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
-    def mean_brightness_net(images):
-        logits = mx.symbol.mean(images, axis=(2, 3))
-        return logits
+    class MeanBrightnessNet(mxnet.gluon.HybridBlock):
+        def hybrid_forward(self, F, x, *args, **kwargs):
+            return mxnet.nd.mean(x, axis=(2, 3))
 
-    images = mx.symbol.Variable("images")
-    logits = mean_brightness_net(images)
+    block = MeanBrightnessNet()
 
-    model = MXNetModel(
-        images,
-        logits,
-        {},
-        ctx=mx.cpu(),
-        num_classes=num_classes,
-        bounds=bounds,
-        channel_axis=1,
+    model = MXNetGluonModel(
+        block, num_classes=num_classes, bounds=bounds, channel_axis=1
     )
 
     test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
@@ -50,31 +42,18 @@ def test_model(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model_gradient(num_classes):
+def test_model_gradient(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
-    def mean_brightness_net(images):
-        logits = mx.symbol.mean(images, axis=(2, 3))
-        return logits
+    class MeanBrightnessNet(mxnet.gluon.HybridBlock):
+        def hybrid_forward(self, F, x, *args, **kwargs):
+            return mxnet.nd.mean(x, axis=(2, 3))
 
-    images = mx.symbol.Variable("images")
-    logits = mean_brightness_net(images)
+    block = MeanBrightnessNet()
 
-    preprocessing = (
-        np.arange(num_classes)[:, None, None],
-        np.random.uniform(size=(channels, 5, 5)) + 1,
-    )
-
-    model = MXNetModel(
-        images,
-        logits,
-        {},
-        ctx=mx.cpu(),
-        num_classes=num_classes,
-        bounds=bounds,
-        preprocessing=preprocessing,
-        channel_axis=1,
+    model = MXNetGluonModel(
+        block, ctx=mxnet.cpu(), num_classes=num_classes, bounds=bounds, channel_axis=1
     )
 
     test_images = np.random.rand(2, channels, 5, 5).astype(np.float32)
@@ -95,31 +74,18 @@ def test_model_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model_forward_gradient(num_classes):
+def test_model_forward_gradient(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
-    def mean_brightness_net(images):
-        logits = mx.symbol.mean(images, axis=(2, 3))
-        return logits
+    class MeanBrightnessNet(mxnet.gluon.HybridBlock):
+        def hybrid_forward(self, F, x, *args, **kwargs):
+            return mxnet.nd.mean(x, axis=(2, 3))
 
-    images = mx.symbol.Variable("images")
-    logits = mean_brightness_net(images)
+    block = MeanBrightnessNet()
 
-    preprocessing = (
-        np.arange(num_classes)[:, None, None],
-        np.random.uniform(size=(channels, 5, 5)) + 1,
-    )
-
-    model = MXNetModel(
-        images,
-        logits,
-        {},
-        ctx=mx.cpu(),
-        num_classes=num_classes,
-        bounds=bounds,
-        preprocessing=preprocessing,
-        channel_axis=1,
+    model = MXNetGluonModel(
+        block, ctx=mxnet.cpu(), num_classes=num_classes, bounds=bounds, channel_axis=1
     )
 
     test_images = np.random.rand(5, channels, 5, 5).astype(np.float32)
@@ -141,32 +107,25 @@ def test_model_forward_gradient(num_classes):
 
 
 @pytest.mark.parametrize("num_classes", [10, 1000])
-def test_model_backward(num_classes):
+def test_model_backward(mxnet, num_classes):
     bounds = (0, 255)
     channels = num_classes
 
-    def mean_brightness_net(images):
-        logits = mx.symbol.mean(images, axis=(2, 3))
-        return logits
+    class MeanBrightnessNet(mxnet.gluon.HybridBlock):
+        def hybrid_forward(self, F, x, *args, **kwargs):
+            return mxnet.nd.mean(x, axis=(2, 3))
 
-    images = mx.symbol.Variable("images")
-    logits = mean_brightness_net(images)
+    block = MeanBrightnessNet()
 
-    model = MXNetModel(
-        images,
-        logits,
-        {},
-        ctx=mx.cpu(),
-        num_classes=num_classes,
-        bounds=bounds,
-        channel_axis=1,
+    model = MXNetGluonModel(
+        block, ctx=mxnet.cpu(), num_classes=num_classes, bounds=bounds, channel_axis=1
     )
 
     test_image = np.random.rand(channels, 5, 5).astype(np.float32)
     test_grad_pre = np.random.rand(num_classes).astype(np.float32)
 
     test_grad = model.backward_one(test_grad_pre, test_image)
-    assert test_grad.shape == test_image.shape
+    np.testing.assert_equal(test_grad.shape, test_image.shape)
 
     manual_grad = np.repeat(
         np.repeat((test_grad_pre / 25.0).reshape((-1, 1, 1)), 5, axis=1), 5, axis=2

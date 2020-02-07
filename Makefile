@@ -1,18 +1,13 @@
 .PHONY: test
 test:
-	pytest --pdb --ignore=foolbox/tests/models/test_models_tensorflow_eager.py --ignore=foolbox/tests/models/test_models_caffe.py
-	pytest --pdb --cov-append foolbox/tests/models/test_models_tensorflow_eager.py
-
-.PHONY: test
-testsetup:
-	sudo pip3 install --upgrade pip
-	sudo pip3 uninstall -y tensorflow
-	sudo pip3 uninstall -y tensorflow-cpu
-	sudo pip3 uninstall -y tensorflow-gpu
-	sudo pip3 uninstall -y torch torchvision
-	sudo pip3 install -r requirements-dev.txt
-	sudo pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-	sudo pip3 install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
+	pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --verbose
+	pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend pytorch
+	pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend jax
+	pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend theano
+	pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend mxnet
+	pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend keras
+	pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend tensorflow-eager
+	pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend tensorflow-graph
 
 .PHONY: black
 black:
@@ -29,7 +24,7 @@ flake8:
 .PHONY: mypy
 mypy:
 	mypy -p foolbox
-	mypy foolbox/tests/
+	mypy tests/
 
 .PHONY: install
 install:

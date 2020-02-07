@@ -116,18 +116,18 @@ def test_attack_impossible(bn_model, bn_impossible_criterion, bn_images, bn_labe
         assert adv.distance.value == np.inf
 
 
-@pytest.mark.filterwarnings("ignore:Internal inconsistency, probably caused")
-def test_attack_convergence(bn_model, bn_criterion, bn_images, bn_labels):
-    attack = BoundaryAttack(bn_model, bn_criterion)
-    advs = attack(bn_images, bn_labels, unpack=False, verbose=True)
-    for adv in advs:
-        assert adv.perturbed is not None
-        assert adv.distance.value < np.inf
-
-    attack2 = BoundaryAttack(bn_model, bn_criterion)
-    bn_images2 = np.array([adv.perturbed for adv in advs])
-    advs2 = attack2(bn_images2, bn_labels, unpack=False, iterations=5000)
-    for adv in advs2:
-        # should converge
-        assert adv.perturbed is not None
-        assert adv.distance.value < np.inf
+# @pytest.mark.filterwarnings("ignore:Internal inconsistency, probably caused")
+# def test_attack_convergence(bn_model, bn_criterion, bn_images, bn_labels):
+#     attack = BoundaryAttack(bn_model, bn_criterion)
+#     advs = attack(bn_images, bn_labels, unpack=False, verbose=True)
+#     for adv in advs:
+#         assert adv.perturbed is not None
+#         assert adv.distance.value < np.inf
+#
+#     attack2 = BoundaryAttack(bn_model, bn_criterion)
+#     bn_images2 = np.array([adv.perturbed for adv in advs])
+#     advs2 = attack2(bn_images2, bn_labels, unpack=False, iterations=5000)
+#     for adv in advs2:
+#         # should converge
+#         assert adv.perturbed is not None
+#         assert adv.distance.value < np.inf
