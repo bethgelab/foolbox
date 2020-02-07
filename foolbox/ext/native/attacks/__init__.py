@@ -8,6 +8,7 @@ from .basic_iterative_method import (  # noqa: F401
     L2BasicIterativeAttack,
     LinfBasicIterativeAttack,
 )
+from .projected_gradient_descent import ProjectedGradientDescentAttack  # noqa: F401
 from .fast_gradient_method import (  # noqa: F401
     L2FastGradientAttack,
     LinfFastGradientAttack,
@@ -24,7 +25,6 @@ from .newtonfool import NewtonFoolAttack  # noqa: F401
 from .ead import EADAttack  # noqa: F401
 
 
-# from .projected_gradient_descent import ProjectedGradientDescentAttack  # noqa: F401
 # from .contrast import BinarySearchContrastReductionAttack  # noqa: F401
 # from .contrast import LinearSearchContrastReductionAttack  # noqa: F401
 
