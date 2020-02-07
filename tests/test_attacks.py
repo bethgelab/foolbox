@@ -1,13 +1,14 @@
-from typing import List, Tuple, Type
+from typing import List, Tuple, Type, TypeVar
 import pytest
 import eagerpy as ep
 
-import foolbox.ext.native as fbn
+import foolbox as fbn
 
 import re
 
 L2 = fbn.types.L2
 Linf = fbn.types.Linf
+
 
 attacks: List[Tuple[fbn.Attack, bool]] = [
     (fbn.attacks.DDNAttack(), True),
@@ -84,9 +85,9 @@ def test_targeted_attacks(
     assert adv_after_attack.sum().item() > adv_before_attack.sum().item()
 
 
-def test_ead_init_raises():
+def test_ead_init_raises() -> None:
     with pytest.raises(ValueError) as excinfo:
-        fbn.attacks.EADAttack(binary_search_steps=3, steps=20, decision_rule="L2")
+        fbn.attacks.EADAttack(binary_search_steps=3, steps=20, decision_rule="L2")  # type: ignore
 
     exception_text = str(excinfo.value)
     exception_text_found = (
@@ -95,7 +96,7 @@ def test_ead_init_raises():
     assert exception_text_found
 
 
-targeted_attacks_raises_exception: List[Tuple[Type[fbn.Attack], bool]] = [
+targeted_attacks_raises_exception: List[Tuple[fbn.Attack, bool]] = [
     (fbn.attacks.EADAttack(), True),
     (fbn.attacks.DDNAttack(), True),
     (fbn.attacks.L2CarliniWagnerAttack(), True),
@@ -135,7 +136,7 @@ def test_targeted_attacks_call_raises_exception(
         def __call__(
             self, perturbed: fbn.criteria.T, outputs: fbn.criteria.T
         ) -> fbn.criteria.T:
-            return ep.zeros(perturbed, len(perturbed)).double()
+            return perturbed
 
     invalid_criterion = DummyCriterion()
 
