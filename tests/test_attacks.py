@@ -26,6 +26,8 @@ attacks: List[Tuple[fbn.Attack, bool]] = [
         fbn.attacks.ProjectedGradientDescentAttack(Linf(1.0), stepsize=5.0, steps=10),
         True,
     ),
+    (fbn.attacks.L2FastGradientAttack(L2(100.0)), True),
+    (fbn.attacks.LinfFastGradientAttack(Linf(100.0)), True),
 ]
 
 
