@@ -1,4 +1,6 @@
 -r requirements-dev.txt
+numpy==1.18.1
+scipy==1.4.1
 responses==0.10.9
 pillow==7.0.0
 randomgen==1.18.1
