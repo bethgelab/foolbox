@@ -22,6 +22,8 @@ attacks: List[Tuple[fbn.Attack, bool]] = [
     (fbn.attacks.VirtualAdversarialAttack(iterations=50, xi=1, epsilon=10), True),
     (fbn.attacks.L2BasicIterativeAttack(L2(100.0), stepsize=5.0, steps=10), True),
     (fbn.attacks.LinfBasicIterativeAttack(Linf(1.0), stepsize=5.0, steps=10), True),
+    (fbn.attacks.L2FastGradientAttack(L2(100.0)), True),
+    (fbn.attacks.LinfFastGradientAttack(Linf(100.0)), True),
 ]
 
 
