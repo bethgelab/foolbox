@@ -1,7 +1,8 @@
 from typing import Optional, Tuple, Any
 import eagerpy as ep
-import foolbox
 import warnings
+import os
+import numpy as np
 
 from .types import Bounds
 from .models import Model
@@ -40,7 +41,7 @@ def samples(
     if bounds is None:
         bounds = fmodel.bounds
 
-    images, labels = foolbox.utils.samples(  # type: ignore
+    images, labels = _samples(
         dataset=dataset,
         index=index,
         batchsize=batchsize,
@@ -56,3 +57,55 @@ def samples(
         warnings.warn(f"unknown model type {type(fmodel)}, returning NumPy arrays")
 
     return images, labels
+
+
+def _samples(
+    dataset: str,
+    index: int,
+    batchsize: int,
+    shape: Tuple[int, int],
+    data_format: str,
+    bounds: Bounds,
+) -> Tuple[Any, Any]:
+    # TODO: this was copied from foolbox v2
+
+    from PIL import Image
+
+    images, labels = [], []
+    basepath = os.path.dirname(__file__)
+    samplepath = os.path.join(basepath, "data")
+    files = os.listdir(samplepath)
+
+    if batchsize > 20:
+        warnings.warn(
+            "foolbox.utils.samples() has only 20 samples and repeats itself if batchsize > 20"
+        )
+
+    for idx in range(index, index + batchsize):
+        i = idx % 20
+
+        # get filename and label
+        file = [n for n in files if "{}_{:02d}_".format(dataset, i) in n][0]
+        label = int(file.split(".")[0].split("_")[-1])
+
+        # open file
+        path = os.path.join(samplepath, file)
+        image = Image.open(path)
+
+        if dataset == "imagenet":
+            image = image.resize(shape)
+
+        image = np.asarray(image, dtype=np.float32)
+
+        if dataset != "mnist" and data_format == "channels_first":
+            image = np.transpose(image, (2, 0, 1))
+
+        images.append(image)
+        labels.append(label)
+
+    images_ = np.stack(images)
+    labels_ = np.array(labels)
+
+    if bounds != (0, 255):
+        images_ = images_ / 255 * (bounds[1] - bounds[0]) + bounds[0]
+    return images_, labels_
