@@ -33,14 +33,14 @@ script:
     - flake8
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then black --check --verbose .; fi
     - pytest --collect-only
-    - pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --verbose
-    - pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend pytorch
-    - pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend jax
-    - pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend theano
-    - pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend mxnet
-    - pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend keras
-    - pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend tensorflow-eager
-    - pytest --pdb --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend tensorflow-graph
+    - pytest --cov-report term-missing --cov=foolbox --doctest-modules --verbose
+    - pytest --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend pytorch
+    - pytest --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend jax
+    - pytest --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend theano
+    - pytest --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend mxnet
+    - pytest --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend keras
+    - pytest --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend tensorflow-eager
+    - pytest --cov-report term-missing --cov=foolbox --doctest-modules --cov-append --verbose --backend tensorflow-graph
 after_success:
     - coveralls
 cache:
