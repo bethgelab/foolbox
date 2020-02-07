@@ -1,12 +1,18 @@
+from typing import Union
 import eagerpy as ep
-
-from ..models.base import Model
 
 from ..devutils import flatten
 from ..devutils import atleast_kd
-from ..devutils import wrap
+
+from ..types import L2, Linf
+
+from ..models.base import Model
+
+from ..criteria import Misclassification
 
 from .base import FixedEpsilonAttack
+from .base import T
+from .base import get_criterion
 
 
 def clip_l2_norms(x: ep.Tensor, norm: float) -> ep.Tensor:
@@ -32,34 +38,48 @@ class L2BasicIterativeAttack(FixedEpsilonAttack):
     # epsilon = 2.0
     # stepsize = 0.4
 
-    def __init__(self, epsilon, stepsize, steps=10):
+    def __init__(self, epsilon: L2, stepsize: float, steps: int = 10):
         self.epsilon = epsilon
         self.stepsize = stepsize
         self.steps = steps
 
-    def __call__(self, model: Model, inputs, labels):
-        inputs, labels, restore = wrap(inputs, labels)
+    def __call__(
+        self, model: Model, inputs: T, criterion: Union[Misclassification, T]
+    ) -> T:
+        x0, restore_type = ep.astensor_(inputs)
+        criterion_ = get_criterion(criterion)
+        del inputs, criterion
 
-        def loss_fn(inputs):
-            logits = model.forward(inputs)
+        if not isinstance(criterion_, Misclassification):
+            raise ValueError("unsupported criterion")
+
+        labels = criterion_.labels
+
+        def loss_fn(inputs: ep.Tensor) -> ep.Tensor:
+            logits = model(inputs)
             return ep.crossentropy(logits, labels).sum()
 
-        x = x0 = inputs
-
+        x = x0
         for _ in range(self.steps):
             _, gradients = ep.value_and_grad(loss_fn, x)
             gradients = normalize_l2_norms(gradients)
             x = x + self.stepsize * gradients
             x = x0 + clip_l2_norms(x - x0, self.epsilon)
-            x = ep.clip(x, *model.bounds())
+            x = ep.clip(x, *model.bounds)
 
-        return restore(x)
+        return restore_type(x)
 
 
-class LinfinityBasicIterativeAttack(FixedEpsilonAttack):
+class LinfBasicIterativeAttack(FixedEpsilonAttack):
     """L-infinity Basic Iterative Method"""
 
-    def __init__(self, epsilon, stepsize, steps=10, random_start=False):
+    def __init__(
+        self,
+        epsilon: Linf,
+        stepsize: float,
+        steps: int = 10,
+        random_start: bool = False,
+    ):
         self.epsilon = epsilon
         self.stepsize = stepsize
         self.steps = steps
@@ -69,24 +89,33 @@ class LinfinityBasicIterativeAttack(FixedEpsilonAttack):
         # epsilon=0.3,
         # step_size=0.05,
 
-    def __call__(self, model: Model, inputs, labels):
-        inputs, labels, restore = wrap(inputs, labels)
+    def __call__(
+        self, model: Model, inputs: T, criterion: Union[Misclassification, T]
+    ) -> T:
+        x0, restore_type = ep.astensor_(inputs)
+        criterion_ = get_criterion(criterion)
+        del inputs, criterion
 
-        def loss_fn(inputs):
-            logits = model.forward(inputs)
+        if not isinstance(criterion_, Misclassification):
+            raise ValueError("unsupported criterion")
+
+        labels = criterion_.labels
+
+        def loss_fn(inputs: ep.Tensor) -> ep.Tensor:
+            logits = model(inputs)
             return ep.crossentropy(logits, labels).sum()
 
-        x = x0 = inputs
+        x = x0
 
         if self.random_start:
             x = x + ep.uniform(x, x.shape, -self.epsilon, self.epsilon)
-            x = ep.clip(x, *model.bounds())
+            x = ep.clip(x, *model.bounds)
 
         for _ in range(self.steps):
             _, gradients = ep.value_and_grad(loss_fn, x)
             gradients = gradients.sign()
             x = x + self.stepsize * gradients
             x = x0 + ep.clip(x - x0, -self.epsilon, self.epsilon)
-            x = ep.clip(x, *model.bounds())
+            x = ep.clip(x, *model.bounds)
 
-        return restore(x)
+        return restore_type(x)

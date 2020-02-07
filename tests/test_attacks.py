@@ -5,6 +5,7 @@ import eagerpy as ep
 import foolbox.ext.native as fbn
 
 L2 = fbn.types.L2
+Linf = fbn.types.Linf
 
 attacks: List[Tuple[fbn.Attack, bool]] = [
     (fbn.attacks.DDNAttack(), True),
@@ -19,6 +20,8 @@ attacks: List[Tuple[fbn.Attack, bool]] = [
     (fbn.attacks.NewtonFoolAttack(steps=20), True),
     (fbn.attacks.L2ContrastReductionAttack(L2(100.0)).repeat(3), False),
     (fbn.attacks.VirtualAdversarialAttack(iterations=50, xi=1, epsilon=10), True),
+    (fbn.attacks.L2BasicIterativeAttack(L2(100.0), stepsize=5.0, steps=10), True),
+    (fbn.attacks.LinfBasicIterativeAttack(Linf(1.0), stepsize=5.0, steps=10), True),
 ]
 
 
