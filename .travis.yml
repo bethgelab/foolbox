@@ -18,7 +18,7 @@ before_install:
     - travis_wait travis_retry pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then travis_wait travis_retry pip install "black==19.10b0"; fi
     - python -c 'import numpy; print(numpy.__version__)'
-    - python -c 'import scipy; print(scsipy.__version__)'
+    - python -c 'import scipy; print(scipy.__version__)'
     - python -c 'import tensorflow; print(tensorflow.__version__)'
     - python -c 'import theano; print(theano.__version__)'
     - python -c 'import lasagne; print(lasagne.__version__)'
