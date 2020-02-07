@@ -18,6 +18,7 @@ attacks: List[Tuple[fbn.Attack, bool]] = [
     (fbn.attacks.EADAttack(binary_search_steps=3, steps=20, decision_rule="L1"), True),
     (fbn.attacks.NewtonFoolAttack(steps=20), True),
     (fbn.attacks.L2ContrastReductionAttack(L2(100.0)).repeat(3), False),
+    (fbn.attacks.VirtualAdversarialAttack(iterations=50, xi=1, epsilon=10), True),
 ]
 
 
