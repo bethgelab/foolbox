@@ -7,6 +7,8 @@ import foolbox.ext.native as fbn
 L2 = fbn.types.L2
 
 attacks: List[Tuple[fbn.Attack, bool]] = [
+    (fbn.attacks.DDNAttack(), True),
+    (fbn.attacks.DDNAttack(rescale=True), True),
     (fbn.attacks.InversionAttack(), False),
     (fbn.attacks.L2ContrastReductionAttack(L2(100.0)), False),
     (fbn.attacks.BinarySearchContrastReductionAttack(binary_search_steps=15), False),
@@ -40,6 +42,7 @@ def test_untargeted_attacks(
 
 targeted_attacks: List[Tuple[fbn.Attack, bool]] = [
     (fbn.attacks.L2CarliniWagnerAttack(binary_search_steps=3, steps=20), True),
+    (fbn.attacks.DDNAttack(), True),
     (fbn.attacks.EADAttack(binary_search_steps=3, steps=20), True),
 ]
 

@@ -11,7 +11,7 @@ from .contrast_min import (  # noqa: F401
 )
 from .carlini_wagner import L2CarliniWagnerAttack  # noqa: F401
 from .newtonfool import NewtonFoolAttack  # noqa: F401
-
+from .ddn import DDNAttack  # noqa: F401
 from .ead import EADAttack  # noqa: F401
 
 # from .basic_iterative_method import L2BasicIterativeAttack  # noqa: F401
