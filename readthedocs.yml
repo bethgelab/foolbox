@@ -1,4 +1,10 @@
-requirements_file: requirements-docs.txt
+version: 2
+sphinx:
+  configuration: docs/conf.py
+formats: all
 python:
-    version: 3.6
-    pip_install: true
+  version: 3.6
+  install:
+    - requirements: requirements-docs.txt
+    - method: pip
+      path: .
