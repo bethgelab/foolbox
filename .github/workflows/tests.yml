@@ -75,7 +75,7 @@ jobs:
     - name: Codecov
       continue-on-error: true
       env:
-          CODECOV_TOKEN: "08f71869-b814-4c6c-ac39-27cc4e31e837"
+          CODECOV_TOKEN: "60c0d7ac-8ec1-47c6-b3b1-ac2ad2dea76f"
       run: |
         codecov
     - name: Coveralls
