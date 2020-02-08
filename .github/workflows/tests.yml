@@ -75,12 +75,12 @@ jobs:
     - name: Codecov
       continue-on-error: true
       env:
-          CODECOV_TOKEN: "7ca7a1ce-a549-4dce-943a-d66e9ef60b12"
+          CODECOV_TOKEN: "60c0d7ac-8ec1-47c6-b3b1-ac2ad2dea76f"
       run: |
         codecov
     - name: Coveralls
       continue-on-error: true
       env:
-        COVERALLS_REPO_TOKEN: "mXzVxVyQFEpb5TeaDW79LhHrhSL12pJVu"
+        COVERALLS_REPO_TOKEN: "2r76Cn01kW1sSkEirJ3SRpp478NJtPNdA"
       run: |
         coveralls
