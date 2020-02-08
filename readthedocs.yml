@@ -1,0 +1,4 @@
+requirements_file: requirements-docs.txt
+python:
+    version: 3.6
+    pip_install: true
