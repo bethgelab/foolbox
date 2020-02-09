@@ -28,6 +28,7 @@ attacks: List[Tuple[fbn.Attack, bool]] = [
     ),
     (fbn.attacks.L2FastGradientAttack(L2(100.0)), True),
     (fbn.attacks.LinfFastGradientAttack(Linf(100.0)), True),
+    (fbn.attacks.SaltAndPepperNoiseAttack(steps=50), True)
 ]
 
 
