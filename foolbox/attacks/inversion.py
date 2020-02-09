@@ -17,7 +17,7 @@ class InversionAttack(MinimizationAttack):
     .. [1] Hossein Hosseini, Baicen Xiao, Mayoore Jaiswal, Radha Poovendran,
            "On the Limitation of Convolutional Neural Networks in Recognizing
            Negative Images",
-            https://arxiv.org/abs/1607.02533
+           https://arxiv.org/abs/1607.02533
     """
 
     def __call__(
