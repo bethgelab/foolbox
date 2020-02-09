@@ -1,5 +1,5 @@
 :mod:`foolbox.tensorboard`
-=======================
+==========================
 
 .. automodule:: foolbox.tensorboard
    :members:
