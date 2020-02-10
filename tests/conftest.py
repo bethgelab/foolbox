@@ -204,11 +204,32 @@ def tensorflow_simple_functional(request: Any) -> ModelAndData:
 
 
 @register("tensorflow", real=True)
+def tensorflow_mobilenetv2(request: Any) -> ModelAndData:
+    if request.config.option.skipslow:
+        pytest.skip()
+
+    import tensorflow as tf
+
+    model = tf.keras.applications.MobileNetV2(weights="imagenet")
+    fmodel = fbn.TensorFlowModel(
+        model, bounds=(0, 255), preprocessing=dict(mean=127.5, std=127.5)
+    )
+
+    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x = ep.astensor(x)
+    y = ep.astensor(y)
+    return fmodel, x, y
+
+
+@register("tensorflow", real=True)
 def tensorflow_resnet50(request: Any) -> ModelAndData:
     if request.config.option.skipslow:
         pytest.skip()
 
     import tensorflow as tf
+
+    if not tf.test.is_gpu_available():
+        pytest.skip("ResNet50 test too slow without GPU")
 
     model = tf.keras.applications.ResNet50(weights="imagenet")
     preprocessing = dict(flip_axis=-1, mean=[104.0, 116.0, 123.0])  # RGB to BGR
