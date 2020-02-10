@@ -106,8 +106,10 @@ def get_channel_axis(model: Model, ndim: int) -> Optional[int]:
     data_format = getattr(model, "data_format", None)
     if data_format is None:
         return None
-    if data_format == 'channels_first':
+    if data_format == "channels_first":
         return 1
-    if data_format == 'channels_last':
+    if data_format == "channels_last":
         return ndim - 1
-    raise ValueError(f"unknown data_format, expected 'channels_first' or 'channels_last', got {data_format}")
+    raise ValueError(
+        f"unknown data_format, expected 'channels_first' or 'channels_last', got {data_format}"
+    )
