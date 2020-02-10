@@ -162,7 +162,6 @@ class EADAttack(MinimizationAttack):
                 )
 
                 found_advs = ep.logical_or(found_advs, found_advs_iter)
-                print(best_advs_norms, found_advs)
 
             upper_bounds = ep.where(found_advs, consts, upper_bounds)
             lower_bounds = ep.where(found_advs, lower_bounds, consts)
