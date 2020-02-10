@@ -7,6 +7,7 @@ import foolbox as fbn
 L2 = fbn.types.L2
 Linf = fbn.types.Linf
 
+
 attacks: List[Tuple[fbn.Attack, bool]] = [
     (fbn.attacks.DDNAttack(), True),
     (fbn.attacks.DDNAttack(rescale=True), True),
