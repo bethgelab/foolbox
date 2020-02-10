@@ -3,32 +3,31 @@ import pytest
 import eagerpy as ep
 
 import foolbox as fbn
+import foolbox.attacks as fa
 
 L2 = fbn.types.L2
 Linf = fbn.types.Linf
 
 
 attacks: List[Tuple[fbn.Attack, bool]] = [
-    (fbn.attacks.DDNAttack(), True),
-    (fbn.attacks.DDNAttack(rescale=True), True),
-    (fbn.attacks.InversionAttack(), False),
-    (fbn.attacks.L2ContrastReductionAttack(L2(100.0)), False),
-    (fbn.attacks.BinarySearchContrastReductionAttack(binary_search_steps=15), False),
-    (fbn.attacks.LinearSearchContrastReductionAttack(steps=20), False),
-    (fbn.attacks.L2CarliniWagnerAttack(binary_search_steps=3, steps=20), True),
-    (fbn.attacks.EADAttack(binary_search_steps=3, steps=20), True),
-    (fbn.attacks.EADAttack(binary_search_steps=3, steps=20, decision_rule="L1"), True),
-    (fbn.attacks.NewtonFoolAttack(steps=20), True),
-    (fbn.attacks.L2ContrastReductionAttack(L2(100.0)).repeat(3), False),
-    (fbn.attacks.VirtualAdversarialAttack(iterations=50, xi=1, epsilon=10), True),
-    (fbn.attacks.L2BasicIterativeAttack(L2(100.0), stepsize=5.0, steps=10), True),
-    (fbn.attacks.LinfBasicIterativeAttack(Linf(1.0), stepsize=5.0, steps=10), True),
-    (
-        fbn.attacks.ProjectedGradientDescentAttack(Linf(1.0), stepsize=5.0, steps=10),
-        True,
-    ),
-    (fbn.attacks.L2FastGradientAttack(L2(100.0)), True),
-    (fbn.attacks.LinfFastGradientAttack(Linf(100.0)), True),
+    (fa.DDNAttack(), True),
+    (fa.DDNAttack(rescale=True), True),
+    (fa.InversionAttack(), False),
+    (fa.L2ContrastReductionAttack(L2(100.0)), False),
+    (fa.BinarySearchContrastReductionAttack(binary_search_steps=15), False),
+    (fa.LinearSearchContrastReductionAttack(steps=20), False),
+    (fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20), True),
+    (fa.EADAttack(binary_search_steps=3, steps=20), True),
+    (fa.EADAttack(binary_search_steps=3, steps=20, decision_rule="L1"), True),
+    (fa.NewtonFoolAttack(steps=20), True),
+    (fa.L2ContrastReductionAttack(L2(100.0)).repeat(3), False),
+    (fa.VirtualAdversarialAttack(iterations=50, xi=1, epsilon=10), True),
+    (fa.L2BasicIterativeAttack(L2(100.0), stepsize=5.0, steps=10), True),
+    (fa.LinfBasicIterativeAttack(Linf(1.0), stepsize=5.0, steps=10), True),
+    (fa.ProjectedGradientDescentAttack(Linf(1.0), stepsize=5.0, steps=10), True,),
+    (fa.L2FastGradientAttack(L2(100.0)), True),
+    (fa.LinfFastGradientAttack(Linf(100.0)), True),
+    (fa.GaussianBlurAttack(steps=10), True),
 ]
 
 
@@ -52,10 +51,10 @@ def test_untargeted_attacks(
 
 
 targeted_attacks: List[Tuple[fbn.Attack, bool]] = [
-    (fbn.attacks.L2CarliniWagnerAttack(binary_search_steps=3, steps=20), True),
-    (fbn.attacks.DDNAttack(), True),
+    (fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20), True),
+    (fa.DDNAttack(), True),
     (
-        fbn.attacks.EADAttack(
+        fa.EADAttack(
             binary_search_steps=3, steps=20, abort_early=True, regularization=0
         ),
         True,

@@ -1,8 +1,8 @@
-from typing import Callable, TypeVar, Any, Union
+from typing import Callable, TypeVar, Any, Union, Optional
 from abc import ABC, abstractmethod
 import eagerpy as ep
 
-from ..models.base import Model
+from ..models import Model
 
 from ..criteria import Criterion
 from ..criteria import Misclassification
@@ -100,3 +100,14 @@ def get_criterion(criterion: Union[Criterion, Any]) -> Criterion:
         return criterion
     else:
         return Misclassification(criterion)
+
+
+def get_channel_axis(model: Model, ndim: int) -> Optional[int]:
+    data_format = getattr(model, "data_format", None)
+    if data_format is None:
+        return None
+    if data_format == 'channels_first':
+        return 1
+    if data_format == 'channels_last':
+        return ndim - 1
+    raise ValueError(f"unknown data_format, expected 'channels_first' or 'channels_last', got {data_format}")

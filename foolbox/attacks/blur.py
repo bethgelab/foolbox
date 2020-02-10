@@ -1,62 +1,96 @@
+from typing import Union, Optional
 import numpy as np
-import eagerpy as ep
-
 from scipy.ndimage.filters import gaussian_filter
+import eagerpy as ep
 
 from ..devutils import atleast_kd
 
+from ..models import Model
 
-class GaussianBlurAttack:
-    def __init__(self, model, channel_axis):
-        self.model = model
+from ..criteria import Criterion
+
+from .base import MinimizationAttack
+from .base import T
+from .base import get_is_adversarial
+from .base import get_criterion
+from .base import get_channel_axis
+
+
+class GaussianBlurAttack(MinimizationAttack):
+    """Blurs the inputs using a Gaussian filter with linearly increasing standard deviation."""
+
+    def __init__(
+        self,
+        steps: int = 1000,
+        channel_axis: Optional[int] = None,
+        max_sigma: Optional[float] = None,
+    ):
+        self.steps = steps
         self.channel_axis = channel_axis
+        self.max_sigma = max_sigma
 
-    def __call__(self, inputs, labels, *, steps=1000):
-        x = ep.astensor(inputs)
-        y = ep.astensor(labels)
-        assert x.shape[0] == y.shape[0]
-        assert y.ndim == 1
+    def __call__(self, model: Model, inputs: T, criterion: Union[Criterion, T]) -> T:
+        x, restore_type = ep.astensor_(inputs)
+        del inputs
 
-        assert x.ndim == 4
-        if self.channel_axis == 1:
-            h, w = x.shape[2:4]
-        elif self.channel_axis == 3:
-            h, w = x.shape[1:3]
+        criterion = get_criterion(criterion)
+        is_adversarial = get_is_adversarial(criterion, model)
+
+        if x.ndim != 4:
+            raise NotImplementedError(
+                "only implemented for inputs with two spatial dimensions (and one channel and one batch dimension)"
+            )
+
+        if self.channel_axis is None:
+            channel_axis = get_channel_axis(model, x.ndim)
         else:
-            raise ValueError("expected 'channel_axis' to be 1 or 3, got {channel_axis}")
+            channel_axis = self.channel_axis % x.ndim
 
-        size = max(h, w)
+        if channel_axis is None:
+            raise ValueError(
+                "cannot infer the data_format from the model, please specify"
+                " channel_axis when initializing the attack"
+            )
 
-        min_, max_ = self.model.bounds()
+        max_sigma: float
+        if self.max_sigma is None:
+            if channel_axis == 1:
+                h, w = x.shape[2:4]
+            elif channel_axis == 3:
+                h, w = x.shape[1:3]
+            else:
+                raise ValueError(
+                    "expected 'channel_axis' to be 1 or 3, got {channel_axis}"
+                )
+            max_sigma = max(h, w)
+        else:
+            max_sigma = self.max_sigma
+
+        min_, max_ = model.bounds
 
         x0 = x
-        x0np = x0.numpy()
-
-        epsilons = np.linspace(0, 1, num=steps + 1)[1:]
-
-        logits = self.model.forward(x0)
-        classes = logits.argmax(axis=-1)
-        is_adv = classes != labels
-        found = is_adv
+        x0_ = x0.numpy()
 
         result = x0
+        found = is_adversarial(x0)
 
-        for epsilon in epsilons:
+        epsilon = 0.0
+        stepsize = 1.0 / self.steps
+        for _ in range(self.steps):
             # TODO: reduce the batch size to the ones that haven't been sucessful
 
-            sigmas = [epsilon * size] * 4
+            epsilon += stepsize
+
+            sigmas = [epsilon * max_sigma] * x0.ndim
             sigmas[0] = 0
-            sigmas[self.channel_axis] = 0
+            sigmas[channel_axis] = 0
 
             # TODO: once we can implement gaussian_filter in eagerpy, avoid converting from numpy
-            x = gaussian_filter(x0np, sigmas)
-            x = np.clip(x, min_, max_)
+            x_ = gaussian_filter(x0_, sigmas)
+            x_ = np.clip(x_, min_, max_)
             x = ep.from_numpy(x0, x)
 
-            logits = self.model.forward(x)
-            classes = logits.argmax(axis=-1)
-            is_adv = classes != labels
-
+            is_adv = is_adversarial(x)
             new_adv = ep.logical_and(is_adv, found.logical_not())
             result = ep.where(atleast_kd(new_adv, x.ndim), x, result)
             found = ep.logical_or(new_adv, found)
@@ -64,4 +98,4 @@ class GaussianBlurAttack:
             if found.all():
                 break
 
-        return result.tensor
+        return restore_type(result)
