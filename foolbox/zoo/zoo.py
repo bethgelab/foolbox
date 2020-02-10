@@ -1,8 +1,12 @@
+from typing import Any
+
+from ..models import Model
+
 from .git_cloner import clone
 from .model_loader import ModelLoader
 
 
-def get_model(url, module_name="foolbox_model", **kwargs):
+def get_model(url: str, module_name: str = "foolbox_model", **kwargs: Any) -> Model:
     """
 
     Provides utilities to download foolbox-compatible robust models

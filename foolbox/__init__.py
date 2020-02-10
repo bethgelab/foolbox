@@ -34,3 +34,5 @@ from .utils import samples  # noqa: F401
 
 from .attacks import Attack  # noqa: F401
 from . import attacks  # noqa: F401
+
+from . import zoo  # noqa: F401

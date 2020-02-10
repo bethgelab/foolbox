@@ -1,6 +1,7 @@
+import os
 from git import Repo
 import logging
-from .common import sha256_hash, home_directory_path, path_exists
+from .common import sha256_hash, home_directory_path
 
 FOLDER = ".foolbox_zoo"
 
@@ -9,7 +10,7 @@ class GitCloneError(RuntimeError):
     pass
 
 
-def clone(git_uri):
+def clone(git_uri: str) -> str:
     """
     Clone a remote git repository to a local path.
 
@@ -18,7 +19,7 @@ def clone(git_uri):
     """
     hash_digest = sha256_hash(git_uri)
     local_path = home_directory_path(FOLDER, hash_digest)
-    exists_locally = path_exists(local_path)
+    exists_locally = os.path.exists(local_path)
 
     if not exists_locally:
         _clone_repo(git_uri, local_path)
@@ -30,7 +31,7 @@ def clone(git_uri):
     return local_path
 
 
-def _clone_repo(git_uri, local_path):
+def _clone_repo(git_uri: str, local_path: str) -> None:
     logging.info("Cloning repo %s to %s", git_uri, local_path)
     try:
         Repo.clone_from(git_uri, local_path)

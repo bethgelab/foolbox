@@ -5,12 +5,12 @@ import tarfile
 import os
 import logging
 
-from .common import sha256_hash, home_directory_path, path_exists
+from .common import sha256_hash, home_directory_path
 
 FOLDER = ".foolbox_zoo/weights"
 
 
-def fetch_weights(weights_uri, unzip=False):
+def fetch_weights(weights_uri: str, unzip: bool = False) -> str:
     """
 
     Provides utilities to download and extract packages
@@ -32,13 +32,10 @@ def fetch_weights(weights_uri, unzip=False):
     :return: local path where the weights have been downloaded
              and potentially unzipped to
     """
-    if weights_uri is None:
-        logging.info("No weights to be fetched for this model.")
-        return
-
+    assert weights_uri is not None
     hash_digest = sha256_hash(weights_uri)
     local_path = home_directory_path(FOLDER, hash_digest)
-    exists_locally = path_exists(local_path)
+    exists_locally = os.path.exists(local_path)
 
     filename = _filename_from_uri(weights_uri)
     file_path = os.path.join(local_path, filename)
@@ -54,7 +51,7 @@ def fetch_weights(weights_uri, unzip=False):
     return file_path
 
 
-def _filename_from_uri(url):
+def _filename_from_uri(url: str) -> str:
     # get last part of the URI, i.e. file-name
     filename = url.split("/")[-1]
     # remove query params if exist
@@ -62,7 +59,7 @@ def _filename_from_uri(url):
     return filename
 
 
-def _download(file_path, url, directory):
+def _download(file_path: str, url: str, directory: str) -> None:
     logging.info("Downloading weights: %s to %s", url, file_path)
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -77,7 +74,7 @@ def _download(file_path, url, directory):
         raise RuntimeError("Failed to fetch weights from %s", url)
 
 
-def _extract(directory, filename):
+def _extract(directory: str, filename: str) -> str:
     file_path = os.path.join(directory, filename)
     extracted_folder = filename.rsplit(".", 1)[0]
     extracted_folder = os.path.join(directory, extracted_folder)
