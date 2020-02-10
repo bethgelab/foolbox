@@ -23,7 +23,7 @@ from .contrast_min import (  # noqa: F401
 from .carlini_wagner import L2CarliniWagnerAttack  # noqa: F401
 from .newtonfool import NewtonFoolAttack  # noqa: F401
 from .ead import EADAttack  # noqa: F401
-from .saltandpepper import SaltAndPepperNoiseAttack
+from .saltandpepper import SaltAndPepperNoiseAttack  # noqa: F401
 
 
 # from .contrast import BinarySearchContrastReductionAttack  # noqa: F401
