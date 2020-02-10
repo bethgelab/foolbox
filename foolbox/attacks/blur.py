@@ -88,7 +88,7 @@ class GaussianBlurAttack(MinimizationAttack):
             # TODO: once we can implement gaussian_filter in eagerpy, avoid converting from numpy
             x_ = gaussian_filter(x0_, sigmas)
             x_ = np.clip(x_, min_, max_)
-            x = ep.from_numpy(x0, x)
+            x = ep.from_numpy(x0, x_)
 
             is_adv = is_adversarial(x)
             new_adv = ep.logical_and(is_adv, found.logical_not())
