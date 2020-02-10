@@ -13,6 +13,14 @@ from .fast_gradient_method import (  # noqa: F401
     L2FastGradientAttack,
     LinfFastGradientAttack,
 )
+from .additive_noise import (  # noqa: F401
+    L2AdditiveGaussianNoiseAttack,
+    L2AdditiveUniformNoiseAttack,
+    LinfAdditiveUniformNoiseAttack,
+    L2RepeatedAdditiveGaussianNoiseAttack,
+    L2RepeatedAdditiveUniformNoiseAttack,
+    LinfRepeatedAdditiveUniformNoiseAttack,
+)
 
 # MinimizatonAttack subclasses
 from .inversion import InversionAttack  # noqa: F401
@@ -23,7 +31,7 @@ from .contrast_min import (  # noqa: F401
 from .carlini_wagner import L2CarliniWagnerAttack  # noqa: F401
 from .newtonfool import NewtonFoolAttack  # noqa: F401
 from .ead import EADAttack  # noqa: F401
-
+from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
 
 # from .contrast import BinarySearchContrastReductionAttack  # noqa: F401
 # from .contrast import LinearSearchContrastReductionAttack  # noqa: F401

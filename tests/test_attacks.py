@@ -7,6 +7,7 @@ import foolbox as fbn
 L2 = fbn.types.L2
 Linf = fbn.types.Linf
 
+
 attacks: List[Tuple[fbn.Attack, bool]] = [
     (fbn.attacks.DDNAttack(), True),
     (fbn.attacks.DDNAttack(rescale=True), True),
@@ -28,6 +29,12 @@ attacks: List[Tuple[fbn.Attack, bool]] = [
     ),
     (fbn.attacks.L2FastGradientAttack(L2(100.0)), True),
     (fbn.attacks.LinfFastGradientAttack(Linf(100.0)), True),
+    (fbn.attacks.LinearSearchBlendedUniformNoiseAttack(steps=50), False),
+    (fbn.attacks.L2AdditiveGaussianNoiseAttack(epsilon=1500.0), False),
+    (fbn.attacks.LinfAdditiveUniformNoiseAttack(epsilon=5.0), False),
+    (fbn.attacks.L2RepeatedAdditiveGaussianNoiseAttack(epsilon=1000.0), False),
+    (fbn.attacks.L2RepeatedAdditiveUniformNoiseAttack(epsilon=1000.0), False),
+    (fbn.attacks.LinfRepeatedAdditiveUniformNoiseAttack(epsilon=1.0), False),
 ]
 
 
