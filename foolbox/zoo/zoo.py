@@ -33,6 +33,7 @@ def get_model(
 
     Example repositories:
 
+        - https://github.com/jonasrauber/foolbox-tensorflow-keras-applications
         - https://github.com/bethgelab/AnalysisBySynthesis
         - https://github.com/bethgelab/mnist_challenge
         - https://github.com/bethgelab/cifar10_challenge
