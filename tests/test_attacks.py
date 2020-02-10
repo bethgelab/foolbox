@@ -54,7 +54,12 @@ def test_untargeted_attacks(
 targeted_attacks: List[Tuple[fbn.Attack, bool]] = [
     (fbn.attacks.L2CarliniWagnerAttack(binary_search_steps=3, steps=20), True),
     (fbn.attacks.DDNAttack(), True),
-    (fbn.attacks.EADAttack(binary_search_steps=3, steps=20), True),
+    (
+        fbn.attacks.EADAttack(
+            binary_search_steps=3, steps=20, abort_early=True, regularization=0
+        ),
+        True,
+    ),
 ]
 
 

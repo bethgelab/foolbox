@@ -129,7 +129,7 @@ class EADAttack(MinimizationAttack):
             found_advs = ep.full(
                 x, (N,), value=False
             ).bool()  # found adv with the current consts
-            loss_at_previous_check = ep.ones(x, (1,)) * ep.inf
+            loss_at_previous_check = ep.inf
 
             for iteration in range(self.steps):
                 # square-root learning rate decay
@@ -145,11 +145,9 @@ class EADAttack(MinimizationAttack):
 
                 if self.abort_early and iteration % (math.ceil(self.steps / 10)) == 0:
                     # after each tenth of the iterations, check progress
-                    # TODO: loss is a scalar ep tensor. is this the bst way to
-                    #  implement the condition?
-                    if not ep.all(loss <= 0.9999 * loss_at_previous_check):
+                    if not loss.item() <= 0.9999 * loss_at_previous_check:
                         break  # stop optimization if there has been no progress
-                    loss_at_previous_check = loss
+                    loss_at_previous_check = loss.item()
 
                 found_advs_iter = is_adversarial(x_k, logits)
 
@@ -164,6 +162,7 @@ class EADAttack(MinimizationAttack):
                 )
 
                 found_advs = ep.logical_or(found_advs, found_advs_iter)
+                print(best_advs_norms, found_advs)
 
             upper_bounds = ep.where(found_advs, consts, upper_bounds)
             lower_bounds = ep.where(found_advs, lower_bounds, consts)
@@ -216,10 +215,10 @@ def apply_decision_rule(
     else:
         raise ValueError("invalid decision rule")
 
-    new_best = (norms < best_advs_norms).float32() * found_advs.float32()
-    new_best = atleast_kd(new_best, best_advs.ndim)
-    best_advs = new_best * x_k + (1 - new_best) * best_advs
-    best_advs_norms = ep.minimum(norms, best_advs_norms)
+    new_best = ep.logical_and(norms < best_advs_norms, found_advs)
+    new_best_kd = atleast_kd(new_best, best_advs.ndim)
+    best_advs = ep.where(new_best_kd, x_k, best_advs)
+    best_advs_norms = ep.where(new_best, norms, best_advs_norms)
 
     return best_advs, best_advs_norms
 
