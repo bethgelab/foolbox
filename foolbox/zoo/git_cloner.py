@@ -1,4 +1,5 @@
 import os
+import shutil
 from git import Repo
 import logging
 from .common import sha256_hash, home_directory_path
@@ -10,7 +11,7 @@ class GitCloneError(RuntimeError):
     pass
 
 
-def clone(git_uri: str) -> str:
+def clone(git_uri: str, overwrite: bool = False) -> str:
     """
     Clone a remote git repository to a local path.
 
@@ -20,6 +21,11 @@ def clone(git_uri: str) -> str:
     hash_digest = sha256_hash(git_uri)
     local_path = home_directory_path(FOLDER, hash_digest)
     exists_locally = os.path.exists(local_path)
+
+    if exists_locally and overwrite:
+        # TODO: ideally we would just pull the latest changes instead of cloning again
+        shutil.rmtree(local_path, ignore_errors=True)
+        exists_locally = False
 
     if not exists_locally:
         _clone_repo(git_uri, local_path)
