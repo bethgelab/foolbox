@@ -9,6 +9,10 @@ L2 = fbn.types.L2
 Linf = fbn.types.Linf
 
 
+def get_attack_id(x: Tuple[fbn.Attack, bool, bool]) -> str:
+    return repr(x[0])
+
+
 # attack, attack_uses_grad, requires_real_model
 attacks: List[Tuple[fbn.Attack, bool, bool]] = [
     (fa.DDNAttack(), True, False),
@@ -36,7 +40,7 @@ attacks: List[Tuple[fbn.Attack, bool, bool]] = [
 ]
 
 
-@pytest.mark.parametrize("attack_and_grad", attacks)
+@pytest.mark.parametrize("attack_and_grad", attacks, ids=get_attack_id)
 def test_untargeted_attacks(
     fmodel_and_data_ext: Tuple[Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool],
     attack_and_grad: Tuple[fbn.Attack, bool, bool],
@@ -71,7 +75,7 @@ targeted_attacks: List[Tuple[fbn.Attack, bool, bool]] = [
 ]
 
 
-@pytest.mark.parametrize("attack_and_grad", targeted_attacks)
+@pytest.mark.parametrize("attack_and_grad", targeted_attacks, ids=get_attack_id)
 def test_targeted_attacks(
     fmodel_and_data_ext: Tuple[Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool],
     attack_and_grad: Tuple[fbn.Attack, bool, bool],

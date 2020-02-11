@@ -26,6 +26,10 @@ class Attack(ABC):
     def repeat(self, times: int) -> "Attack":
         ...
 
+    def __repr__(self) -> str:
+        args = ", ".join(f"{k}={v}" for k, v in vars(self).items())
+        return f"{self.__class__.__name__}({args})"
+
 
 class AttackWrapper(Attack):
     pass
