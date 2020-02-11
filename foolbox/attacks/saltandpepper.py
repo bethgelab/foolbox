@@ -1,16 +1,18 @@
-import eagerpy as ep
 from typing import Optional
+import eagerpy as ep
 
-from ..criteria import misclassification
+from ..criteria import Misclassification
 
 from ..devutils import flatten
 from ..devutils import atleast_kd
-from ..devutils import wrap
 
 from .base import MinimizationAttack
 from .base import get_is_adversarial
+from .base import get_channel_axis
 
 from ..models.base import Model
+from .base import get_criterion
+from .base import T
 
 
 class SaltAndPepperNoiseAttack(MinimizationAttack):
@@ -22,57 +24,38 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
         The number of steps to run
     across_channels
         Whether the noise should be the same across all channels
+    channel_axis
+        The axis across which the noise should be the same (if across_channels is True).
+        If None, will be automatically inferred from the model if possible.
     """
 
-    def __init__(self, steps: int = 1000, across_channels: bool = True):
-        self.steps = steps
-        self.across_channels = across_channels
-
-    def __call__(
+    def __init__(
         self,
-        model: Model,
-        inputs,
-        labels,
-        *,
-        criterion=misclassification,
+        steps: int = 1000,
+        across_channels: bool = True,
         channel_axis: Optional[int] = None,
     ):
-        """
-        Parameters
-        ----------
-        channel_axis
-            The axis across which the noise should be the same (if across_channels is True).
-            If None, will be automatically inferred from the model if possible.
-        """
-        inputs, labels, restore = wrap(inputs, labels)
-        is_adversarial = get_is_adversarial(criterion, inputs, labels, model)
+        self.steps = steps
+        self.across_channels = across_channels
+        self.channel_axis = channel_axis
 
-        x0 = inputs
+    def __call__(self, model: Model, inputs: T, criterion: Misclassification) -> T:
+        x0, restore_type = ep.astensor_(inputs)
+        criterion_ = get_criterion(criterion)
+        is_adversarial = get_is_adversarial(criterion_, model)
+
         N = len(x0)
         shape = list(x0.shape)
+
         if self.across_channels and x0.ndim > 2:
-            if channel_axis is None and not hasattr(model, "data_format"):
-                raise ValueError(
-                    "cannot infer the data_format from the model, please specify"
-                    " channel_axis when calling the attack"
-                )
-            elif channel_axis is None:
-                data_format = model.data_format  # type: ignore
-                if (
-                    data_format is None
-                    or data_format != "channels_first"
-                    and data_format != "channels_last"
-                ):
-                    raise ValueError(
-                        f"expected data_format to be 'channels_first' or 'channels_last'"
-                    )
-                channel_axis = 1 if data_format == "channels_first" else x0.ndim - 1
-            elif not 0 <= channel_axis < x0.ndim:
-                raise ValueError(f"expected channel_axis to be in [0, {x0.ndim})")
+            if self.channel_axis is None:
+                channel_axis = get_channel_axis(model, x0.ndim)
+            else:
+                channel_axis = self.channel_axis % x0.ndim
+            if channel_axis is not None:
+                shape[channel_axis] = 1
 
-            shape[channel_axis] = 1
-
-        min_, max_ = model.bounds()
+        min_, max_ = model.bounds
         r = max_ - min_
 
         result = x0
@@ -85,7 +68,7 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
 
         for step in range(self.steps):
             # add salt and pepper
-            u = ep.uniform(x0, shape)
+            u = ep.uniform(x0, tuple(shape))
             p_ = atleast_kd(p, x0.ndim)
             salt = (u >= 1 - p_ / 2).astype(x0.dtype) * r
             pepper = -(u < p_ / 2).astype(x0.dtype) * r
@@ -115,4 +98,4 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
             p = ep.where(ep.logical_or(is_best_adv, reset), min_probability, p)
             p = ep.minimum(p + stepsizes, max_probability)
 
-        return restore(result)
+        return restore_type(result)
