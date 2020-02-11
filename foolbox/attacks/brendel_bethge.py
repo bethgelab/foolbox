@@ -1,17 +1,27 @@
+# mypy: allow-untyped-defs, no-strict-optional
+
+from typing import Union, Optional, Tuple, Any
+from typing_extensions import Literal
 from abc import ABC
 from abc import abstractmethod
 import numpy as np
 import eagerpy as ep
-from collections.abc import Callable
 import logging
 import warnings
 from ..devutils import flatten
 from . import LinearSearchBlendedUniformNoiseAttack
 from ..tensorboard import TensorBoard
-from ..models.base import Model
+from .base import Model
+from .base import MinimizationAttack
+from .base import Attack
+from .base import get_is_adversarial
+from .base import get_criterion
+from .base import T
+from ..criteria import Misclassification, TargetedMisclassification
+
 
 try:
-    from numba import jitclass
+    from numba import jitclass  # type: ignore
 except (ModuleNotFoundError, ImportError) as e:
     # delay the error until the attack is initialized
     NUMBA_IMPORT_ERROR = e
@@ -24,67 +34,265 @@ except (ModuleNotFoundError, ImportError) as e:
 
 
 else:
-    NUMBA_IMPORT_ERROR = None  # type: ignore
+    NUMBA_IMPORT_ERROR = None
 
 
 EPS = 1e-10
 
 
-class Misclassification:
+class Optimizer(object):
+    """ Base class for the trust-region optimization. If feasible, this optimizer solves the problem
+
+        min_delta distance(x0, x + delta) s.t. ||delta||_2 <= r AND delta^T b = c AND min_ <= x + delta <= max_
+
+        where x0 is the original sample, x is the current optimisation state, r is the trust-region radius,
+        b is the current estimate of the normal vector of the decision boundary, c is the estimated distance of x
+        to the trust region and [min_, max_] are the value constraints of the input. The function distance(.,.)
+        is the distance measure to be optimised (e.g. L2, L1, L0).
+
+    """
+
     def __init__(self):
-        pass
+        self.bfgsb = BFGSB()  # a box-constrained BFGS solver
 
-    def __call__(
-        self,
-        inputs: ep.Tensor,
-        labels: ep.Tensor,
-        perturbed: ep.Tensor,
-        logits: ep.Tensor,
-    ) -> ep.Tensor:
-        classes = logits.argmax(axis=-1)
-        return classes != labels
+    def solve(self, x0, x, b, min_, max_, c, r):
+        x0, x, b = x0.astype(np.float64), x.astype(np.float64), b.astype(np.float64)
+        cmax, cmaxnorm = self._max_logit_diff(x, b, min_, max_, c)
 
-    def loss(
-        self,
-        inputs: ep.Tensor,
-        labels: ep.Tensor,
-        perturbed: ep.Tensor,
-        logits: ep.Tensor,
-    ) -> ep.Tensor:
-        c_minimize = labels
-        c_maximize = best_other_classes(logits, labels)
-        rows = np.arange(len(logits))
-        return logits[rows, c_minimize] - logits[rows, c_maximize]
+        if np.abs(cmax) < np.abs(c):
+            # problem not solvable (boundary cannot be reached)
+            if np.sqrt(cmaxnorm) < r:
+                # make largest possible step towards boundary while staying within bounds
+                _delta = self.optimize_boundary_s_t_trustregion(
+                    x0, x, b, min_, max_, c, r
+                )
+            else:
+                # make largest possible step towards boundary while staying within trust region
+                _delta = self.optimize_boundary_s_t_trustregion(
+                    x0, x, b, min_, max_, c, r
+                )
+        else:
+            if cmaxnorm < r:
+                # problem is solvable
+                # proceed with standard optimization
+                _delta = self.optimize_distance_s_t_boundary_and_trustregion(
+                    x0, x, b, min_, max_, c, r
+                )
+            else:
+                # problem might not be solvable
+                bnorm = np.linalg.norm(b)
+                minnorm = self._minimum_norm_to_boundary(x, b, min_, max_, c, bnorm)
+
+                if minnorm <= r:
+                    # problem is solvable, proceed with standard optimization
+                    _delta = self.optimize_distance_s_t_boundary_and_trustregion(
+                        x0, x, b, min_, max_, c, r
+                    )
+                else:
+                    # problem not solvable (boundary cannot be reached)
+                    # make largest step towards boundary within trust region
+                    _delta = self.optimize_boundary_s_t_trustregion(
+                        x0, x, b, min_, max_, c, r
+                    )
+
+        return _delta
+
+    def _max_logit_diff(self, x, b, _ell, _u, c):
+        """ Tests whether the (estimated) boundary can be reached within trust region. """
+        N = x.shape[0]
+        cmax = 0.0
+        norm = 0.0
+
+        if c > 0:
+            for n in range(N):
+                if b[n] > 0:
+                    cmax += b[n] * (_u - x[n])
+                    norm += (_u - x[n]) ** 2
+                else:
+                    cmax += b[n] * (_ell - x[n])
+                    norm += (x[n] - _ell) ** 2
+        else:
+            for n in range(N):
+                if b[n] > 0:
+                    cmax += b[n] * (_ell - x[n])
+                    norm += (x[n] - _ell) ** 2
+                else:
+                    cmax += b[n] * (_u - x[n])
+                    norm += (_u - x[n]) ** 2
+
+        return cmax, np.sqrt(norm)
+
+    def _minimum_norm_to_boundary(self, x, b, _ell, _u, c, bnorm):
+        """ Computes the minimum norm necessary to reach the boundary. More precisely, we aim to solve the
+            following optimization problem
+
+                min ||delta||_2^2 s.t. lower <= x + delta <= upper AND b.dot(delta) = c
+
+            Lets forget about the box constraints for a second, i.e.
+
+                min ||delta||_2^2 s.t. b.dot(delta) = c
+
+            The dual of this problem is quite straight-forward to solve,
+
+                g(lambda, delta) = ||delta||_2^2 + lambda * (c - b.dot(delta))
+
+            The minimum of this Lagrangian is delta^* = lambda * b / 2, and so
+
+                inf_delta g(lambda, delta) = lambda^2 / 4 ||b||_2^2 + lambda * c
+
+            and so the optimal lambda, which maximizes inf_delta g(lambda, delta), is given by
+
+                lambda^* = 2c / ||b||_2^2
+
+            which in turn yields the optimal delta:
+
+                delta^* = c * b / ||b||_2^2
+
+            To take into account the box-constraints we perform a binary search over lambda and apply the box
+            constraint in each step.
+        """
+        N = x.shape[0]
+
+        lambda_lower = 2 * c / bnorm ** 2
+        lambda_upper = (
+            np.sign(c) * np.inf
+        )  # optimal initial point (if box-constraints are neglected)
+        _lambda = lambda_lower
+        k = 0
+
+        # perform a binary search over lambda
+        while True:
+            # compute _c = b.dot([- _lambda * b / 2]_clip)
+            k += 1
+            _c = 0
+            norm = 0
+
+            if c > 0:
+                for n in range(N):
+                    lam_step = _lambda * b[n] / 2
+                    if b[n] > 0:
+                        max_step = _u - x[n]
+                        delta_step = min(max_step, lam_step)
+                        _c += b[n] * delta_step
+                        norm += delta_step ** 2
+                    else:
+                        max_step = _ell - x[n]
+                        delta_step = max(max_step, lam_step)
+                        _c += b[n] * delta_step
+                        norm += delta_step ** 2
+            else:
+                for n in range(N):
+                    lam_step = _lambda * b[n] / 2
+                    if b[n] > 0:
+                        max_step = _ell - x[n]
+                        delta_step = max(max_step, lam_step)
+                        _c += b[n] * delta_step
+                        norm += delta_step ** 2
+                    else:
+                        max_step = _u - x[n]
+                        delta_step = min(max_step, lam_step)
+                        _c += b[n] * delta_step
+                        norm += delta_step ** 2
+
+            # adjust lambda
+            if np.abs(_c) < np.abs(c):
+                # increase absolute value of lambda
+                if np.isinf(lambda_upper):
+                    _lambda *= 2
+                else:
+                    lambda_lower = _lambda
+                    _lambda = (lambda_upper - lambda_lower) / 2 + lambda_lower
+            else:
+                # decrease lambda
+                lambda_upper = _lambda
+                _lambda = (lambda_upper - lambda_lower) / 2 + lambda_lower
+
+            # stopping condition
+            if 0.999 * np.abs(c) - EPS < np.abs(_c) < 1.001 * np.abs(c) + EPS:
+                break
+
+        return np.sqrt(norm)
+
+    def optimize_distance_s_t_boundary_and_trustregion(
+        self, x0, x, b, min_, max_, c, r
+    ):
+        """ Find the solution to the optimization problem
+
+            min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
+        """
+        params0 = np.array([0.0, 0.0])
+        bounds = np.array([(-np.inf, np.inf), (0, np.inf)])
+        args = (x0, x, b, min_, max_, c, r)
+
+        qk = self.bfgsb.solve(self.fun_and_jac, params0, bounds, args)
+        return self._get_final_delta(
+            qk[0], qk[1], x0, x, b, min_, max_, c, r, touchup=True
+        )
+
+    def optimize_boundary_s_t_trustregion_fun_and_jac(
+        self, params, x0, x, b, min_, max_, c, r
+    ):
+        N = x0.shape[0]
+        s = -np.sign(c)
+        _mu = params[0]
+        t = 1 / (2 * _mu + EPS)
+
+        g = -_mu * r ** 2
+        grad_mu = -(r ** 2)
+
+        for n in range(N):
+            d = -s * b[n] * t
+
+            if d < min_ - x[n]:
+                d = min_ - x[n]
+            elif d > max_ - x[n]:
+                d = max_ - x[n]
+            else:
+                grad_mu += (b[n] + 2 * _mu * d) * (b[n] / (2 * _mu ** 2 + EPS))
+
+            grad_mu += d ** 2
+            g += (b[n] + _mu * d) * d
+
+        return -g, -np.array([grad_mu])
+
+    def safe_div(self, nominator, denominator):
+        if np.abs(denominator) > EPS:
+            return nominator / denominator
+        elif denominator >= 0:
+            return nominator / EPS
+        else:
+            return -nominator / EPS
+
+    def optimize_boundary_s_t_trustregion(self, x0, x, b, min_, max_, c, r):
+        """ Find the solution to the optimization problem
+
+            min_delta sign(c) b^T delta s.t. ||delta||_2^2 <= r^2 AND min_ <= x + delta <= max_
+
+            Note: this optimization problem is independent of the Lp norm being optimized.
+
+            Lagrangian: g(delta) = sign(c) b^T delta + mu * (||delta||_2^2 - r^2)
+            Optimal delta: delta = - sign(c) * b / (2 * mu)
+        """
+        params0 = np.array([1.0])
+        args = (x0, x, b, min_, max_, c, r)
+        bounds = np.array([(0, np.inf)])
+
+        qk = self.bfgsb.solve(
+            self.optimize_boundary_s_t_trustregion_fun_and_jac, params0, bounds, args
+        )
+
+        _delta = self.safe_div(-b, 2 * qk[0])
+
+        for n in range(x0.shape[0]):
+            if _delta[n] < min_ - x[n]:
+                _delta[n] = min_ - x[n]
+            elif _delta[n] > max_ - x[n]:
+                _delta[n] = max_ - x[n]
+
+        return _delta
 
 
-class TargetedMisclassification:
-    def __init__(self, target_classes: ep.Tensor):
-        self.target_classes = target_classes
-
-    def __call__(
-        self,
-        inputs: ep.Tensor,
-        labels: ep.Tensor,
-        perturbed: ep.Tensor,
-        logits: ep.Tensor,
-    ) -> ep.Tensor:
-        classes = logits.argmax(axis=-1)
-        return classes == self.target_classes
-
-    def loss(
-        self,
-        inputs: ep.Tensor,
-        labels: ep.Tensor,
-        perturbed: ep.Tensor,
-        logits: ep.Tensor,
-    ) -> ep.Tensor:
-        c_minimize = best_other_classes(logits, self.target_classes)
-        c_maximize = self.target_classes
-        rows = np.arange(len(logits))
-        return logits[rows, c_minimize] - logits[rows, c_maximize]
-
-
-class BrendelBethgeAttack(ABC):
+class BrendelBethgeAttack(MinimizationAttack, ABC):
     """ Base class for the Brendel & Bethge adversarial attack [1]_, a powerful
     gradient-based adversarial attack that follows the adversarial boundary
     (the boundary between the space of adversarial and non-adversarial images as
@@ -109,48 +317,24 @@ class BrendelBethgeAttack(ABC):
            https://arxiv.org/abs/1907.01003
     """
 
-    def __init__(self, model):
-        if NUMBA_IMPORT_ERROR is not None:
-            raise NUMBA_IMPORT_ERROR
-
-        self.model: Model = model
-        self._optimizer: Optimizer = self.instantiate_optimizer()
-
-    def __call__(
+    def __init__(
         self,
-        inputs,
-        labels,
-        *,
-        starting_points=None,
-        init_attack=None,
-        criterion: Callable = Misclassification(),
-        overshoot=1.1,
-        steps=1000,
-        lr=1e-3,
-        lr_decay=0.5,
-        lr_num_decay=20,
-        momentum=0.8,
-        tensorboard=False,
-        binary_search_steps=10,
+        init_attack: Optional[Attack] = None,
+        overshoot: float = 1.1,
+        steps: int = 1000,
+        lr: float = 1e-3,
+        lr_decay: float = 0.5,
+        lr_num_decay: int = 20,
+        momentum: float = 0.8,
+        tensorboard: Union[Literal[False], None, str] = False,
+        binary_search_steps: int = 10,
     ):
-        """Applies the Brendel & Bethge attack.
 
-        Parameters
+        """Parameters
         ----------
-        inputs : Tensor that matches model type
-            The original clean inputs.
-        labels : Integer tensor that matches model type
-            The reference labels for the inputs.
-        starting_point : Tensor of same type and shape as inputs
-            Adversarial inputs to use as a starting points, in particular
-            for targeted attacks.
         init_attack : :class: `Attack` or Callable
             Attack or callable to use to find a starting points. Defaults to
             BlendedUniformNoiseAttack. Only used of starting_points is None.
-        criterion : Callable
-            A callable that returns true if the given logits of perturbed
-            inputs should be considered adversarial w.r.t. to the given labels
-            and unperturbed inputs.
         overshoot : float
             If 1 the attack tries to return exactly to the adversarial boundary
             in each iteration. For higher values the attack tries to overshoot
@@ -181,27 +365,74 @@ class BrendelBethgeAttack(ABC):
             Number of binary search steps used to find the adversarial boundary
             between the starting point and the clean image.
         """
-        tb = TensorBoard(logdir=tensorboard)
 
-        originals = ep.astensor(inputs)
-        labels = ep.astensor(labels)
+        if NUMBA_IMPORT_ERROR is not None:
+            raise NUMBA_IMPORT_ERROR
 
-        def is_adversarial(p: ep.Tensor) -> ep.Tensor:
-            """For each input in x, returns true if it is an adversarial for
-            the given model and criterion"""
-            logits = self.model.forward(p)
-            return criterion(originals, labels, p, logits)
+        self.init_attack = init_attack
+        self.overshoot = overshoot
+        self.steps = steps
+        self.lr = lr
+        self.lr_decay = lr_decay
+        self.lr_num_decay = lr_num_decay
+        self.momentum = momentum
+        self.tensorboard = tensorboard
+        self.binary_search_steps = binary_search_steps
+
+        self._optimizer: Optimizer = self.instantiate_optimizer()
+
+    def __call__(  # noqa: C901
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[TargetedMisclassification, Misclassification, T],
+        *,
+        starting_points: Optional[ep.Tensor] = None,
+    ) -> T:
+        """Applies the Brendel & Bethge attack.
+
+        Parameters
+        ----------
+        inputs : Tensor that matches model type
+            The original clean inputs.
+        labels : Integer tensor that matches model type
+            The reference labels for the inputs.
+        criterion : Callable
+            A callable that returns true if the given logits of perturbed
+            inputs should be considered adversarial w.r.t. to the given labels
+            and unperturbed inputs.
+        starting_point : Tensor of same type and shape as inputs
+            Adversarial inputs to use as a starting points, in particular
+            for targeted attacks.
+        """
+        tb = TensorBoard(logdir=self.tensorboard)
+
+        originals, restore_type = ep.astensor_(inputs)
+        del inputs
+
+        criterion_ = get_criterion(criterion)
+        del criterion
+        is_adversarial = get_is_adversarial(criterion_, model)
+
+        if isinstance(criterion_, Misclassification):
+            targeted = False
+            classes = criterion_.labels
+        elif isinstance(criterion_, TargetedMisclassification):
+            targeted = True
+            classes = criterion_.target_classes
+        else:
+            raise ValueError("unsupported criterion")
 
         if starting_points is None:
-            if init_attack is None:
+            if self.init_attack is None:
                 init_attack = LinearSearchBlendedUniformNoiseAttack
                 logging.info(
                     f"Neither starting_points nor init_attack given. Falling"
                     f" back to {init_attack.__name__} for initialization."
                 )
-                starting_points = init_attack(self.model)(inputs, labels)
-            elif callable(init_attack):
-                starting_points = init_attack(inputs, labels)
+                starting_points = init_attack()(model, originals, criterion_)
+            elif callable(self.init_attack):
+                starting_points = self.init_attack(model, originals, criterion_)
 
         best_advs = ep.astensor(starting_points)
         assert is_adversarial(best_advs).all()
@@ -209,7 +440,8 @@ class BrendelBethgeAttack(ABC):
         # perform binary search to find adversarial boundary
         # TODO: Implement more efficient search with breaking condition
         N = len(originals)
-        bounds = self.model.bounds()
+        rows = range(N)
+        bounds = model.bounds
         min_, max_ = bounds
 
         x0 = originals
@@ -219,7 +451,7 @@ class BrendelBethgeAttack(ABC):
         lower_bound = ep.zeros(x0, shape=(N,))
         upper_bound = ep.ones(x0, shape=(N,))
 
-        for _ in range(binary_search_steps):
+        for _ in range(self.binary_search_steps):
             epsilons = (lower_bound + upper_bound) / 2
             mid_points = self.mid_points(x0, x1, epsilons, bounds)
             is_advs = is_adversarial(mid_points)
@@ -232,22 +464,31 @@ class BrendelBethgeAttack(ABC):
 
         # function to compute logits_diff and gradient
         def loss_fun(x, mask=None):
-            logits = self.model.forward(x)
-            if mask is None:
-                logits_diffs = criterion.loss(originals, labels, x, logits)
+            logits = model(x)
+
+            if targeted:
+                c_minimize = best_other_classes(logits, classes)
+                c_maximize = classes
             else:
-                logits_diffs = criterion.loss(originals[mask], labels[mask], x, logits)
+                c_minimize = classes
+                c_maximize = best_other_classes(logits, classes)
+
+            logits_diffs = logits[rows, c_minimize] - logits[rows, c_maximize]
+            assert logits_diffs.shape == (N,)
+
+            if mask is not None:
+                logits_diffs = logits_diffs[mask]
             return logits_diffs.sum(), logits_diffs
 
         value_and_grad = ep.value_and_grad_fn(x0, loss_fun, has_aux=True)
 
-        def logits_diff_and_grads(x, mask=None):
+        def logits_diff_and_grads(x, mask=None) -> Tuple[Any, Any]:
             _, logits_diffs, boundary = value_and_grad(x, mask)
-            return logits_diffs.numpy(), boundary.numpy()
+            return logits_diffs.numpy(), boundary.numpy().copy()
 
         x = starting_points
-        lrs = lr * np.ones(N)
-        lr_reduction_interval = min(1, int(steps / lr_num_decay))
+        lrs = self.lr * np.ones(N)
+        lr_reduction_interval = min(1, int(self.steps / self.lr_num_decay))
         converged = np.zeros(N, dtype=np.bool)
         mask = x0.ones(N).bool()
         np_mask = np.ones(N, dtype=np.bool)
@@ -255,7 +496,7 @@ class BrendelBethgeAttack(ABC):
         original_shape = x.shape
         _best_advs = best_advs.numpy()
 
-        for step in range(1, steps + 1):
+        for step in range(1, self.steps + 1):
             if converged.all():
                 break
 
@@ -274,7 +515,7 @@ class BrendelBethgeAttack(ABC):
             x_np_flatten = x.numpy().reshape((N, -1))
 
             if closer.any():
-                _best_advs = best_advs.numpy()
+                _best_advs = best_advs.numpy().copy()
                 _closer = closer.numpy().flatten()
                 for idx in np.arange(N)[np_mask][_closer]:
                     _best_advs[idx] = x_np_flatten[idx].reshape(original_shape[1:])
@@ -285,13 +526,13 @@ class BrendelBethgeAttack(ABC):
             if step == 1:
                 boundary = _boundary
             else:
-                boundary[np_mask] = (1 - momentum) * _boundary + momentum * boundary[
-                    np_mask
-                ]
+                boundary[np_mask] = (
+                    1 - self.momentum
+                ) * _boundary + self.momentum * boundary[np_mask]
 
             # learning rate adaptation
             if (step + 1) % lr_reduction_interval == 0:
-                lrs *= lr_decay
+                lrs *= self.lr_decay
 
             # compute optimal step within trust region depending on metric
             x = x.reshape((N, -1))
@@ -300,8 +541,8 @@ class BrendelBethgeAttack(ABC):
             # we aim to slight overshoot over the boundary to stay within the adversarial region
             corr_logits_diffs = np.where(
                 -logits_diffs < 0,
-                -overshoot * logits_diffs,
-                -(2 - overshoot) * logits_diffs,
+                -self.overshoot * logits_diffs,
+                -(2 - self.overshoot) * logits_diffs,
             )
 
             # employ solver to find optimal step within trust region
@@ -319,7 +560,7 @@ class BrendelBethgeAttack(ABC):
                     _c = corr_logits_diffs[k]
                     r = region[sample]
 
-                    delta = self._optimizer.solve(
+                    delta = self._optimizer.solve(  # type: ignore
                         _x0, _x, _b, bounds[0], bounds[1], _c, r
                     )
                     deltas.append(delta)
@@ -338,22 +579,28 @@ class BrendelBethgeAttack(ABC):
 
         tb.close()
 
-        return best_advs.tensor
+        return restore_type(best_advs)
 
     @abstractmethod
-    def instantiate_optimizer(self):
+    def instantiate_optimizer(self) -> Optimizer:
         raise NotImplementedError
 
     @abstractmethod
-    def norms(self, x):
+    def norms(self, x: ep.Tensor) -> ep.Tensor:
         raise NotImplementedError
 
     @abstractmethod
-    def mid_points(self, x0, x1, epsilons, bounds):
+    def mid_points(
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
+    ) -> ep.Tensor:
         raise NotImplementedError
 
 
-def best_other_classes(logits, exclude):
+def best_other_classes(logits: ep.Tensor, exclude: ep.Tensor) -> ep.Tensor:
     other_logits = logits - ep.onehot_like(logits, exclude, value=np.inf)
     return other_logits.argmax(axis=-1)
 
@@ -385,10 +632,12 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
 
         return L2Optimizer()
 
-    def norms(self, x):
+    def norms(self, x: ep.Tensor) -> ep.Tensor:
         return flatten(x).square().sum(axis=-1).sqrt()
 
-    def mid_points(self, x0, x1, epsilons, bounds):
+    def mid_points(
+        self, x0: ep.Tensor, x1: ep.Tensor, epsilons: ep.Tensor, bounds
+    ) -> ep.Tensor:
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
@@ -419,10 +668,16 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
     def instantiate_optimizer(self):
         return LinfOptimizer()
 
-    def norms(self, x):
+    def norms(self, x: ep.Tensor) -> ep.Tensor:
         return flatten(x).abs().max(axis=-1)
 
-    def mid_points(self, x0, x1, epsilons, bounds):
+    def mid_points(
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
+    ):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         delta = x1 - x0
@@ -432,7 +687,9 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
         epsilons = epsilons.reshape(epsilons.shape + (1,) * (x0.ndim - 1))
 
         clipped_delta = ep.where(delta < -epsilons * s, -epsilons * s, delta)
-        clipped_delta = ep.where(delta > epsilons * s, epsilons * s, delta)
+        clipped_delta = ep.where(
+            clipped_delta > epsilons * s, epsilons * s, clipped_delta
+        )
         return x0 + clipped_delta
 
 
@@ -457,10 +714,16 @@ class L1BrendelBethgeAttack(BrendelBethgeAttack):
     def instantiate_optimizer(self):
         return L1Optimizer()
 
-    def norms(self, x):
+    def norms(self, x: ep.Tensor) -> ep.Tensor:
         return flatten(x).abs().sum(axis=-1)
 
-    def mid_points(self, x0, x1, epsilons, bounds):
+    def mid_points(
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
+    ) -> ep.Tensor:
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
@@ -497,10 +760,16 @@ class L0BrendelBethgeAttack(BrendelBethgeAttack):
     def instantiate_optimizer(self):
         return L0Optimizer()
 
-    def norms(self, x):
+    def norms(self, x: ep.Tensor) -> ep.Tensor:
         return (flatten(x).abs() > 1e-4).sum(axis=-1)
 
-    def mid_points(self, x0, x1, epsilons, bounds):
+    def mid_points(
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
+    ):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
@@ -1086,261 +1355,9 @@ class BFGSB(object):
 
 
 if NUMBA_IMPORT_ERROR is None:
-    spec = [("bfgsb", BFGSB.class_type.instance_type)]
+    spec = [("bfgsb", BFGSB.class_type.instance_type)]  # type: ignore #
 else:
-    spec = []  # type: ignore
-
-
-class Optimizer(object):
-    """ Base class for the trust-region optimization. If feasible, this optimizer solves the problem
-
-        min_delta distance(x0, x + delta) s.t. ||delta||_2 <= r AND delta^T b = c AND min_ <= x + delta <= max_
-
-        where x0 is the original sample, x is the current optimisation state, r is the trust-region radius,
-        b is the current estimate of the normal vector of the decision boundary, c is the estimated distance of x
-        to the trust region and [min_, max_] are the value constraints of the input. The function distance(.,.)
-        is the distance measure to be optimised (e.g. L2, L1, L0).
-
-    """
-
-    def __init__(self):
-        self.bfgsb = BFGSB()  # a box-constrained BFGS solver
-
-    def solve(self, x0, x, b, min_, max_, c, r):
-        x0, x, b = x0.astype(np.float64), x.astype(np.float64), b.astype(np.float64)
-        cmax, cmaxnorm = self._max_logit_diff(x, b, min_, max_, c)
-
-        if np.abs(cmax) < np.abs(c):
-            # problem not solvable (boundary cannot be reached)
-            if np.sqrt(cmaxnorm) < r:
-                # make largest possible step towards boundary while staying within bounds
-                _delta = self.optimize_boundary_s_t_trustregion(
-                    x0, x, b, min_, max_, c, r
-                )
-            else:
-                # make largest possible step towards boundary while staying within trust region
-                _delta = self.optimize_boundary_s_t_trustregion(
-                    x0, x, b, min_, max_, c, r
-                )
-        else:
-            if cmaxnorm < r:
-                # problem is solvable
-                # proceed with standard optimization
-                _delta = self.optimize_distance_s_t_boundary_and_trustregion(
-                    x0, x, b, min_, max_, c, r
-                )
-            else:
-                # problem might not be solvable
-                bnorm = np.linalg.norm(b)
-                minnorm = self._minimum_norm_to_boundary(x, b, min_, max_, c, bnorm)
-
-                if minnorm <= r:
-                    # problem is solvable, proceed with standard optimization
-                    _delta = self.optimize_distance_s_t_boundary_and_trustregion(
-                        x0, x, b, min_, max_, c, r
-                    )
-                else:
-                    # problem not solvable (boundary cannot be reached)
-                    # make largest step towards boundary within trust region
-                    _delta = self.optimize_boundary_s_t_trustregion(
-                        x0, x, b, min_, max_, c, r
-                    )
-
-        return _delta
-
-    def _max_logit_diff(self, x, b, _ell, _u, c):
-        """ Tests whether the (estimated) boundary can be reached within trust region. """
-        N = x.shape[0]
-        cmax = 0.0
-        norm = 0.0
-
-        if c > 0:
-            for n in range(N):
-                if b[n] > 0:
-                    cmax += b[n] * (_u - x[n])
-                    norm += (_u - x[n]) ** 2
-                else:
-                    cmax += b[n] * (_ell - x[n])
-                    norm += (x[n] - _ell) ** 2
-        else:
-            for n in range(N):
-                if b[n] > 0:
-                    cmax += b[n] * (_ell - x[n])
-                    norm += (x[n] - _ell) ** 2
-                else:
-                    cmax += b[n] * (_u - x[n])
-                    norm += (_u - x[n]) ** 2
-
-        return cmax, np.sqrt(norm)
-
-    def _minimum_norm_to_boundary(self, x, b, _ell, _u, c, bnorm):
-        """ Computes the minimum norm necessary to reach the boundary. More precisely, we aim to solve the
-            following optimization problem
-
-                min ||delta||_2^2 s.t. lower <= x + delta <= upper AND b.dot(delta) = c
-
-            Lets forget about the box constraints for a second, i.e.
-
-                min ||delta||_2^2 s.t. b.dot(delta) = c
-
-            The dual of this problem is quite straight-forward to solve,
-
-                g(lambda, delta) = ||delta||_2^2 + lambda * (c - b.dot(delta))
-
-            The minimum of this Lagrangian is delta^* = lambda * b / 2, and so
-
-                inf_delta g(lambda, delta) = lambda^2 / 4 ||b||_2^2 + lambda * c
-
-            and so the optimal lambda, which maximizes inf_delta g(lambda, delta), is given by
-
-                lambda^* = 2c / ||b||_2^2
-
-            which in turn yields the optimal delta:
-
-                delta^* = c * b / ||b||_2^2
-
-            To take into account the box-constraints we perform a binary search over lambda and apply the box
-            constraint in each step.
-        """
-        N = x.shape[0]
-
-        lambda_lower = 2 * c / bnorm ** 2
-        lambda_upper = (
-            np.sign(c) * np.inf
-        )  # optimal initial point (if box-constraints are neglected)
-        _lambda = lambda_lower
-        k = 0
-
-        # perform a binary search over lambda
-        while True:
-            # compute _c = b.dot([- _lambda * b / 2]_clip)
-            k += 1
-            _c = 0
-            norm = 0
-
-            if c > 0:
-                for n in range(N):
-                    lam_step = _lambda * b[n] / 2
-                    if b[n] > 0:
-                        max_step = _u - x[n]
-                        delta_step = min(max_step, lam_step)
-                        _c += b[n] * delta_step
-                        norm += delta_step ** 2
-                    else:
-                        max_step = _ell - x[n]
-                        delta_step = max(max_step, lam_step)
-                        _c += b[n] * delta_step
-                        norm += delta_step ** 2
-            else:
-                for n in range(N):
-                    lam_step = _lambda * b[n] / 2
-                    if b[n] > 0:
-                        max_step = _ell - x[n]
-                        delta_step = max(max_step, lam_step)
-                        _c += b[n] * delta_step
-                        norm += delta_step ** 2
-                    else:
-                        max_step = _u - x[n]
-                        delta_step = min(max_step, lam_step)
-                        _c += b[n] * delta_step
-                        norm += delta_step ** 2
-
-            # adjust lambda
-            if np.abs(_c) < np.abs(c):
-                # increase absolute value of lambda
-                if np.isinf(lambda_upper):
-                    _lambda *= 2
-                else:
-                    lambda_lower = _lambda
-                    _lambda = (lambda_upper - lambda_lower) / 2 + lambda_lower
-            else:
-                # decrease lambda
-                lambda_upper = _lambda
-                _lambda = (lambda_upper - lambda_lower) / 2 + lambda_lower
-
-            # stopping condition
-            if 0.999 * np.abs(c) - EPS < np.abs(_c) < 1.001 * np.abs(c) + EPS:
-                break
-
-        return np.sqrt(norm)
-
-    def optimize_distance_s_t_boundary_and_trustregion(
-        self, x0, x, b, min_, max_, c, r
-    ):
-        """ Find the solution to the optimization problem
-
-            min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
-        """
-        params0 = np.array([0.0, 0.0])
-        bounds = np.array([(-np.inf, np.inf), (0, np.inf)])
-        args = (x0, x, b, min_, max_, c, r)
-
-        qk = self.bfgsb.solve(self.fun_and_jac, params0, bounds, args)
-        return self._get_final_delta(
-            qk[0], qk[1], x0, x, b, min_, max_, c, r, touchup=True
-        )
-
-    def optimize_boundary_s_t_trustregion_fun_and_jac(
-        self, params, x0, x, b, min_, max_, c, r
-    ):
-        N = x0.shape[0]
-        s = -np.sign(c)
-        _mu = params[0]
-        t = 1 / (2 * _mu + EPS)
-
-        g = -_mu * r ** 2
-        grad_mu = -(r ** 2)
-
-        for n in range(N):
-            d = -s * b[n] * t
-
-            if d < min_ - x[n]:
-                d = min_ - x[n]
-            elif d > max_ - x[n]:
-                d = max_ - x[n]
-            else:
-                grad_mu += (b[n] + 2 * _mu * d) * (b[n] / (2 * _mu ** 2 + EPS))
-
-            grad_mu += d ** 2
-            g += (b[n] + _mu * d) * d
-
-        return -g, -np.array([grad_mu])
-
-    def safe_div(self, nominator, denominator):
-        if np.abs(denominator) > EPS:
-            return nominator / denominator
-        elif denominator >= 0:
-            return nominator / EPS
-        else:
-            return -nominator / EPS
-
-    def optimize_boundary_s_t_trustregion(self, x0, x, b, min_, max_, c, r):
-        """ Find the solution to the optimization problem
-
-            min_delta sign(c) b^T delta s.t. ||delta||_2^2 <= r^2 AND min_ <= x + delta <= max_
-
-            Note: this optimization problem is independent of the Lp norm being optimized.
-
-            Lagrangian: g(delta) = sign(c) b^T delta + mu * (||delta||_2^2 - r^2)
-            Optimal delta: delta = - sign(c) * b / (2 * mu)
-        """
-        params0 = np.array([1.0])
-        args = (x0, x, b, min_, max_, c, r)
-        bounds = np.array([(0, np.inf)])
-
-        qk = self.bfgsb.solve(
-            self.optimize_boundary_s_t_trustregion_fun_and_jac, params0, bounds, args
-        )
-
-        _delta = self.safe_div(-b, 2 * qk[0])
-
-        for n in range(x0.shape[0]):
-            if _delta[n] < min_ - x[n]:
-                _delta[n] = min_ - x[n]
-            elif _delta[n] > max_ - x[n]:
-                _delta[n] = max_ - x[n]
-
-        return _delta
+    spec = []
 
 
 @jitclass(spec=spec)
