@@ -1,5 +1,5 @@
+from typing import Union, Optional, Tuple
 import eagerpy as ep
-import numpy as np
 import logging
 from abc import ABC
 from abc import abstractmethod
@@ -7,11 +7,26 @@ from abc import abstractmethod
 from ..devutils import flatten
 from ..devutils import atleast_kd
 
+from ..models import Model
 
-class DeepFoolAttack(ABC):
+from ..criteria import Criterion
+
+from .base import MinimizationAttack
+from .base import T
+from .base import get_criterion
+
+
+class DeepFoolAttack(MinimizationAttack, ABC):
     """A simple and fast gradient-based adversarial attack.
 
     Implementes DeepFool introduced in [1]_.
+
+    Args:
+        p: Lp-norm that should be minimzed, must be 2 or np.inf.
+        candidates: Limit on the number of the most likely classes that should
+            be considered. A small value is usually sufficient and much faster.
+        overshoot
+        steps: Maximum number of steps to perform.
 
     References
     ----------
@@ -21,71 +36,61 @@ class DeepFoolAttack(ABC):
 
     """
 
-    def __init__(self, model):
-        self.model = model
-
-    def __call__(
+    def __init__(
         self,
-        inputs,
-        labels,
-        *,
-        p,
-        candidates=10,
-        overshoot=0.02,
-        steps=50,
-        loss="logits",
+        steps: int = 50,
+        candidates: Optional[int] = 10,
+        overshoot: float = 0.02,
+        loss: str = "logits",
     ):
-        """
-        Parameters
-        ----------
-        p : int or float
-            Lp-norm that should be minimzed, must be 2 or np.inf.
-        candidates : int
-            Limit on the number of the most likely classes that should
-            be considered. A small value is usually sufficient and much
-            faster.
-        overshoot : float
-        steps : int
-            Maximum number of steps to perform.
-        """
+        self.steps = steps
+        self.candidates = candidates
+        self.overshoot = overshoot
+        self.loss = loss
 
-        if not (1 <= p <= np.inf):
-            raise ValueError
-        if p not in [2, np.inf]:
-            raise NotImplementedError
+    def __call__(self, model: Model, inputs: T, criterion: Union[Criterion, T],) -> T:
+        x, restore_type = ep.astensor_(inputs)
+        del inputs
 
-        min_, max_ = self.model.bounds()
+        criterion = get_criterion(criterion)
 
-        inputs = ep.astensor(inputs)
-        labels = ep.astensor(labels)
+        min_, max_ = model.bounds
 
-        N = len(inputs)
-
-        logits = self.model.forward(inputs)
-        candidates = min(candidates, logits.shape[-1])
+        logits = model(x)
         classes = logits.argsort(axis=-1).flip(axis=-1)
-        if candidates:
-            assert candidates >= 2
+        if self.candidates is None:
+            candidates = logits.shape[-1]
+        else:
+            candidates = min(self.candidates, logits.shape[-1])
+            if not candidates >= 2:
+                raise ValueError(
+                    f"expected the model output to have atleast 2 classes, got {logits.shape[-1]}"
+                )
             logging.info(f"Only testing the top-{candidates} classes")
             classes = classes[:, :candidates]
 
+        N = len(x)
+        rows = range(N)
         i0 = classes[:, 0]
-        rows = ep.arange(inputs, N)
 
-        if loss == "logits":
+        if self.loss == "logits":
 
-            def loss_fun(x: ep.Tensor, k: int) -> ep.Tensor:
-                logits = self.model.forward(x)
+            def loss_fun(
+                x: ep.Tensor, k: int
+            ) -> Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]:
+                logits = model(x)
                 ik = classes[:, k]
                 l0 = logits[rows, i0]
                 lk = logits[rows, ik]
                 loss = lk - l0
                 return loss.sum(), (loss, logits)
 
-        elif loss == "crossentropy":
+        elif self.loss == "crossentropy":
 
-            def loss_fun(x: ep.Tensor, k: int) -> ep.Tensor:
-                logits = self.model.forward(x)
+            def loss_fun(
+                x: ep.Tensor, k: int
+            ) -> Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]:
+                logits = model(x)
                 ik = classes[:, k]
                 l0 = -ep.crossentropy(logits, i0)
                 lk = -ep.crossentropy(logits, ik)
@@ -94,29 +99,31 @@ class DeepFoolAttack(ABC):
 
         else:
             raise ValueError(
-                f"expected loss to be 'logits' or 'crossentropy', got '{loss}'"
+                f"expected loss to be 'logits' or 'crossentropy', got '{self.loss}'"
             )
 
-        loss_aux_and_grad = ep.value_and_grad_fn(inputs, loss_fun, has_aux=True)
+        loss_aux_and_grad = ep.value_and_grad_fn(x, loss_fun, has_aux=True)
 
-        x = x0 = inputs
+        x0 = x
         p_total = ep.zeros_like(x)
-        for step in range(steps):
+        for _ in range(self.steps):
             # let's first get the logits using k = 1 to see if we are done
             diffs = [loss_aux_and_grad(x, 1)]
             _, (_, logits), _ = diffs[0]
-            is_adv = logits.argmax(axis=-1) != labels
+
+            is_adv = criterion(x, logits)
             if is_adv.all():
                 break
+
             # then run all the other k's as well
             # we could avoid repeated forward passes and only repeat
             # the backward pass, but this cannot currently be done in eagerpy
             diffs += [loss_aux_and_grad(x, k) for k in range(2, candidates)]
 
             # we don't need the logits
-            diffs = [(losses, grad) for _, (losses, _), grad in diffs]
-            losses = ep.stack([l for l, _ in diffs], axis=1)
-            grads = ep.stack([g for _, g in diffs], axis=1)
+            diffs_ = [(losses, grad) for _, (losses, _), grad in diffs]
+            losses = ep.stack([l for l, _ in diffs_], axis=1)
+            grads = ep.stack([g for _, g in diffs_], axis=1)
             assert losses.shape == (N, candidates - 1)
             assert grads.shape == (N, candidates - 1) + x0.shape[1:]
 
@@ -141,66 +148,37 @@ class DeepFoolAttack(ABC):
             p_total += p_step
             # don't do anything for those that are already adversarial
             x = ep.where(
-                atleast_kd(is_adv, x.ndim), x, x0 + (1.0 + overshoot) * p_total
+                atleast_kd(is_adv, x.ndim), x, x0 + (1.0 + self.overshoot) * p_total
             )
             x = ep.clip(x, min_, max_)
 
-        return x.tensor
+        return restore_type(x)
 
     @abstractmethod
-    def get_distances(self, losses, grads):
-        raise NotImplementedError
+    def get_distances(self, losses: ep.Tensor, grads: ep.Tensor) -> ep.Tensor:
+        ...
 
     @abstractmethod
-    def get_perturbations(self, distances, grads):
-        raise NotImplementedError
+    def get_perturbations(self, distances: ep.Tensor, grads: ep.Tensor) -> ep.Tensor:
+        ...
 
 
 class L2DeepFoolAttack(DeepFoolAttack):
-    def __call__(
-        self, inputs, labels, *, candidates=10, overshoot=0.02, steps=50, loss="logits"
-    ):
-        return super().__call__(
-            inputs,
-            labels,
-            p=2,
-            candidates=candidates,
-            overshoot=overshoot,
-            steps=steps,
-            loss=loss,
-        )
+    def get_distances(self, losses: ep.Tensor, grads: ep.Tensor) -> ep.Tensor:
+        return abs(losses) / (flatten(grads, keep=2).norms.l2(axis=-1) + 1e-8)
 
-    def get_distances(self, losses, grads):
-        return abs(losses) / (
-            flatten(grads, keep=2).square().sum(axis=-1).sqrt() + 1e-8
-        )
-
-    def get_perturbations(self, distances, grads):
+    def get_perturbations(self, distances: ep.Tensor, grads: ep.Tensor) -> ep.Tensor:
         return (
             atleast_kd(
-                distances / (flatten(grads).square().sum(axis=-1).sqrt() + 1e-8),
-                grads.ndim,
+                distances / (flatten(grads).norms.l2(axis=-1) + 1e-8), grads.ndim,
             )
             * grads
         )
 
 
 class LinfDeepFoolAttack(DeepFoolAttack):
-    def __call__(
-        self, inputs, labels, *, candidates=10, overshoot=0.02, steps=50, loss="logits"
-    ):
-        return super().__call__(
-            inputs,
-            labels,
-            p=np.inf,
-            candidates=candidates,
-            overshoot=overshoot,
-            steps=steps,
-            loss=loss,
-        )
-
-    def get_distances(self, losses, grads):
+    def get_distances(self, losses: ep.Tensor, grads: ep.Tensor) -> ep.Tensor:
         return abs(losses) / (flatten(grads, keep=2).abs().sum(axis=-1) + 1e-8)
 
-    def get_perturbations(self, distances, grads):
+    def get_perturbations(self, distances: ep.Tensor, grads: ep.Tensor) -> ep.Tensor:
         return atleast_kd(distances, grads.ndim) * grads.sign()

@@ -33,6 +33,8 @@ attacks: List[Tuple[fbn.Attack, bool, bool]] = [
     (fa.L2FastGradientAttack(L2(100.0)), True, False),
     (fa.LinfFastGradientAttack(Linf(100.0)), True, False),
     (fa.GaussianBlurAttack(steps=10), True, True),
+    (fa.L2DeepFoolAttack(steps=50), True, False),
+    (fa.LinfDeepFoolAttack(steps=50), True, False),
 ]
 
 
