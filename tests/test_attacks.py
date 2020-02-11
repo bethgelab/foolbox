@@ -29,11 +29,7 @@ attacks: List[Tuple[fbn.Attack, bool, bool]] = [
     (fa.VirtualAdversarialAttack(iterations=50, xi=1, epsilon=10), True, False),
     (fa.L2BasicIterativeAttack(L2(100.0), stepsize=5.0, steps=10), True, False),
     (fa.LinfBasicIterativeAttack(Linf(1.0), stepsize=5.0, steps=10), True, False),
-    (
-        fa.ProjectedGradientDescentAttack(Linf(1.0), stepsize=5.0, steps=10),
-        True,
-        False,
-    ),
+    (fa.PGD(Linf(1.0), stepsize=5.0, steps=10), True, False,),
     (fa.L2FastGradientAttack(L2(100.0)), True, False),
     (fa.LinfFastGradientAttack(Linf(100.0)), True, False),
     (fa.GaussianBlurAttack(steps=10), True, True),
