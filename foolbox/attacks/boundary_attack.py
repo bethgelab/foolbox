@@ -23,7 +23,8 @@ from .base import Attack
 
 # TODO: use blended noise once noise attacks have been updated
 # from .blended_noise import LinearSearchBlendedUniformNoiseAttack
-from .contrast_min import BinarySearchContrastReductionAttack
+# from .contrast_min import BinarySearchContrastReductionAttack
+from .deepfool import L2DeepFoolAttack
 
 
 class BoundaryAttack(MinimizationAttack):
@@ -88,7 +89,8 @@ class BoundaryAttack(MinimizationAttack):
             if self.init_attack is None:
                 # TODO: use blended noise once noise attacks have been updated
                 # init_attack = LinearSearchBlendedUniformNoiseAttack()
-                init_attack = BinarySearchContrastReductionAttack()
+                # init_attack = BinarySearchContrastReductionAttack()
+                init_attack = L2DeepFoolAttack()
                 logging.info(
                     f"Neither starting_points nor init_attack given. Falling"
                     f" back to {init_attack!r} for initialization."
