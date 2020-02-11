@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional
 import eagerpy as ep
 
 from ..criteria import Misclassification
@@ -30,7 +30,10 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
     """
 
     def __init__(
-        self, steps: int = 1000, across_channels: bool = True, channel_axis: Optional[int] = None
+        self,
+        steps: int = 1000,
+        across_channels: bool = True,
+        channel_axis: Optional[int] = None,
     ):
         self.steps = steps
         self.across_channels = across_channels
