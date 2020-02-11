@@ -1,21 +1,35 @@
+from typing import Union, Optional
+from typing_extensions import Literal
 import eagerpy as ep
 import numpy as np
 
+from ..models import Model
 
-class BinarizationRefinementAttack:
-    def __init__(self, model):
-        self.model = model
+from ..criteria import Criterion
 
-    def __call__(
+from .base import MinimizationAttack
+from .base import T
+from .base import get_is_adversarial
+from .base import get_criterion
+
+
+class BinarizationRefinementAttack(MinimizationAttack):
+    def __init__(
         self,
-        inputs,
-        labels,
-        *,
-        adversarials,
-        criterion,
-        threshold=None,
-        included_in="upper",
+        threshold: Optional[float] = None,
+        included_in: Union[Literal["lower"], Literal["upper"]] = "upper",
     ):
+        self.threshold = threshold
+        self.included_in = included_in
+
+    def __call__(  # type: ignore
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[Criterion, T],
+        *,
+        starting_points: T,
+    ) -> T:
         """For models that preprocess their inputs by binarizing the
         inputs, this attack can improve adversarials found by other
         attacks. It does this by utilizing information about the
@@ -32,56 +46,46 @@ class BinarizationRefinementAttack:
             upper interval.
 
         """
-        originals = ep.astensor(inputs)
-        labels = ep.astensor(labels)
+        (o, x), restore_type = ep.astensors_(inputs, starting_points)
+        del inputs
 
-        def is_adversarial(p: ep.Tensor) -> ep.Tensor:
-            """For each input in x, returns true if it is an adversarial for
-            the given model and criterion"""
-            logits = self.model.forward(p)
-            return criterion(originals, labels, p, logits)
+        criterion = get_criterion(criterion)
+        is_adversarial = get_is_adversarial(criterion, model)
 
-        o = ep.astensor(inputs)
-        x = ep.astensor(adversarials)
-
-        min_, max_ = self.model.bounds()
-        if threshold is None:
+        if self.threshold is None:
+            min_, max_ = model.bounds
             threshold = (min_ + max_) / 2.0
+        else:
+            threshold = self.threshold
 
         assert o.dtype == x.dtype
-        dtype = o.dtype
 
-        if dtype == o.backend.float16:
-            nptype = np.float16
-        elif dtype == o.backend.float32:
-            nptype = np.float32
-        elif dtype == o.backend.float64:
-            nptype = np.float64
-        else:
+        nptype = o.reshape(-1)[0].numpy().dtype.type
+        if nptype not in [np.float16, np.float32, np.float64]:
             raise ValueError(
-                "expected dtype to be float16, float32 or float64, found '{dtype}'"
+                f"expected dtype to be float16, float32 or float64, found '{nptype}'"
             )
 
         threshold = nptype(threshold)
         offset = nptype(1.0)
 
-        if included_in == "lower":
-            lower = threshold
-            upper = np.nextafter(threshold, threshold + offset)
-        elif included_in == "upper":
-            lower = np.nextafter(threshold, threshold - offset)
-            upper = threshold
+        if self.included_in == "lower":
+            lower_ = threshold
+            upper_ = np.nextafter(threshold, threshold + offset)
+        elif self.included_in == "upper":
+            lower_ = np.nextafter(threshold, threshold - offset)
+            upper_ = threshold
         else:
             raise ValueError(
-                "expected included_in to be 'lower' or 'upper', found '{included_in}'"
+                f"expected included_in to be 'lower' or 'upper', found '{self.included_in}'"
             )
 
-        assert lower < upper
+        assert lower_ < upper_
 
         p = ep.full_like(o, ep.nan)
 
-        lower = ep.ones_like(o) * lower
-        upper = ep.ones_like(o) * upper
+        lower = ep.ones_like(o) * lower_
+        upper = ep.ones_like(o) * upper_
 
         indices = ep.logical_and(o <= lower, x <= lower)
         p = ep.where(indices, o, p)
@@ -99,7 +103,8 @@ class BinarizationRefinementAttack:
 
         is_adv1 = is_adversarial(x)
         is_adv2 = is_adversarial(p)
-        assert (
-            is_adv1 == is_adv2
-        ).all(), "The specified threshold does not match what is done by the model."
-        return p.tensor
+        if (is_adv1 != is_adv2).any():
+            raise ValueError(
+                "The specified threshold does not match what is done by the model."
+            )
+        return restore_type(p)
