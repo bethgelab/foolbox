@@ -1,43 +1,86 @@
-import eagerpy as ep
+from typing import Union, Optional, Any, List
 import numpy as np
+import eagerpy as ep
+
+from ..devutils import atleast_kd
+
+from ..models import Model
+
+from ..criteria import Criterion
 
 from .base import MinimizationAttack
-from ..devutils import wrap
-from ..models.base import Model
-
-
-# TODO: rewrite this to make it more efficient and to allow both storing on GPU and CPU
+from .base import T
+from .base import get_criterion
 
 
 class DatasetAttack(MinimizationAttack):
-    """This is a helper attack that makes it straight-forward to choose initialisation points
-       for boundary-type attacks from a given data set. All it does is to store samples and
-       the predicted responses of a given model in order to select suitable adversarial images
-       from the given data set.
+    """Draws randomly from the given dataset until adversarial examples for all
+    inputs have been found.
+
+    To pass data form the dataset to this attack, call :meth:`feed()`.
+    :meth:`feed()` can be called several times and should only be called with
+    batches that are small enough that they can be passed through the model.
     """
 
-    def __init__(self):
-        self.samples = []
-        self.labels = []
+    def __init__(self) -> None:
+        self.raw_inputs: List[ep.Tensor] = []
+        self.raw_outputs: List[ep.Tensor] = []
+        self.inputs: Optional[ep.Tensor] = None
+        self.outputs: Optional[ep.Tensor] = None
 
-    def feed(self, model: Model, inputs):
-        response = model(inputs).argmax(-1)
+    def feed(self, model: Model, inputs: Any) -> None:
+        x = ep.astensor(inputs)
+        del inputs
 
-        for k in range(len(inputs)):
-            self.samples.append(inputs[k])
-            self.labels.append(int(response[k]))
+        self.raw_inputs.append(x)
+        self.raw_outputs.append(model(x).argmax(axis=-1))
 
-    def __call__(self, model: Model, inputs, labels):
-        x, y, restore = wrap(inputs, labels)
-        del inputs, labels
+    def process_raw(self) -> None:
+        raw_inputs = self.raw_inputs
+        raw_outputs = self.raw_outputs
+        assert len(raw_inputs) == len(raw_outputs)
+        assert (self.inputs is None) == (self.outputs is None)
 
-        adv_samples = []
-        for k in range(len(y)):
-            while True:
-                idx = np.random.randint(len(self.labels))
-                if int(y[k].numpy()) != self.labels[idx]:
-                    adv_samples.append(ep.astensor(self.samples[idx]).numpy())
-                    break
+        if self.inputs is None:
+            if len(raw_inputs) == 0:
+                raise ValueError(
+                    "DatasetAttack can only be called after data has been provided using 'feed()'"
+                )
+        elif self.inputs is not None:
+            assert self.outputs is not None
+            raw_inputs = [self.inputs] + raw_inputs
+            raw_outputs = [self.outputs] + raw_outputs
 
-        x = ep.from_numpy(x, np.stack(adv_samples))
-        return restore(x)
+        self.inputs = ep.concatenate(raw_inputs, axis=0)
+        self.outputs = ep.concatenate(raw_outputs, axis=0)
+        self.raw_inputs = []
+        self.raw_outputs = []
+
+    def __call__(self, model: Model, inputs: T, criterion: Union[Criterion, T]) -> T:
+        self.process_raw()
+        assert self.inputs is not None
+        assert self.outputs is not None
+
+        x, restore_type = ep.astensor_(inputs)
+        del inputs
+
+        criterion = get_criterion(criterion)
+
+        result = x
+        found = criterion(x, model(x))
+
+        dataset_size = len(self.inputs)
+        batch_size = len(x)
+
+        while not found.all():
+            indices = np.random.randint(0, dataset_size, size=(batch_size,))
+
+            xp = self.inputs[indices]
+            yp = self.outputs[indices]
+            is_adv = criterion(xp, yp)
+
+            new_found = ep.logical_and(is_adv, found.logical_not())
+            result = ep.where(atleast_kd(new_found, result.ndim), xp, result)
+            found = ep.logical_or(found, new_found)
+
+        return restore_type(result)
