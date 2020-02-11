@@ -18,7 +18,7 @@ install_requires = [
     "numpy",
     "scipy",
     "setuptools",
-    "eagerpy==0.19.0",
+    "eagerpy==0.20.2",
     "GitPython>=3.0.7",
 ]
 tests_require = ["pytest", "pytest-cov"]
