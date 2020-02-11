@@ -25,6 +25,10 @@ jobs:
           ${{ runner.os }}-pip-
     - uses: actions/cache@v1
       with:
+        path: ~/.cache/torch
+        key: ${{ runner.os }}-cache-torch
+    - uses: actions/cache@v1
+      with:
         path: ~/.torch
         key: ${{ runner.os }}-torch
     - uses: actions/cache@v1
