@@ -6,7 +6,9 @@ from .git_cloner import clone
 from .model_loader import ModelLoader
 
 
-def get_model(url: str, module_name: str = "foolbox_model", **kwargs: Any) -> Model:
+def get_model(
+    url: str, module_name: str = "foolbox_model", overwrite: bool = False, **kwargs: Any
+) -> Model:
     """
 
     Provides utilities to download foolbox-compatible robust models
@@ -31,6 +33,7 @@ def get_model(url: str, module_name: str = "foolbox_model", **kwargs: Any) -> Mo
 
     Example repositories:
 
+        - https://github.com/jonasrauber/foolbox-tensorflow-keras-applications
         - https://github.com/bethgelab/AnalysisBySynthesis
         - https://github.com/bethgelab/mnist_challenge
         - https://github.com/bethgelab/cifar10_challenge
@@ -44,7 +47,7 @@ def get_model(url: str, module_name: str = "foolbox_model", **kwargs: Any) -> Mo
         to be instantiated model.
     :return: a foolbox-wrapped model instance
     """
-    repo_path = clone(url)
+    repo_path = clone(url, overwrite=overwrite)
     loader = ModelLoader.get()
     model = loader.load(repo_path, module_name=module_name, **kwargs)
     return model
