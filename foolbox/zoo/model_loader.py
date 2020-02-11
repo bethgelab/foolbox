@@ -22,14 +22,14 @@ class ModelLoader(abc.ABC):
         :param kwargs: parameters for the to be loaded model
         :return: a foolbox-wrapped model
         """
-        pass  # pragma: no cover
+        ...
 
     @staticmethod
     def get(key: Optional[str] = None) -> "ModelLoader":
         if key is None:
             return DefaultLoader()
         else:
-            raise RuntimeError("No model loader for: {}".format(key))
+            raise ValueError(f"No model loader for: {key}")
 
     @staticmethod
     def _import_module(path: str, module_name: str = "foolbox_model") -> ModuleType:

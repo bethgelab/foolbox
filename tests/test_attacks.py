@@ -42,12 +42,14 @@ attacks: List[Tuple[fbn.Attack, bool, bool]] = [
 
 @pytest.mark.parametrize("attack_and_grad", attacks, ids=get_attack_id)
 def test_untargeted_attacks(
-    fmodel_and_data_ext: Tuple[Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool],
+    fmodel_and_data_ext_for_attacks: Tuple[
+        Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
+    ],
     attack_and_grad: Tuple[fbn.Attack, bool, bool],
 ) -> None:
 
     attack, attack_uses_grad, requires_real_model = attack_and_grad
-    (fmodel, x, y), real = fmodel_and_data_ext
+    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
     if requires_real_model and not real:
         pytest.skip()
 
@@ -77,12 +79,14 @@ targeted_attacks: List[Tuple[fbn.Attack, bool, bool]] = [
 
 @pytest.mark.parametrize("attack_and_grad", targeted_attacks, ids=get_attack_id)
 def test_targeted_attacks(
-    fmodel_and_data_ext: Tuple[Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool],
+    fmodel_and_data_ext_for_attacks: Tuple[
+        Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
+    ],
     attack_and_grad: Tuple[fbn.Attack, bool, bool],
 ) -> None:
 
     attack, attack_uses_grad, requires_real_model = attack_and_grad
-    (fmodel, x, y), real = fmodel_and_data_ext
+    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
     if requires_real_model and not real:
         pytest.skip()
 
