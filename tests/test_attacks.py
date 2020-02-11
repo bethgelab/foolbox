@@ -38,10 +38,10 @@ attacks: List[Tuple[fbn.Attack, bool, bool]] = [
     (fa.LinfDeepFoolAttack(steps=50), True, False),
     (fa.LinearSearchBlendedUniformNoiseAttack(steps=50), False, False),
     (fa.L2AdditiveGaussianNoiseAttack(epsilon=1500.0), False, False),
-    (fa.LinfAdditiveUniformNoiseAttack(epsilon=5.0), False, False),
+    (fa.LinfAdditiveUniformNoiseAttack(epsilon=10.0), False, False),
     (fa.L2RepeatedAdditiveGaussianNoiseAttack(epsilon=1000.0), False, False),
     (fa.L2RepeatedAdditiveUniformNoiseAttack(epsilon=1000.0), False, False),
-    (fa.LinfRepeatedAdditiveUniformNoiseAttack(epsilon=1.0), False, False),
+    (fa.LinfRepeatedAdditiveUniformNoiseAttack(epsilon=3.0), False, False),
 ]
 
 
