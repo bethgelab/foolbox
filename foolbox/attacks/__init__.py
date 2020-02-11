@@ -23,6 +23,8 @@ from .contrast_min import (  # noqa: F401
 from .carlini_wagner import L2CarliniWagnerAttack  # noqa: F401
 from .newtonfool import NewtonFoolAttack  # noqa: F401
 from .ead import EADAttack  # noqa: F401
+from .blur import GaussianBlurAttack  # noqa: F401
+from .deepfool import L2DeepFoolAttack, LinfDeepFoolAttack  # noqa: F401
 from .saltandpepper import SaltAndPepperNoiseAttack  # noqa: F401
 
 
@@ -46,8 +48,6 @@ from .saltandpepper import SaltAndPepperNoiseAttack  # noqa: F401
 # from .saltandpepper import SaltAndPepperNoiseAttack  # noqa: F401
 # from .binarization import BinarizationRefinementAttack  # noqa: F401
 # from .boundary_attack import BoundaryAttack  # noqa: F401
-# from .blur import GaussianBlurAttack  # noqa: F401
-# from .deepfool import L2DeepFoolAttack, LinfDeepFoolAttack  # noqa: F401
 
 # FGM = L2FastGradientAttack
 # FGSM = LinfinityFastGradientAttack

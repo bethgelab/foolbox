@@ -27,16 +27,14 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
         If None, will be automatically inferred from the model if possible.
     """
 
-    def __init__(self, steps: int = 1000, across_channels: bool = True,
-                 channel_axis: int = 1):
+    def __init__(
+        self, steps: int = 1000, across_channels: bool = True, channel_axis: int = 1
+    ):
         self.steps = steps
         self.across_channels = across_channels
         self.channel_axis = channel_axis
 
-    def __call__(
-            self, model: Model, inputs: T,
-            criterion: Misclassification
-    ) -> T:
+    def __call__(self, model: Model, inputs: T, criterion: Misclassification) -> T:
         x0, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
         is_adversarial = get_is_adversarial(criterion_, model)

@@ -97,6 +97,11 @@ def _samples(
 
         image = np.asarray(image, dtype=np.float32)
 
+        if image.ndim == 2:
+            image = image[..., np.newaxis]
+
+        assert image.ndim == 3
+
         if dataset != "mnist" and data_format == "channels_first":
             image = np.transpose(image, (2, 0, 1))
 
