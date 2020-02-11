@@ -1,14 +1,22 @@
+from typing import Union, Optional, Tuple
+from typing_extensions import Literal
 from abc import ABC
 from abc import abstractmethod
 import numpy as np
 import eagerpy as ep
-from collections.abc import Callable
 import logging
 import warnings
 from ..devutils import flatten
 from . import LinearSearchBlendedUniformNoiseAttack
 from ..tensorboard import TensorBoard
-from ..models.base import Model
+from .base import Model
+from .base import MinimizationAttack
+from .base import Attack
+from .base import get_is_adversarial
+from .base import get_criterion
+from .base import T
+from ..criteria import Misclassification, TargetedMisclassification
+
 
 try:
     from numba import jitclass
@@ -29,7 +37,7 @@ else:
 
 EPS = 1e-10
 
-
+"""
 class Misclassification:
     def __init__(self):
         pass
@@ -82,9 +90,10 @@ class TargetedMisclassification:
         c_maximize = self.target_classes
         rows = np.arange(len(logits))
         return logits[rows, c_minimize] - logits[rows, c_maximize]
+"""
 
 
-class BrendelBethgeAttack(ABC):
+class BrendelBethgeAttack(MinimizationAttack, ABC):
     """ Base class for the Brendel & Bethge adversarial attack [1]_, a powerful
     gradient-based adversarial attack that follows the adversarial boundary
     (the boundary between the space of adversarial and non-adversarial images as
@@ -109,48 +118,24 @@ class BrendelBethgeAttack(ABC):
            https://arxiv.org/abs/1907.01003
     """
 
-    def __init__(self, model):
-        if NUMBA_IMPORT_ERROR is not None:
-            raise NUMBA_IMPORT_ERROR
-
-        self.model: Model = model
-        self._optimizer: Optimizer = self.instantiate_optimizer()
-
-    def __call__(
+    def __init__(
         self,
-        inputs,
-        labels,
-        *,
-        starting_points=None,
-        init_attack=None,
-        criterion: Callable = Misclassification(),
-        overshoot=1.1,
-        steps=1000,
-        lr=1e-3,
-        lr_decay=0.5,
-        lr_num_decay=20,
-        momentum=0.8,
-        tensorboard=False,
-        binary_search_steps=10,
+        init_attack: Optional[Attack] = None,
+        overshoot: float = 1.1,
+        steps: int = 1000,
+        lr: float = 1e-3,
+        lr_decay: float = 0.5,
+        lr_num_decay: int = 20,
+        momentum: float = 0.8,
+        tensorboard: Union[Literal[False], None, str] = False,
+        binary_search_steps: int = 10,
     ):
-        """Applies the Brendel & Bethge attack.
 
-        Parameters
+        """Parameters
         ----------
-        inputs : Tensor that matches model type
-            The original clean inputs.
-        labels : Integer tensor that matches model type
-            The reference labels for the inputs.
-        starting_point : Tensor of same type and shape as inputs
-            Adversarial inputs to use as a starting points, in particular
-            for targeted attacks.
         init_attack : :class: `Attack` or Callable
             Attack or callable to use to find a starting points. Defaults to
             BlendedUniformNoiseAttack. Only used of starting_points is None.
-        criterion : Callable
-            A callable that returns true if the given logits of perturbed
-            inputs should be considered adversarial w.r.t. to the given labels
-            and unperturbed inputs.
         overshoot : float
             If 1 the attack tries to return exactly to the adversarial boundary
             in each iteration. For higher values the attack tries to overshoot
@@ -181,27 +166,73 @@ class BrendelBethgeAttack(ABC):
             Number of binary search steps used to find the adversarial boundary
             between the starting point and the clean image.
         """
-        tb = TensorBoard(logdir=tensorboard)
 
-        originals = ep.astensor(inputs)
-        labels = ep.astensor(labels)
+        if NUMBA_IMPORT_ERROR is not None:
+            raise NUMBA_IMPORT_ERROR
 
-        def is_adversarial(p: ep.Tensor) -> ep.Tensor:
-            """For each input in x, returns true if it is an adversarial for
-            the given model and criterion"""
-            logits = self.model.forward(p)
-            return criterion(originals, labels, p, logits)
+        self.init_attack = init_attack
+        self.overshoot = overshoot
+        self.steps = steps
+        self.lr = lr
+        self.lr_decay = lr_decay
+        self.lr_num_decay = lr_num_decay
+        self.momentum = momentum
+        self.tensorboard = tensorboard
+        self.binary_search_steps = binary_search_steps
+
+        self._optimizer: Optimizer = self.instantiate_optimizer()
+
+    def __call__(  # noqa: C901
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[TargetedMisclassification, Misclassification, T],
+        *,
+        starting_points: Optional[T] = None,
+    ) -> T:
+        """Applies the Brendel & Bethge attack.
+
+        Parameters
+        ----------
+        inputs : Tensor that matches model type
+            The original clean inputs.
+        labels : Integer tensor that matches model type
+            The reference labels for the inputs.
+        criterion : Callable
+            A callable that returns true if the given logits of perturbed
+            inputs should be considered adversarial w.r.t. to the given labels
+            and unperturbed inputs.
+        starting_point : Tensor of same type and shape as inputs
+            Adversarial inputs to use as a starting points, in particular
+            for targeted attacks.
+        """
+        tb = TensorBoard(logdir=self.tensorboard)
+
+        originals, restore_type = ep.astensor_(inputs)
+        del inputs
+
+        criterion = get_criterion(criterion)
+        is_adversarial = get_is_adversarial(criterion, model)
+
+        if isinstance(criterion, Misclassification):
+            targeted = False
+            classes = criterion.labels
+        elif isinstance(criterion, TargetedMisclassification):
+            targeted = True
+            classes = criterion.target_classes
+        else:
+            raise ValueError("unsupported criterion")
 
         if starting_points is None:
-            if init_attack is None:
+            if self.init_attack is None:
                 init_attack = LinearSearchBlendedUniformNoiseAttack
                 logging.info(
                     f"Neither starting_points nor init_attack given. Falling"
                     f" back to {init_attack.__name__} for initialization."
                 )
-                starting_points = init_attack(self.model)(inputs, labels)
-            elif callable(init_attack):
-                starting_points = init_attack(inputs, labels)
+                starting_points = init_attack()(model, originals, criterion)
+            elif callable(self.init_attack):
+                starting_points = self.init_attack(model, originals, criterion)
 
         best_advs = ep.astensor(starting_points)
         assert is_adversarial(best_advs).all()
@@ -209,7 +240,8 @@ class BrendelBethgeAttack(ABC):
         # perform binary search to find adversarial boundary
         # TODO: Implement more efficient search with breaking condition
         N = len(originals)
-        bounds = self.model.bounds()
+        rows = range(N)
+        bounds = model.bounds
         min_, max_ = bounds
 
         x0 = originals
@@ -219,7 +251,7 @@ class BrendelBethgeAttack(ABC):
         lower_bound = ep.zeros(x0, shape=(N,))
         upper_bound = ep.ones(x0, shape=(N,))
 
-        for _ in range(binary_search_steps):
+        for _ in range(self.binary_search_steps):
             epsilons = (lower_bound + upper_bound) / 2
             mid_points = self.mid_points(x0, x1, epsilons, bounds)
             is_advs = is_adversarial(mid_points)
@@ -232,11 +264,20 @@ class BrendelBethgeAttack(ABC):
 
         # function to compute logits_diff and gradient
         def loss_fun(x, mask=None):
-            logits = self.model.forward(x)
-            if mask is None:
-                logits_diffs = criterion.loss(originals, labels, x, logits)
+            logits = model(x)
+
+            if targeted:
+                c_minimize = best_other_classes(logits, classes)
+                c_maximize = classes
             else:
-                logits_diffs = criterion.loss(originals[mask], labels[mask], x, logits)
+                c_minimize = classes
+                c_maximize = best_other_classes(logits, classes)
+
+            logits_diffs = logits[rows, c_minimize] - logits[rows, c_maximize]
+            assert logits_diffs.shape == (N,)
+
+            if mask is not None:
+                logits_diffs = logits_diffs[mask]
             return logits_diffs.sum(), logits_diffs
 
         value_and_grad = ep.value_and_grad_fn(x0, loss_fun, has_aux=True)
@@ -246,8 +287,8 @@ class BrendelBethgeAttack(ABC):
             return logits_diffs.numpy(), boundary.numpy()
 
         x = starting_points
-        lrs = lr * np.ones(N)
-        lr_reduction_interval = min(1, int(steps / lr_num_decay))
+        lrs = self.lr * np.ones(N)
+        lr_reduction_interval = min(1, int(self.steps / self.lr_num_decay))
         converged = np.zeros(N, dtype=np.bool)
         mask = x0.ones(N).bool()
         np_mask = np.ones(N, dtype=np.bool)
@@ -255,7 +296,7 @@ class BrendelBethgeAttack(ABC):
         original_shape = x.shape
         _best_advs = best_advs.numpy()
 
-        for step in range(1, steps + 1):
+        for step in range(1, self.steps + 1):
             if converged.all():
                 break
 
@@ -285,13 +326,13 @@ class BrendelBethgeAttack(ABC):
             if step == 1:
                 boundary = _boundary
             else:
-                boundary[np_mask] = (1 - momentum) * _boundary + momentum * boundary[
-                    np_mask
-                ]
+                boundary[np_mask] = (
+                    1 - self.momentum
+                ) * _boundary + self.momentum * boundary[np_mask]
 
             # learning rate adaptation
             if (step + 1) % lr_reduction_interval == 0:
-                lrs *= lr_decay
+                lrs *= self.lr_decay
 
             # compute optimal step within trust region depending on metric
             x = x.reshape((N, -1))
@@ -300,8 +341,8 @@ class BrendelBethgeAttack(ABC):
             # we aim to slight overshoot over the boundary to stay within the adversarial region
             corr_logits_diffs = np.where(
                 -logits_diffs < 0,
-                -overshoot * logits_diffs,
-                -(2 - overshoot) * logits_diffs,
+                -self.overshoot * logits_diffs,
+                -(2 - self.overshoot) * logits_diffs,
             )
 
             # employ solver to find optimal step within trust region
@@ -338,22 +379,28 @@ class BrendelBethgeAttack(ABC):
 
         tb.close()
 
-        return best_advs.tensor
+        return restore_type(best_advs)
 
     @abstractmethod
     def instantiate_optimizer(self):
         raise NotImplementedError
 
     @abstractmethod
-    def norms(self, x):
+    def norms(self, x: ep.Tensor) -> ep.Tensor:
         raise NotImplementedError
 
     @abstractmethod
-    def mid_points(self, x0, x1, epsilons, bounds):
+    def mid_points(
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
+    ) -> ep.Tensor:
         raise NotImplementedError
 
 
-def best_other_classes(logits, exclude):
+def best_other_classes(logits: ep.Tensor, exclude: ep.Tensor) -> ep.Tensor:
     other_logits = logits - ep.onehot_like(logits, exclude, value=np.inf)
     return other_logits.argmax(axis=-1)
 
@@ -385,10 +432,12 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
 
         return L2Optimizer()
 
-    def norms(self, x):
+    def norms(self, x: ep.Tensor) -> ep.Tensor:
         return flatten(x).square().sum(axis=-1).sqrt()
 
-    def mid_points(self, x0, x1, epsilons, bounds):
+    def mid_points(
+        self, x0: ep.Tensor, x1: ep.Tensor, epsilons: ep.Tensor, bounds
+    ) -> ep.Tensor:
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
@@ -419,10 +468,16 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
     def instantiate_optimizer(self):
         return LinfOptimizer()
 
-    def norms(self, x):
+    def norms(self, x: ep.Tensor) -> ep.Tensor:
         return flatten(x).abs().max(axis=-1)
 
-    def mid_points(self, x0, x1, epsilons, bounds):
+    def mid_points(
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
+    ):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         delta = x1 - x0
@@ -457,10 +512,16 @@ class L1BrendelBethgeAttack(BrendelBethgeAttack):
     def instantiate_optimizer(self):
         return L1Optimizer()
 
-    def norms(self, x):
+    def norms(self, x: ep.Tensor) -> ep.Tensor:
         return flatten(x).abs().sum(axis=-1)
 
-    def mid_points(self, x0, x1, epsilons, bounds):
+    def mid_points(
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
+    ) -> ep.Tensor:
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
@@ -497,10 +558,16 @@ class L0BrendelBethgeAttack(BrendelBethgeAttack):
     def instantiate_optimizer(self):
         return L0Optimizer()
 
-    def norms(self, x):
+    def norms(self, x: ep.Tensor) -> ep.Tensor:
         return (flatten(x).abs() > 1e-4).sum(axis=-1)
 
-    def mid_points(self, x0, x1, epsilons, bounds):
+    def mid_points(
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
+    ):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1

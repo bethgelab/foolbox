@@ -37,6 +37,12 @@ from .saltandpepper import SaltAndPepperNoiseAttack  # noqa: F401
 from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
 from .dataset_attack import DatasetAttack  # noqa: F401
 from .boundary_attack import BoundaryAttack  # noqa: F401
+from .brendel_bethge import (  # noqa: F401
+    L0BrendelBethgeAttack,
+    L1BrendelBethgeAttack,
+    L2BrendelBethgeAttack,
+    LinfinityBrendelBethgeAttack,
+)
 
 # from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
 # from .brendel_bethge import (  # noqa: F401
