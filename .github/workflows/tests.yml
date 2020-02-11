@@ -59,19 +59,19 @@ jobs:
         mypy tests/
     - name: Test with pytest
       run: |
-        pytest --skipslow --cov-report term-missing --cov=foolbox --verbose --ignore tests/attacks/
+        pytest --cov-report term-missing --cov=foolbox --verbose --ignore tests/attacks/
     - name: Test with pytest (NumPy)
       run: |
-        pytest --skipslow --cov-report term-missing --cov=foolbox --cov-append --verbose --backend numpy --ignore tests/attacks/
+        pytest --cov-report term-missing --cov=foolbox --cov-append --verbose --backend numpy --ignore tests/attacks/
     - name: Test with pytest (PyTorch)
       run: |
-        pytest --skipslow --cov-report term-missing --cov=foolbox --cov-append --verbose --backend pytorch --ignore tests/attacks/
+        pytest --cov-report term-missing --cov=foolbox --cov-append --verbose --backend pytorch --ignore tests/attacks/
     - name: Test with pytest (JAX)
       run: |
-        pytest --skipslow --cov-report term-missing --cov=foolbox --cov-append --verbose --backend jax --ignore tests/attacks/
+        pytest --cov-report term-missing --cov=foolbox --cov-append --verbose --backend jax --ignore tests/attacks/
     - name: Test with pytest (TensorFlow)
       run: |
-        pytest --skipslow --cov-report term-missing --cov=foolbox --cov-append --verbose --backend tensorflow --ignore tests/attacks/
+        pytest --cov-report term-missing --cov=foolbox --cov-append --verbose --backend tensorflow --ignore tests/attacks/
     - name: Codecov
       continue-on-error: true
       env:

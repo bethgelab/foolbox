@@ -8,8 +8,7 @@ import foolbox as fbn
 
 ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 
-models: Dict[str, Callable[..., ModelAndData]] = {}
-models_for_attacks = []
+models: Dict[str, Tuple[Callable[..., ModelAndData], bool]] = {}
 
 
 def pytest_addoption(parser: Any) -> None:
@@ -26,7 +25,7 @@ def dummy(request: Any) -> ep.Tensor:
     return ep.utils.get_dummy(backend)
 
 
-def register(backend: str, *, attack: bool = True) -> Callable[[Callable], Callable]:
+def register(backend: str, *, real: bool) -> Callable[[Callable], Callable]:
     def decorator(f: Callable[[Any], ModelAndData]) -> Callable[[Any], ModelAndData]:
         @functools.wraps(f)
         def model(request: Any) -> ModelAndData:
@@ -35,11 +34,9 @@ def register(backend: str, *, attack: bool = True) -> Callable[[Callable], Calla
             return f(request)
 
         global models
-        global models_for_attacks
+        global real_models
 
-        models[model.__name__] = model
-        if attack:
-            models_for_attacks.append(model.__name__)
+        models[model.__name__] = (model, real)
         return model
 
     return decorator
@@ -68,17 +65,17 @@ def pytorch_simple_model(
     return fmodel, x, y
 
 
-@register("pytorch")
+@register("pytorch", real=False)
 def pytorch_simple_model_default(request: Any) -> ModelAndData:
     return pytorch_simple_model()
 
 
-@register("pytorch")
+@register("pytorch", real=False)
 def pytorch_simple_model_default_flip(request: Any) -> ModelAndData:
     return pytorch_simple_model(preprocessing=dict(flip_axis=-3))
 
 
-@register("pytorch")
+@register("pytorch", real=False)
 def pytorch_simple_model_default_cpu_native_tensor(request: Any) -> ModelAndData:
     import torch
 
@@ -87,26 +84,26 @@ def pytorch_simple_model_default_cpu_native_tensor(request: Any) -> ModelAndData
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
-@register("pytorch", attack=False)
+@register("pytorch", real=False)
 def pytorch_simple_model_default_cpu_eagerpy_tensor(request: Any) -> ModelAndData:
     mean = 0.05 * ep.torch.arange(3).float32()
     std = ep.torch.ones(3) * 2
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
-@register("pytorch", attack=False)
+@register("pytorch", real=False)
 def pytorch_simple_model_string(request: Any) -> ModelAndData:
     return pytorch_simple_model("cpu")
 
 
-@register("pytorch", attack=False)
+@register("pytorch", real=False)
 def pytorch_simple_model_object(request: Any) -> ModelAndData:
     import torch
 
     return pytorch_simple_model(torch.device("cpu"))
 
 
-@register("pytorch")
+@register("pytorch", real=True)
 def pytorch_resnet18(request: Any) -> ModelAndData:
     if request.config.option.skipslow:
         pytest.skip()
@@ -142,12 +139,12 @@ def tensorflow_simple_sequential(
     return fmodel, x, y
 
 
-@register("tensorflow")
+@register("tensorflow", real=False)
 def tensorflow_simple_sequential_cpu(request: Any) -> ModelAndData:
     return tensorflow_simple_sequential("cpu", None)
 
 
-@register("tensorflow")
+@register("tensorflow", real=False)
 def tensorflow_simple_sequential_native_tensors(request: Any) -> ModelAndData:
     import tensorflow as tf
 
@@ -156,14 +153,14 @@ def tensorflow_simple_sequential_native_tensors(request: Any) -> ModelAndData:
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
-@register("tensorflow", attack=False)
+@register("tensorflow", real=False)
 def tensorflow_simple_sequential_eagerpy_tensors(request: Any) -> ModelAndData:
     mean = ep.tensorflow.zeros(1)
     std = ep.tensorflow.ones(1) * 255.0
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
-@register("tensorflow")
+@register("tensorflow", real=False)
 def tensorflow_simple_subclassing(request: Any) -> ModelAndData:
     import tensorflow as tf
 
@@ -186,7 +183,7 @@ def tensorflow_simple_subclassing(request: Any) -> ModelAndData:
     return fmodel, x, y
 
 
-@register("tensorflow")
+@register("tensorflow", real=False)
 def tensorflow_simple_functional(request: Any) -> ModelAndData:
     import tensorflow as tf
 
@@ -206,12 +203,33 @@ def tensorflow_simple_functional(request: Any) -> ModelAndData:
     return fmodel, x, y
 
 
-@register("tensorflow")
+@register("tensorflow", real=True)
+def tensorflow_mobilenetv2(request: Any) -> ModelAndData:
+    if request.config.option.skipslow:
+        pytest.skip()
+
+    import tensorflow as tf
+
+    model = tf.keras.applications.MobileNetV2(weights="imagenet")
+    fmodel = fbn.TensorFlowModel(
+        model, bounds=(0, 255), preprocessing=dict(mean=127.5, std=127.5)
+    )
+
+    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x = ep.astensor(x)
+    y = ep.astensor(y)
+    return fmodel, x, y
+
+
+@register("tensorflow", real=True)
 def tensorflow_resnet50(request: Any) -> ModelAndData:
     if request.config.option.skipslow:
         pytest.skip()
 
     import tensorflow as tf
+
+    if not tf.test.is_gpu_available():
+        pytest.skip("ResNet50 test too slow without GPU")
 
     model = tf.keras.applications.ResNet50(weights="imagenet")
     preprocessing = dict(flip_axis=-1, mean=[104.0, 116.0, 123.0])  # RGB to BGR
@@ -223,7 +241,7 @@ def tensorflow_resnet50(request: Any) -> ModelAndData:
     return fmodel, x, y
 
 
-@register("jax")
+@register("jax", real=False)
 def jax_simple_model(request: Any) -> ModelAndData:
     import jax
 
@@ -278,13 +296,14 @@ def jax_simple_model(request: Any) -> ModelAndData:
 
 
 @pytest.fixture(scope="session", params=list(models.keys()))
-def fmodel_and_data(request: Any) -> ModelAndData:
+def fmodel_and_data_ext(request: Any) -> Tuple[ModelAndData, bool]:
     global models
-    return models[request.param](request)
+    model_fn, real = models[request.param]
+    model_and_data = model_fn(request)
+    return model_and_data, real
 
 
-@pytest.fixture(scope="session", params=models_for_attacks)
-def fmodel_and_data_for_attacks(request: Any) -> ModelAndData:
-    global models
-    fmodel, x, y = models[request.param](request)
-    return fmodel, x[:4], y[:4]
+@pytest.fixture(scope="session")
+def fmodel_and_data(fmodel_and_data_ext: Tuple[ModelAndData, bool]) -> ModelAndData:
+    fmodel_and_data, _ = fmodel_and_data_ext
+    return fmodel_and_data
