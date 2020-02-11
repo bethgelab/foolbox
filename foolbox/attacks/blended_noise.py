@@ -37,8 +37,6 @@ class LinearSearchBlendedUniformNoiseAttack(MinimizationAttack):
 
         N = len(x)
 
-        is_adv = ep.full(x, shape=(N,), value=False).bool()
-
         for j in range(self.directions):
             # random noise inputs tend to be classified into the same class,
             # so we might need to make very many draws if the original class
@@ -50,7 +48,7 @@ class LinearSearchBlendedUniformNoiseAttack(MinimizationAttack):
                 random = random_
                 is_adv = is_adv_
             else:
-                random = ep.where(is_adv, random, ep.where(is_adv_, random_, 0))
+                random = ep.where(is_adv, random, random_)
                 is_adv = is_adv.logical_or(is_adv_)
 
             if is_adv.all():
@@ -59,7 +57,7 @@ class LinearSearchBlendedUniformNoiseAttack(MinimizationAttack):
         if not is_adv.all():
             warnings.warn(
                 f"{self.__class__.__name__} failed to draw sufficent random"
-                " inputs that are adversarial ({is_adv.sum()} / {N})."
+                f" inputs that are adversarial ({is_adv.sum()} / {N})."
             )
 
         x0 = x
