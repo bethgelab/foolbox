@@ -12,8 +12,6 @@ def test_brendel_bethge_untargeted_attack(
     fmodel_and_data_ext_for_attacks: Tuple[Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool]
 ) -> None:
     (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
-    if not real:
-        pytest.skip()
 
     if isinstance(x, ep.NumPyTensor):
         pytest.skip()
@@ -39,8 +37,6 @@ def test_brendel_bethge_targeted_attack(
     fmodel_and_data_ext_for_attacks: Tuple[Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool]
 ) -> None:
     (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
-    if not real:
-        pytest.skip()
 
     if isinstance(x, ep.NumPyTensor):
         pytest.skip()
@@ -60,6 +56,6 @@ def test_brendel_bethge_targeted_attack(
     mean_l2_init = ep.norms.lp(flatten(init_advs - x), p=2, axis=-1).mean()
     mean_l2 = ep.norms.lp(flatten(advs - x), p=2, axis=-1).mean()
 
-    assert fbn.accuracy(fmodel, advs, t) > fbn.accuracy(fmodel, x, y)
-    assert fbn.accuracy(fmodel, advs, t) >= fbn.accuracy(fmodel, init_advs, y)
+    assert fbn.accuracy(fmodel, advs, t) > fbn.accuracy(fmodel, x, t)
+    assert fbn.accuracy(fmodel, advs, t) >= fbn.accuracy(fmodel, init_advs, t)
     assert mean_l2 < mean_l2_init
