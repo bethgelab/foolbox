@@ -37,20 +37,20 @@ jobs:
         key: ${{ runner.os }}-keras
     - name: ls
       run: |
-        ls -lah ~/.cache/torch/checkpoints
+        ls -lah ~/.cache/torch/checkpoints || true
     - name: mkdir
       run: |
-        mkdir -p ~/.cache/torch/checkpoints
+        mkdir -p ~/.cache/torch/checkpoints || true
     - name: wget ResNet18 weights
       uses: wei/wget@v1
       with:
           args: -P ~/.cache/torch/checkpoints https://download.pytorch.org/models/resnet18-5c106cde.pth
     - name: ls
       run: |
-        ls -lah ~/.cache/torch/checkpoints
+        ls -lah ~/.cache/torch/checkpoints || true
     - name: urlopen
       run: |
-        python3 -c 'from urllib.request import urlopen; r = urlopen("https://download.pytorch.org/models/resnet18-5c106cde.pth"); print(r.status, r.reason, r.msg)'
+        python3 -c 'from urllib.request import urlopen; r = urlopen("https://download.pytorch.org/models/resnet18-5c106cde.pth"); print(r.status, r.reason, r.msg)' || true
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
