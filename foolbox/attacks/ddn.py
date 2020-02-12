@@ -25,15 +25,12 @@ class DDNAttack(FixedEpsilonAttack):
 
     def __init__(
         self,
-        rescale: bool = False,
         epsilon: float = 2.0,
         init_epsilon: float = 1.0,
         steps: int = 10,
         gamma: float = 0.05,
     ):
 
-        self.rescale = rescale
-        self.epsilon = epsilon
         self.init_epsilon = init_epsilon
         self.steps = steps
         self.gamma = gamma
@@ -66,13 +63,6 @@ class DDNAttack(FixedEpsilonAttack):
                 f"expected {name} to have shape ({N},), got {classes.shape}"
             )
 
-        if self.rescale:
-            min_, max_ = model.bounds
-            scale = (max_ - min_) * math.sqrt(flatten(x).shape[-1])
-            init_epsilon = self.epsilon * scale
-        else:
-            init_epsilon = self.epsilon
-
         stepsize = ep.ones(x, len(x))
 
         def loss_fn(
@@ -90,7 +80,7 @@ class DDNAttack(FixedEpsilonAttack):
 
         delta = ep.zeros_like(x)
 
-        epsilon = init_epsilon * ep.ones(x, len(x))
+        epsilon = self.init_epsilon * ep.ones(x, len(x))
         worst_norm = flatten(ep.maximum(x, 1 - x)).square().sum(axis=-1).sqrt()
 
         best_l2 = worst_norm
