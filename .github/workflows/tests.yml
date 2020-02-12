@@ -35,6 +35,17 @@ jobs:
       with:
         path: ~/.keras
         key: ${{ runner.os }}-keras
+#   - name: debugging
+#     run: |
+#       python3 -c 'from urllib.request import urlopen; r = urlopen("https://download.pytorch.org/models/resnet18-5c106cde.pth"); print(r.status, r.reason, r.msg)' || true
+#   - name: workaround for https://github.com/pytorch/vision/issues/1876
+#     uses: wei/wget@v1
+#     with:
+#         args: https://download.pytorch.org/models/resnet18-5c106cde.pth
+#   - name: workaround (step 2)
+#     run: |
+#       mkdir -p ~/.cache/torch/checkpoints || true
+#       mv resnet18-5c106cde.pth ~/.cache/torch/checkpoints || true
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
