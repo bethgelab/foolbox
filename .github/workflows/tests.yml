@@ -48,7 +48,9 @@ jobs:
       uses: wei/wget@v1
       with:
           args: https://download.pytorch.org/models/resnet18-5c106cde.pth
-      working-directory: ~/.cache/torch/checkpoints
+    - name: move
+      run: |
+        mv resnet18-5c106cde.pth ~/.cache/torch/checkpoints || true
     - name: ls
       run: |
         ls -lah ~/.cache/torch/checkpoints || true
