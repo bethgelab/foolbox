@@ -85,7 +85,7 @@ class VirtualAdversarialAttack(FixedEpsilonAttack):
                 )
 
         final_delta = (
-            self.epsilon / ep.sqrt((d ** 2).sum(keepdims=True, axis=(1, 2, 3))) * d
+            self.epsilon / atleast_kd(ep.norms.l2(flatten(d), axis=-1), d.ndim) * d
         )
         x_adv = ep.clip(x + final_delta, *bounds)
 

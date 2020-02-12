@@ -15,8 +15,7 @@ def get_attack_id(x: Tuple[fbn.Attack, bool, bool]) -> str:
 
 # attack, attack_uses_grad, requires_real_model
 attacks: List[Tuple[fbn.Attack, bool, bool]] = [
-    (fa.DDNAttack(), True, False),
-    (fa.DDNAttack(rescale=True), True, False),
+    (fa.DDNAttack(init_epsilon=2.0), True, False),
     (fa.InversionAttack(), False, False),
     (fa.L2ContrastReductionAttack(L2(100.0)), False, False),
     (fa.BinarySearchContrastReductionAttack(binary_search_steps=15), False, False),
@@ -39,7 +38,7 @@ attacks: List[Tuple[fbn.Attack, bool, bool]] = [
     (fa.SaltAndPepperNoiseAttack(steps=50), True, False),
     (fa.BoundaryAttack(steps=50), False, False),
     (fa.LinearSearchBlendedUniformNoiseAttack(steps=50), False, False),
-    (fa.L2AdditiveGaussianNoiseAttack(epsilon=1500.0), False, False),
+    (fa.L2AdditiveGaussianNoiseAttack(epsilon=2500.0), False, False),
     (fa.LinfAdditiveUniformNoiseAttack(epsilon=10.0), False, False),
     (fa.L2RepeatedAdditiveGaussianNoiseAttack(epsilon=1000.0), False, False),
     (fa.L2RepeatedAdditiveUniformNoiseAttack(epsilon=1000.0), False, False),
@@ -72,7 +71,7 @@ def test_untargeted_attacks(
 
 targeted_attacks: List[Tuple[fbn.Attack, bool, bool]] = [
     (fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20), True, False),
-    (fa.DDNAttack(), True, False),
+    (fa.DDNAttack(init_epsilon=2.0), True, False),
     # TODO: targeted EADAttack currently fails repeatedly on MobileNetv2
     # (
     #     fa.EADAttack(
