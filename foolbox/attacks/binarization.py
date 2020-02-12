@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Union, Optional, Any
 from typing_extensions import Literal
 import eagerpy as ep
 import numpy as np
@@ -7,28 +7,36 @@ from ..models import Model
 
 from ..criteria import Criterion
 
-from .base import MinimizationAttack
+from ..distances import Distance
+
+from .base import FlexibleDistanceMinimizationAttack
 from .base import T
 from .base import get_is_adversarial
 from .base import get_criterion
+from .base import raise_if_kwargs
 
 
-class BinarizationRefinementAttack(MinimizationAttack):
+class BinarizationRefinementAttack(FlexibleDistanceMinimizationAttack):
     def __init__(
         self,
+        *,
+        distance: Optional[Distance] = None,
         threshold: Optional[float] = None,
         included_in: Union[Literal["lower"], Literal["upper"]] = "upper",
     ):
+        super().__init__(distance=distance)
         self.threshold = threshold
         self.included_in = included_in
 
-    def __call__(  # type: ignore
+    def run(
         self,
         model: Model,
         inputs: T,
         criterion: Union[Criterion, T],
         *,
-        starting_points: T,
+        early_stop: Optional[float] = None,
+        starting_points: Optional[T] = None,
+        **kwargs: Any,
     ) -> T:
         """For models that preprocess their inputs by binarizing the
         inputs, this attack can improve adversarials found by other
@@ -46,8 +54,11 @@ class BinarizationRefinementAttack(MinimizationAttack):
             upper interval.
 
         """
+        raise_if_kwargs(kwargs)
+        if starting_points is None:
+            raise ValueError("BinarizationRefinementAttack requires starting_points")
         (o, x), restore_type = ep.astensors_(inputs, starting_points)
-        del inputs
+        del inputs, starting_points, kwargs
 
         criterion = get_criterion(criterion)
         is_adversarial = get_is_adversarial(criterion, model)

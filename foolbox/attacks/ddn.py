@@ -1,15 +1,19 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional, Any
+import math
 import eagerpy as ep
 
 from ..models import Model
-import math
+
 from ..criteria import Misclassification, TargetedMisclassification
+
+from ..distances import l2
 
 from ..devutils import atleast_kd, flatten
 
-from .base import FixedEpsilonAttack
+from .base import MinimizationAttack
 from .base import get_criterion
 from .base import T
+from .base import raise_if_kwargs
 
 
 def normalize_l2_norms(x: ep.Tensor) -> ep.Tensor:
@@ -20,27 +24,31 @@ def normalize_l2_norms(x: ep.Tensor) -> ep.Tensor:
     return x * factor
 
 
-class DDNAttack(FixedEpsilonAttack):
+class DDNAttack(MinimizationAttack):
     """DDN Attack"""
 
-    def __init__(
-        self, init_epsilon: float = 1.0, steps: int = 10, gamma: float = 0.05,
-    ):
+    distance = l2
 
+    def __init__(
+        self, *, init_epsilon: float = 1.0, steps: int = 10, gamma: float = 0.05,
+    ):
         self.init_epsilon = init_epsilon
         self.steps = steps
         self.gamma = gamma
 
-    def __call__(
+    def run(
         self,
         model: Model,
         inputs: T,
         criterion: Union[Misclassification, TargetedMisclassification, T],
+        *,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
     ) -> T:
-
+        raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
-        del inputs, criterion
+        del inputs, criterion, kwargs
 
         N = len(x)
 

@@ -1,4 +1,4 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, Any, Optional
 from functools import partial
 import numpy as np
 import eagerpy as ep
@@ -10,12 +10,15 @@ from ..types import Bounds
 
 from ..models import Model
 
+from ..distances import l2
+
 from ..criteria import Misclassification
 from ..criteria import TargetedMisclassification
 
 from .base import MinimizationAttack
 from .base import T
 from .base import get_criterion
+from .base import raise_if_kwargs
 
 
 class L2CarliniWagnerAttack(MinimizationAttack):
@@ -26,6 +29,8 @@ class L2CarliniWagnerAttack(MinimizationAttack):
     steps
         Number of optimization steps within each binary search step
     """
+
+    distance = l2
 
     def __init__(
         self,
@@ -43,16 +48,19 @@ class L2CarliniWagnerAttack(MinimizationAttack):
         self.initial_const = initial_const
         self.abort_early = abort_early
 
-    def __call__(
+    def run(
         self,
         model: Model,
         inputs: T,
         criterion: Union[Misclassification, TargetedMisclassification, T],
+        *,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
     ) -> T:
-
+        raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
-        del inputs, criterion
+        del inputs, criterion, kwargs
 
         N = len(x)
 

@@ -59,8 +59,8 @@ def test_targeted_attacks_call_raises_exception(
 
     # check if targeted attack criterion with invalid number of classes is rejected
     with pytest.raises(ValueError):
-        attack(fmodel, x, invalid_targeted_criterion)
+        attack(fmodel, x, invalid_targeted_criterion, epsilons=1000.0)
 
     # check if only the two valid criteria are accepted
     with pytest.raises(ValueError):
-        attack(fmodel, x, invalid_criterion)
+        attack(fmodel, x, invalid_criterion, epsilons=1000.0)

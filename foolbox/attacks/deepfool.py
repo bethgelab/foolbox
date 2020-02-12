@@ -1,4 +1,4 @@
-from typing import Union, Optional, Tuple
+from typing import Union, Optional, Tuple, Any
 import eagerpy as ep
 import logging
 from abc import ABC
@@ -11,9 +11,12 @@ from ..models import Model
 
 from ..criteria import Criterion
 
+from ..distances import l2, linf
+
 from .base import MinimizationAttack
 from .base import T
 from .base import get_criterion
+from .base import raise_if_kwargs
 
 
 class DeepFoolAttack(MinimizationAttack, ABC):
@@ -38,6 +41,7 @@ class DeepFoolAttack(MinimizationAttack, ABC):
 
     def __init__(
         self,
+        *,
         steps: int = 50,
         candidates: Optional[int] = 10,
         overshoot: float = 0.02,
@@ -48,9 +52,18 @@ class DeepFoolAttack(MinimizationAttack, ABC):
         self.overshoot = overshoot
         self.loss = loss
 
-    def __call__(self, model: Model, inputs: T, criterion: Union[Criterion, T],) -> T:
+    def run(
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[Criterion, T],
+        *,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
+    ) -> T:
+        raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
-        del inputs
+        del inputs, kwargs
 
         criterion = get_criterion(criterion)
 
@@ -164,6 +177,8 @@ class DeepFoolAttack(MinimizationAttack, ABC):
 
 
 class L2DeepFoolAttack(DeepFoolAttack):
+    distance = l2
+
     def get_distances(self, losses: ep.Tensor, grads: ep.Tensor) -> ep.Tensor:
         return abs(losses) / (flatten(grads, keep=2).norms.l2(axis=-1) + 1e-8)
 
@@ -177,6 +192,8 @@ class L2DeepFoolAttack(DeepFoolAttack):
 
 
 class LinfDeepFoolAttack(DeepFoolAttack):
+    distance = linf
+
     def get_distances(self, losses: ep.Tensor, grads: ep.Tensor) -> ep.Tensor:
         return abs(losses) / (flatten(grads, keep=2).abs().sum(axis=-1) + 1e-8)
 

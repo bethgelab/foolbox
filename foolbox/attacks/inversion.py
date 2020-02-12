@@ -1,15 +1,16 @@
-from typing import Union, Any
+from typing import Union, Any, Optional
 import eagerpy as ep
 
 from ..criteria import Criterion
 
 from ..models import Model
 
-from .base import MinimizationAttack
+from .base import FlexibleDistanceMinimizationAttack
 from .base import T
+from .base import raise_if_kwargs
 
 
-class InversionAttack(MinimizationAttack):
+class InversionAttack(FlexibleDistanceMinimizationAttack):
     """Creates "negative images" by inverting the pixel values according to [1]_.
 
     References
@@ -20,11 +21,18 @@ class InversionAttack(MinimizationAttack):
            https://arxiv.org/abs/1607.02533
     """
 
-    def __call__(
-        self, model: Model, inputs: T, criterion: Union[Criterion, Any] = None
+    def run(
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[Criterion, Any] = None,
+        *,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
     ) -> T:
+        raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
-        del inputs, criterion
+        del inputs, criterion, kwargs
 
         min_, max_ = model.bounds
         x = min_ + max_ - x

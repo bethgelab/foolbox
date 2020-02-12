@@ -16,12 +16,12 @@ def test_binarization_attack(
     fmodel = fbn.models.ThresholdingWrapper(fmodel, threshold=0.5)
 
     attack = fbn.attacks.BinarySearchContrastReductionAttack(target=0)
-    advs = attack(fmodel, x, y)
+    advs = attack.run(fmodel, x, y)
 
     attack2 = fbn.attacks.BinarizationRefinementAttack(
         threshold=0.5, included_in="upper"
     )
-    advs2 = attack2(fmodel, x, y, starting_points=advs)
+    advs2 = attack2.run(fmodel, x, y, starting_points=advs)
 
     assert (fmodel(advs).argmax(axis=-1) == fmodel(advs2).argmax(axis=-1)).all()
 

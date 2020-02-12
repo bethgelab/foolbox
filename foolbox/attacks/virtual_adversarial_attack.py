@@ -1,15 +1,18 @@
-from typing import Union
+from typing import Union, Any
 import eagerpy as ep
 
 from ..models import Model
 
 from ..criteria import Misclassification
 
+from ..distances import l2
+
 from ..devutils import flatten, atleast_kd
 
 from .base import FixedEpsilonAttack
 from .base import get_criterion
 from .base import T
+from .base import raise_if_kwargs
 
 
 class VirtualAdversarialAttack(FixedEpsilonAttack):
@@ -26,17 +29,25 @@ class VirtualAdversarialAttack(FixedEpsilonAttack):
            https://arxiv.org/abs/1507.00677
     """
 
-    def __init__(self, xi: float = 1e-6, iterations: int = 1, epsilon: float = 0.3):
-        self.xi = xi
-        self.iterations = iterations
-        self.epsilon = epsilon
+    distance = l2
 
-    def __call__(
-        self, model: Model, inputs: T, criterion: Union[Misclassification, T]
+    def __init__(self, steps: int, xi: float = 1e-6):
+        self.steps = steps
+        self.xi = xi
+
+    def run(
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[Misclassification, T],
+        *,
+        epsilon: float,
+        **kwargs: Any,
     ) -> T:
+        raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
-        del inputs, criterion
+        del inputs, criterion, kwargs
 
         N = len(x)
 
@@ -68,7 +79,7 @@ class VirtualAdversarialAttack(FixedEpsilonAttack):
 
         # start with random vector as search vector
         d = ep.normal(x, shape=x.shape, mean=0, stddev=1)
-        for it in range(self.iterations):
+        for it in range(self.steps):
             # normalize proposal to be unit vector
             d = d * self.xi / atleast_kd(ep.norms.l2(flatten(d), axis=-1), x.ndim)
 
@@ -84,9 +95,6 @@ class VirtualAdversarialAttack(FixedEpsilonAttack):
                     "Gradient vanished; this can happen if xi is too small."
                 )
 
-        final_delta = (
-            self.epsilon / atleast_kd(ep.norms.l2(flatten(d), axis=-1), d.ndim) * d
-        )
+        final_delta = epsilon / atleast_kd(ep.norms.l2(flatten(d), axis=-1), d.ndim) * d
         x_adv = ep.clip(x + final_delta, *bounds)
-
         return restore_type(x_adv)
