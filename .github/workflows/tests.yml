@@ -48,6 +48,9 @@ jobs:
     - name: ls
       run: |
         ls -lah ~/.cache/torch/checkpoints
+    - name: urlopen
+      run: |
+        python3 -c 'from urllib.request import urlopen; r = urlopen("https://download.pytorch.org/models/resnet18-5c106cde.pth"); print(r.status, r.reason, r.msg)'
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
