@@ -130,10 +130,10 @@ def test_targeted_attacks(
     criterion = fbn.TargetedMisclassification(target_classes)
     if eps is None:
         assert isinstance(attack, fa.base.MinimizationAttack)
-        advs = attack.run(fmodel, x, y)
+        advs = attack.run(fmodel, x, criterion)
     else:
         assert isinstance(attack, fa.base.FixedEpsilonAttack)
-        advs = attack.run(fmodel, x, y, epsilon=eps)
+        advs = attack.run(fmodel, x, criterion, epsilon=eps)
 
     adv_before_attack = criterion(x, fmodel(x))
     adv_after_attack = criterion(advs, fmodel(advs))
