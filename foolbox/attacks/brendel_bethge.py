@@ -490,8 +490,6 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
         lrs = self.lr * np.ones(N)
         lr_reduction_interval = min(1, int(self.steps / self.lr_num_decay))
         converged = np.zeros(N, dtype=np.bool)
-        mask = x0.ones(N).bool()
-        np_mask = np.ones(N, dtype=np.bool)
         rate_normalization = np.prod(x.shape) * (max_ - min_)
         original_shape = x.shape
         _best_advs = best_advs.numpy()
@@ -502,7 +500,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
             # get logits and local boundary geometry
             # TODO: only perform forward pass on non-converged samples
-            logits_diffs, _boundary = logits_diff_and_grads(x[mask], mask)
+            logits_diffs, _boundary = logits_diff_and_grads(x, mask=None)
 
             # record optimal adversarials
             distances = self.norms(originals - x)
@@ -510,14 +508,14 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
             closer = distances < source_norms
             is_advs = logits_diffs < 0
-            closer = closer[mask].logical_and(ep.from_numpy(x, is_advs))
+            closer = closer.logical_and(ep.from_numpy(x, is_advs))
 
             x_np_flatten = x.numpy().reshape((N, -1))
 
             if closer.any():
                 _best_advs = best_advs.numpy().copy()
                 _closer = closer.numpy().flatten()
-                for idx in np.arange(N)[np_mask][_closer]:
+                for idx in np.arange(N)[_closer]:
                     _best_advs[idx] = x_np_flatten[idx].reshape(original_shape[1:])
 
             best_advs = ep.from_numpy(x, _best_advs)
@@ -526,9 +524,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             if step == 1:
                 boundary = _boundary
             else:
-                boundary[np_mask] = (
-                    1 - self.momentum
-                ) * _boundary + self.momentum * boundary[np_mask]
+                boundary = (1 - self.momentum) * _boundary + self.momentum * boundary
 
             # learning rate adaptation
             if (step + 1) % lr_reduction_interval == 0:
