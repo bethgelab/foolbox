@@ -24,11 +24,7 @@ class DDNAttack(FixedEpsilonAttack):
     """DDN Attack"""
 
     def __init__(
-        self,
-        epsilon: float = 2.0,
-        init_epsilon: float = 1.0,
-        steps: int = 10,
-        gamma: float = 0.05,
+        self, init_epsilon: float = 1.0, steps: int = 10, gamma: float = 0.05,
     ):
 
         self.init_epsilon = init_epsilon
