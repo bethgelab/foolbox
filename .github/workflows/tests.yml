@@ -41,10 +41,14 @@ jobs:
     - name: mkdir
       run: |
         mkdir -p ~/.cache/torch/checkpoints || true
-    - name: wget ResNet18 weights
+    - name: ls
+      run: |
+        ls -lah ~/.cache/torch/checkpoints || true
+    - name: workaround for https://github.com/pytorch/vision/issues/1876
       uses: wei/wget@v1
       with:
-          args: -P ~/.cache/torch/checkpoints https://download.pytorch.org/models/resnet18-5c106cde.pth
+          args: https://download.pytorch.org/models/resnet18-5c106cde.pth
+      working-directory: ~/.cache/torch/checkpoints
     - name: ls
       run: |
         ls -lah ~/.cache/torch/checkpoints || true
