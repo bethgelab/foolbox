@@ -16,10 +16,6 @@ jobs:
         python-version: [3.6, 3.7]
 
     steps:
-    - name: wget
-      uses: wei/wget@v1
-      with:
-          args: https://download.pytorch.org/models/resnet18-5c106cde.pth
     - uses: actions/checkout@v2
     - uses: actions/cache@v1
       with:
@@ -39,6 +35,19 @@ jobs:
       with:
         path: ~/.keras
         key: ${{ runner.os }}-keras
+    - name: ls
+      run: |
+        ls -lah ~/.cache/torch/checkpoints
+    - name: mkdir
+      run: |
+        mkdir -p ~/.cache/torch/checkpoints
+    - name: wget ResNet18 weights
+      uses: wei/wget@v1
+      with:
+          args: -P ~/.cache/torch/checkpoints https://download.pytorch.org/models/resnet18-5c106cde.pth
+    - name: ls
+      run: |
+        ls -lah ~/.cache/torch/checkpoints
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
