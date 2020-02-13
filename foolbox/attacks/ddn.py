@@ -18,6 +18,14 @@ from .base import raise_if_kwargs
 
 def normalize_gradient_l2_norms(grad: ep.Tensor) -> ep.Tensor:
     norms = ep.norms.l2(flatten(grad), -1)
+
+    # remove zero gradients
+    grad = ep.where(
+        atleast_kd(norms == 0, grad.ndim), ep.normal(grad, shape=grad.shape), grad
+    )
+    # calculate norms again for previously vanishing elements
+    norms = ep.norms.l2(flatten(grad), -1)
+
     norms = ep.maximum(norms, 1e-12)  # avoid division by zero
     factor = 1 / norms
     factor = atleast_kd(factor, grad.ndim)
@@ -89,11 +97,10 @@ class DDNAttack(MinimizationAttack):
 
             sign = -1.0 if targeted else 1.0
             loss = sign * ep.crossentropy(logits, labels).sum()
-            is_adv = criterion_(inputs, logits)
 
-            return loss, is_adv
+            return loss, logits
 
-        grad_and_is_adversarial = ep.value_and_grad_fn(x, loss_fn, has_aux=True)
+        grad_and_logits = ep.value_and_grad_fn(x, loss_fn, has_aux=True)
 
         delta = ep.zeros_like(x)
 
@@ -112,11 +119,12 @@ class DDNAttack(MinimizationAttack):
 
             x_adv = x + delta
 
-            _, is_adversarial, gradients = grad_and_is_adversarial(x_adv, classes)
+            _, logits, gradients = grad_and_logits(x_adv, classes)
             gradients = normalize_gradient_l2_norms(gradients)
+            is_adversarial = criterion_(x_adv, logits)
 
             l2 = ep.norms.l2(flatten(delta), axis=-1)
-            is_smaller = l2 < best_l2
+            is_smaller = l2 <= best_l2
 
             is_both = ep.logical_and(is_adversarial, is_smaller)
             adv_found = ep.logical_or(adv_found, is_adversarial)
@@ -132,7 +140,7 @@ class DDNAttack(MinimizationAttack):
             )
             epsilon = ep.minimum(epsilon, worst_norm)
 
-            # clip to epsilon ball
+            # project to epsilon ball
             delta *= atleast_kd(epsilon / ep.norms.l2(flatten(delta), -1), x.ndim)
 
             # clip to valid bounds
