@@ -1,4 +1,4 @@
-from typing import Union, Any, Optional
+from typing import Union, Any, Optional, Callable, Tuple
 from abc import ABC, abstractmethod
 import eagerpy as ep
 
@@ -31,6 +31,24 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         self.steps = steps
         self.random_start = random_start
 
+    def get_loss_fn(
+        self, model: Model, labels: ep.Tensor
+    ) -> Callable[[ep.Tensor], ep.Tensor]:
+        # can be overridden by users
+        def loss_fn(inputs: ep.Tensor) -> ep.Tensor:
+            logits = model(inputs)
+            return ep.crossentropy(logits, labels).sum()
+
+        return loss_fn
+
+    def value_and_grad(
+        # can be overridden by users
+        self,
+        loss_fn: Callable[[ep.Tensor], ep.Tensor],
+        x: ep.Tensor,
+    ) -> Tuple[ep.Tensor, ep.Tensor]:
+        return ep.value_and_grad(loss_fn, x)
+
     def run(
         self,
         model: Model,
@@ -49,10 +67,7 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
             raise ValueError("unsupported criterion")
 
         labels = criterion_.labels
-
-        def loss_fn(inputs: ep.Tensor) -> ep.Tensor:
-            logits = model(inputs)
-            return ep.crossentropy(logits, labels).sum()
+        loss_fn = self.get_loss_fn(model, labels)
 
         if self.abs_stepsize is None:
             stepsize = self.rel_stepsize * epsilon
@@ -68,11 +83,9 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
             x = x0
 
         for _ in range(self.steps):
-            _, gradients = ep.value_and_grad(loss_fn, x)
-            # gradients = normalize_l2_norms(gradients)
+            _, gradients = self.value_and_grad(loss_fn, x)
             gradients = self.normalize(gradients)
             x = x + stepsize * gradients
-            # x = x0 + clip_l2_norms(x - x0, epsilon)
             x = self.project(x, x0, epsilon)
             x = ep.clip(x, *model.bounds)
 
