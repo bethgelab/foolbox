@@ -4,11 +4,14 @@ from .base import Attack  # noqa: F401
 from .contrast import L2ContrastReductionAttack  # noqa: F401
 from .virtual_adversarial_attack import VirtualAdversarialAttack  # noqa: F401
 from .ddn import DDNAttack  # noqa: F401
+from .projected_gradient_descent import (  # noqa: F401
+    L2ProjectedGradientDescentAttack,
+    LinfProjectedGradientDescentAttack,
+)
 from .basic_iterative_method import (  # noqa: F401
     L2BasicIterativeAttack,
     LinfBasicIterativeAttack,
 )
-from .projected_gradient_descent import ProjectedGradientDescentAttack  # noqa: F401
 from .fast_gradient_method import (  # noqa: F401
     L2FastGradientAttack,
     LinfFastGradientAttack,
@@ -62,4 +65,6 @@ from .brendel_bethge import (  # noqa: F401
 
 FGM = L2FastGradientAttack
 FGSM = LinfFastGradientAttack
-PGD = ProjectedGradientDescentAttack
+L2PGD = L2ProjectedGradientDescentAttack
+LinfPGD = LinfProjectedGradientDescentAttack
+PGD = LinfPGD
