@@ -265,16 +265,23 @@ def jax_simple_model(request: Any) -> ModelAndData:
 
 
 @register("numpy", real=False)
-def numpy_simple_model() -> ModelAndData:
+def numpy_simple_model(request: Any) -> ModelAndData:
     class Model:
         def __call__(self, inputs: Any) -> Any:
             return inputs.mean(axis=(2, 3))
 
     model = Model()
-    fmodel = fbn.NumPyModel(model, (0, 1))
+    with pytest.raises(ValueError):
+        fbn.NumPyModel(model, bounds=(0, 1), data_format="foo")
 
-    with pytest.warns(UserWarning, "NumPy"):
+    fmodel = fbn.NumPyModel(model, bounds=(0, 1))
+    with pytest.raises(ValueError, match="data_format"):
         x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+
+    fmodel = fbn.NumPyModel(model, bounds=(0, 1), data_format="channels_first")
+    with pytest.warns(UserWarning, match="returning NumPy arrays"):
+        x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y

@@ -1,5 +1,4 @@
 from typing import Tuple
-import numpy as np
 import foolbox as fbn
 import eagerpy as ep
 import pytest
@@ -48,35 +47,17 @@ def test_samples(fmodel_and_data: ModelAndData, batchsize: int, dataset: str) ->
             fbn.samples(fmodel, batchsize=batchsize)
 
 
-@pytest.mark.parametrize("batchsize", [8])
-@pytest.mark.parametrize("dataset", ["imagenet"])
-def test_samples_no_dummy(
-    fmodel_and_data: ModelAndData, batchsize: int, dataset: str
-) -> None:
-    fmodel, _, _ = fmodel_and_data
-    if hasattr(fmodel, "dummy"):
-        del fmodel.dummy  # type: ignore
-    data_format = getattr(fmodel, "data_format", "channels_first")
-    with pytest.warns(UserWarning, "returning NumPy arrays"):
-        x, y = fbn.samples(
-            fmodel, dataset=dataset, batchsize=batchsize, data_format=data_format
-        )
-    assert len(x) == len(y) == batchsize
-    assert isinstance(x, np.ndarray)
-    assert isinstance(y, np.ndarray)
-
-
 @pytest.mark.parametrize("batchsize", [42])
 @pytest.mark.parametrize("dataset", ["imagenet"])
-def test_samples_larg_batch(
+def test_samples_large_batch(
     fmodel_and_data: ModelAndData, batchsize: int, dataset: str
 ) -> None:
     fmodel, _, _ = fmodel_and_data
     data_format = getattr(fmodel, "data_format", "channels_first")
-    with pytest.warns(UserWarning, "only 20 samples"):
+    with pytest.warns(UserWarning, match="only 20 samples"):
         x, y = fbn.samples(
             fmodel, dataset=dataset, batchsize=batchsize, data_format=data_format
         )
     assert len(x) == len(y) == batchsize
-    assert isinstance(x, np.ndarray)
-    assert isinstance(y, np.ndarray)
+    assert not ep.istensor(x)
+    assert not ep.istensor(y)

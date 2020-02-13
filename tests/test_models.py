@@ -71,7 +71,7 @@ def test_pytorch_invalid_model(request: Any) -> None:
 
     model = Model()
     bounds = (0, 1)
-    with pytest.raises(ValueError, "torch.nn.Module"):
+    with pytest.raises(ValueError, match="torch.nn.Module"):
         fbn.PyTorchModel(model, bounds=bounds)
 
 
@@ -139,6 +139,8 @@ def test_transform_bounds_wrapper(
             pytest.skip()
             assert False
         fmodel2 = fmodel1.transform_bounds(bounds, wrapper=True)
+        with pytest.raises(ValueError, match="cannot both be True"):
+            fmodel1.transform_bounds(bounds, inplace=True, wrapper=True)
     assert isinstance(fmodel2, fbn.models.TransformBoundsWrapper)
     min2, max2 = fmodel2.bounds
     x2 = (x - min1) / (max1 - min1) * (max2 - min2) + min2
