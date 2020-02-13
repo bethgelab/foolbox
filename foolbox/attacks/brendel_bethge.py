@@ -429,6 +429,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             raise ValueError("unsupported criterion")
 
         if starting_points is None:
+            init_attack: MinimizationAttack
             if self.init_attack is None:
                 init_attack = LinearSearchBlendedUniformNoiseAttack()
                 logging.info(
