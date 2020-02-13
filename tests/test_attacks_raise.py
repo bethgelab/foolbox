@@ -1,7 +1,6 @@
 from typing import List, Tuple
 import pytest
 import eagerpy as ep
-
 import foolbox as fbn
 
 L2 = fbn.types.L2
@@ -11,6 +10,53 @@ Linf = fbn.types.Linf
 def test_ead_init_raises() -> None:
     with pytest.raises(ValueError, match="invalid decision rule"):
         fbn.attacks.EADAttack(binary_search_steps=3, steps=20, decision_rule="L2")  # type: ignore
+
+
+def test_newtonfool_init_raises(
+    fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]
+) -> None:
+    fmodel, x, y = fmodel_and_data
+    with pytest.raises(ValueError, match="unsupported criterion"):
+        attack = fbn.attacks.NewtonFoolAttack()
+        attack.run(fmodel, x, fbn.TargetedMisclassification(y))  # type: ignore
+
+    with pytest.raises(ValueError, match="expected labels to have shape"):
+        attack = fbn.attacks.NewtonFoolAttack(steps=10)
+        attack.run(fmodel, x, ep.concatenate((y, y), 0))  # type: ignore
+
+
+def test_fgsm_init_raises(
+    fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]
+) -> None:
+    fmodel, x, y = fmodel_and_data
+    with pytest.raises(ValueError, match="unsupported criterion"):
+        attack = fbn.attacks.FGSM()
+        attack.run(fmodel, x, fbn.TargetedMisclassification(y))  # type: ignore
+
+
+def test_vat_init_raises(
+    fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]
+) -> None:
+    fmodel, x, y = fmodel_and_data
+    with pytest.raises(ValueError, match="unsupported criterion"):
+        attack = fbn.attacks.VirtualAdversarialAttack(steps=10)
+        attack.run(fmodel, x, fbn.TargetedMisclassification(y), epsilon=1.0)  # type: ignore
+
+    with pytest.raises(ValueError, match="expected labels to have shape"):
+        attack = fbn.attacks.VirtualAdversarialAttack(steps=10)
+        attack.run(fmodel, x, ep.concatenate((y, y), 0), epsilon=1.0)
+
+
+def test_blended_noise_raises() -> None:
+    with pytest.raises(ValueError, match="directions must be larger than 0"):
+        fbn.attacks.LinearSearchBlendedUniformNoiseAttack(steps=50, directions=0)
+
+
+def test_blur_raises(fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]) -> None:
+    fmodel, x, y = fmodel_and_data
+    with pytest.raises(ValueError, match="to be 1 or 3"):
+        attack = fbn.attacks.GaussianBlurAttack(steps=10, channel_axis=2)
+        attack.run(fmodel, x, y)
 
 
 targeted_attacks_raises_exception: List[Tuple[fbn.Attack, bool]] = [

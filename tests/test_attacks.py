@@ -26,7 +26,7 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     ),
     (fa.LinearSearchContrastReductionAttack(steps=20), None, False, False),
     (fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20), None, True, False),
-    (fa.EADAttack(binary_search_steps=3, steps=20), None, True, False),
+    (fa.EADAttack(binary_search_steps=10, steps=20), None, True, False),
     (
         fa.EADAttack(binary_search_steps=3, steps=20, decision_rule="L1"),
         None,
@@ -44,14 +44,22 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.FGSM(), Linf(100.0), True, False),
     (fa.FGM(), L2(100.0), True, False),
     (fa.GaussianBlurAttack(steps=10), None, True, True),
+    (fa.GaussianBlurAttack(steps=10, max_sigma=224.0), None, True, True),
     (fa.L2DeepFoolAttack(steps=50, loss="logits"), None, True, False),
     (fa.L2DeepFoolAttack(steps=50, loss="crossentropy"), None, True, False),
     (fa.LinfDeepFoolAttack(steps=50), None, True, False),
     (fa.BoundaryAttack(steps=50), None, False, False),
     (fa.SaltAndPepperNoiseAttack(steps=50), None, True, False),
+    (fa.SaltAndPepperNoiseAttack(steps=50, channel_axis=1), None, True, False),
     (fa.LinearSearchBlendedUniformNoiseAttack(steps=50), None, False, False),
     (fa.L2AdditiveGaussianNoiseAttack(), 2500.0, False, False),
     (fa.LinfAdditiveUniformNoiseAttack(), 10.0, False, False),
+    (
+        fa.L2RepeatedAdditiveGaussianNoiseAttack(check_trivial=False),
+        1000.0,
+        False,
+        False,
+    ),
     (fa.L2RepeatedAdditiveGaussianNoiseAttack(), 1000.0, False, False),
     (fa.L2RepeatedAdditiveUniformNoiseAttack(), 1000.0, False, False),
     (fa.LinfRepeatedAdditiveUniformNoiseAttack(), 3.0, False, False),
@@ -95,13 +103,18 @@ targeted_attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     ),
     (fa.DDNAttack(init_epsilon=2.0, steps=20), None, True, False),
     # TODO: targeted EADAttack currently fails repeatedly on MobileNetv2
-    # (
-    #     fa.EADAttack(
-    #         binary_search_steps=3, steps=20, abort_early=True, regularization=0
-    #     ),
-    #     True,
-    #     False,
-    # ),
+    (
+        fa.EADAttack(
+            binary_search_steps=3,
+            steps=20,
+            abort_early=True,
+            regularization=0,
+            initial_const=1e1,
+        ),
+        None,
+        True,
+        False,
+    ),
 ]
 
 
