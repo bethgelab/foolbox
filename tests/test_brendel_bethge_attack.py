@@ -4,10 +4,11 @@ import eagerpy as ep
 import foolbox as fbn
 import foolbox.attacks as fa
 from foolbox.devutils import flatten
+from foolbox.attacks.brendel_bethge import BrendelBethgeAttack
 import pytest
 
 
-def get_attack_id(x: Tuple[fa.Attack, Union[int, float]]) -> str:
+def get_attack_id(x: Tuple[BrendelBethgeAttack, Union[int, float]]) -> str:
     return repr(x[0])
 
 
@@ -24,7 +25,7 @@ def test_brendel_bethge_untargeted_attack(
     fmodel_and_data_ext_for_attacks: Tuple[
         Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
     ],
-    attack_and_p: Tuple[fbn.Attack, Union[int, float]],
+    attack_and_p: Tuple[BrendelBethgeAttack, Union[int, float]],
 ) -> None:
     (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
 
