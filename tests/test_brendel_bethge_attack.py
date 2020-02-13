@@ -44,8 +44,6 @@ def test_brendel_bethge_untargeted_attack(
     init_norms = ep.norms.lp(flatten(init_advs - x), p=p, axis=-1)
     norms = ep.norms.lp(flatten(advs - x), p=p, axis=-1)
 
-    is_smaller = (norms < init_norms).all()
-
     assert fbn.accuracy(fmodel, advs, y) < fbn.accuracy(fmodel, x, y)
     assert fbn.accuracy(fmodel, advs, y) <= fbn.accuracy(fmodel, init_advs, y)
-    assert is_smaller
+    assert (norms < init_norms).any()
