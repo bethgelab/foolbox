@@ -1,4 +1,4 @@
-from typing import Union, Optional, Tuple, Any
+from typing import Union, Optional, Tuple, Any, Callable
 import eagerpy as ep
 import logging
 from abc import ABC
@@ -52,6 +52,44 @@ class DeepFoolAttack(MinimizationAttack, ABC):
         self.overshoot = overshoot
         self.loss = loss
 
+    def get_loss_fn(
+        self, model: Model, classes: ep.Tensor,
+    ) -> Callable[[ep.Tensor, int], Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]]:
+
+        N = len(classes)
+        rows = range(N)
+        i0 = classes[:, 0]
+
+        if self.loss == "logits":
+
+            def loss_fun(
+                x: ep.Tensor, k: int
+            ) -> Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]:
+                logits = model(x)
+                ik = classes[:, k]
+                l0 = logits[rows, i0]
+                lk = logits[rows, ik]
+                loss = lk - l0
+                return loss.sum(), (loss, logits)
+
+        elif self.loss == "crossentropy":
+
+            def loss_fun(
+                x: ep.Tensor, k: int
+            ) -> Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]:
+                logits = model(x)
+                ik = classes[:, k]
+                l0 = -ep.crossentropy(logits, i0)
+                lk = -ep.crossentropy(logits, ik)
+                loss = lk - l0
+                return loss.sum(), (loss, logits)
+
+        else:
+            raise ValueError(
+                f"expected loss to be 'logits' or 'crossentropy', got '{self.loss}'"
+            )
+        return loss_fun
+
     def run(
         self,
         model: Model,
@@ -84,37 +122,8 @@ class DeepFoolAttack(MinimizationAttack, ABC):
 
         N = len(x)
         rows = range(N)
-        i0 = classes[:, 0]
 
-        if self.loss == "logits":
-
-            def loss_fun(
-                x: ep.Tensor, k: int
-            ) -> Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]:
-                logits = model(x)
-                ik = classes[:, k]
-                l0 = logits[rows, i0]
-                lk = logits[rows, ik]
-                loss = lk - l0
-                return loss.sum(), (loss, logits)
-
-        elif self.loss == "crossentropy":
-
-            def loss_fun(
-                x: ep.Tensor, k: int
-            ) -> Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]:
-                logits = model(x)
-                ik = classes[:, k]
-                l0 = -ep.crossentropy(logits, i0)
-                lk = -ep.crossentropy(logits, ik)
-                loss = lk - l0
-                return loss.sum(), (loss, logits)
-
-        else:
-            raise ValueError(
-                f"expected loss to be 'logits' or 'crossentropy', got '{self.loss}'"
-            )
-
+        loss_fun = self.get_loss_fn(model, classes)
         loss_aux_and_grad = ep.value_and_grad_fn(x, loss_fun, has_aux=True)
 
         x0 = x
