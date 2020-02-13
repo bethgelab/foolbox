@@ -13,11 +13,12 @@ from . import LinearSearchBlendedUniformNoiseAttack
 from ..tensorboard import TensorBoard
 from .base import Model
 from .base import MinimizationAttack
-from .base import Attack
 from .base import get_is_adversarial
 from .base import get_criterion
 from .base import T
 from ..criteria import Misclassification, TargetedMisclassification
+from .base import raise_if_kwargs
+from ..distances import l0, l1, l2, linf
 
 
 try:
@@ -308,30 +309,8 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
     * The adaptation of the trust region over the course of optimisation is less
       greedy but is more robust, reliable and simpler (decay every K steps)
 
-    References
+    Args:
     ----------
-    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
-           Ivan Ustyuzhaninov, Matthias Bethge,
-           "Accurate, reliable and fast robustness evaluation",
-           33rd Conference on Neural Information Processing Systems (2019)
-           https://arxiv.org/abs/1907.01003
-    """
-
-    def __init__(
-        self,
-        init_attack: Optional[Attack] = None,
-        overshoot: float = 1.1,
-        steps: int = 1000,
-        lr: float = 1e-3,
-        lr_decay: float = 0.5,
-        lr_num_decay: int = 20,
-        momentum: float = 0.8,
-        tensorboard: Union[Literal[False], None, str] = False,
-        binary_search_steps: int = 10,
-    ):
-
-        """Parameters
-        ----------
         init_attack : :class: `Attack` or Callable
             Attack or callable to use to find a starting points. Defaults to
             BlendedUniformNoiseAttack. Only used of starting_points is None.
@@ -364,7 +343,28 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
         binary_search_steps : int
             Number of binary search steps used to find the adversarial boundary
             between the starting point and the clean image.
-        """
+
+    References
+    ----------
+    .. [1] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+           Ivan Ustyuzhaninov, Matthias Bethge,
+           "Accurate, reliable and fast robustness evaluation",
+           33rd Conference on Neural Information Processing Systems (2019)
+           https://arxiv.org/abs/1907.01003
+    """
+
+    def __init__(
+        self,
+        init_attack: Optional[MinimizationAttack] = None,
+        overshoot: float = 1.1,
+        steps: int = 1000,
+        lr: float = 1e-3,
+        lr_decay: float = 0.5,
+        lr_num_decay: int = 20,
+        momentum: float = 0.8,
+        tensorboard: Union[Literal[False], None, str] = False,
+        binary_search_steps: int = 10,
+    ):
 
         if NUMBA_IMPORT_ERROR is not None:
             raise NUMBA_IMPORT_ERROR
@@ -381,13 +381,15 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
         self._optimizer: Optimizer = self.instantiate_optimizer()
 
-    def __call__(  # noqa: C901
+    def run(  # noqa: C901
         self,
         model: Model,
         inputs: T,
         criterion: Union[TargetedMisclassification, Misclassification, T],
         *,
         starting_points: Optional[ep.Tensor] = None,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
     ) -> T:
         """Applies the Brendel & Bethge attack.
 
@@ -405,6 +407,9 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             Adversarial inputs to use as a starting points, in particular
             for targeted attacks.
         """
+        raise_if_kwargs(kwargs)
+        del kwargs
+
         tb = TensorBoard(logdir=self.tensorboard)
 
         originals, restore_type = ep.astensor_(inputs)
@@ -430,9 +435,9 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
                     f"Neither starting_points nor init_attack given. Falling"
                     f" back to {init_attack.__name__} for initialization."
                 )
-                starting_points = init_attack()(model, originals, criterion_)
+                starting_points = init_attack().run(model, originals, criterion_)
             elif callable(self.init_attack):
-                starting_points = self.init_attack(model, originals, criterion_)
+                starting_points = self.init_attack.run(model, originals, criterion_)
 
         best_advs = ep.astensor(starting_points)
         assert is_adversarial(best_advs).all()
@@ -619,6 +624,8 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
            https://arxiv.org/abs/1907.01003
     """
 
+    distance = l2
+
     def instantiate_optimizer(self):
         if len(L2Optimizer._ctor.signatures) == 0:
             # optimiser is not yet compiled, give user a warning/notice
@@ -660,6 +667,8 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
            33rd Conference on Neural Information Processing Systems (2019)
            https://arxiv.org/abs/1907.01003
     """
+
+    distance = linf
 
     def instantiate_optimizer(self):
         return LinfOptimizer()
@@ -707,6 +716,8 @@ class L1BrendelBethgeAttack(BrendelBethgeAttack):
            https://arxiv.org/abs/1907.01003
     """
 
+    distance = l1
+
     def instantiate_optimizer(self):
         return L1Optimizer()
 
@@ -752,6 +763,8 @@ class L0BrendelBethgeAttack(BrendelBethgeAttack):
            33rd Conference on Neural Information Processing Systems (2019)
            https://arxiv.org/abs/1907.01003
     """
+
+    distance = l0
 
     def instantiate_optimizer(self):
         return L0Optimizer()

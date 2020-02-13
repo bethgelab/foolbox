@@ -15,7 +15,7 @@ targeted_attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
     (fa.L0BrendelBethgeAttack(steps=50), 0),
     (fa.L1BrendelBethgeAttack(steps=50), 1),
     (fa.L2BrendelBethgeAttack(steps=50), 2),
-    (fa.LInfBrendelBethgeAttack(steps=50), ep.inf),
+    (fa.LinfinityBrendelBethgeAttack(steps=50), ep.inf),
 ]
 
 
@@ -35,10 +35,10 @@ def test_brendel_bethge_untargeted_attack(
     fmodel = fmodel.transform_bounds((0, 1))
 
     init_attack = fa.LinearSearchBlendedUniformNoiseAttack(directions=100, steps=10)
-    init_advs = init_attack(fmodel, x, y)
+    init_advs = init_attack.run(fmodel, x, y)
 
     attack = fa.L2BrendelBethgeAttack(steps=50)
-    advs = attack(fmodel, x, y, starting_points=init_advs)
+    advs = attack.run(fmodel, x, y, starting_points=init_advs)
 
     mean_l2_init = ep.norms.lp(flatten(init_advs - x), p=2, axis=-1).mean()
     mean_l2 = ep.norms.lp(flatten(advs - x), p=2, axis=-1).mean()
