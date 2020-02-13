@@ -6,14 +6,17 @@ from ..devutils import atleast_kd
 
 from ..models import Model
 
+from ..distances import Distance
+
 from ..criteria import Criterion
 
-from .base import MinimizationAttack
+from .base import FlexibleDistanceMinimizationAttack
 from .base import T
 from .base import get_criterion
+from .base import raise_if_kwargs
 
 
-class DatasetAttack(MinimizationAttack):
+class DatasetAttack(FlexibleDistanceMinimizationAttack):
     """Draws randomly from the given dataset until adversarial examples for all
     inputs have been found.
 
@@ -22,7 +25,8 @@ class DatasetAttack(MinimizationAttack):
     batches that are small enough that they can be passed through the model.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, *, distance: Optional[Distance] = None) -> None:
+        super().__init__(distance=distance)
         self.raw_inputs: List[ep.Tensor] = []
         self.raw_outputs: List[ep.Tensor] = []
         self.inputs: Optional[ep.Tensor] = None
@@ -56,13 +60,21 @@ class DatasetAttack(MinimizationAttack):
         self.raw_inputs = []
         self.raw_outputs = []
 
-    def __call__(self, model: Model, inputs: T, criterion: Union[Criterion, T]) -> T:
+    def run(
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[Criterion, T],
+        *,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
+    ) -> T:
+        raise_if_kwargs(kwargs)
         self.process_raw()
         assert self.inputs is not None
         assert self.outputs is not None
-
         x, restore_type = ep.astensor_(inputs)
-        del inputs
+        del inputs, kwargs
 
         criterion = get_criterion(criterion)
 

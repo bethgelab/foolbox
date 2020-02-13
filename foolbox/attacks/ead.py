@@ -1,4 +1,4 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, Any, Optional
 from typing_extensions import Literal
 
 import math
@@ -9,15 +9,20 @@ from ..models import Model
 
 from ..criteria import Misclassification, TargetedMisclassification
 
+from ..distances import l1
+
 from ..devutils import atleast_kd, flatten
 
 from .base import MinimizationAttack
 from .base import get_criterion
 from .base import T
+from .base import raise_if_kwargs
 
 
 class EADAttack(MinimizationAttack):
     """EAD Attack with EN Decision Rule"""
+
+    distance = l1
 
     def __init__(
         self,
@@ -30,7 +35,6 @@ class EADAttack(MinimizationAttack):
         decision_rule: Union[Literal["EN"], Literal["L1"]] = "EN",
         abort_early: bool = True,
     ):
-
         if decision_rule not in ("EN", "L1"):
             raise ValueError("invalid decision rule")
 
@@ -43,15 +47,19 @@ class EADAttack(MinimizationAttack):
         self.abort_early = abort_early
         self.decision_rule = decision_rule
 
-    def __call__(
+    def run(
         self,
         model: Model,
         inputs: T,
         criterion: Union[Misclassification, TargetedMisclassification, T],
+        *,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
     ) -> T:
+        raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
-        del inputs, criterion
+        del inputs, criterion, kwargs
 
         N = len(x)
 

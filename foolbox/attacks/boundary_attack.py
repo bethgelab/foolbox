@@ -1,4 +1,4 @@
-from typing import Union, Tuple, Optional
+from typing import Union, Tuple, Optional, Any
 from typing_extensions import Literal
 import numpy as np
 import eagerpy as ep
@@ -13,13 +13,15 @@ from ..models import Model
 
 from ..criteria import Criterion
 
+from ..distances import l2
+
 from ..tensorboard import TensorBoard
 
 from .base import MinimizationAttack
 from .base import T
 from .base import get_criterion
 from .base import get_is_adversarial
-from .base import Attack
+from .base import raise_if_kwargs
 
 # TODO: use blended noise once noise attacks have been updated
 # from .blended_noise import LinearSearchBlendedUniformNoiseAttack
@@ -49,9 +51,11 @@ class BoundaryAttack(MinimizationAttack):
         runs/CURRENT_DATETIME_HOSTNAME.
     """
 
+    distance = l2
+
     def __init__(
         self,
-        init_attack: Optional[Attack] = None,
+        init_attack: Optional[MinimizationAttack] = None,
         steps: int = 25000,
         spherical_step: float = 1e-2,
         source_step: float = 1e-2,
@@ -60,6 +64,8 @@ class BoundaryAttack(MinimizationAttack):
         tensorboard: Union[Literal[False], None, str] = False,
         update_stats_every_k: int = 10,
     ):
+        if init_attack is not None and not isinstance(init_attack, MinimizationAttack):
+            raise NotImplementedError
         self.init_attack = init_attack
         self.steps = steps
         self.spherical_step = spherical_step
@@ -69,23 +75,25 @@ class BoundaryAttack(MinimizationAttack):
         self.tensorboard = tensorboard
         self.update_stats_every_k = update_stats_every_k
 
-    def __call__(
+    def run(
         self,
         model: Model,
         inputs: T,
         criterion: Union[Criterion, T],
         *,
+        early_stop: Optional[float] = None,
         starting_points: Optional[T] = None,
+        **kwargs: Any,
     ) -> T:
-
+        raise_if_kwargs(kwargs)
         originals, restore_type = ep.astensor_(inputs)
-        del inputs
+        del inputs, kwargs
 
         criterion = get_criterion(criterion)
         is_adversarial = get_is_adversarial(criterion, model)
 
         if starting_points is None:
-            init_attack: Attack
+            init_attack: MinimizationAttack
             if self.init_attack is None:
                 # TODO: use blended noise once noise attacks have been updated
                 # init_attack = LinearSearchBlendedUniformNoiseAttack()
@@ -97,7 +105,11 @@ class BoundaryAttack(MinimizationAttack):
                 )
             else:
                 init_attack = self.init_attack
-            best_advs = init_attack(model, originals, criterion)
+            # TODO: use call and support all types of attacks (once early_stop is
+            # possible in __call__)
+            best_advs = init_attack.run(
+                model, originals, criterion, early_stop=early_stop
+            )
         else:
             best_advs = ep.astensor(starting_points)
 
