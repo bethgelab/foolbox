@@ -17,16 +17,13 @@ from ..distances import l2
 
 from ..tensorboard import TensorBoard
 
+from .blended_noise import LinearSearchBlendedUniformNoiseAttack
+
 from .base import MinimizationAttack
 from .base import T
 from .base import get_criterion
 from .base import get_is_adversarial
 from .base import raise_if_kwargs
-
-# TODO: use blended noise once noise attacks have been updated
-# from .blended_noise import LinearSearchBlendedUniformNoiseAttack
-# from .contrast_min import BinarySearchContrastReductionAttack
-from .deepfool import L2DeepFoolAttack
 
 
 class BoundaryAttack(MinimizationAttack):
@@ -95,10 +92,7 @@ class BoundaryAttack(MinimizationAttack):
         if starting_points is None:
             init_attack: MinimizationAttack
             if self.init_attack is None:
-                # TODO: use blended noise once noise attacks have been updated
-                # init_attack = LinearSearchBlendedUniformNoiseAttack()
-                # init_attack = BinarySearchContrastReductionAttack()
-                init_attack = L2DeepFoolAttack()
+                init_attack = LinearSearchBlendedUniformNoiseAttack(steps=50)
                 logging.info(
                     f"Neither starting_points nor init_attack given. Falling"
                     f" back to {init_attack!r} for initialization."
