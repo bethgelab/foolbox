@@ -430,14 +430,16 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
         if starting_points is None:
             if self.init_attack is None:
-                init_attack = LinearSearchBlendedUniformNoiseAttack
+                init_attack = LinearSearchBlendedUniformNoiseAttack()
                 logging.info(
                     f"Neither starting_points nor init_attack given. Falling"
-                    f" back to {init_attack.__name__} for initialization."
+                    f" back to {init_attack!r} for initialization."
                 )
-                starting_points = init_attack().run(model, originals, criterion_)
-            elif callable(self.init_attack):
-                starting_points = self.init_attack.run(model, originals, criterion_)
+            else:
+                init_attack = self.init_attack
+            # TODO: use call and support all types of attacks (once early_stop is
+            # possible in __call__)
+            starting_points = self.init_attack.run(model, originals, criterion_)
 
         best_advs = ep.astensor(starting_points)
         assert is_adversarial(best_advs).all()
