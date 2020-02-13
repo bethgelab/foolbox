@@ -257,8 +257,11 @@ class FixedEpsilonAttack(AttackWithDistance):
         real_epsilons = [eps for eps in epsilons if eps is not None]
         del epsilons
 
+        # TODO: the correction we apply here should make sure that the limits
+        # are not violated, but this is a hack and we need a better solution
+        # Alternatively, maybe can just enforce the limits in __call__
         xps = [
-            self.run(model, x, criterion, epsilon=epsilon, **kwargs)
+            self.run(model, x, criterion, epsilon=epsilon * (1 - 1e-4), **kwargs)
             for epsilon in real_epsilons
         ]
 
