@@ -27,7 +27,7 @@ from .models import Model  # noqa: F401
 from .models import PyTorchModel  # noqa: F401
 from .models import TensorFlowModel  # noqa: F401
 from .models import JAXModel  # noqa: F401
-from .models import Foolbox2Model  # noqa: F401
+from .models import NumPyModel  # noqa: F401
 
 from .utils import accuracy  # noqa: F401
 from .utils import samples  # noqa: F401

@@ -99,10 +99,16 @@ class ModelWithPreprocessing(Model):
         return restore_type(z)
 
     def transform_bounds(
-        self: ModelType, bounds: BoundsInput, inplace: bool = False
-    ) -> ModelType:
+        self, bounds: BoundsInput, inplace: bool = False, wrapper: bool = False,
+    ) -> Model:
         """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
         # more efficient than the base class implementation because it avoids the additional wrapper
+
+        if wrapper:
+            if inplace:
+                raise ValueError("inplace and wrapper cannot both be True")
+            return super().transform_bounds(bounds)
+
         if self.bounds == bounds:
             if inplace:
                 return self
