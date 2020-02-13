@@ -1,7 +1,9 @@
-from typing import Optional
+from typing import Optional, Any
 import eagerpy as ep
 
 from ..criteria import Misclassification
+
+from ..distances import l2
 
 from ..devutils import flatten
 from ..devutils import atleast_kd
@@ -13,6 +15,7 @@ from .base import get_channel_axis
 from ..models.base import Model
 from .base import get_criterion
 from .base import T
+from .base import raise_if_kwargs
 
 
 class SaltAndPepperNoiseAttack(MinimizationAttack):
@@ -29,6 +32,8 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
         If None, will be automatically inferred from the model if possible.
     """
 
+    distance = l2
+
     def __init__(
         self,
         steps: int = 1000,
@@ -39,9 +44,20 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
         self.across_channels = across_channels
         self.channel_axis = channel_axis
 
-    def __call__(self, model: Model, inputs: T, criterion: Misclassification) -> T:
+    def run(
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Misclassification,
+        *,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
+    ) -> T:
+        raise_if_kwargs(kwargs)
         x0, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
+        del inputs, criterion, kwargs
+
         is_adversarial = get_is_adversarial(criterion_, model)
 
         N = len(x0)

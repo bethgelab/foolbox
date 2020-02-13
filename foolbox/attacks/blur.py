@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Union, Optional, Any
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter
 import eagerpy as ep
@@ -9,29 +9,44 @@ from ..models import Model
 
 from ..criteria import Criterion
 
-from .base import MinimizationAttack
+from ..distances import Distance
+
+from .base import FlexibleDistanceMinimizationAttack
 from .base import T
 from .base import get_is_adversarial
 from .base import get_criterion
 from .base import get_channel_axis
+from .base import raise_if_kwargs
 
 
-class GaussianBlurAttack(MinimizationAttack):
+class GaussianBlurAttack(FlexibleDistanceMinimizationAttack):
     """Blurs the inputs using a Gaussian filter with linearly increasing standard deviation."""
 
     def __init__(
         self,
+        *,
+        distance: Optional[Distance] = None,
         steps: int = 1000,
         channel_axis: Optional[int] = None,
         max_sigma: Optional[float] = None,
     ):
+        super().__init__(distance=distance)
         self.steps = steps
         self.channel_axis = channel_axis
         self.max_sigma = max_sigma
 
-    def __call__(self, model: Model, inputs: T, criterion: Union[Criterion, T]) -> T:
+    def run(
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[Criterion, T],
+        *,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
+    ) -> T:
+        raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
-        del inputs
+        del inputs, kwargs
 
         criterion = get_criterion(criterion)
         is_adversarial = get_is_adversarial(criterion, model)

@@ -15,5 +15,5 @@ def test_dataset_attack(
     attack = fbn.attacks.DatasetAttack()
     attack.feed(fmodel, x)
 
-    advs = attack(fmodel, x, y)
+    advs = attack.run(fmodel, x, y)
     assert fbn.accuracy(fmodel, advs, y) < fbn.accuracy(fmodel, x, y)

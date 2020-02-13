@@ -1,35 +1,52 @@
-from typing import Union
+from typing import Union, Optional, Any
 import numpy as np
 import eagerpy as ep
 
 from ..devutils import atleast_kd
 
-from .base import MinimizationAttack
+from ..distances import Distance
+
+from .base import FlexibleDistanceMinimizationAttack
 from .base import Model
 from .base import Criterion
-from .base import T, Any
+from .base import T
 from .base import get_is_adversarial
 from .base import get_criterion
+from .base import raise_if_kwargs
 
 import warnings
 
 
-class LinearSearchBlendedUniformNoiseAttack(MinimizationAttack):
+class LinearSearchBlendedUniformNoiseAttack(FlexibleDistanceMinimizationAttack):
     """Blends the input with a uniform noise input until it is misclassified."""
 
-    def __init__(self, directions: int = 1000, steps: int = 1000):
+    def __init__(
+        self,
+        *,
+        distance: Optional[Distance] = None,
+        directions: int = 1000,
+        steps: int = 1000,
+    ):
+        super().__init__(distance=distance)
         self.directions = directions
         self.steps = steps
 
         if directions <= 0:
             raise ValueError("directions must be larger than 0")
 
-    def __call__(
-        self, model: Model, inputs: T, criterion: Union[Criterion, Any] = None
+    def run(
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[Criterion, Any] = None,
+        *,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
     ) -> T:
+        raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
-        del inputs, criterion
+        del inputs, criterion, kwargs
 
         is_adversarial = get_is_adversarial(criterion_, model)
 
