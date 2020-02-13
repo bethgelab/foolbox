@@ -89,6 +89,7 @@ class DDNAttack(MinimizationAttack):
             )
 
         stepsize = 1.0
+        min_, max_ = model.bounds
 
         def loss_fn(
             inputs: ep.Tensor, labels: ep.Tensor
@@ -105,7 +106,7 @@ class DDNAttack(MinimizationAttack):
         delta = ep.zeros_like(x)
 
         epsilon = self.init_epsilon * ep.ones(x, len(x))
-        worst_norm = ep.norms.l2(flatten(ep.maximum(x, 1 - x)), -1)
+        worst_norm = ep.norms.l2(flatten(ep.maximum(x - min_, max_ - x)), -1)
 
         best_l2 = worst_norm
         best_delta = delta
