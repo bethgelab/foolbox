@@ -60,3 +60,21 @@ def test_distance(reference_perturbed: Tuple[ep.Tensor, ep.Tensor], p: float) ->
 def test_distance_repr_str(p: float) -> None:
     assert str(p) in repr(distances[p])
     assert str(p) in str(distances[p])
+
+
+@pytest.mark.parametrize("p", [0, 1, 2, ep.inf])
+def test_distance_clip(
+    reference_perturbed: Tuple[ep.Tensor, ep.Tensor], p: float
+) -> None:
+    reference, perturbed = reference_perturbed
+
+    ds = distances[p](reference, perturbed).numpy()
+    epsilon = np.median(ds)
+    too_large = ds > epsilon
+
+    desired = np.where(too_large, epsilon, ds)
+
+    perturbed = distances[p].clip_perturbation(reference, perturbed, epsilon)
+    actual = distances[p](reference, perturbed).numpy()
+
+    np.testing.assert_allclose(actual, desired)
