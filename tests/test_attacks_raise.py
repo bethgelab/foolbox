@@ -12,6 +12,21 @@ def test_ead_init_raises() -> None:
         fbn.attacks.EADAttack(binary_search_steps=3, steps=20, decision_rule="L2")  # type: ignore
 
 
+def test_boundary_attack_init_raises(
+    fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]
+) -> None:
+    fmodel, x, y = fmodel_and_data
+    with pytest.raises(ValueError, match="starting_points are not adversarial"):
+        attack = fbn.attacks.BoundaryAttack()
+        attack.run(fmodel, x, y, starting_points=x)
+
+    with pytest.raises(ValueError, match="starting_points are not adversarial"):
+        attack = fbn.attacks.BoundaryAttack(
+            init_attack=fbn.attacks.LinearSearchBlendedUniformNoiseAttack(steps=1)
+        )
+        attack.run(fmodel, x, y)
+
+
 def test_newtonfool_init_raises(
     fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 ) -> None:
