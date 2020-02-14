@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     attack_success = np.zeros((len(attacks), len(epsilons), len(images)), dtype=np.bool)
     for i, attack in enumerate(attacks):
-        _, success = attack(fmodel, images, labels, epsilons=epsilons)
+        _, _, success = attack(fmodel, images, labels, epsilons=epsilons)
         assert success.shape == (len(epsilons), len(images))
         success_ = success.numpy()
         assert success_.dtype == np.bool
