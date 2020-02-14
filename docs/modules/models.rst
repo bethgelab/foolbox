@@ -13,6 +13,7 @@ Models
    PyTorchModel
    TensorFlowModel
    JAXModel
+   NumPyModel
 
 Wrappers
 --------
@@ -35,6 +36,9 @@ Detailed description
    :members:
 
 .. autoclass:: JAXModel
+   :members:
+
+.. autoclass:: NumPyModel
    :members:
 
 .. autoclass:: TransformBoundsWrapper
