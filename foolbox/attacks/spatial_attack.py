@@ -1,7 +1,6 @@
 from typing import Union, Optional, Any
 import eagerpy as ep
 
-
 from ..criteria import Criterion
 
 from .base import Model
@@ -10,7 +9,6 @@ from .base import get_is_adversarial
 from .base import get_criterion
 from .base import Attack
 from .spatial_attack_transformations import rotate_and_shift
-
 
 
 class SpatialAttack(Attack):
