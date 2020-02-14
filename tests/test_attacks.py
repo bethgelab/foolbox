@@ -18,6 +18,7 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.DDNAttack(init_epsilon=2.0), None, True, False),
     (fa.InversionAttack(), None, False, False),
     (fa.L2ContrastReductionAttack(), L2(100.0), False, False),
+    (fa.L2ContrastReductionAttack().repeat(3), 100.0, False, False),
     (
         fa.BinarySearchContrastReductionAttack(binary_search_steps=15),
         None,
@@ -34,8 +35,6 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
         False,
     ),
     (fa.NewtonFoolAttack(steps=20), None, True, False),
-    # TODO: reactive this test once we test __call__() not run()
-    # (fa.L2ContrastReductionAttack().repeat(3), 100.0, False, False),
     (fa.VirtualAdversarialAttack(steps=50, xi=1), 10, True, False),
     (fa.PGD(), Linf(1.0), True, False),
     (fa.L2PGD(), L2(50.0), True, False),
@@ -84,14 +83,11 @@ def test_untargeted_attacks(
 
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
+    acc = fbn.accuracy(fmodel, x, y)
+    assert acc > 0
 
-    if eps is None:
-        assert isinstance(attack, fa.base.MinimizationAttack)
-        advs = attack.run(fmodel, x, y)
-    else:
-        assert isinstance(attack, fa.base.FixedEpsilonAttack)
-        advs = attack.run(fmodel, x, y, epsilon=eps)
-    assert fbn.accuracy(fmodel, advs, y) < fbn.accuracy(fmodel, x, y)
+    advs, _, _ = attack(fmodel, x, y, epsilons=eps)
+    assert fbn.accuracy(fmodel, advs, y) < acc
 
 
 targeted_attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
@@ -140,13 +136,9 @@ def test_targeted_attacks(
     num_classes = fmodel(x).shape[-1]
     target_classes = (y + 1) % num_classes
     criterion = fbn.TargetedMisclassification(target_classes)
-    if eps is None:
-        assert isinstance(attack, fa.base.MinimizationAttack)
-        advs = attack.run(fmodel, x, criterion)
-    else:
-        assert isinstance(attack, fa.base.FixedEpsilonAttack)
-        advs = attack.run(fmodel, x, criterion, epsilon=eps)
-
     adv_before_attack = criterion(x, fmodel(x))
+    assert not adv_before_attack.all()
+
+    advs, _, _ = attack(fmodel, x, criterion, epsilons=eps)
     adv_after_attack = criterion(advs, fmodel(advs))
     assert adv_after_attack.sum().item() > adv_before_attack.sum().item()
