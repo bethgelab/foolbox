@@ -31,7 +31,7 @@ def test_fgsm_init_raises(
     fmodel, x, y = fmodel_and_data
     with pytest.raises(ValueError, match="unsupported criterion"):
         attack = fbn.attacks.FGSM()
-        attack.run(fmodel, x, fbn.TargetedMisclassification(y))  # type: ignore
+        attack.run(fmodel, x, fbn.TargetedMisclassification(y), epsilon=1000)  # type: ignore
 
 
 def test_vat_init_raises(
