@@ -66,10 +66,6 @@ def transform_pt(x, theta):
     return transformed_images
 
 
-def shift_and_rotate(images, rotation=0, shifts=(0, 0)):
-    pass
-
-
 # adapted adapted from
 # https://github.com/kevinzakka/spatial-transformer-network/blob/master/stn/transformer.py
 # state @375f990 on 3 Jun 2018
