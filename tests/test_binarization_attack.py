@@ -9,11 +9,11 @@ from foolbox.attacks import BinarizationRefinementAttack
 
 
 def test_binarization_attack(
-    fmodel_and_data: Tuple[Model, ep.Tensor, ep.Tensor],
+    fmodel_and_data_ext_for_attacks: Tuple[Tuple[Model, ep.Tensor, ep.Tensor], bool],
 ) -> None:
 
     # get a model with thresholding
-    fmodel, x, y = fmodel_and_data
+    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
     fmodel = ThresholdingWrapper(fmodel, threshold=0.5)

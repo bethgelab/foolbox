@@ -5,10 +5,12 @@ import foolbox as fbn
 
 
 def test_dataset_attack(
-    fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor],
+    fmodel_and_data_ext_for_attacks: Tuple[
+        Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
+    ],
 ) -> None:
 
-    fmodel, x, y = fmodel_and_data
+    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
 
