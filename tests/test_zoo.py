@@ -24,16 +24,26 @@ def unload_foolbox_model_module() -> None:
 #     (join("file://", dirname(__file__), "data/model_repo"), (3, 224, 224)),
 # ]
 
+urls = [
+    "https://github.com/jonasrauber/foolbox-tensorflow-keras-applications",
+    "git@github.com:jonasrauber/foolbox-tensorflow-keras-applications.git",
+]
+
 
 # @pytest.mark.parametrize("url, dim", test_data)
-def test_loading_model(request: Any) -> None:
+@pytest.mark.parametrize("url", urls)
+def test_loading_model(request: Any, url: str) -> None:
     backend = request.config.option.backend
     if backend != "tensorflow":
         pytest.skip()
 
-    url = "https://github.com/jonasrauber/foolbox-tensorflow-keras-applications"
-
     # download model
+    try:
+        fmodel = fbn.zoo.get_model(url, name="MobileNetV2", overwrite=True)
+    except fbn.zoo.GitCloneError:
+        pytest.skip()
+
+    # download again (test overwriting)
     try:
         fmodel = fbn.zoo.get_model(url, name="MobileNetV2", overwrite=True)
     except fbn.zoo.GitCloneError:
@@ -55,6 +65,13 @@ def test_loading_model(request: Any) -> None:
     # assert np.sum(probabilities) >= 0.9999
 
     # TODO: delete fmodel
+
+
+# @pytest.mark.parametrize("url, dim", test_data)
+def test_loading_invalid_model(request: Any) -> None:
+    url = "https://github.com/jonasrauber/invalid-url"
+    with pytest.raises(fbn.zoo.GitCloneError):
+        fbn.zoo.get_model(url, name="MobileNetV2", overwrite=True)
 
 
 def test_non_default_module_throws_error() -> None:

@@ -60,6 +60,21 @@ def test_pytorch_training_warning(request: Any) -> None:
         fbn.PyTorchModel(model, bounds=bounds, device="cpu")
 
 
+def test_pytorch_invalid_model(request: Any) -> None:
+    backend = request.config.option.backend
+    if backend != "pytorch":
+        pytest.skip()
+
+    class Model:
+        def forward(self, x: Any) -> Any:
+            return x
+
+    model = Model()
+    bounds = (0, 1)
+    with pytest.raises(ValueError, match="torch.nn.Module"):
+        fbn.PyTorchModel(model, bounds=bounds)
+
+
 @pytest.mark.parametrize("bounds", [(0, 1), (-1.0, 1.0), (0, 255), (-32768, 32767)])
 def test_transform_bounds(
     fmodel_and_data: ModelAndData, bounds: fbn.types.BoundsInput
@@ -106,8 +121,9 @@ def test_transform_bounds_inplace(
 
 
 @pytest.mark.parametrize("bounds", [(0, 1), (-1.0, 1.0), (0, 255), (-32768, 32767)])
+@pytest.mark.parametrize("manual", [True, False])
 def test_transform_bounds_wrapper(
-    fmodel_and_data: ModelAndData, bounds: fbn.types.BoundsInput
+    fmodel_and_data: ModelAndData, bounds: fbn.types.BoundsInput, manual: bool
 ) -> None:
     fmodel1, x, y = fmodel_and_data
     fmodel1 = copy.copy(fmodel1)  # to avoid interference with other tests
@@ -115,7 +131,17 @@ def test_transform_bounds_wrapper(
     logits1 = fmodel1(x)
     min1, max1 = fmodel1.bounds
 
-    fmodel2 = fbn.models.TransformBoundsWrapper(fmodel1, bounds)
+    fmodel2: fbn.Model
+    if manual:
+        fmodel2 = fbn.models.TransformBoundsWrapper(fmodel1, bounds)
+    else:
+        if not isinstance(fmodel1, fbn.models.base.ModelWithPreprocessing):
+            pytest.skip()
+            assert False
+        fmodel2 = fmodel1.transform_bounds(bounds, wrapper=True)
+        with pytest.raises(ValueError, match="cannot both be True"):
+            fmodel1.transform_bounds(bounds, inplace=True, wrapper=True)
+    assert isinstance(fmodel2, fbn.models.TransformBoundsWrapper)
     min2, max2 = fmodel2.bounds
     x2 = (x - min1) / (max1 - min1) * (max2 - min2) + min2
     logits2 = fmodel2(x2)

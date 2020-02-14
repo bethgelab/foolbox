@@ -31,7 +31,7 @@ class Attack(ABC):
         *,
         epsilons: Sequence[Union[float, None]],
         **kwargs: Any,
-    ) -> Tuple[List[T], T]:
+    ) -> Tuple[List[T], List[T], T]:
         ...
 
     @overload  # noqa: F811
@@ -43,7 +43,7 @@ class Attack(ABC):
         *,
         epsilons: Union[float, None],
         **kwargs: Any,
-    ) -> Tuple[T, T]:
+    ) -> Tuple[T, T, T]:
         ...
 
     @abstractmethod  # noqa: F811
@@ -55,7 +55,7 @@ class Attack(ABC):
         *,
         epsilons: Union[Sequence[Union[float, None]], float, None],
         **kwargs: Any,
-    ) -> Union[Tuple[List[T], T], Tuple[T, T]]:
+    ) -> Union[Tuple[List[T], List[T], T], Tuple[T, T, T]]:
         # in principle, the type of criterion is Union[Criterion, T]
         # but we want to give subclasses the option to specify the supported
         # criteria explicitly (i.e. specifying a stricter type constraint)
@@ -87,12 +87,12 @@ class Repeated(AttackWithDistance):
         if times < 1:
             raise ValueError(f"expected times >= 1, got {times}")
 
-        self._attack = attack
-        self._times = times
+        self.attack = attack
+        self.times = times
 
     @property
     def distance(self) -> Distance:
-        return self._attack.distance
+        return self.attack.distance
 
     @overload
     def __call__(
@@ -103,7 +103,7 @@ class Repeated(AttackWithDistance):
         *,
         epsilons: Sequence[Union[float, None]],
         **kwargs: Any,
-    ) -> Tuple[List[T], T]:
+    ) -> Tuple[List[T], List[T], T]:
         ...
 
     @overload  # noqa: F811
@@ -115,7 +115,7 @@ class Repeated(AttackWithDistance):
         *,
         epsilons: Union[float, None],
         **kwargs: Any,
-    ) -> Tuple[T, T]:
+    ) -> Tuple[T, T, T]:
         ...
 
     def __call__(  # noqa: F811
@@ -126,7 +126,7 @@ class Repeated(AttackWithDistance):
         *,
         epsilons: Union[Sequence[Union[float, None]], float, None],
         **kwargs: Any,
-    ) -> Union[Tuple[List[T], T], Tuple[T, T]]:
+    ) -> Union[Tuple[List[T], List[T], T], Tuple[T, T, T]]:
         x, restore_type = ep.astensor_(inputs)
         del inputs
 
@@ -140,23 +140,24 @@ class Repeated(AttackWithDistance):
         N = len(x)
         K = len(epsilons)
 
-        xps, success = self._attack(model, x, criterion, epsilons=epsilons, **kwargs)
-        assert len(xps) == K
-        for xp in xps:
-            assert xp.shape == x.shape
-        assert success.shape == (K, N)
-
-        best_xps = xps
-        best_success = success
-
-        for _ in range(1, self._times):
-            xps, success = self._attack(
+        for i in range(self.times):
+            # run the attack
+            xps, xpcs, success = self.attack(
                 model, x, criterion, epsilons=epsilons, **kwargs
             )
             assert len(xps) == K
+            assert len(xpcs) == K
             for xp in xps:
                 assert xp.shape == x.shape
+            for xpc in xpcs:
+                assert xpc.shape == x.shape
             assert success.shape == (K, N)
+
+            if i == 0:
+                best_xps = xps
+                best_xpcs = xpcs
+                best_success = success
+                continue
 
             # TODO: test if stacking the list to a single tensor and
             # getting rid of the loop is faster
@@ -165,28 +166,37 @@ class Repeated(AttackWithDistance):
                 first = best_success[k].logical_not()
                 assert first.shape == (N,)
                 if epsilon is None:
+                    # if epsilon is None, we need the minimum
+
                     # TODO: maybe cache some of these distances
                     # and then remove the else part
                     closer = self.distance(x, xps[k]) < self.distance(x, best_xps[k])
                     assert closer.shape == (N,)
                     new_best = ep.logical_and(success[k], ep.logical_or(closer, first))
                 else:
+                    # for concrete epsilon, we just need a successful one
                     new_best = ep.logical_and(success[k], first)
-                best_xps[k] = ep.where(
-                    atleast_kd(new_best, x.ndim), xps[k], best_xps[k]
-                )
+                new_best = atleast_kd(new_best, x.ndim)
+                best_xps[k] = ep.where(new_best, xps[k], best_xps[k])
+                best_xpcs[k] = ep.where(new_best, xpcs[k], best_xpcs[k])
 
             best_success = ep.logical_or(success, best_success)
 
         best_xps_ = [restore_type(xp) for xp in best_xps]
+        best_xpcs_ = [restore_type(xpc) for xpc in best_xpcs]
         if was_iterable:
-            return best_xps_, restore_type(best_success)
+            return best_xps_, best_xpcs_, restore_type(best_success)
         else:
             assert len(best_xps_) == 1
-            return best_xps_[0], restore_type(best_success.squeeze(axis=0))
+            assert len(best_xpcs_) == 1
+            return (
+                best_xps_[0],
+                best_xpcs_[0],
+                restore_type(best_success.squeeze(axis=0)),
+            )
 
     def repeat(self, times: int) -> "Repeated":
-        return Repeated(self._attack, self._times * times)
+        return Repeated(self.attack, self.times * times)
 
 
 class FixedEpsilonAttack(AttackWithDistance):
@@ -208,7 +218,7 @@ class FixedEpsilonAttack(AttackWithDistance):
         *,
         epsilons: Sequence[Union[float, None]],
         **kwargs: Any,
-    ) -> Tuple[List[T], T]:
+    ) -> Tuple[List[T], List[T], T]:
         ...
 
     @overload  # noqa: F811
@@ -220,7 +230,7 @@ class FixedEpsilonAttack(AttackWithDistance):
         *,
         epsilons: Union[float, None],
         **kwargs: Any,
-    ) -> Tuple[T, T]:
+    ) -> Tuple[T, T, T]:
         ...
 
     @final  # noqa: F811
@@ -232,7 +242,7 @@ class FixedEpsilonAttack(AttackWithDistance):
         *,
         epsilons: Union[Sequence[Union[float, None]], float, None],
         **kwargs: Any,
-    ) -> Union[Tuple[List[T], T], Tuple[T, T]]:
+    ) -> Union[Tuple[List[T], List[T], T], Tuple[T, T, T]]:
 
         x, restore_type = ep.astensor_(inputs)
         del inputs
@@ -257,44 +267,63 @@ class FixedEpsilonAttack(AttackWithDistance):
         real_epsilons = [eps for eps in epsilons if eps is not None]
         del epsilons
 
-        # TODO: the correction we apply here should make sure that the limits
-        # are not violated, but this is a hack and we need a better solution
-        # Alternatively, maybe can just enforce the limits in __call__
-        xps = [
-            self.run(model, x, criterion, epsilon=epsilon * (1 - 1e-4), **kwargs)
-            for epsilon in real_epsilons
-        ]
+        xps = []
+        xpcs = []
+        success = []
+        for epsilon in real_epsilons:
+            xp = self.run(model, x, criterion, epsilon=epsilon, **kwargs)
 
-        is_adv = ep.stack([is_adversarial(xp) for xp in xps], axis=0)
-        assert is_adv.shape == (K, N)
+            # clip to epsilon because we don't really know what the attack returns;
+            # alternatively, we could check if the perturbation is at most epsilon,
+            # but then we would need to handle numerical violations;
+            xpc = self.distance.clip_perturbation(x, xp, epsilon)
+            is_adv = is_adversarial(xpc)
 
-        in_limits = ep.stack(
-            [
-                self.distance(x, xp) <= epsilon
-                for xp, epsilon in zip(xps, real_epsilons)
-            ],
-            axis=0,
-        )
-        assert in_limits.shape == (K, N)
+            xps.append(xp)
+            xpcs.append(xpc)
+            success.append(is_adv)
 
-        if not in_limits.all():
-            # TODO handle (numerical) violations
-            # warn user if run() violated the epsilon constraint
-            import pdb
+        # # TODO: the correction we apply here should make sure that the limits
+        # # are not violated, but this is a hack and we need a better solution
+        # # Alternatively, maybe can just enforce the limits in __call__
+        # xps = [
+        #     self.run(model, x, criterion, epsilon=epsilon, **kwargs)
+        #     for epsilon in real_epsilons
+        # ]
 
-            pdb.set_trace()
+        # is_adv = ep.stack([is_adversarial(xp) for xp in xps])
+        # assert is_adv.shape == (K, N)
 
-        success = ep.logical_and(in_limits, is_adv)
-        assert success.shape == (K, N)
+        # in_limits = ep.stack(
+        #     [
+        #         self.distance(x, xp) <= epsilon
+        #         for xp, epsilon in zip(xps, real_epsilons)
+        #     ],
+        # )
+        # assert in_limits.shape == (K, N)
+
+        # if not in_limits.all():
+        #     # TODO handle (numerical) violations
+        #     # warn user if run() violated the epsilon constraint
+        #     import pdb
+
+        #     pdb.set_trace()
+
+        # success = ep.logical_and(in_limits, is_adv)
+        # assert success.shape == (K, N)
+
+        success_ = ep.stack(success)
+        assert success_.shape == (K, N)
 
         xps_ = [restore_type(xp) for xp in xps]
+        xpcs_ = [restore_type(xpc) for xpc in xpcs]
 
         if was_iterable:
-            return xps_, restore_type(success)
+            return xps_, xpcs_, restore_type(success)
         else:
-            assert len(xps) == 1
-            (xp_,) = xps_
-            return xp_, restore_type(success.squeeze(axis=0))
+            assert len(xps_) == 1
+            assert len(xpcs_) == 1
+            return xps_[0], xpcs_[0], restore_type(success_.squeeze(axis=0))
 
 
 class MinimizationAttack(AttackWithDistance):
@@ -321,7 +350,7 @@ class MinimizationAttack(AttackWithDistance):
         *,
         epsilons: Sequence[Union[float, None]],
         **kwargs: Any,
-    ) -> Tuple[List[T], T]:
+    ) -> Tuple[List[T], List[T], T]:
         ...
 
     @overload  # noqa: F811
@@ -333,7 +362,7 @@ class MinimizationAttack(AttackWithDistance):
         *,
         epsilons: Union[float, None],
         **kwargs: Any,
-    ) -> Tuple[T, T]:
+    ) -> Tuple[T, T, T]:
         ...
 
     @final  # noqa: F811
@@ -345,7 +374,7 @@ class MinimizationAttack(AttackWithDistance):
         *,
         epsilons: Union[Sequence[Union[float, None]], float, None],
         **kwargs: Any,
-    ) -> Union[Tuple[List[T], T], Tuple[T, T]]:
+    ) -> Union[Tuple[List[T], List[T], T], Tuple[T, T, T]]:
         x, restore_type = ep.astensor_(inputs)
         del inputs
 
@@ -365,34 +394,33 @@ class MinimizationAttack(AttackWithDistance):
             early_stop = None
         else:
             early_stop = min(epsilons)
-        limit_epsilons = [eps if eps is not None else ep.inf for eps in epsilons]
-        del epsilons
 
         # run the actual attack
         xp = self.run(model, x, criterion, early_stop=early_stop, **kwargs)
-        # TODO: optionally improve using a binary search?
-        # TODO: optionally reduce size to the different epsilons and recompute is_adv
 
-        is_adv = is_adversarial(xp)
-        assert is_adv.shape == (N,)
+        xpcs = []
+        success = []
+        for epsilon in epsilons:
+            if epsilon is None:
+                xpc = xp
+            else:
+                xpc = self.distance.clip_perturbation(x, xp, epsilon)
+            is_adv = is_adversarial(xpc)
 
-        distances = self.distance(x, xp)
-        assert distances.shape == (N,)
+            xpcs.append(xpc)
+            success.append(is_adv)
 
-        in_limits = ep.stack(
-            [distances <= epsilon for epsilon in limit_epsilons], axis=0
-        )
-        assert in_limits.shape == (K, N)
-
-        success = ep.logical_and(in_limits, is_adv)
-        assert success.shape == (K, N)
+        success_ = ep.stack(success)
+        assert success_.shape == (K, N)
 
         xp_ = restore_type(xp)
+        xpcs_ = [restore_type(xpc) for xpc in xpcs]
 
         if was_iterable:
-            return [xp_] * K, restore_type(success)
+            return [xp_] * K, xpcs_, restore_type(success)
         else:
-            return xp_, restore_type(success.squeeze(axis=0))
+            assert len(xpcs_) == 1
+            return xp_, xpcs_[0], restore_type(success_.squeeze(axis=0))
 
 
 class FlexibleDistanceMinimizationAttack(MinimizationAttack):

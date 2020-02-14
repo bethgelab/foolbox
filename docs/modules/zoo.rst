@@ -10,7 +10,6 @@ Get Model
 .. autofunction:: get_model
 
 
-
 Fetch Weights
 -------------
 
