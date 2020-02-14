@@ -53,11 +53,6 @@ class DeepFoolAttack(MinimizationAttack, ABC):
         self.overshoot = overshoot
         self.loss = loss
 
-        if self.loss not in ("logits", "crossentropy"):
-            raise ValueError(
-                f"expected loss to be 'logits' or 'crossentropy', got '{self.loss}'"
-            )
-
     def _get_loss_fn(
         self, model: Model, classes: ep.Tensor,
     ) -> Callable[[ep.Tensor, int], Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]]:
@@ -89,6 +84,11 @@ class DeepFoolAttack(MinimizationAttack, ABC):
                 lk = -ep.crossentropy(logits, ik)
                 loss = lk - l0
                 return loss.sum(), (loss, logits)
+
+        else:
+            raise ValueError(
+                f"expected loss to be 'logits' or 'crossentropy', got '{self.loss}'"
+            )
 
         return loss_fun
 
