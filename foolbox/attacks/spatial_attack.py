@@ -1,8 +1,6 @@
-from typing import Union, Optional, Any, Tuple
+from typing import Union, Optional, Any
 import eagerpy as ep
-import numpy as np
 
-from ..devutils import atleast_kd
 
 from ..criteria import Criterion
 
@@ -14,7 +12,8 @@ from .base import Attack
 from .spatial_attack_transformations import rotate_and_shift
 
 
-class SpatialAttack(Attack):
+
+class Dest(Attack):
     """Adversarially chosen rotations and translations [1].
     This implementation is based on the reference implementation by
     Madry et al.: https://github.com/MadryLab/adversarial_spatial
@@ -25,52 +24,40 @@ class SpatialAttack(Attack):
            Translation Suffice: Fooling CNNs with Simple Transformations",
            http://arxiv.org/abs/1712.02779
     """
-
     def __init__(
-        self,
-        max_translation: float = 3,
-        max_rotation: float = 30,
-        num_translations: int = 5,
-        num_rotations: int = 5,
-        grid_search: bool = True,
-        random_steps: int = 20,
+            self,
+            max_translation: float = 3,
+            max_rotation: int = 30,
+            channel_axis: float = 1,
+
     ):
-
-        self.max_trans = max_translation
-        self.max_rot = max_rotation
-
-        self.grid_search = grid_search
-
-        # grid search true
-        self.num_trans = num_translations
-        self.num_rots = num_rotations
-
-        # grid search false
-        self.random_steps = random_steps
+        self.max_translation = max_translation
+        self.max_rotation = max_rotation
 
     def __call__(
-        self,
+            self,
             model: Model,
             inputs: T,
             criterion: Union[Criterion, T],
-            **kwargs: Any,
-    ) -> Tuple[T, T, T]:
+    ):
         x, restore_type = ep.astensor_(inputs)
         del inputs
         criterion = get_criterion(criterion)
 
         is_adversarial = get_is_adversarial(criterion, model)
+        print(is_adversarial(x))
 
         if x.ndim != 4:
             raise NotImplementedError(
                 "only implemented for inputs with two spatial dimensions (and one channel and one batch dimension)"
             )
+        print('here')
 
         xp = self.run(model, x, criterion, restore_type)
         success = is_adversarial(xp)
 
         xp_ = restore_type(xp)
-        return xp_, xp_, success   # xp_twice for api consistency
+        return xp_, success
 
     def run(
         self,
@@ -84,40 +71,20 @@ class SpatialAttack(Attack):
     ) -> T:
         is_adversarial = get_is_adversarial(criterion, model)
 
-        found = is_adversarial(inputs)
-        results = inputs
-
-        def grid_search_generator():
-            dphis = np.linspace(-self.max_rot, self.max_rot, self.num_rots)
-            dxs = np.linspace(-self.max_trans, self.max_trans, self.num_trans)
-            dys = np.linspace(-self.max_trans, self.max_trans, self.num_trans)
-            for dphi in dphis:
-                for dx in dxs:
-                    for dy in dys:
-                        yield dphi, dx, dy
-
-        def random_search_generator():
-            dphis = np.random.uniform(-self.max_rot, self.max_rot, self.random_steps)
-            dxs = np.random.uniform(-self.max_trans, self.max_trans, self.random_steps)
-            dys = np.random.uniform(-self.max_trans, self.max_trans, self.random_steps)
-            for dphi, dx, dy in zip(dphis, dxs, dys):
-                yield dphi, dx, dy
-
-        gen = grid_search_generator() if self.grid_search else random_search_generator()
-        for dphi, dx, dy in gen:
-            # TODO: reduce the batch size to the ones that haven't been successful
-
-            x_p = rotate_and_shift(
-                inputs, restore_type, translation=(dx, dy), rotation=dphi
-            )
-            is_adv = is_adversarial(x_p)
-            new_adv = ep.logical_and(is_adv, found.logical_not())
-
-            results = ep.where(atleast_kd(new_adv, x_p.ndim), x_p, results)
-            found = ep.logical_or(new_adv, found)
-            if found.all():
-                return results
-        return results
+        # TODO @lukas: search from origin 0, 1, -1, 2, ... for rot, and trans
+        # TODO @lukas: mask s.t. adversarials are not further transformed
+        for rot in range(self.max_rotation):
+            for trans_x in range(self.max_translation):
+                for trans_y in range(self.max_translation):
+                    x_p = rotate_and_shift(inputs, restore_type,
+                                           translation=(trans_x, trans_y),
+                                           rotation=rot)
+                    is_adversarial = get_is_adversarial(criterion, model)
+                    if ep.all(is_adversarial(x_p)):
+                        print('all misclassified', is_adversarial(x_p))
+                        return x_p
+        return x_p
 
     def repeat(self, times: int) -> "Attack":
         return self
+
