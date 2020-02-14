@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # apply the attack
     attack = LinfPGD()
     epsilons = [0.0, 0.001, 0.01, 0.03, 0.1, 0.3, 0.5, 1.0]
-    advs, success = attack(fmodel, images, labels, epsilons=epsilons)
+    advs, _, success = attack(fmodel, images, labels, epsilons=epsilons)
 
     # calculate and report the robust accuracy
     robust_accuracy = 1 - success.float32().mean(axis=-1)
