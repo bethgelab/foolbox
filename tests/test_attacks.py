@@ -27,9 +27,16 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     ),
     (fa.LinearSearchContrastReductionAttack(steps=20), None, False, False),
     (fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20), None, True, False),
-    (fa.EADAttack(binary_search_steps=10, steps=20), None, True, False),
     (
-        fa.EADAttack(binary_search_steps=3, steps=20, decision_rule="L1"),
+        fa.EADAttack(binary_search_steps=10, steps=20, regularization=0),
+        None,
+        True,
+        False,
+    ),
+    (
+        fa.EADAttack(
+            binary_search_steps=3, steps=20, decision_rule="L1", regularization=0
+        ),
         None,
         True,
         False,

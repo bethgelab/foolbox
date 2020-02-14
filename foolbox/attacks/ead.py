@@ -95,11 +95,11 @@ class EADAttack(MinimizationAttack):
             logits = model(y_k)
 
             if targeted:
-                c_minimize = best_other_classes(logits, classes)
+                c_minimize = _best_other_classes(logits, classes)
                 c_maximize = classes
             else:
                 c_minimize = classes
-                c_maximize = best_other_classes(logits, classes)
+                c_maximize = _best_other_classes(logits, classes)
 
             is_adv_loss = logits[rows, c_minimize] - logits[rows, c_maximize]
             assert is_adv_loss.shape == (N,)
@@ -146,7 +146,7 @@ class EADAttack(MinimizationAttack):
                 loss, logits, gradient = loss_aux_and_grad(y_k, consts)
 
                 x_k_old = x_k
-                x_k = project_shrinkage_thresholding(
+                x_k = _project_shrinkage_thresholding(
                     y_k - stepsize * gradient, x, self.regularization, min_, max_
                 )
                 y_k = x_k + iteration / (iteration + 3.0) * (x_k - x_k_old)
@@ -159,7 +159,7 @@ class EADAttack(MinimizationAttack):
 
                 found_advs_iter = is_adversarial(x_k, logits)
 
-                best_advs, best_advs_norms = apply_decision_rule(
+                best_advs, best_advs_norms = _apply_decision_rule(
                     self.decision_rule,
                     self.regularization,
                     best_advs,
@@ -183,28 +183,12 @@ class EADAttack(MinimizationAttack):
         return restore_type(best_advs)
 
 
-def untargeted_is_adv(
-    logits: ep.Tensor, labels: ep.Tensor, confidence: float
-) -> ep.Tensor:
-    logits = logits + ep.onehot_like(logits, labels, value=confidence)
-    classes = logits.argmax(axis=-1)
-    return classes != labels
-
-
-def targeted_is_adv(
-    logits: ep.Tensor, target_classes: ep.Tensor, confidence: float
-) -> ep.Tensor:
-    logits = logits - ep.onehot_like(logits, target_classes, value=confidence)
-    classes = logits.argmax(axis=-1)
-    return classes == target_classes
-
-
-def best_other_classes(logits: ep.Tensor, exclude: ep.Tensor) -> ep.Tensor:
+def _best_other_classes(logits: ep.Tensor, exclude: ep.Tensor) -> ep.Tensor:
     other_logits = logits - ep.onehot_like(logits, exclude, value=ep.inf)
     return other_logits.argmax(axis=-1)
 
 
-def apply_decision_rule(
+def _apply_decision_rule(
     decision_rule: Union[Literal["EN"], Literal["L1"]],
     beta: float,
     best_advs: ep.Tensor,
@@ -217,10 +201,9 @@ def apply_decision_rule(
         norms = beta * flatten(x_k - x).abs().sum(axis=-1) + flatten(
             x_k - x
         ).square().sum(axis=-1)
-    elif decision_rule == "L1":
-        norms = flatten(x_k - x).abs().sum(axis=-1)
     else:
-        raise ValueError("invalid decision rule")
+        # decision rule = L1
+        norms = flatten(x_k - x).abs().sum(axis=-1)
 
     new_best = ep.logical_and(norms < best_advs_norms, found_advs)
     new_best_kd = atleast_kd(new_best, best_advs.ndim)
@@ -230,19 +213,16 @@ def apply_decision_rule(
     return best_advs, best_advs_norms
 
 
-def project_shrinkage_thresholding(
+def _project_shrinkage_thresholding(
     z: ep.Tensor, x0: ep.Tensor, regularization: float, min_: float, max_: float
 ) -> ep.Tensor:
     """Performs the element-wise projected shrinkage-thresholding
     operation"""
 
-    upper_mask = (z - x0 > regularization).float32()
-    lower_mask = (z - x0 < -regularization).float32()
+    upper_mask = z - x0 > regularization
+    lower_mask = z - x0 < -regularization
 
-    projection = (
-        (1.0 - upper_mask - lower_mask) * x0
-        + upper_mask * ep.minimum(z - regularization, max_)
-        + lower_mask * ep.maximum(z + regularization, min_)
-    )
+    projection = ep.where(upper_mask, ep.minimum(z - regularization, max_), x0)
+    projection = ep.where(lower_mask, ep.maximum(z + regularization, min_), projection)
 
     return projection
