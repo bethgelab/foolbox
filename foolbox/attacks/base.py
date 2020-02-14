@@ -324,7 +324,7 @@ class FixedEpsilonAttack(AttackWithDistance):
         xpcs_ = [restore_type(xpc) for xpc in xpcs]
 
         if was_iterable:
-            return xps_, xpcs_, restore_type(success)
+            return xps_, xpcs_, restore_type(success_)
         else:
             assert len(xps_) == 1
             assert len(xpcs_) == 1
@@ -428,7 +428,7 @@ class MinimizationAttack(AttackWithDistance):
         xpcs_ = [restore_type(xpc) for xpc in xpcs]
 
         if was_iterable:
-            return [xp_] * K, xpcs_, restore_type(success)
+            return [xp_] * K, xpcs_, restore_type(success_)
         else:
             assert len(xpcs_) == 1
             return xp_, xpcs_[0], restore_type(success_.squeeze(axis=0))
