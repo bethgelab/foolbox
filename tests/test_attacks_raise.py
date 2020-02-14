@@ -12,9 +12,16 @@ def test_ead_init_raises() -> None:
         fbn.attacks.EADAttack(binary_search_steps=3, steps=20, decision_rule="invalid")  # type: ignore
 
 
-def test_deepfool_init_raises() -> None:
-    with pytest.raises(ValueError, match="expected loss to be"):
-        fbn.attacks.L2DeepFoolAttack(loss="invalid")  # type: ignore
+def test_deepfool_run_raises(
+    fmodel_and_data_ext_for_attacks: Tuple[Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool]
+) -> None:
+    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    if isinstance(x, ep.NumPyTensor):
+        pytest.skip()
+
+    attack = fbn.attacks.L2DeepFoolAttack(loss="invalid")  # type: ignore
+    with pytest.raises(ValueError, match="expected loss to"):
+        attack.run(fmodel, x, y)
 
 
 def test_blended_noise_attack_run_warns(
