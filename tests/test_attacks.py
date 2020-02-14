@@ -52,7 +52,6 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.GaussianBlurAttack(steps=10), None, True, True),
     (fa.GaussianBlurAttack(steps=10, max_sigma=224.0), None, True, True),
     (fa.L2DeepFoolAttack(steps=50, loss="logits"), None, True, False),
-    (fa.L2DeepFoolAttack(steps=50, loss="logits", candidates=None), None, True, False),
     (fa.L2DeepFoolAttack(steps=50, loss="crossentropy"), None, True, False),
     (fa.LinfDeepFoolAttack(steps=50), None, True, False),
     (fa.BoundaryAttack(steps=50), None, False, False),
