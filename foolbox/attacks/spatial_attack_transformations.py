@@ -35,7 +35,6 @@ def rotate_and_shift(inputs: T,
     return astensor_(transformed_tensor)[0]
 
 
-
 def transform_pt(x, theta):
     # x shape: (bs, nch, x, y)
     # angles: scalar or Tensor with (bs,)
