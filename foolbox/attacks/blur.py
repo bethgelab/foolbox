@@ -62,7 +62,7 @@ class GaussianBlurAttack(FlexibleDistanceMinimizationAttack):
             channel_axis = self.channel_axis % x.ndim
 
         if channel_axis is None:
-            raise ValueError(  # pragma: not covered
+            raise ValueError(
                 "cannot infer the data_format from the model, please specify"
                 " channel_axis when initializing the attack"
             )
