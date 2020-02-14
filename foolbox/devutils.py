@@ -3,8 +3,7 @@ import eagerpy as ep
 
 
 def flatten(x: ep.Tensor, keep: int = 1) -> ep.Tensor:
-    shape = x.shape[:keep] + (-1,)
-    return x.reshape(shape)
+    return x.flatten(start=keep)
 
 
 def atleast_kd(x: ep.Tensor, k: int) -> ep.Tensor:
