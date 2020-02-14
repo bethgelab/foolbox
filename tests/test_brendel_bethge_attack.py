@@ -16,7 +16,7 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
     (fa.L0BrendelBethgeAttack(steps=50), 0),
     (fa.L1BrendelBethgeAttack(steps=50), 1),
     (fa.L2BrendelBethgeAttack(steps=50), 2),
-    (fa.LinfinityBrendelBethgeAttack(steps=50), ep.inf),
+    # (fa.LinfinityBrendelBethgeAttack(steps=50), ep.inf),
 ]
 
 
@@ -35,7 +35,8 @@ def test_brendel_bethge_untargeted_attack(
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
 
-    init_attack = fa.LinearSearchBlendedUniformNoiseAttack(directions=100, steps=10)
+    init_attack = fa.DatasetAttack()
+    init_attack.feed(fmodel, x)
     init_advs = init_attack.run(fmodel, x, y)
 
     attack, p = attack_and_p
@@ -44,6 +45,12 @@ def test_brendel_bethge_untargeted_attack(
     init_norms = ep.norms.lp(flatten(init_advs - x), p=p, axis=-1)
     norms = ep.norms.lp(flatten(advs - x), p=p, axis=-1)
 
+    print("init_norms", init_norms)
+    print("norms", norms)
+
+    is_smaller = norms < init_norms
+    is_zero = norms == 0
+
     assert fbn.accuracy(fmodel, advs, y) < fbn.accuracy(fmodel, x, y)
     assert fbn.accuracy(fmodel, advs, y) <= fbn.accuracy(fmodel, init_advs, y)
-    assert (norms < init_norms).any()
+    assert ep.logical_or(is_smaller, is_zero).all()
