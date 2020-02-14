@@ -39,6 +39,7 @@ mypy:
 	mypy -p foolbox
 	mypy tests/
 	# mypy tests/attacks/
+	mypy examples/
 
 .PHONY: install
 install:

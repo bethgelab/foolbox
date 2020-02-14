@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+# mypy: no-disallow-untyped-defs
 import torchvision.models as models
 import eagerpy as ep
 from foolbox import PyTorchModel, accuracy, samples
 from foolbox.attacks import LinfPGD
+from foolbox.attacks.base import get_criterion
 
 
 if __name__ == "__main__":
@@ -17,8 +19,25 @@ if __name__ == "__main__":
     images, labels = ep.astensors(*samples(fmodel, dataset="imagenet", batchsize=16))
     print(accuracy(fmodel, images, labels))
 
+    # replace the gradient with the gradient from another model
+    model2 = fmodel  # demo, we just use the same model
+
+    # TODO: this is still a bit annoying because we need
+    # to overwrite run to get the labels
+    class Attack(LinfPGD):
+        def value_and_grad(self, loss_fn, x):
+            val1 = loss_fn(x)
+            loss_fn2 = self.get_loss_fn(model2, self.labels)
+            _, grad2 = ep.value_and_grad(loss_fn2, x)
+            return val1, grad2
+
+        def run(self, model, inputs, criterion, *, epsilon, **kwargs):
+            criterion_ = get_criterion(criterion)
+            self.labels = criterion_.labels
+            return super().run(model, inputs, criterion_, epsilon=epsilon, **kwargs)
+
     # apply the attack
-    attack = LinfPGD()
+    attack = Attack()
     epsilons = [0.0, 0.001, 0.01, 0.03, 0.1, 0.3, 0.5, 1.0]
     advs, _, success = attack(fmodel, images, labels, epsilons=epsilons)
 

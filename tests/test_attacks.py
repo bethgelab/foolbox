@@ -15,8 +15,7 @@ def get_attack_id(x: Tuple[fbn.Attack, bool, bool]) -> str:
 
 # attack, eps / None, attack_uses_grad, requires_real_model
 attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
-    # TODO: DDN is currently buggy
-    # (fa.DDNAttack(init_epsilon=2.0), None, True, False),
+    (fa.DDNAttack(init_epsilon=2.0), None, True, False),
     (fa.InversionAttack(), None, False, False),
     (fa.L2ContrastReductionAttack(), L2(100.0), False, False),
     (
@@ -94,8 +93,7 @@ targeted_attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
         True,
         False,
     ),
-    # TODO: DDN is currently buggy
-    # (fa.DDNAttack(init_epsilon=2.0), None, True, False),
+    (fa.DDNAttack(init_epsilon=2.0, steps=20), None, True, False),
     # TODO: targeted EADAttack currently fails repeatedly on MobileNetv2
     # (
     #     fa.EADAttack(

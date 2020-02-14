@@ -2,6 +2,8 @@
 ======================
 
 .. automodule:: foolbox.attacks
+   :members:
+   :undoc-members:
 
 .. autosummary::
    :nosignatures:

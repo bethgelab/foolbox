@@ -24,6 +24,8 @@ The source code and a `minimal working example <https://github.com/bethgelab/foo
    modules/criteria
    modules/distances
    modules/utils
+   modules/plot
+   modules/zoo
 
 .. toctree::
    :maxdepth: 2
@@ -31,6 +33,7 @@ The source code and a `minimal working example <https://github.com/bethgelab/foo
 
    modules/devutils
    modules/tensorboard
+   modules/types
 
 
 Indices and tables

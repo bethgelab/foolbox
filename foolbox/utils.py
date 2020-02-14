@@ -78,7 +78,7 @@ def _samples(
 
     if batchsize > 20:
         warnings.warn(
-            "foolbox.utils.samples() has only 20 samples and repeats itself if batchsize > 20"
+            "samples() has only 20 samples and repeats itself if batchsize > 20"
         )
 
     for idx in range(index, index + batchsize):

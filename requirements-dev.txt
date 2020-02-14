@@ -7,3 +7,4 @@ codecov>=2.0.15
 coveralls>=1.10.0
 mypy>=0.761
 pre-commit>=1.21.0
+responses==0.10.9

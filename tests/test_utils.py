@@ -17,11 +17,14 @@ def test_accuracy(fmodel_and_data: ModelAndData) -> None:
 
 
 @pytest.mark.parametrize("batchsize", [1, 8])
-def test_samples(fmodel_and_data: ModelAndData, batchsize: int) -> None:
+@pytest.mark.parametrize(
+    "dataset", ["imagenet", "cifar10", "cifar100", "mnist", "fashionMNIST"]
+)
+def test_samples(fmodel_and_data: ModelAndData, batchsize: int, dataset: str) -> None:
     fmodel, _, _ = fmodel_and_data
     if hasattr(fmodel, "data_format"):
         data_format = fmodel.data_format  # type: ignore
-        x, y = fbn.samples(fmodel, batchsize=batchsize)
+        x, y = fbn.samples(fmodel, dataset=dataset, batchsize=batchsize)
         assert len(x) == len(y) == batchsize
         assert not ep.istensor(x)
         assert not ep.istensor(y)
@@ -42,3 +45,19 @@ def test_samples(fmodel_and_data: ModelAndData, batchsize: int) -> None:
         assert not ep.istensor(y)
         with pytest.raises(ValueError):
             fbn.samples(fmodel, batchsize=batchsize)
+
+
+@pytest.mark.parametrize("batchsize", [42])
+@pytest.mark.parametrize("dataset", ["imagenet"])
+def test_samples_large_batch(
+    fmodel_and_data: ModelAndData, batchsize: int, dataset: str
+) -> None:
+    fmodel, _, _ = fmodel_and_data
+    data_format = getattr(fmodel, "data_format", "channels_first")
+    with pytest.warns(UserWarning, match="only 20 samples"):
+        x, y = fbn.samples(
+            fmodel, dataset=dataset, batchsize=batchsize, data_format=data_format
+        )
+    assert len(x) == len(y) == batchsize
+    assert not ep.istensor(x)
+    assert not ep.istensor(y)

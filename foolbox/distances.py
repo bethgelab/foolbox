@@ -3,6 +3,7 @@ from typing import TypeVar
 import eagerpy as ep
 
 from .devutils import flatten
+from .devutils import atleast_kd
 
 
 T = TypeVar("T")
@@ -11,6 +12,10 @@ T = TypeVar("T")
 class Distance(ABC):
     @abstractmethod
     def __call__(self, reference: T, perturbed: T) -> T:
+        ...
+
+    @abstractmethod
+    def clip_perturbation(self, references: T, perturbed: T, epsilon: float) -> T:
         ...
 
 
@@ -24,25 +29,43 @@ class LpDistance(Distance):
     def __str__(self) -> str:
         return f"L{self.p} distance"
 
-    def __call__(self, reference: T, perturbed: T) -> T:
-        """Calculates the distance from reference to perturbed using the Lp norm.
+    def __call__(self, references: T, perturbed: T) -> T:
+        """Calculates the distances from references to perturbed using the Lp norm.
 
-        Parameters
-        ----------
-        reference : T
-            A batch of reference inputs.
-        perturbed : T
-            A batch of perturbed inputs.
+        Args:
+            references: A batch of reference inputs.
+            perturbed: A batch of perturbed inputs.
 
-        Returns
-        -------
-        T
-            Returns a batch of distances as a 1D tensor.
-
+        Returns:
+            A 1D tensor with the distances from references to perturbed.
         """
-        (x, y), restore_type = ep.astensors_(reference, perturbed)
+        (x, y), restore_type = ep.astensors_(references, perturbed)
         norms = ep.norms.lp(flatten(y - x), self.p, axis=-1)
         return restore_type(norms)
+
+    def clip_perturbation(self, references: T, perturbed: T, epsilon: float) -> T:
+        """Clips the perturbations to epsilon and returns the new perturbed
+
+        Args:
+            references: A batch of reference inputs.
+            perturbed: A batch of perturbed inputs.
+
+        Returns:
+            A tenosr like perturbed but with the perturbation clipped to epsilon.
+        """
+        (x, y), restore_type = ep.astensors_(references, perturbed)
+        p = y - x
+        norms = ep.norms.lp(flatten(p), self.p, axis=-1)
+        norms = ep.maximum(norms, 1e-12)  # avoid divsion by zero
+        factor = epsilon / norms
+        factor = ep.minimum(1, factor)  # clipping -> decreasing but not increasing
+        if self.p == 0:
+            if (factor == 1).all():
+                return perturbed
+            raise NotImplementedError("reducing L0 norms not yet supported")
+        factor = atleast_kd(factor, x.ndim)
+        clipped_perturbation = factor * p
+        return restore_type(x + clipped_perturbation)
 
 
 l0 = LpDistance(0)
