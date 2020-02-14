@@ -13,7 +13,7 @@ from .spatial_attack_transformations import rotate_and_shift
 
 
 
-class Dest(Attack):
+class SpatialAttack(Attack):
     """Adversarially chosen rotations and translations [1].
     This implementation is based on the reference implementation by
     Madry et al.: https://github.com/MadryLab/adversarial_spatial
@@ -60,14 +60,14 @@ class Dest(Attack):
         return xp_, success
 
     def run(
-        self,
-        model: Model,
-        inputs: T,
-        criterion: Union[Criterion, T],
-        restore_type,
-        *,
-        early_stop: Optional[float] = None,
-        **kwargs: Any,
+            self,
+            model: Model,
+            inputs: T,
+            criterion: Union[Criterion, T],
+            restore_type,
+            *,
+            early_stop: Optional[float] = None,
+            **kwargs: Any,
     ) -> T:
         is_adversarial = get_is_adversarial(criterion, model)
 
