@@ -6,7 +6,7 @@ test:
 	pytest --pdb --cov=foolbox --cov-append --backend jax
 	pytest --pdb --cov=foolbox --cov-append --backend numpy
 
-.PHONY: test
+.PHONY: testskipslow
 testskipslow:
 	pytest --pdb --skipslow --cov=foolbox
 	pytest --pdb --skipslow --cov=foolbox --cov-append --backend pytorch
@@ -16,11 +16,11 @@ testskipslow:
 
 .PHONY: testattacks
 testattacks:
-	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py tests/attacks/
-	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend pytorch
-	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend tensorflow
-	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend jax
-	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py tests/attacks/ --cov-append --backend numpy
+	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py
+	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py --cov-append --backend pytorch
+	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py --cov-append --backend tensorflow
+	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py --cov-append --backend jax
+	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py --cov-append --backend numpy
 
 .PHONY: black
 black:
@@ -38,7 +38,6 @@ flake8:
 mypy:
 	mypy -p foolbox
 	mypy tests/
-	# mypy tests/attacks/
 	mypy examples/
 
 .PHONY: install
