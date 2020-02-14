@@ -18,11 +18,11 @@ def test_newtonfool_init_raises(
     fmodel, x, y = fmodel_and_data
     with pytest.raises(ValueError, match="unsupported criterion"):
         attack = fbn.attacks.NewtonFoolAttack()
-        attack.run(fmodel, x, fbn.TargetedMisclassification(y))  # type: ignore
+        attack.run(fmodel, x, fbn.TargetedMisclassification(y))
 
     with pytest.raises(ValueError, match="expected labels to have shape"):
         attack = fbn.attacks.NewtonFoolAttack(steps=10)
-        attack.run(fmodel, x, ep.concatenate((y, y), 0))  # type: ignore
+        attack.run(fmodel, x, ep.concatenate((y, y), 0))
 
 
 def test_fgsm_init_raises(
@@ -40,7 +40,7 @@ def test_vat_init_raises(
     fmodel, x, y = fmodel_and_data
     with pytest.raises(ValueError, match="unsupported criterion"):
         attack = fbn.attacks.VirtualAdversarialAttack(steps=10)
-        attack.run(fmodel, x, fbn.TargetedMisclassification(y), epsilon=1.0)  # type: ignore
+        attack.run(fmodel, x, fbn.TargetedMisclassification(y), epsilon=1.0)
 
     with pytest.raises(ValueError, match="expected labels to have shape"):
         attack = fbn.attacks.VirtualAdversarialAttack(steps=10)
