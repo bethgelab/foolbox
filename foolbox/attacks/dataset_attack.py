@@ -37,7 +37,7 @@ class DatasetAttack(FlexibleDistanceMinimizationAttack):
         del inputs
 
         self.raw_inputs.append(x)
-        self.raw_outputs.append(model(x).argmax(axis=-1))
+        self.raw_outputs.append(model(x))
 
     def process_raw(self) -> None:
         raw_inputs = self.raw_inputs

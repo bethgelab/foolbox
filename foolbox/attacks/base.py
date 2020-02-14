@@ -207,6 +207,11 @@ class FixedEpsilonAttack(AttackWithDistance):
     def run(
         self, model: Model, inputs: T, criterion: Any, *, epsilon: float, **kwargs: Any
     ) -> T:
+        """Runs the attack and returns perturbed inputs.
+
+        The size of the perturbations should be at most epsilon, but this
+        is not guaranteed and the caller should verify this or clip the result.
+        """
         ...
 
     @overload
@@ -319,7 +324,7 @@ class FixedEpsilonAttack(AttackWithDistance):
         xpcs_ = [restore_type(xpc) for xpc in xpcs]
 
         if was_iterable:
-            return xps_, xpcs_, restore_type(success)
+            return xps_, xpcs_, restore_type(success_)
         else:
             assert len(xps_) == 1
             assert len(xpcs_) == 1
@@ -339,6 +344,12 @@ class MinimizationAttack(AttackWithDistance):
         early_stop: Optional[float] = None,
         **kwargs: Any,
     ) -> T:
+        """Runs the attack and returns perturbed inputs.
+
+        The size of the perturbations should be as small as possible such that
+        the perturbed inputs are still adversarial. In general, this is not
+        guaranteed and the caller has to verify this.
+        """
         ...
 
     @overload
@@ -417,7 +428,7 @@ class MinimizationAttack(AttackWithDistance):
         xpcs_ = [restore_type(xpc) for xpc in xpcs]
 
         if was_iterable:
-            return [xp_] * K, xpcs_, restore_type(success)
+            return [xp_] * K, xpcs_, restore_type(success_)
         else:
             assert len(xpcs_) == 1
             return xp_, xpcs_[0], restore_type(success_.squeeze(axis=0))
