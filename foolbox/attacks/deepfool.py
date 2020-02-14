@@ -1,4 +1,5 @@
 from typing import Union, Optional, Tuple, Any, Callable
+from typing_extensions import Literal
 import eagerpy as ep
 import logging
 from abc import ABC
@@ -45,14 +46,19 @@ class DeepFoolAttack(MinimizationAttack, ABC):
         steps: int = 50,
         candidates: Optional[int] = 10,
         overshoot: float = 0.02,
-        loss: str = "logits",
+        loss: Union[Literal["logits"], Literal["crossentropy"]] = "logits",
     ):
         self.steps = steps
         self.candidates = candidates
         self.overshoot = overshoot
         self.loss = loss
 
-    def get_loss_fn(
+        if self.loss not in ("logits", "crossentropy"):
+            raise ValueError(
+                f"expected loss to be 'logits' or 'crossentropy', got '{self.loss}'"
+            )
+
+    def _get_loss_fn(
         self, model: Model, classes: ep.Tensor,
     ) -> Callable[[ep.Tensor, int], Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]]:
 
@@ -84,10 +90,6 @@ class DeepFoolAttack(MinimizationAttack, ABC):
                 loss = lk - l0
                 return loss.sum(), (loss, logits)
 
-        else:
-            raise ValueError(
-                f"expected loss to be 'logits' or 'crossentropy', got '{self.loss}'"
-            )
         return loss_fun
 
     def run(
@@ -123,7 +125,7 @@ class DeepFoolAttack(MinimizationAttack, ABC):
         N = len(x)
         rows = range(N)
 
-        loss_fun = self.get_loss_fn(model, classes)
+        loss_fun = self._get_loss_fn(model, classes)
         loss_aux_and_grad = ep.value_and_grad_fn(x, loss_fun, has_aux=True)
 
         x0 = x

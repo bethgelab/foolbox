@@ -25,7 +25,7 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
         False,
         False,
     ),
-    (fa.LinearSearchContrastReductionAttack(steps=20), None, False, False),
+    (fa.LinearSearchContrastReductionAttack(steps=1000), None, False, False),
     (fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20), None, True, False),
     (
         fa.EADAttack(binary_search_steps=10, steps=20, regularization=0),
@@ -52,12 +52,15 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.GaussianBlurAttack(steps=10), None, True, True),
     (fa.GaussianBlurAttack(steps=10, max_sigma=224.0), None, True, True),
     (fa.L2DeepFoolAttack(steps=50, loss="logits"), None, True, False),
+    (fa.L2DeepFoolAttack(steps=50, loss="logits", candidates=None), None, True, False),
     (fa.L2DeepFoolAttack(steps=50, loss="crossentropy"), None, True, False),
     (fa.LinfDeepFoolAttack(steps=50), None, True, False),
     (fa.BoundaryAttack(steps=50), None, False, False),
     (
         fa.BoundaryAttack(
-            steps=110, init_attack=fa.LinearSearchBlendedUniformNoiseAttack(steps=50)
+            steps=110,
+            init_attack=fa.LinearSearchBlendedUniformNoiseAttack(steps=50),
+            update_stats_every_k=1,
         ),
         None,
         False,

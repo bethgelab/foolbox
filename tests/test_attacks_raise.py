@@ -12,7 +12,20 @@ def test_ead_init_raises() -> None:
         fbn.attacks.EADAttack(binary_search_steps=3, steps=20, decision_rule="L2")  # type: ignore
 
 
-def test_boundary_attack_init_raises(
+def test_deepfool_init_raises() -> None:
+    with pytest.raises(ValueError, match="expected loss to be"):
+        fbn.attacks.L2DeepFoolAttack(loss="invalid")  # type: ignore
+
+
+def test_blended_noise_attack_run_warns(
+    fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]
+) -> None:
+    fmodel, x, y = fmodel_and_data
+    attack = fbn.attacks.LinearSearchBlendedUniformNoiseAttack(directions=1)
+    attack.run(fmodel, x, y)
+
+
+def test_boundary_attack_run_raises(
     fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 ) -> None:
     fmodel, x, y = fmodel_and_data
@@ -20,14 +33,14 @@ def test_boundary_attack_init_raises(
         attack = fbn.attacks.BoundaryAttack()
         attack.run(fmodel, x, y, starting_points=x)
 
-    with pytest.raises(ValueError, match="starting_points are not adversarial"):
+    with pytest.raises(ValueError, match="init_attack failed for"):
         attack = fbn.attacks.BoundaryAttack(
-            init_attack=fbn.attacks.LinearSearchBlendedUniformNoiseAttack(steps=1)
+            init_attack=fbn.attacks.DDNAttack(init_epsilon=0.0, steps=1)
         )
         attack.run(fmodel, x, y)
 
 
-def test_newtonfool_init_raises(
+def test_newtonfool_run_raises(
     fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 ) -> None:
     fmodel, x, y = fmodel_and_data
@@ -40,7 +53,7 @@ def test_newtonfool_init_raises(
         attack.run(fmodel, x, ep.concatenate((y, y), 0))
 
 
-def test_fgsm_init_raises(
+def test_fgsm_run_raises(
     fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 ) -> None:
     fmodel, x, y = fmodel_and_data
@@ -49,7 +62,7 @@ def test_fgsm_init_raises(
         attack.run(fmodel, x, fbn.TargetedMisclassification(y), epsilon=1000)
 
 
-def test_vat_init_raises(
+def test_vat_run_raises(
     fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 ) -> None:
     fmodel, x, y = fmodel_and_data
@@ -62,12 +75,14 @@ def test_vat_init_raises(
         attack.run(fmodel, x, ep.concatenate((y, y), 0), epsilon=1.0)
 
 
-def test_blended_noise_raises() -> None:
+def test_blended_noise_init_raises() -> None:
     with pytest.raises(ValueError, match="directions must be larger than 0"):
         fbn.attacks.LinearSearchBlendedUniformNoiseAttack(steps=50, directions=0)
 
 
-def test_blur_raises(fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]) -> None:
+def test_blur_run_raises(
+    fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]
+) -> None:
     fmodel, x, y = fmodel_and_data
     with pytest.raises(ValueError, match="to be 1 or 3"):
         attack = fbn.attacks.GaussianBlurAttack(steps=10, channel_axis=2)
