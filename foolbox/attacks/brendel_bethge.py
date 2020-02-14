@@ -471,7 +471,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
         tb.scalar("batchsize", N, 0)
 
         # function to compute logits_diff and gradient
-        def loss_fun(x, mask=None):
+        def loss_fun(x):
             logits = model(x)
 
             if targeted:
@@ -484,14 +484,12 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             logits_diffs = logits[rows, c_minimize] - logits[rows, c_maximize]
             assert logits_diffs.shape == (N,)
 
-            if mask is not None:
-                logits_diffs = logits_diffs[mask]
             return logits_diffs.sum(), logits_diffs
 
         value_and_grad = ep.value_and_grad_fn(x0, loss_fun, has_aux=True)
 
-        def logits_diff_and_grads(x, mask=None) -> Tuple[Any, Any]:
-            _, logits_diffs, boundary = value_and_grad(x, mask)
+        def logits_diff_and_grads(x) -> Tuple[Any, Any]:
+            _, logits_diffs, boundary = value_and_grad(x)
             return logits_diffs.numpy(), boundary.numpy().copy()
 
         x = starting_points
@@ -508,7 +506,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
             # get logits and local boundary geometry
             # TODO: only perform forward pass on non-converged samples
-            logits_diffs, _boundary = logits_diff_and_grads(x, mask=None)
+            logits_diffs, _boundary = logits_diff_and_grads(x)
 
             # record optimal adversarials
             distances = self.norms(originals - x)
