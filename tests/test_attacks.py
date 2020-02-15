@@ -17,6 +17,12 @@ def get_attack_id(x: Tuple[fbn.Attack, bool, bool]) -> str:
 attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.DDNAttack(init_epsilon=2.0), None, True, False),
     (fa.InversionAttack(), None, False, False),
+    (
+        fa.InversionAttack(distance=fbn.distances.l2).repeat(3).repeat(2),
+        None,
+        False,
+        False,
+    ),
     (fa.L2ContrastReductionAttack(), L2(100.0), False, False),
     (fa.L2ContrastReductionAttack().repeat(3), 100.0, False, False),
     (
@@ -26,9 +32,23 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
         False,
     ),
     (fa.LinearSearchContrastReductionAttack(steps=20), None, False, False),
-    (fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20), None, True, False),
+    (fa.L2CarliniWagnerAttack(binary_search_steps=11, steps=5), None, True, False),
+    (
+        fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20, confidence=2.0),
+        None,
+        True,
+        False,
+    ),
     (
         fa.EADAttack(binary_search_steps=10, steps=20, regularization=0),
+        None,
+        True,
+        False,
+    ),
+    (
+        fa.EADAttack(
+            binary_search_steps=10, steps=20, regularization=0, confidence=2.0
+        ),
         None,
         True,
         False,
@@ -45,7 +65,7 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.VirtualAdversarialAttack(steps=50, xi=1), 10, True, False),
     (fa.PGD(), Linf(1.0), True, False),
     (fa.L2PGD(), L2(50.0), True, False),
-    (fa.LinfBasicIterativeAttack(), Linf(1.0), True, False),
+    (fa.LinfBasicIterativeAttack(abs_stepsize=0.2), Linf(1.0), True, False),
     (fa.L2BasicIterativeAttack(), L2(50.0), True, False),
     (fa.FGSM(), Linf(100.0), True, False),
     (fa.FGM(), L2(100.0), True, False),

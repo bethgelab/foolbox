@@ -139,7 +139,7 @@ class BoundaryAttack(MinimizationAttack):
         for step in range(1, self.steps + 1):
             converged = source_steps < self.source_step_convergance
             if converged.all():
-                break
+                break  # pragma: no cover
             converged = atleast_kd(converged, ndim)
 
             # TODO: performance: ignore those that have converged
@@ -291,7 +291,7 @@ class ArrayQueue:
 
     def clear(self, dims: ep.Tensor) -> None:
         if self.tensor is None:
-            self.tensor = dims
+            self.tensor = dims  # pragma: no cover
         dims = dims.numpy()
         assert dims.shape == (self.N,)
         assert dims.dtype == np.bool

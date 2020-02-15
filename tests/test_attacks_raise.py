@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Any
 import pytest
 import eagerpy as ep
 import foolbox as fbn
@@ -106,6 +106,47 @@ def test_blur_run_raises(
     with pytest.raises(ValueError, match="to be 1 or 3"):
         attack = fbn.attacks.GaussianBlurAttack(steps=10, channel_axis=2)
         attack.run(fmodel, x, y)
+
+
+def test_blur_numpy(request: Any) -> None:
+    class Model:
+        def __call__(self, inputs: Any) -> Any:
+            return inputs.mean(axis=(2, 3))
+
+    model = Model()
+    with pytest.raises(ValueError):
+        fbn.NumPyModel(model, bounds=(0, 1), data_format="foo")
+
+    fmodel = fbn.NumPyModel(model, bounds=(0, 1))
+    x, y = ep.astensors(
+        *fbn.samples(
+            fmodel, dataset="imagenet", batchsize=16, data_format="channels_first"
+        )
+    )
+    with pytest.raises(ValueError, match="data_format"):
+        fbn.attacks.GaussianBlurAttack()(fmodel, x, y, epsilons=None)
+
+
+def test_dataset_attack_raises(
+    fmodel_and_data_ext_for_attacks: Tuple[Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool]
+) -> None:
+    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+
+    attack = fbn.attacks.DatasetAttack()
+
+    # that that running before feed fails properly
+    with pytest.raises(ValueError, match="feed"):
+        attack.run(fmodel, x, y)
+
+    attack.feed(fmodel, x)
+    attack.run(fmodel, x, y)
+    assert attack.inputs is not None
+    n = len(attack.inputs)
+
+    # test that feed() after run works
+    attack.feed(fmodel, x)
+    attack.run(fmodel, x, y)
+    assert len(attack.inputs) > n
 
 
 targeted_attacks_raises_exception: List[Tuple[fbn.Attack, bool]] = [

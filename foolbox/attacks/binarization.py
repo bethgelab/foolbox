@@ -73,7 +73,7 @@ class BinarizationRefinementAttack(FlexibleDistanceMinimizationAttack):
 
         nptype = o.reshape(-1)[0].numpy().dtype.type
         if nptype not in [np.float16, np.float32, np.float64]:
-            raise ValueError(
+            raise ValueError(  # pragma: no cover
                 f"expected dtype to be float16, float32 or float64, found '{nptype}'"
             )
 

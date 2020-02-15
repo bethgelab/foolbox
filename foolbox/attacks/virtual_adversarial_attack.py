@@ -91,7 +91,7 @@ class VirtualAdversarialAttack(FixedEpsilonAttack):
             d = (bounds[1] - bounds[0]) * d
 
             if ep.any(ep.norms.l2(flatten(d), axis=-1) < 1e-64):
-                raise RuntimeError(
+                raise RuntimeError(  # pragma: no cover
                     "Gradient vanished; this can happen if xi is too small."
                 )
 

@@ -85,7 +85,7 @@ class Repeated(AttackWithDistance):
 
     def __init__(self, attack: AttackWithDistance, times: int):
         if times < 1:
-            raise ValueError(f"expected times >= 1, got {times}")
+            raise ValueError(f"expected times >= 1, got {times}")  # pragma: no cover
 
         self.attack = attack
         self.times = times
