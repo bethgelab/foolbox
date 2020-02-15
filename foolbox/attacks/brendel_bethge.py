@@ -367,7 +367,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
     ):
 
         if NUMBA_IMPORT_ERROR is not None:
-            raise NUMBA_IMPORT_ERROR
+            raise NUMBA_IMPORT_ERROR  # pragma: no cover
 
         self.init_attack = init_attack
         self.overshoot = overshoot
@@ -502,7 +502,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
         for step in range(1, self.steps + 1):
             if converged.all():
-                break
+                break  # pragma: no cover
 
             # get logits and local boundary geometry
             # TODO: only perform forward pass on non-converged samples
@@ -554,7 +554,9 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             for sample in range(N):
                 if converged[sample]:
                     # don't perform optimisation on converged samples
-                    deltas.append(np.zeros_like(x0_np_flatten[sample]))
+                    deltas.append(
+                        np.zeros_like(x0_np_flatten[sample])
+                    )  # pragma: no cover
                 else:
                     _x0 = x0_np_flatten[sample]
                     _x = x_np_flatten[sample]
@@ -1367,7 +1369,7 @@ class BFGSB(object):
 if NUMBA_IMPORT_ERROR is None:
     spec = [("bfgsb", BFGSB.class_type.instance_type)]  # type: ignore
 else:
-    spec = []
+    spec = []  # pragma: no cover
 
 
 @jitclass(spec=spec)
