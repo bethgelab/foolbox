@@ -11,7 +11,7 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 4
+      max-parallel: 20
       matrix:
         python-version: [3.6, 3.7]
         backend: ["none", "pytorch", "tensorflow", "jax", "numpy"]
