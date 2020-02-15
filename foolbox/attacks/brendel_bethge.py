@@ -628,8 +628,7 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
     distance = l2
 
     def instantiate_optimizer(self):
-        # hasattr check in case we run with NUMBA_DISABLE_JIT
-        if hasattr(L2Optimizer, "_ctor") and len(L2Optimizer._ctor.signatures) == 0:
+        if len(L2Optimizer._ctor.signatures) == 0:
             # optimiser is not yet compiled, give user a warning/notice
             warnings.warn(
                 "At the first initialisation the optimizer needs to be compiled. This may take between 20 to 60 seconds."
@@ -1366,10 +1365,7 @@ class BFGSB(object):
 
 
 if NUMBA_IMPORT_ERROR is None:
-    try:
-        spec = [("bfgsb", BFGSB.class_type.instance_type)]  # type: ignore
-    except AttributeError:  # pragma: no cover
-        spec = []  # if we run with NUMBA_DISABLE_JIT
+    spec = [("bfgsb", BFGSB.class_type.instance_type)]  # type: ignore
 else:
     spec = []
 
