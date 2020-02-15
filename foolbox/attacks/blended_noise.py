@@ -73,7 +73,7 @@ class LinearSearchBlendedUniformNoiseAttack(FlexibleDistanceMinimizationAttack):
 
         if not is_adv.all():
             warnings.warn(
-                f"{self.__class__.__name__} failed to draw sufficent random"
+                f"{self.__class__.__name__} failed to draw sufficient random"
                 f" inputs that are adversarial ({is_adv.sum()} / {N})."
             )
 

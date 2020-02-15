@@ -18,10 +18,11 @@ install_requires = [
     "numpy",
     "scipy",
     "setuptools",
-    "eagerpy==0.25.1",
+    "eagerpy==0.25.2",
     "GitPython>=3.0.7",
+    "typing-extensions>=3.7.4.1",
 ]
-tests_require = ["pytest", "pytest-cov"]
+tests_require = ["pytest>=5.3.5", "pytest-cov>=2.8.1"]
 
 
 setup(
