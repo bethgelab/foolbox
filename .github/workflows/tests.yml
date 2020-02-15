@@ -73,7 +73,7 @@ jobs:
     - name: mypy (tests)
       run: |
         mypy tests/
-    - name: Test with pytest (backend: ${{ matrix.backend }})
+    - name: Test with pytest (backend ${{ matrix.backend }})
       run: |
         pytest --cov-report term-missing --cov=foolbox --verbose --backend ${{ matrix.backend }}
     - name: Codecov
