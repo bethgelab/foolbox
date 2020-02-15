@@ -20,7 +20,7 @@ def pytest_addoption(parser: Any) -> None:
 @pytest.fixture(scope="session")
 def dummy(request: Any) -> ep.Tensor:
     backend: Optional[str] = request.config.option.backend
-    if backend is None:
+    if backend is None or backend == "none":
         pytest.skip()
         assert False
     return ep.utils.get_dummy(backend)

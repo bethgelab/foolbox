@@ -14,6 +14,7 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.6, 3.7]
+        backend: ["none", "pytorch", "tensorflow", "jax", "numpy"]
 
     steps:
     - uses: actions/checkout@v2
@@ -72,21 +73,9 @@ jobs:
     - name: mypy (tests)
       run: |
         mypy tests/
-    - name: Test with pytest
+    - name: Test with pytest (backend: ${{ matrix.backend }})
       run: |
-        pytest --cov-report term-missing --cov=foolbox --verbose
-    - name: Test with pytest (NumPy)
-      run: |
-        pytest --cov-report term-missing --cov=foolbox --cov-append --verbose --backend numpy
-    - name: Test with pytest (PyTorch)
-      run: |
-        pytest --cov-report term-missing --cov=foolbox --cov-append --verbose --backend pytorch
-    - name: Test with pytest (JAX)
-      run: |
-        pytest --cov-report term-missing --cov=foolbox --cov-append --verbose --backend jax
-    - name: Test with pytest (TensorFlow)
-      run: |
-        pytest --cov-report term-missing --cov=foolbox --cov-append --verbose --backend tensorflow
+        pytest --cov-report term-missing --cov=foolbox --verbose --backend ${{ matrix.backend }}
     - name: Codecov
       continue-on-error: true
       env:
