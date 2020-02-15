@@ -23,7 +23,7 @@ from ..distances import l0, l1, l2, linf
 
 try:
     from numba import jitclass  # type: ignore
-except (ModuleNotFoundError, ImportError) as e:
+except (ModuleNotFoundError, ImportError) as e:  # pragma: no cover
     # delay the error until the attack is initialized
     NUMBA_IMPORT_ERROR = e
 
@@ -41,7 +41,7 @@ else:
 EPS = 1e-10
 
 
-class Optimizer(object):
+class Optimizer(object):  # pragma: no cover
     """ Base class for the trust-region optimization. If feasible, this optimizer solves the problem
 
         min_delta distance(x0, x + delta) s.t. ||delta||_2 <= r AND delta^T b = c AND min_ <= x + delta <= max_
@@ -628,7 +628,8 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
     distance = l2
 
     def instantiate_optimizer(self):
-        if len(L2Optimizer._ctor.signatures) == 0:
+        # hasattr check in case we run with NUMBA_DISABLE_JIT
+        if hasattr(L2Optimizer, "_ctor") and len(L2Optimizer._ctor.signatures) == 0:
             # optimiser is not yet compiled, give user a warning/notice
             warnings.warn(
                 "At the first initialisation the optimizer needs to be compiled. This may take between 20 to 60 seconds."
@@ -1365,7 +1366,10 @@ class BFGSB(object):
 
 
 if NUMBA_IMPORT_ERROR is None:
-    spec = [("bfgsb", BFGSB.class_type.instance_type)]  # type: ignore #
+    try:
+        spec = [("bfgsb", BFGSB.class_type.instance_type)]  # type: ignore
+    except AttributeError:  # pragma: no cover
+        spec = []  # if we run with NUMBA_DISABLE_JIT
 else:
     spec = []
 
