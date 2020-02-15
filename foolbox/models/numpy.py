@@ -36,7 +36,7 @@ class NumPyModel(Model):
     @property
     def data_format(self) -> str:
         if self._data_format is None:
-            raise ValueError(
+            raise AttributeError(  # AttributeError -> hasattr returns False
                 "please specify data_format when initializing the NumPyModel"
             )
         return self._data_format

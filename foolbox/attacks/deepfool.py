@@ -112,11 +112,11 @@ class DeepFoolAttack(MinimizationAttack, ABC):
         logits = model(x)
         classes = logits.argsort(axis=-1).flip(axis=-1)
         if self.candidates is None:
-            candidates = logits.shape[-1]
+            candidates = logits.shape[-1]  # pragma: no cover
         else:
             candidates = min(self.candidates, logits.shape[-1])
             if not candidates >= 2:
-                raise ValueError(
+                raise ValueError(  # pragma: no cover
                     f"expected the model output to have atleast 2 classes, got {logits.shape[-1]}"
                 )
             logging.info(f"Only testing the top-{candidates} classes")

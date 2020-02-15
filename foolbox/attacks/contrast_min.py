@@ -114,7 +114,7 @@ class LinearSearchContrastReductionAttack(FlexibleDistanceMinimizationAttack):
             best = ep.where(is_best_adv, epsilon, best)
 
             if (best < 1).all():
-                break
+                break  # pragma: no cover
 
             epsilon += stepsize
 
