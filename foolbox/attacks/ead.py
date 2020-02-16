@@ -20,7 +20,26 @@ from .base import raise_if_kwargs
 
 
 class EADAttack(MinimizationAttack):
-    """EAD Attack with EN Decision Rule"""
+    """Implementation of the `EAD Attack with EN Decision Rule`_.
+
+        Args:
+            binary_search_steps : Number of steps to perform in the binary search
+                over the const c.
+            steps : Number of optimization steps within each binary search step.
+            initial_ : Initial stepsize to update the examples.
+            confidence : Confidence required for an example to be marked as adversarial.
+                Controls the gap between example and decision boundary.
+            initial_const : Initial value of the const c with which the binary search starts.
+            regularization : Controls the L1 regularization.
+            decision_rule : Rule according to which the best adversarial examples are selected.
+                They either minimize the L1 or ElasticNet distance.
+            abort_early : Stop inner search as soons as an adversarial example has been found.
+                Does not affect the binary search over the const c.
+
+        .. _EAD Attack with EN Decision Rule:
+            Nicholas Carlini, David Wagner, "Towards evaluating the robustness of
+            neural networks. In 2017 ieee symposium on security and privacy"
+        """
 
     distance = l1
 
