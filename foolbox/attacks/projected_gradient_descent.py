@@ -8,8 +8,10 @@ class L2ProjectedGradientDescentAttack(L2BaseGradientDescent):
     """L2 Projected Gradient Descent
 
     Args:
-        rel_stepsize: Stepsize relative to epsilon (defaults to 0.01 / 0.3)
-        abs_stepsize: If given, it takes precedence over rel_stepsize
+        rel_stepsize: Stepsize relative to epsilon (defaults to 0.01 / 0.3).
+        abs_stepsize: If given, it takes precedence over rel_stepsize.
+        steps : Number of update steps to perform.
+        random_start : Whether the perturbation is initialized randomly or starts at zero.
     """
 
     def __init__(
@@ -32,8 +34,10 @@ class LinfProjectedGradientDescentAttack(LinfBaseGradientDescent):
     """Linf Projected Gradient Descent
 
     Args:
-        rel_stepsize: Stepsize relative to epsilon (defaults to 0.01 / 0.3)
-        abs_stepsize: If given, it takes precedence over rel_stepsize
+        rel_stepsize: Stepsize relative to epsilon (defaults to 0.01 / 0.3).
+        abs_stepsize: If given, it takes precedence over rel_stepsize.
+        steps : Number of update steps to perform.
+        random_start : Whether the perturbation is initialized randomly or starts at zero.
     """
 
     def __init__(
