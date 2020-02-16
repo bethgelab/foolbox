@@ -21,15 +21,12 @@ from .base import raise_if_kwargs
 class SaltAndPepperNoiseAttack(MinimizationAttack):
     """Increases the amount of salt and pepper noise until the input is misclassified.
 
-    Parameters
-    ----------
-    steps
-        The number of steps to run
-    across_channels
-        Whether the noise should be the same across all channels
-    channel_axis
-        The axis across which the noise should be the same (if across_channels is True).
-        If None, will be automatically inferred from the model if possible.
+    Args:
+        steps : The number of steps to run
+        across_channels : Whether the noise should be the same across all channels
+        channel_axis : The axis across which the noise should be the same
+            (if across_channels is True). If None, will be automatically inferred
+            from the model if possible.
     """
 
     distance = l2
