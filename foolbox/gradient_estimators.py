@@ -14,7 +14,9 @@ def evolutionary_strategies_gradient_estimator(
 ) -> Type[Attack]:
 
     if not hasattr(AttackCls, "value_and_grad"):
-        raise ValueError("This attack does not support gradient estimators.")
+        raise ValueError(
+            "This attack does not support gradient estimators."
+        )  # pragma: no cover
 
     bounds = Bounds(*bounds)
 
