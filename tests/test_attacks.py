@@ -4,9 +4,15 @@ import eagerpy as ep
 
 import foolbox as fbn
 import foolbox.attacks as fa
+from foolbox.gradient_estimators import es_gradient_estimator
 
 L2 = fbn.types.L2
 Linf = fbn.types.Linf
+
+
+FGSM_GE = es_gradient_estimator(
+    fa.FGSM, samples=100, sigma=0.03, bounds=(0, 1), clip=True
+)
 
 
 def get_attack_id(x: Tuple[fbn.Attack, bool, bool]) -> str:
@@ -68,6 +74,7 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.LinfBasicIterativeAttack(abs_stepsize=0.2), Linf(1.0), True, False),
     (fa.L2BasicIterativeAttack(), L2(50.0), True, False),
     (fa.FGSM(), Linf(100.0), True, False),
+    (FGSM_GE(), Linf(100.0), False, False),
     (fa.FGM(), L2(100.0), True, False),
     (fa.GaussianBlurAttack(steps=10), None, True, True),
     (fa.GaussianBlurAttack(steps=10, max_sigma=224.0), None, True, True),

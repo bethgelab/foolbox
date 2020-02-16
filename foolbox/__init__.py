@@ -36,3 +36,5 @@ from .attacks import Attack  # noqa: F401
 from . import attacks  # noqa: F401
 
 from . import zoo  # noqa: F401
+
+from . import gradient_estimators  # noqa: F401
