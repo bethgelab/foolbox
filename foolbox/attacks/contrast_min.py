@@ -18,7 +18,15 @@ from .base import raise_if_kwargs
 
 class BinarySearchContrastReductionAttack(FlexibleDistanceMinimizationAttack):
     """Reduces the contrast of the input using a binary search to find the
-    smallest adversarial perturbation"""
+    smallest adversarial perturbation
+
+    Args:
+        distance : Distance measure for which minimal adversarial examples are searched.
+        binary_search_steps : Number of iterations in the binary search.
+            This controls the precision of the results.
+        target : Target relative to the bounds from 0 (min) to 1 (max)
+            towards which the contrast is reduced
+    """
 
     def __init__(
         self,

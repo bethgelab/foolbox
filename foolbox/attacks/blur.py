@@ -20,7 +20,14 @@ from .base import raise_if_kwargs
 
 
 class GaussianBlurAttack(FlexibleDistanceMinimizationAttack):
-    """Blurs the inputs using a Gaussian filter with linearly increasing standard deviation."""
+    """Blurs the inputs using a Gaussian filter with linearly
+    increasing standard deviation.
+
+    Args:
+        steps : Number of sigma values tested between 0 and max_sigma.
+        channel_axis : Index of the channel axis in the input data.
+        max_sigma : Maximally allowed sigma value of the Gaussian blur.
+    """
 
     def __init__(
         self,

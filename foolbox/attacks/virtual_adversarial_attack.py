@@ -16,17 +16,22 @@ from .base import raise_if_kwargs
 
 
 class VirtualAdversarialAttack(FixedEpsilonAttack):
-    """Calculate an untargeted adversarial perturbation by performing a
+    """Second-order gradient-based attack on the logits. [#Miy15]_
+    The attack calculate an untargeted adversarial perturbation by performing a
     approximated second order optimization step on the KL divergence between
     the unperturbed predictions and the predictions for the adversarial
-    perturbation. This attack was introduced in [1]_.
+    perturbation. This attack was originally introduced as the
+    Virtual Adversarial Training [#Miy15]_ method.
 
-    References
-    ----------
-    .. [1] Takeru Miyato, Shin-ichi Maeda, Masanori Koyama, Ken Nakae,
-           Shin Ishii,
-           "Distributional Smoothing with Virtual Adversarial Training",
-           https://arxiv.org/abs/1507.00677
+    Args:
+        steps : Number of update steps.
+        xi : L2 distance between original image and first adversarial proposal.
+
+
+    References:
+        .. [#Miy15] Takeru Miyato, Shin-ichi Maeda, Masanori Koyama, Ken Nakae,
+            Shin Ishii, "Distributional Smoothing with Virtual Adversarial Training",
+            https://arxiv.org/abs/1507.00677
     """
 
     distance = l2

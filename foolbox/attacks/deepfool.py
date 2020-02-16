@@ -23,20 +23,20 @@ from .base import raise_if_kwargs
 class DeepFoolAttack(MinimizationAttack, ABC):
     """A simple and fast gradient-based adversarial attack.
 
-    Implementes DeepFool introduced in [1]_.
+    Implements the `DeepFool`_ attack.
 
     Args:
-        p: Lp-norm that should be minimzed, must be 2 or np.inf.
-        candidates: Limit on the number of the most likely classes that should
+        steps : Maximum number of steps to perform.
+        candidates : Limit on the number of the most likely classes that should
             be considered. A small value is usually sufficient and much faster.
-        overshoot
-        steps: Maximum number of steps to perform.
+        overshoot : How much to overshoot the boundary.
+        loss  Loss function to use inside the update function.
 
-    References
-    ----------
-    .. [1] Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
-           "DeepFool: a simple and accurate method to fool deep neural
-           networks", https://arxiv.org/abs/1511.04599
+
+    .. _DeepFool:
+            Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
+            "DeepFool: a simple and accurate method to fool deep neural
+            networks", https://arxiv.org/abs/1511.04599
 
     """
 
@@ -188,6 +188,24 @@ class DeepFoolAttack(MinimizationAttack, ABC):
 
 
 class L2DeepFoolAttack(DeepFoolAttack):
+    """A simple and fast gradient-based adversarial attack.
+
+    Implements the DeepFool L2 attack. [#Moos15]_
+
+    Args:
+        steps : Maximum number of steps to perform.
+        candidates : Limit on the number of the most likely classes that should
+            be considered. A small value is usually sufficient and much faster.
+        overshoot : How much to overshoot the boundary.
+        loss  Loss function to use inside the update function.
+
+    References:
+        .. [#Moos15]: Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
+            "DeepFool: a simple and accurate method to fool deep neural
+            networks", https://arxiv.org/abs/1511.04599
+
+    """
+
     distance = l2
 
     def get_distances(self, losses: ep.Tensor, grads: ep.Tensor) -> ep.Tensor:
@@ -203,6 +221,25 @@ class L2DeepFoolAttack(DeepFoolAttack):
 
 
 class LinfDeepFoolAttack(DeepFoolAttack):
+    """A simple and fast gradient-based adversarial attack.
+
+        Implements the `DeepFool`_ L-Infinity attack.
+
+        Args:
+            steps : Maximum number of steps to perform.
+            candidates : Limit on the number of the most likely classes that should
+                be considered. A small value is usually sufficient and much faster.
+            overshoot : How much to overshoot the boundary.
+            loss  Loss function to use inside the update function.
+
+
+        .. _DeepFool:
+                Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
+                "DeepFool: a simple and accurate method to fool deep neural
+                networks", https://arxiv.org/abs/1511.04599
+
+        """
+
     distance = linf
 
     def get_distances(self, losses: ep.Tensor, grads: ep.Tensor) -> ep.Tensor:
