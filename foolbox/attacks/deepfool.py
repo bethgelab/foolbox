@@ -190,7 +190,7 @@ class DeepFoolAttack(MinimizationAttack, ABC):
 class L2DeepFoolAttack(DeepFoolAttack):
     """A simple and fast gradient-based adversarial attack.
 
-    Implements the DeepFool L2 attack [#Moos15]_.
+    Implements the DeepFool L2 attack. [#Moos15]_
 
     Args:
         steps : Maximum number of steps to perform.

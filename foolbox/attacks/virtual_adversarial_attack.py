@@ -16,12 +16,12 @@ from .base import raise_if_kwargs
 
 
 class VirtualAdversarialAttack(FixedEpsilonAttack):
-    """Second-order gradient-based attack on the logits [#Miy15]_.
+    """Second-order gradient-based attack on the logits. [#Miy15]_
     The attack calculate an untargeted adversarial perturbation by performing a
     approximated second order optimization step on the KL divergence between
     the unperturbed predictions and the predictions for the adversarial
     perturbation. This attack was originally introduced as the
-    [#Miy15]_ method.
+    Virtual Adversarial Training [#Miy15]_ method.
 
     Args:
         steps : Number of update steps.

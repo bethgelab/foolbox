@@ -16,7 +16,7 @@ from .base import raise_if_kwargs
 
 
 class NewtonFoolAttack(MinimizationAttack):
-    """Implementation of the NewtonFool Attack [#Jang17]_.
+    """Implementation of the NewtonFool Attack. [#Jang17]_
 
     Args:
         steps : Number of update steps to perform.

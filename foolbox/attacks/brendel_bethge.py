@@ -639,7 +639,7 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
 
 
 class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
-    """L-infinity variant of the Brendel & Bethge adversarial attack [#Bren19]_.
+    """L-infinity variant of the Brendel & Bethge adversarial attack. [#Bren19]_
     This is a powerful gradient-based adversarial attack that follows the
     adversarial boundary (the boundary between the space of adversarial and
     non-adversarial images as defined by the adversarial criterion) to find
@@ -685,7 +685,7 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
 
 
 class L1BrendelBethgeAttack(BrendelBethgeAttack):
-    """L1 variant of the Brendel & Bethge adversarial attack [#Bren19]_.
+    """L1 variant of the Brendel & Bethge adversarial attack. [#Bren19]_
     This is a powerful gradient-based adversarial attack that follows the
     adversarial boundary (the boundary between the space of adversarial and
     non-adversarial images as defined by the adversarial criterion) to find
@@ -731,7 +731,7 @@ class L1BrendelBethgeAttack(BrendelBethgeAttack):
 
 
 class L0BrendelBethgeAttack(BrendelBethgeAttack):
-    """L0 variant of the Brendel & Bethge adversarial attack [#Bren19]_.
+    """L0 variant of the Brendel & Bethge adversarial attack. [#Bren19]_
     This is a powerful gradient-based adversarial attack that follows the
     adversarial boundary (the boundary between the space of adversarial and
     non-adversarial images as defined by the adversarial criterion) to find

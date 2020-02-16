@@ -33,7 +33,7 @@ def normalize_gradient_l2_norms(grad: ep.Tensor) -> ep.Tensor:
 
 
 class DDNAttack(MinimizationAttack):
-    """The Decoupled Direction and Norm L2 adversarial attack [#Rony18]_.
+    """The Decoupled Direction and Norm L2 adversarial attack. [#Rony18]_
 
     Args:
         init_epsilon : Initial value for the norm/epsilon ball.

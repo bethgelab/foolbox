@@ -11,7 +11,7 @@ from .base import raise_if_kwargs
 
 
 class InversionAttack(FlexibleDistanceMinimizationAttack):
-    """Creates "negative images" by inverting the pixel values [#Hos16]_.
+    """Creates "negative images" by inverting the pixel values. [#Hos16]_
 
     References:
         .. [#Hos16] Hossein Hosseini, Baicen Xiao, Mayoore Jaiswal, Radha Poovendran,

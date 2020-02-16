@@ -22,7 +22,7 @@ from .base import raise_if_kwargs
 
 
 class L2CarliniWagnerAttack(MinimizationAttack):
-    """Implementation of the Carlini & Wagner L2 Attack [#Carl16]_.
+    """Implementation of the Carlini & Wagner L2 Attack. [#Carl16]_
 
     Args:
         binary_search_steps : Number of steps to perform in the binary search

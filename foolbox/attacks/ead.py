@@ -20,7 +20,7 @@ from .base import raise_if_kwargs
 
 
 class EADAttack(MinimizationAttack):
-    """Implementation of the EAD Attack with EN Decision Rule [#Chen18]_.
+    """Implementation of the EAD Attack with EN Decision Rule. [#Chen18]_
 
     Args:
         binary_search_steps : Number of steps to perform in the binary search
@@ -37,7 +37,7 @@ class EADAttack(MinimizationAttack):
             Does not affect the binary search over the const c.
 
     References:
-        .. [#Chen18]: Pin-Yu Chen, Yash Sharma, Huan Zhang, Jinfeng Yi, Cho-Jui Hsieh,
+        .. [#Chen18] Pin-Yu Chen, Yash Sharma, Huan Zhang, Jinfeng Yi, Cho-Jui Hsieh,
         "EAD: Elastic-Net Attacks to Deep Neural Networks via Adversarial Examples",
         https://www.aaai.org/ocs/index.php/AAAI/AAAI18/paper/viewPaper/16893
     """
