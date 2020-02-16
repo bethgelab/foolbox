@@ -18,10 +18,9 @@ from .base import raise_if_kwargs
 class L2ContrastReductionAttack(FixedEpsilonAttack):
     """Reduces the contrast of the input using a perturbation of the given size
 
-    Parameters
-    ----------
-    target
-        Target relative to the bounds from 0 (min) to 1 (max) towards which the contrast is reduced
+    Args:
+        target : Target relative to the bounds from 0 (min) to 1 (max)
+            towards which the contrast is reduced
     """
 
     distance = l2
