@@ -16,14 +16,14 @@ from .base import raise_if_kwargs
 
 
 class NewtonFoolAttack(MinimizationAttack):
-    """Implementation of the `NewtonFool Attack`_.
+    """Implementation of the NewtonFool Attack [#Jang17]_.
 
     Args:
-            steps : Number of update steps to perform.
-            step_size : Size of each update step.
+        steps : Number of update steps to perform.
+        step_size : Size of each update step.
 
-    .. _NewtonFool Attack:
-            Uyeong Jang et al., "Objective Metrics and Gradient Descent
+    References:
+        .. [#Jang17] Uyeong Jang et al., "Objective Metrics and Gradient Descent
             Algorithms for Adversarial Examples in Machine Learning",
             https://dl.acm.org/citation.cfm?id=3134635
     """

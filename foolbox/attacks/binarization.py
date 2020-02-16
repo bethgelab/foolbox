@@ -18,17 +18,17 @@ from .base import raise_if_kwargs
 
 class BinarizationRefinementAttack(FlexibleDistanceMinimizationAttack):
     """For models that preprocess their inputs by binarizing the
-        inputs, this attack can improve adversarials found by other
-        attacks. It does this by utilizing information about the
-        binarization and mapping values to the corresponding value in
-        the clean input or to the right side of the threshold.
+    inputs, this attack can improve adversarials found by other
+    attacks. It does this by utilizing information about the
+    binarization and mapping values to the corresponding value in
+    the clean input or to the right side of the threshold.
 
-        Args:
+    Args:
         threshold : The treshold used by the models binarization. If none,
             defaults to (model.bounds()[1] - model.bounds()[0]) / 2.
         included_in : Whether the threshold value itself belongs to the lower or
             upper interval.
-        """
+    """
 
     def __init__(
         self,

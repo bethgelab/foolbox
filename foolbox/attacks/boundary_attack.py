@@ -29,23 +29,25 @@ from .base import raise_if_kwargs
 class BoundaryAttack(MinimizationAttack):
     """Boundary Attack
 
-    Differences to the original reference implementation:
-    * We do not perform internal operations with float64
-    * The samples within a batch can currently influence each other a bit
-    * We don't perform the additional convergence confirmation
-    * The success rate tracking changed a bit
-    * Some other changes due to batching and merged loops
+    Notes:
+        Differences to the original reference implementation:
+        * We do not perform internal operations with float64
+        * The samples within a batch can currently influence each other a bit
+        * We don't perform the additional convergence confirmation
+        * The success rate tracking changed a bit
+        * Some other changes due to batching and merged loops
 
-    Parameters
-    ----------
-    criterion : Callable
-        A callable that returns true if the given logits of perturbed
-        inputs should be considered adversarial w.r.t. to the given labels
-        and unperturbed inputs.
-    tensorboard : str
-        The log directory for TensorBoard summaries. If False, TensorBoard
-        summaries will be disabled (default). If None, the logdir will be
-        runs/CURRENT_DATETIME_HOSTNAME.
+    Args:
+        init_attack :
+        steps :
+        spherical_step :
+        source_step :
+        source_step_convergance :
+        step_adaptation :
+        tensorboard : The log directory for TensorBoard summaries. If False, TensorBoard
+            summaries will be disabled (default). If None, the logdir will be
+            runs/CURRENT_DATETIME_HOSTNAME.
+        update_stats_every_k :
     """
 
     distance = l2

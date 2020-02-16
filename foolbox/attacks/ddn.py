@@ -33,15 +33,15 @@ def normalize_gradient_l2_norms(grad: ep.Tensor) -> ep.Tensor:
 
 
 class DDNAttack(MinimizationAttack):
-    """The `Decoupled Direction and Norm L2`_ adversarial attack.
+    """The Decoupled Direction and Norm L2 adversarial attack [#Rony18]_.
 
     Args:
         init_epsilon : Initial value for the norm/epsilon ball.
         steps : Number of steps for the optimization.
         gamma : Factor by which the norm will be modified: new_norm = norm * (1 + or - gamma).
 
-    .. _Decoupled Direction and Norm L2:
-            Jérôme Rony, Luiz G. Hafemann, Luiz S. Oliveira, Ismail Ben Ayed,
+    References:
+        .. [#Rony18] Jérôme Rony, Luiz G. Hafemann, Luiz S. Oliveira, Ismail Ben Ayed,
             Robert Sabourin, Eric Granger, "Decoupling Direction and Norm for
             Efficient Gradient-Based L2 Adversarial Attacks and Defenses",
             https://arxiv.org/abs/1811.09600

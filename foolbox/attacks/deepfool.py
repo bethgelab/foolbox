@@ -190,22 +190,21 @@ class DeepFoolAttack(MinimizationAttack, ABC):
 class L2DeepFoolAttack(DeepFoolAttack):
     """A simple and fast gradient-based adversarial attack.
 
-        Implements the `DeepFool`_ L2 attack.
+    Implements the DeepFool L2 attack [#Moos15]_.
 
-        Args:
-            steps : Maximum number of steps to perform.
-            candidates : Limit on the number of the most likely classes that should
-                be considered. A small value is usually sufficient and much faster.
-            overshoot : How much to overshoot the boundary.
-            loss  Loss function to use inside the update function.
+    Args:
+        steps : Maximum number of steps to perform.
+        candidates : Limit on the number of the most likely classes that should
+            be considered. A small value is usually sufficient and much faster.
+        overshoot : How much to overshoot the boundary.
+        loss  Loss function to use inside the update function.
 
+    References:
+        .. [#Moos15]: Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
+            "DeepFool: a simple and accurate method to fool deep neural
+            networks", https://arxiv.org/abs/1511.04599
 
-        .. _DeepFool:
-                Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
-                "DeepFool: a simple and accurate method to fool deep neural
-                networks", https://arxiv.org/abs/1511.04599
-
-        """
+    """
 
     distance = l2
 

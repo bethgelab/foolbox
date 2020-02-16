@@ -18,7 +18,14 @@ import warnings
 
 
 class LinearSearchBlendedUniformNoiseAttack(FlexibleDistanceMinimizationAttack):
-    """Blends the input with a uniform noise input until it is misclassified."""
+    """Blends the input with a uniform noise input until it is misclassified.
+
+    Args:
+        distance : Distance measure for which minimal adversarial examples are searched.
+        directions : Number of random directions in which the perturbation is searched.
+        steps : Number of blending steps between the original image and the random
+            directions.
+    """
 
     def __init__(
         self,

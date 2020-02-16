@@ -22,7 +22,7 @@ from .base import raise_if_kwargs
 
 
 class L2CarliniWagnerAttack(MinimizationAttack):
-    """Implementation of the `Carlini & Wagner L2 Attack`_.
+    """Implementation of the Carlini & Wagner L2 Attack [#Carl16]_.
 
     Args:
         binary_search_steps : Number of steps to perform in the binary search
@@ -35,9 +35,10 @@ class L2CarliniWagnerAttack(MinimizationAttack):
         abort_early : Stop inner search as soons as an adversarial example has been found.
             Does not affect the binary search over the const c.
 
-    .. _Carlini & Wagner L2 Attack:
-        Nicholas Carlini, David Wagner, "Towards evaluating the robustness of
-        neural networks. In 2017 ieee symposium on security and privacy"
+    References:
+        .. [#Carl16] Nicholas Carlini, David Wagner, "Towards evaluating the robustness of
+            neural networks. In 2017 ieee symposium on security and privacy"
+            https://arxiv.org/abs/1608.04644
     """
 
     distance = l2

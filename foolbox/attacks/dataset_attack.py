@@ -23,6 +23,9 @@ class DatasetAttack(FlexibleDistanceMinimizationAttack):
     To pass data form the dataset to this attack, call :meth:`feed()`.
     :meth:`feed()` can be called several times and should only be called with
     batches that are small enough that they can be passed through the model.
+
+    Args:
+        distance : Distance measure for which minimal adversarial examples are searched.
     """
 
     def __init__(self, *, distance: Optional[Distance] = None) -> None:

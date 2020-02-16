@@ -130,12 +130,10 @@ def uniform_n_spheres(dummy: ep.Tensor, batch_size: int, n: int) -> ep.Tensor:
 def uniform_n_balls(dummy: ep.Tensor, batch_size: int, n: int) -> ep.Tensor:
     """Sampling from the n-ball
 
-    Implementation of the algorithm in [1]_.
+    Implementation of the algorithm in [#Voel17]_.
 
-    References
-    ----------
-
-    .. [1]: Voelker et al., 2017, Efficiently sampling vectors and coordinates
+    References:
+        .. [#Voel17] Voelker et al., 2017, Efficiently sampling vectors and coordinates
             from the n-sphere and n-ball
             http://compneuro.uwaterloo.ca/files/publications/voelker.2017.pdf
     """
