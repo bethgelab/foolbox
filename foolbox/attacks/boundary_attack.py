@@ -27,7 +27,10 @@ from .base import raise_if_kwargs
 
 
 class BoundaryAttack(MinimizationAttack):
-    """Boundary Attack
+    """A powerful adversarial attack that requires neither gradients
+    nor probabilities.
+
+    This is the reference implementation for the attack introduced in [#Bren18]_.
 
     Notes:
         Differences to the original reference implementation:
@@ -48,6 +51,12 @@ class BoundaryAttack(MinimizationAttack):
             summaries will be disabled (default). If None, the logdir will be
             runs/CURRENT_DATETIME_HOSTNAME.
         update_stats_every_k :
+
+    References:
+        .. [#Bren18] Wieland Brendel (*), Jonas Rauber (*), Matthias Bethge,
+           "Decision-Based Adversarial Attacks: Reliable Attacks
+           Against Black-Box Machine Learning Models",
+           https://arxiv.org/abs/1712.04248
     """
 
     distance = l2

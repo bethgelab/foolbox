@@ -38,7 +38,7 @@
    LinearSearchBlendedUniformNoiseAttack
    BinarizationRefinementAttack
    DatasetAttack
-   BoundarAttack
+   BoundaryAttack
    L0BrendelBethgeAttack
    L1BrendelBethgeAttack
    L2BrendelBethgeAttack
@@ -80,7 +80,7 @@
 .. autoclass:: LinearSearchBlendedUniformNoiseAttack
 .. autoclass:: BinarizationRefinementAttack
 .. autoclass:: DatasetAttack
-.. autoclass:: BoundarAttack
+.. autoclass:: BoundaryAttack
 .. autoclass:: L0BrendelBethgeAttack
 .. autoclass:: L1BrendelBethgeAttack
 .. autoclass:: L2BrendelBethgeAttack
