@@ -308,8 +308,8 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
       greedy but is more robust, reliable and simpler (decay every K steps)
 
     Args:
-        init_attack : Attack or callable to use to find a starting points. Defaults to
-            BlendedUniformNoiseAttack. Only used of starting_points is None.
+        init_attack : Attack to use to find a starting points. Defaults to
+            LinearSearchBlendedUniformNoiseAttack. Only used of starting_points is None.
         overshoot : If 1 the attack tries to return exactly to the adversarial boundary
             in each iteration. For higher values the attack tries to overshoot
             over the boundary to ensure that the perturbed sample in each iteration

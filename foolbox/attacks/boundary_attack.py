@@ -41,12 +41,15 @@ class BoundaryAttack(MinimizationAttack):
         * Some other changes due to batching and merged loops
 
     Args:
-        init_attack :
-        steps :
-        spherical_step :
-        source_step :
-        source_step_convergance :
-        step_adaptation :
+        init_attack : Attack to use to find a starting points. Defaults to
+            LinearSearchBlendedUniformNoiseAttack. Only used of starting_points is None.
+        steps : Maximum number of steps to run. Might converge and stop before that.
+        spherical_step : Initial step size for the orthogonal (spherical) step.
+        source_step : Initial step size for the step towards the target.
+        source_step_convergance : Sets the threshold of the stop criterion:
+            if source_step becomes smaller than this value during the attack,
+            the attack has converged and will stop.
+        step_adaptation : Factor by which the step sizes are multiplied or divided.
         tensorboard : The log directory for TensorBoard summaries. If False, TensorBoard
             summaries will be disabled (default). If None, the logdir will be
             runs/CURRENT_DATETIME_HOSTNAME.

@@ -74,14 +74,20 @@ class UniformMixin:
 
 
 class L2AdditiveGaussianNoiseAttack(L2Mixin, GaussianMixin, BaseAdditiveNoiseAttack):
+    """Samples Gaussian noise with a fixed L2 size"""
+
     pass
 
 
 class L2AdditiveUniformNoiseAttack(L2Mixin, UniformMixin, BaseAdditiveNoiseAttack):
+    """Samples uniform noise with a fixed L2 size"""
+
     pass
 
 
 class LinfAdditiveUniformNoiseAttack(LinfMixin, UniformMixin, BaseAdditiveNoiseAttack):
+    """Samples uniform noise with a fixed L-infinity size"""
+
     pass
 
 
@@ -142,16 +148,37 @@ class BaseRepeatedAdditiveNoiseAttack(FixedEpsilonAttack, ABC):
 class L2RepeatedAdditiveGaussianNoiseAttack(
     L2Mixin, GaussianMixin, BaseRepeatedAdditiveNoiseAttack
 ):
+    """Repeatedly samples Gaussian noise with a fixed L2 size
+
+    Args:
+        repeats : How often to sample random noise.
+        check_trivial : Check whether original sample is already adversarial.
+    """
+
     pass
 
 
 class L2RepeatedAdditiveUniformNoiseAttack(
     L2Mixin, UniformMixin, BaseRepeatedAdditiveNoiseAttack
 ):
+    """Repeatedly samples uniform noise with a fixed L2 size
+
+    Args:
+        repeats : How often to sample random noise.
+        check_trivial : Check whether original sample is already adversarial.
+    """
+
     pass
 
 
 class LinfRepeatedAdditiveUniformNoiseAttack(
     LinfMixin, UniformMixin, BaseRepeatedAdditiveNoiseAttack
 ):
+    """Repeatedly samples uniform noise with a fixed L-infinity size
+
+    Args:
+        repeats : How often to sample random noise.
+        check_trivial : Check whether original sample is already adversarial.
+    """
+
     pass
