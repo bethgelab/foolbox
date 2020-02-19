@@ -309,7 +309,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
     Args:
         init_attack : Attack to use to find a starting points. Defaults to
-            LinearSearchBlendedUniformNoiseAttack. Only used of starting_points is None.
+            LinearSearchBlendedUniformNoiseAttack. Only used if starting_points is None.
         overshoot : If 1 the attack tries to return exactly to the adversarial boundary
             in each iteration. For higher values the attack tries to overshoot
             over the boundary to ensure that the perturbed sample in each iteration

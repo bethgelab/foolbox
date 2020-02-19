@@ -42,7 +42,7 @@ class BoundaryAttack(MinimizationAttack):
 
     Args:
         init_attack : Attack to use to find a starting points. Defaults to
-            LinearSearchBlendedUniformNoiseAttack. Only used of starting_points is None.
+            LinearSearchBlendedUniformNoiseAttack. Only used if starting_points is None.
         steps : Maximum number of steps to run. Might converge and stop before that.
         spherical_step : Initial step size for the orthogonal (spherical) step.
         source_step : Initial step size for the step towards the target.
