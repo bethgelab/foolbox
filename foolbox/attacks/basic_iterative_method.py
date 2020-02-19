@@ -8,8 +8,10 @@ class L2BasicIterativeAttack(L2BaseGradientDescent):
     """L2 Basic Iterative Method
 
     Args:
-        rel_stepsize: Stepsize relative to epsilon
-        abs_stepsize: If given, it takes precedence over rel_stepsize
+        rel_stepsize: Stepsize relative to epsilon.
+        abs_stepsize: If given, it takes precedence over rel_stepsize.
+        steps : Number of update steps.
+        random_start : Controls whether to randomly start within allowed epsilon ball.
     """
 
     def __init__(
@@ -32,8 +34,10 @@ class LinfBasicIterativeAttack(LinfBaseGradientDescent):
     """L-infinity Basic Iterative Method
 
     Args:
-        rel_stepsize: Stepsize relative to epsilon
-        abs_stepsize: If given, it takes precedence over rel_stepsize
+        rel_stepsize: Stepsize relative to epsilon.
+        abs_stepsize: If given, it takes precedence over rel_stepsize.
+        steps : Number of update steps.
+        random_start : Controls whether to randomly start within allowed epsilon ball.
     """
 
     def __init__(
