@@ -9,10 +9,7 @@ from .model_loader import ModelLoader
 def get_model(
     url: str, module_name: str = "foolbox_model", overwrite: bool = False, **kwargs: Any
 ) -> Model:
-    """
-
-    Provides utilities to download foolbox-compatible robust models
-    to easily test attacks against them by simply providing a git-URL.
+    """Download a Foolbox-compatible model from the given Git repository URL.
 
     Examples
     --------
@@ -41,11 +38,13 @@ def get_model(
         - https://github.com/wielandbrendel/logit-pairing-foolbox.git
         - https://github.com/bethgelab/defensive-distillation.git
 
-    :param url: URL to the git repository
-    :param module_name: the name of the module to import
-    :param kwargs: Optional set of parameters that will be used by the
-        to be instantiated model.
-    :return: a foolbox-wrapped model instance
+    Args:
+        url: URL to the git repository.
+        module_name: The name of the module to import.
+        kwargs: Optional set of parameters that will be used by the to be instantiated model.
+
+    Returns:
+        A Foolbox-wrapped model instance.
     """
     repo_path = clone(url, overwrite=overwrite)
     loader = ModelLoader.get()

@@ -66,6 +66,7 @@ class Criterion(ABC):
         Args:
             perturbed: Tensor with perturbed inputs ``(batch, ...)``.
             outputs: Tensor with model outputs for the perturbed inputs ``(batch, ...)``.
+
         Returns:
             A boolean tensor indicating which perturbed inputs are adversarial ``(batch,)``.
         """

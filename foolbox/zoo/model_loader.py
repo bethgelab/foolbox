@@ -13,14 +13,15 @@ class ModelLoader(abc.ABC):
     def load(
         self, path: str, module_name: str = "foolbox_model", **kwargs: Any
     ) -> Model:
-        """
-        Load a model from a local path, to which a git repository
-        has been previously cloned to.
+        """Loads a model from a local path, to which a git repository has been previously cloned to.
 
-        :param path: the path to the local repository containing the code
-        :param module_name: the name of the module to import
-        :param kwargs: parameters for the to be loaded model
-        :return: a foolbox-wrapped model
+        Args:
+            path: The path to the local repository containing the code.
+            module_name: The name of the module to import.
+            kwargs: Additional parameters for the loaded model.
+
+        Returns:
+            A foolbox-wrapped model.
         """
         ...
 
