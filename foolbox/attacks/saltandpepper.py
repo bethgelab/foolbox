@@ -89,7 +89,7 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
             x = ep.clip(x, min_, max_)
 
             # check if we found new best adversarials
-            norms = flatten(x).square().sum(axis=-1).sqrt()
+            norms = flatten(x).norms.l2(axis=-1)
             closer = norms < best_advs_norms
             is_adv = is_adversarial(x)  # TODO: ignore those that are not closer anyway
             is_best_adv = ep.logical_and(is_adv, closer)

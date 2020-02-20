@@ -624,7 +624,7 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
         return L2Optimizer()
 
     def norms(self, x: ep.Tensor) -> ep.Tensor:
-        return flatten(x).square().sum(axis=-1).sqrt()
+        return flatten(x).norms.l2(axis=-1)
 
     def mid_points(
         self, x0: ep.Tensor, x1: ep.Tensor, epsilons: ep.Tensor, bounds
@@ -660,7 +660,7 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
         return LinfOptimizer()
 
     def norms(self, x: ep.Tensor) -> ep.Tensor:
-        return flatten(x).abs().max(axis=-1)
+        return flatten(x).norms.linf(axis=-1)
 
     def mid_points(
         self,
@@ -706,7 +706,7 @@ class L1BrendelBethgeAttack(BrendelBethgeAttack):
         return L1Optimizer()
 
     def norms(self, x: ep.Tensor) -> ep.Tensor:
-        return flatten(x).abs().sum(axis=-1)
+        return flatten(x).norms.l1(axis=-1)
 
     def mid_points(
         self,

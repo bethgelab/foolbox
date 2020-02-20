@@ -174,7 +174,7 @@ class L2CarliniWagnerAttack(MinimizationAttack):
                 found_advs_iter = is_adversarial(perturbed, logits)
                 found_advs = np.logical_or(found_advs, found_advs_iter.numpy())
 
-                norms = flatten(perturbed - x).square().sum(axis=-1).sqrt()
+                norms = flatten(perturbed - x).norms.l2(axis=-1)
                 closer = norms < best_advs_norms
                 new_best = ep.logical_and(closer, found_advs_iter)
 
