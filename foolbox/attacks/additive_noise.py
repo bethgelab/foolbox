@@ -53,7 +53,7 @@ class L2Mixin:
     distance = l2
 
     def get_norms(self, p: ep.Tensor) -> ep.Tensor:
-        return flatten(p).square().sum(axis=-1).sqrt()
+        return flatten(p).norms.l2(axis=-1)
 
 
 class LinfMixin:

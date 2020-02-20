@@ -28,7 +28,7 @@ class DatasetAttack(FlexibleDistanceMinimizationAttack):
         distance : Distance measure for which minimal adversarial examples are searched.
     """
 
-    def __init__(self, *, distance: Optional[Distance] = None) -> None:
+    def __init__(self, *, distance: Optional[Distance] = None):
         super().__init__(distance=distance)
         self.raw_inputs: List[ep.Tensor] = []
         self.raw_outputs: List[ep.Tensor] = []

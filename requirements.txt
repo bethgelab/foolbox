@@ -1,10 +1,10 @@
--r requirements-dev.txt
-torch>=1.4.0
-torchvision>=0.5.0
-jaxlib>=0.1.37
-jax>=0.1.57
-tensorflow>=2.0.0
-numba>=0.47.0
-matplotlib>=3.1.2
-pillow>=7.0.0
-tensorboardX>=2.0
+flake8>=3.7.9
+black>=19.10b0
+pytest>=5.3.2
+pytest-cov>=2.8.1
+coverage>=5.0.3
+codecov>=2.0.15
+coveralls>=1.10.0
+mypy>=0.761
+pre-commit>=1.21.0
+responses==0.10.9

@@ -85,7 +85,7 @@ def _samples(
         i = idx % 20
 
         # get filename and label
-        file = [n for n in files if "{}_{:02d}_".format(dataset, i) in n][0]
+        file = [n for n in files if f"{dataset}_{i:02d}_" in n][0]
         label = int(file.split(".")[0].split("_")[-1])
 
         # open file

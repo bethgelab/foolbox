@@ -23,7 +23,7 @@ class TensorFlowModel(ModelWithPreprocessing):
         bounds: BoundsInput,
         device: Any = None,
         preprocessing: Preprocessing = None,
-    ) -> None:
+    ):
         import tensorflow as tf
 
         if not tf.executing_eagerly():
