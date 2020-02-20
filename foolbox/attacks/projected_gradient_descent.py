@@ -21,7 +21,7 @@ class L2ProjectedGradientDescentAttack(L2BaseGradientDescent):
         abs_stepsize: Optional[float] = None,
         steps: int = 50,
         random_start: bool = True,
-    ) -> None:
+    ):
         super().__init__(
             rel_stepsize=rel_stepsize,
             abs_stepsize=abs_stepsize,
@@ -47,7 +47,7 @@ class LinfProjectedGradientDescentAttack(LinfBaseGradientDescent):
         abs_stepsize: Optional[float] = None,
         steps: int = 40,
         random_start: bool = True,
-    ) -> None:
+    ):
         super().__init__(
             rel_stepsize=rel_stepsize,
             abs_stepsize=abs_stepsize,

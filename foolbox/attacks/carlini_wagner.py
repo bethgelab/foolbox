@@ -195,7 +195,7 @@ class L2CarliniWagnerAttack(MinimizationAttack):
 
 
 class AdamOptimizer:
-    def __init__(self, x: ep.Tensor) -> None:
+    def __init__(self, x: ep.Tensor):
         self.m = ep.zeros_like(x)
         self.v = ep.zeros_like(x)
         self.t = 0
