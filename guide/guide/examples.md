@@ -5,8 +5,8 @@ title: Examples
 
 # Examples :tada:
 
-Examples coming soon.
-
 ::: tip
-Please have a look at the examples folder on GitHub.
+More examples can be found in the [examples folder](https://github.com/bethgelab/foolbox/tree/master/examples).
 :::
+
+<<< @/../examples/evaluate.py
