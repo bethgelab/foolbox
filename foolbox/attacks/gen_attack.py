@@ -1,5 +1,4 @@
-from typing import Optional, Any
-from typing_extensions import Tuple
+from typing import Optional, Any, Tuple, Union
 import numpy as np
 import eagerpy as ep
 
@@ -82,7 +81,9 @@ class GenAttack(FixedEpsilonAttack):
 
         return ep.clip(noise + x, -epsilon, +epsilon)
 
-    def choice(self, a: int, size, replace: bool, p: ep.TensorType) -> ep.TensorType:
+    def choice(
+        self, a: int, size: Union[int, ep.TensorType], replace: bool, p: ep.TensorType
+    ) -> Any:
         p = p.numpy()
         x = np.random.choice(a, size, replace, p)
         return x
@@ -112,6 +113,7 @@ class GenAttack(FixedEpsilonAttack):
                 f"expected target_classes to have shape ({N},), got {classes.shape}"
             )
 
+        noise_shape: Union[Tuple[int, int, int, int], Tuple[int, ...]]
         if self.reduced_dims is not None:
             if x.ndim != 4:
                 raise NotImplementedError(
@@ -161,19 +163,18 @@ class GenAttack(FixedEpsilonAttack):
             return first - second
 
         for step in range(self.steps):
-            fitness, is_adv = [], []
+            fitness_l, is_adv_l = [], []
 
             for i in range(self.population):
                 it = self.apply_noise(x, noise_pops[:, i], epsilon)
                 logits = model(it)
-                print(logits.shape, classes)
                 f = calculate_fitness(logits)
                 a = is_adversarial(logits)
-                fitness.append(f)
-                is_adv.append(a)
+                fitness_l.append(f)
+                is_adv_l.append(a)
 
-            fitness = ep.stack(fitness)
-            is_adv = ep.stack(is_adv, 1)
+            fitness = ep.stack(fitness_l)
+            is_adv = ep.stack(is_adv_l, 1)
             elite_idxs = ep.argmax(fitness, 0)
 
             elite_noise = noise_pops[range(N), elite_idxs]
@@ -207,11 +208,10 @@ class GenAttack(FixedEpsilonAttack):
                 for i in range(N)
             ]
 
-            noise_pops_old = noise_pops
-            noise_pops = [elite_noise]
+            new_noise_pops = [elite_noise]
             for i in range(0, self.population - 1):
-                parents_1 = noise_pops_old[range(N), parents_idxs[2 * i]]
-                parents_2 = noise_pops_old[range(N), parents_idxs[2 * i + 1]]
+                parents_1 = noise_pops[range(N), parents_idxs[2 * i]]
+                parents_2 = noise_pops[range(N), parents_idxs[2 * i + 1]]
 
                 # calculate crossover
                 p = probs[parents_idxs[2 * i], range(N)] / (
@@ -234,9 +234,9 @@ class GenAttack(FixedEpsilonAttack):
                 # project back to epsilon range
                 children = ep.clip(children, -epsilon, epsilon)
 
-                noise_pops.append(children)
+                new_noise_pops.append(children)
 
-            noise_pops = ep.stack(noise_pops, 1)
+            noise_pops = ep.stack(new_noise_pops, 1)
 
             # TODO: increase num_plateaus if fitness does not improve
             #  for 100 consecutive steps
