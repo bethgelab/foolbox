@@ -16,7 +16,7 @@ jobs:
         sudo yarn global add vuepress
     - name: Build
       run: |
-        cd guide && vuepress build --temp /tmp/
+        cd guide && sudo vuepress build
     - name: Push
       run: |
         cd guide/.vuepress/dist/ && git init && git add -A && git commit -m 'deploy'
