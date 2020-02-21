@@ -135,7 +135,12 @@ def test_untargeted_attacks(
 
 
 targeted_attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
-    (
+    (fa.GenAttack(steps=50, population=6, reduced_dims=(28, 28)), 0.3, True, False),
+]
+
+"""
+
+(
         fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20, initial_const=1e1),
         None,
         True,
@@ -155,7 +160,8 @@ targeted_attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
         True,
         False,
     ),
-]
+
+"""
 
 
 @pytest.mark.parametrize("attack_eps_grad_real", targeted_attacks, ids=get_attack_id)
