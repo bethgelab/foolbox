@@ -20,8 +20,8 @@ jobs:
       working-directory: ./guide
     - name: Push
       run: |
-        git init
-        git add -A
-        git commit -m 'deploy'
-        git push -f git@github.com:bethgelab/foolbox.git master:gh-pages
+        sudo git init
+        sudo git add -A
+        sudo git commit -m 'deploy'
+        sudo git push -f git@github.com:bethgelab/foolbox.git master:gh-pages
       working-directory: ./guide/.vuepress/dist
