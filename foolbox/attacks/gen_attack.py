@@ -43,7 +43,9 @@ class GenAttack(FixedEpsilonAttack):
 
     distance = linf
 
-    def apply_noise(self, x, noise, epsilon):
+    def apply_noise(
+        self, x: ep.TensorType, noise: ep.TensorType, epsilon: float
+    ) -> ep.TensorType:
         if noise.shape[2:] != x.shape[1:]:
             # upscale noise
             if isinstance(noise, ep.PyTorchTensor):
@@ -69,7 +71,7 @@ class GenAttack(FixedEpsilonAttack):
 
         return ep.clip(noise + x, -epsilon, +epsilon)
 
-    def choice(self, a: int, size, replace: bool, p: ep.TensorType):
+    def choice(self, a: int, size, replace: bool, p: ep.TensorType) -> ep.TensorType:
         p = p.numpy()
         x = np.random.choice(a, size, replace, p)
         return x
@@ -128,7 +130,7 @@ class GenAttack(FixedEpsilonAttack):
         else:
             noise_shape = x.shape[1:]
 
-        def is_adversarial(logits):
+        def is_adversarial(logits: ep.TensorType) -> ep.TensorType:
             return ep.argmax(logits, 1) == classes
 
         num_plateaus = ep.zeros(x, len(x))
@@ -141,7 +143,7 @@ class GenAttack(FixedEpsilonAttack):
             x, (N, self.population, *noise_shape), -epsilon, epsilon
         )
 
-        def calculate_fitness(logits):
+        def calculate_fitness(logits: ep.TensorType) -> ep.TensorType:
             first = logits[range(N), classes]
             second = ep.log(ep.exp(logits).sum(1) - first)
 
