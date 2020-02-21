@@ -19,7 +19,18 @@ import math
 
 
 class GenAttack(FixedEpsilonAttack):
-    """
+    """A black-box algorithm for L-infinity adversarials. [#Alz18]_
+
+    This attack is performs a genetic search in order to find an adversarial
+    perturbation in a black-box scenario in as few queries as possible.
+
+    References:
+        .. [#Alz18] Moustafa Alzantot, Yash Sharma, Supriyo Chakraborty, Huan Zhang,
+           Cho-Jui Hsieh, Mani Srivastava,
+           "GenAttack: Practical Black-box Attacks with Gradient-Free
+           Optimization",
+           https://arxiv.org/abs/1805.11090
+
     """
 
     def __init__(
