@@ -1,0 +1,24 @@
+name: Guide
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  vuepress:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install vuepress
+      run: |
+        curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+        echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+        apt update && apt install yarn
+        yarn global add vuepress
+    - name: Build
+      run: |
+        cd guide && vuepress build
+    - name: Push
+      run: |
+        cd guide/.vuepress/dist/ && git init && git add -A && git commit -m 'deploy'
+        cd guide/.vuepress/dist/ && git push -f git@github.com:bethgelab/foolbox.git master:gh-pages
