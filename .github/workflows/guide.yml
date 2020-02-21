@@ -9,12 +9,23 @@ jobs:
   vuepress:
     runs-on: ubuntu-latest
     steps:
-    - name: Install vuepress
+    - uses: actions/checkout@v2
+    - name: Install vuepress1
+      continue-on-error: true
       run: |
-        curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-        echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
         apt update && apt install yarn
         yarn global add vuepress
+    - name: Install vuepress2
+      continue-on-error: true
+      run: |
+        npm install -g vuepress
+    - name: Install vuepress3
+      continue-on-error: true
+      run: |
+        curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+        echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+        sudo apt update && sudo apt install yarn
+        sudo yarn global add vuepress
     - name: Build
       run: |
         cd guide && vuepress build
