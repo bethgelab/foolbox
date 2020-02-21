@@ -16,8 +16,12 @@ jobs:
         sudo yarn global add vuepress
     - name: Build
       run: |
-        cd guide && sudo vuepress build
+        sudo vuepress build
+      working-directory: ./guide
     - name: Push
       run: |
-        cd guide/.vuepress/dist/ && git init && git add -A && git commit -m 'deploy'
-        cd guide/.vuepress/dist/ && git push -f git@github.com:bethgelab/foolbox.git master:gh-pages
+        git init
+        git add -A
+        git commit -m 'deploy'
+        git push -f git@github.com:bethgelab/foolbox.git master:gh-pages
+      working-directory: ./guide/.vuepress/dist
