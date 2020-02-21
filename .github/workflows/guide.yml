@@ -20,9 +20,11 @@ jobs:
         sudo vuepress build
       working-directory: ./guide
     - name: Push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         sudo git init
         sudo git add -A
         sudo git commit -m 'deploy'
-        sudo git push -f https://x-access-token:${secrets.GITHUB_TOKEN}@github.com/bethgelab/foolbox.git master:gh-pages
+        sudo git push -f https://x-access-token:${GITHUB_TOKEN}@github.com/bethgelab/foolbox.git master:gh-pages
       working-directory: ./guide/.vuepress/dist
