@@ -15,6 +15,8 @@ module.exports = {
           '/guide/',
           '/guide/getting-started',
           '/guide/examples',
+          '/guide/development',
+          '/guide/adding_attacks',
         ],
       },
     ],
