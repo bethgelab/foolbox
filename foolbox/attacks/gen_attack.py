@@ -1,4 +1,4 @@
-from typing import Optional, Any, Tuple, Union
+from typing import Optional, Any, Tuple, Union, List
 import numpy as np
 import eagerpy as ep
 
@@ -32,10 +32,10 @@ def rescale_jax(img: "np.ndarray", resize_rates: Tuple[float, float]) -> "np.nda
         row_lo = np.floor(rows).astype(int)
         row_hi = row_lo + 1
 
-        def cclip(cols):
+        def cclip(cols: "np.ndarray") -> "np.ndarray":
             return np.clip(cols, 0, ncols - 1)
 
-        def rclip(rows):
+        def rclip(rows: "np.ndarray") -> "np.ndarray":
             return np.clip(rows, 0, nrows - 1)
 
         nrows, ncols = im.shape[-3:-1]
@@ -65,6 +65,81 @@ def rescale_jax(img: "np.ndarray", resize_rates: Tuple[float, float]) -> "np.nda
     )
 
     return img_resize
+
+
+def rescale_numpy(x: "np.ndarray", target_shape: List[int]) -> "np.ndarray":
+    import scipy
+
+    factors = [float(d[1]) / d[0] for d in zip(x.shape, target_shape)]
+    return scipy.ndimage.zoom(x, factors, order=2)
+
+
+def rescale_tensorflow(x: "np.ndarray", target_shape: List[int]) -> "np.ndarray":
+    import tensorflow
+
+    return tensorflow.image.resize(x, size=target_shape[1:-1])
+
+
+def rescale_pytorch(x: Any, target_shape: List[int]) -> Any:
+    import torch
+
+    return torch.nn.functional.interpolate(
+        x, size=target_shape[2:], mode="bilinear", align_corners=True
+    )
+
+
+def swap_axes(x: ep.TensorType, dim0: int, dim1: int):
+    assert dim0 < x.ndim
+    assert dim1 < x.ndim
+
+    axes = list(range(x.ndim))
+    axes[dim0] = dim1
+    axes[dim1] = dim0
+
+    return ep.transpose(x, tuple(axes))
+
+
+def rescale_images(
+    x: ep.TensorType, target_shape: Union[Tuple[int, ...], List[int]], channel_axis: int
+) -> ep.TensorType:
+    target_shape = list(target_shape)
+
+    if isinstance(x, ep.PyTorchTensor):
+        if channel_axis != 1:
+            x = swap_axes(x, channel_axis, 1)
+
+        x = ep.astensor(rescale_pytorch(x.raw, target_shape))
+
+        if channel_axis != 1:
+            x = swap_axes(x, channel_axis, 1)
+
+    elif isinstance(x, ep.TensorFlowTensor):
+        if channel_axis != x.ndim:
+            x = swap_axes(x, channel_axis, x.ndim - 1)
+
+        x = ep.astensor(rescale_tensorflow(x.raw, target_shape))
+
+        if channel_axis != x.ndim:
+            x = swap_axes(x, channel_axis, x.ndim - 1)
+
+    elif isinstance(x, ep.NumPyTensor):
+        x = ep.astensor(rescale_numpy(x.raw, target_shape))
+
+    elif isinstance(x, ep.JAXTensor):
+        if channel_axis != -1:
+            x = swap_axes(x, channel_axis, -1)
+            target_shape[channel_axis], target_shape[-1] = (
+                target_shape[-1],
+                target_shape[channel_axis],
+            )
+
+        factors = (target_shape[1] / x.shape[1], target_shape[2] / x.shape[2])
+
+        x = ep.astensor(rescale_jax(x.raw, factors))
+        if channel_axis != -1:
+            x = swap_axes(x, channel_axis, -1)
+
+    return x
 
 
 class GenAttack(FixedEpsilonAttack):
@@ -106,39 +181,10 @@ class GenAttack(FixedEpsilonAttack):
     def apply_noise(
         self, x: ep.TensorType, noise: ep.TensorType, epsilon: float, channel_axis: int
     ) -> ep.TensorType:
-        if noise.shape[2:] != x.shape[1:]:
+        if noise.shape != x.shape:
             # upscale noise
-            if isinstance(noise, ep.PyTorchTensor):
-                import torch
 
-                noise = ep.astensor(
-                    torch.nn.functional.upsample_bilinear(noise.raw, size=x.shape[2:])
-                )
-            elif isinstance(noise, ep.TensorFlowTensor):
-                import tensorflow
-
-                noise = ep.astensor(
-                    tensorflow.image.resize(noise.raw, size=x.shape[1:-1])
-                )
-            elif isinstance(noise, ep.NumPyTensor):
-                import scipy
-
-                factors = [float(d[1]) / d[0] for d in zip(noise.shape, x.shape)]
-                noise = ep.astensor(scipy.ndimage.zoom(noise.raw, factors, order=2))
-            else:
-                if channel_axis != -1:
-                    noise = np.swapaxes(noise, channel_axis, -1)
-
-                factors = [
-                    float(d[1]) / d[0] for d in zip(noise.shape[1:-1], x.shape[1:-1])
-                ]
-                noise = rescale_jax(noise.raw, factors)
-                if channel_axis != -1:
-                    noise = np.swapaxes(noise, channel_axis, -1)
-                noise = ep.astensor(noise)
-                print("noise.shape", noise.shape, x.shape)
-                # raise NotImplementedError("upsampling not yet implemented")
-                # TODO: use https://github.com/google/jax/issues/862 for JAX
+            noise = rescale_images(noise, x.shape, channel_axis)
 
         return ep.clip(noise + x, -epsilon, +epsilon)
 
@@ -175,6 +221,7 @@ class GenAttack(FixedEpsilonAttack):
             )
 
         noise_shape: Union[Tuple[int, int, int, int], Tuple[int, ...]]
+        channel_axis: int
         if self.reduced_dims is not None:
             if x.ndim != 4:
                 raise NotImplementedError(
@@ -183,20 +230,21 @@ class GenAttack(FixedEpsilonAttack):
                 )
 
             if self.channel_axis is None:
-                channel_axis = get_channel_axis(model, x.ndim)
+                maybe_axis = get_channel_axis(model, x.ndim)
+                if maybe_axis is None:
+                    raise ValueError(
+                        "cannot infer the data_format from the model, please"
+                        " specify channel_axis when initializing the attack"
+                    )
+                else:
+                    channel_axis = maybe_axis
             else:
                 channel_axis = self.channel_axis % x.ndim
-
-            if channel_axis is None:
-                raise ValueError(
-                    "cannot infer the data_format from the model, please"
-                    " specify channel_axis when initializing the attack"
-                )
 
             if channel_axis == 1:
                 noise_shape = (x.shape[1], *self.reduced_dims)
             elif channel_axis == 3:
-                noise_shape = (*self.reduced_dims, x.shape[4])
+                noise_shape = (*self.reduced_dims, x.shape[3])
             else:
                 raise ValueError(
                     "expected 'channel_axis' to be 1 or 3, got {channel_axis}"
