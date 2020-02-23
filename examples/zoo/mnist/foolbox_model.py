@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import torch
 import torch.nn as nn
+import os
 from foolbox.models import PyTorchModel
 from foolbox.utils import accuracy, samples
 
@@ -19,7 +20,8 @@ def create() -> PyTorchModel:
         nn.Dropout2d(0.5),
         nn.Linear(128, 10),
     )
-    model.load_state_dict(torch.load("mnist_cnn.pth"))  # type: ignore
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "mnist_cnn.pth")
+    model.load_state_dict(torch.load(path))  # type: ignore
     model.eval()
     preprocessing = dict(mean=0.1307, std=0.3081)
     fmodel = PyTorchModel(model, bounds=(0, 1), preprocessing=preprocessing)
