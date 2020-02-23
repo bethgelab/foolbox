@@ -5,6 +5,7 @@ from .contrast import L2ContrastReductionAttack  # noqa: F401
 from .virtual_adversarial_attack import VirtualAdversarialAttack  # noqa: F401
 from .ddn import DDNAttack  # noqa: F401
 from .projected_gradient_descent import (  # noqa: F401
+    L1ProjectedGradientDescentAttack,
     L2ProjectedGradientDescentAttack,
     LinfProjectedGradientDescentAttack,
 )
@@ -67,6 +68,7 @@ from .brendel_bethge import (  # noqa: F401
 
 FGM = L2FastGradientAttack
 FGSM = LinfFastGradientAttack
+L1PGD = L1ProjectedGradientDescentAttack
 L2PGD = L2ProjectedGradientDescentAttack
 LinfPGD = LinfProjectedGradientDescentAttack
 PGD = LinfPGD

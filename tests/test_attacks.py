@@ -71,6 +71,7 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.VirtualAdversarialAttack(steps=50, xi=1), 10, True, False),
     (fa.PGD(), Linf(1.0), True, False),
     (fa.L2PGD(), L2(50.0), True, False),
+    (fa.L1PGD(), 50.0, True, False),
     (fa.LinfBasicIterativeAttack(abs_stepsize=0.2), Linf(1.0), True, False),
     (fa.L2BasicIterativeAttack(), L2(50.0), True, False),
     (fa.L1BasicIterativeAttack(), 50.0, True, False),
