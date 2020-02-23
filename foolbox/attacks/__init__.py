@@ -50,6 +50,7 @@ from .brendel_bethge import (  # noqa: F401
     L2BrendelBethgeAttack,
     LinfinityBrendelBethgeAttack,
 )
+from .sparse_l1_descent_attack import SparseL1DescentAttack  # noqa: F401
 
 # from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
 # from .brendel_bethge import (  # noqa: F401

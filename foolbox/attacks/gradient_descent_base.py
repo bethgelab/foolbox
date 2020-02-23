@@ -5,6 +5,8 @@ import eagerpy as ep
 from ..devutils import flatten
 from ..devutils import atleast_kd
 
+from ..types import Bounds
+
 from ..models.base import Model
 
 from ..criteria import Misclassification
@@ -84,7 +86,7 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
 
         for _ in range(self.steps):
             _, gradients = self.value_and_grad(loss_fn, x)
-            gradients = self.normalize(gradients)
+            gradients = self.normalize(gradients, x=x, bounds=model.bounds)
             x = x + stepsize * gradients
             x = self.project(x, x0, epsilon)
             x = ep.clip(x, *model.bounds)
@@ -96,7 +98,9 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         ...
 
     @abstractmethod
-    def normalize(self, gradients: ep.Tensor) -> ep.Tensor:
+    def normalize(
+        self, gradients: ep.Tensor, *, x: ep.Tensor, bounds: Bounds
+    ) -> ep.Tensor:
         ...
 
     @abstractmethod
@@ -163,7 +167,9 @@ class L1BaseGradientDescent(BaseGradientDescent):
         r = uniform_l1_n_balls(x0, batch_size, n).reshape(x0.shape)
         return x0 + epsilon * r
 
-    def normalize(self, gradients: ep.Tensor) -> ep.Tensor:
+    def normalize(
+        self, gradients: ep.Tensor, *, x: ep.Tensor, bounds: Bounds
+    ) -> ep.Tensor:
         return normalize_lp_norms(gradients, p=1)
 
     def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
@@ -178,7 +184,9 @@ class L2BaseGradientDescent(BaseGradientDescent):
         r = uniform_l2_n_balls(x0, batch_size, n).reshape(x0.shape)
         return x0 + epsilon * r
 
-    def normalize(self, gradients: ep.Tensor) -> ep.Tensor:
+    def normalize(
+        self, gradients: ep.Tensor, *, x: ep.Tensor, bounds: Bounds
+    ) -> ep.Tensor:
         return normalize_lp_norms(gradients, p=2)
 
     def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
@@ -191,7 +199,9 @@ class LinfBaseGradientDescent(BaseGradientDescent):
     def get_random_start(self, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
         return x0 + ep.uniform(x0, x0.shape, -epsilon, epsilon)
 
-    def normalize(self, gradients: ep.Tensor) -> ep.Tensor:
+    def normalize(
+        self, gradients: ep.Tensor, *, x: ep.Tensor, bounds: Bounds
+    ) -> ep.Tensor:
         return gradients.sign()
 
     def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
