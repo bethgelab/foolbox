@@ -9,10 +9,12 @@ from .projected_gradient_descent import (  # noqa: F401
     LinfProjectedGradientDescentAttack,
 )
 from .basic_iterative_method import (  # noqa: F401
+    L1BasicIterativeAttack,
     L2BasicIterativeAttack,
     LinfBasicIterativeAttack,
 )
 from .fast_gradient_method import (  # noqa: F401
+    L1FastGradientAttack,
     L2FastGradientAttack,
     LinfFastGradientAttack,
 )

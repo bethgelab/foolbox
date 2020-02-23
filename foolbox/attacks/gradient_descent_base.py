@@ -9,7 +9,7 @@ from ..models.base import Model
 
 from ..criteria import Misclassification
 
-from ..distances import l2, linf
+from ..distances import l1, l2, linf
 
 from .base import FixedEpsilonAttack
 from .base import T
@@ -104,30 +104,43 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         ...
 
 
-def clip_l2_norms(x: ep.Tensor, *, norm: float) -> ep.Tensor:
-    norms = flatten(x).norms.l2(axis=-1)
+def clip_lp_norms(x: ep.Tensor, *, norm: float, p: float) -> ep.Tensor:
+    assert 0 < p < ep.inf
+    norms = flatten(x).norms.lp(p=p, axis=-1)
     norms = ep.maximum(norms, 1e-12)  # avoid divsion by zero
     factor = ep.minimum(1, norm / norms)  # clipping -> decreasing but not increasing
     factor = atleast_kd(factor, x.ndim)
     return x * factor
 
 
-def normalize_l2_norms(x: ep.Tensor) -> ep.Tensor:
-    norms = flatten(x).norms.l2(axis=-1)
+def normalize_lp_norms(x: ep.Tensor, *, p: float) -> ep.Tensor:
+    assert 0 < p < ep.inf
+    norms = flatten(x).norms.lp(p=p, axis=-1)
     norms = ep.maximum(norms, 1e-12)  # avoid divsion by zero
     factor = 1 / norms
     factor = atleast_kd(factor, x.ndim)
     return x * factor
 
 
-def uniform_n_spheres(dummy: ep.Tensor, batch_size: int, n: int) -> ep.Tensor:
+def uniform_l1_n_balls(dummy: ep.Tensor, batch_size: int, n: int) -> ep.Tensor:
+    # https://mathoverflow.net/a/9188
+    u = ep.uniform(dummy, (batch_size, n))
+    v = u.sort(axis=-1)
+    vp = ep.concatenate([ep.zeros(v, (batch_size, 1)), v[:, : n - 1]], axis=-1)
+    assert v.shape == vp.shape
+    x = v - vp
+    sign = ep.uniform(dummy, (batch_size, n), low=-1.0, high=1.0).sign()
+    return sign * x
+
+
+def uniform_l2_n_spheres(dummy: ep.Tensor, batch_size: int, n: int) -> ep.Tensor:
     x = ep.normal(dummy, (batch_size, n + 1))
     r = x.norms.l2(axis=-1, keepdims=True)
     s = x / r
     return s
 
 
-def uniform_n_balls(dummy: ep.Tensor, batch_size: int, n: int) -> ep.Tensor:
+def uniform_l2_n_balls(dummy: ep.Tensor, batch_size: int, n: int) -> ep.Tensor:
     """Sampling from the n-ball
 
     Implementation of the algorithm proposed by Voelker et al. [#Voel17]_
@@ -137,9 +150,24 @@ def uniform_n_balls(dummy: ep.Tensor, batch_size: int, n: int) -> ep.Tensor:
             from the n-sphere and n-ball
             http://compneuro.uwaterloo.ca/files/publications/voelker.2017.pdf
     """
-    s = uniform_n_spheres(dummy, batch_size, n + 1)
+    s = uniform_l2_n_spheres(dummy, batch_size, n + 1)
     b = s[:, :n]
     return b
+
+
+class L1BaseGradientDescent(BaseGradientDescent):
+    distance = l1
+
+    def get_random_start(self, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
+        batch_size, n = flatten(x0).shape
+        r = uniform_l1_n_balls(x0, batch_size, n).reshape(x0.shape)
+        return x0 + epsilon * r
+
+    def normalize(self, gradients: ep.Tensor) -> ep.Tensor:
+        return normalize_lp_norms(gradients, p=1)
+
+    def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
+        return x0 + clip_lp_norms(x - x0, norm=epsilon, p=1)
 
 
 class L2BaseGradientDescent(BaseGradientDescent):
@@ -147,14 +175,14 @@ class L2BaseGradientDescent(BaseGradientDescent):
 
     def get_random_start(self, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
         batch_size, n = flatten(x0).shape
-        r = uniform_n_balls(x0, batch_size, n).reshape(x0.shape)
+        r = uniform_l2_n_balls(x0, batch_size, n).reshape(x0.shape)
         return x0 + epsilon * r
 
     def normalize(self, gradients: ep.Tensor) -> ep.Tensor:
-        return normalize_l2_norms(gradients)
+        return normalize_lp_norms(gradients, p=2)
 
     def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
-        return x0 + clip_l2_norms(x - x0, norm=epsilon)
+        return x0 + clip_lp_norms(x - x0, norm=epsilon, p=2)
 
 
 class LinfBaseGradientDescent(BaseGradientDescent):

@@ -18,7 +18,7 @@ install_requires = [
     "numpy",
     "scipy",
     "setuptools",
-    "eagerpy==0.25.2",
+    "eagerpy==0.26.0",
     "GitPython>=3.0.7",
     "typing-extensions>=3.7.4.1",
 ]
