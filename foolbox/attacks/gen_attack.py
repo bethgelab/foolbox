@@ -17,6 +17,56 @@ from .base import raise_if_kwargs
 import math
 
 
+def rescale_jax(img: "np.ndarray", resize_rates: Tuple[float, float]) -> "np.ndarray":
+    # img must be in channel_last format
+
+    # modified according to https://github.com/google/jax/issues/862
+    import jax.numpy as np
+
+    def interpolate_bilinear(
+        im: "np.ndarray", rows: "np.ndarray", cols: "np.ndarray"
+    ) -> "np.ndarray":
+        # based on http://stackoverflow.com/a/12729229
+        col_lo = np.floor(cols).astype(int)
+        col_hi = col_lo + 1
+        row_lo = np.floor(rows).astype(int)
+        row_hi = row_lo + 1
+
+        def cclip(cols):
+            return np.clip(cols, 0, ncols - 1)
+
+        def rclip(rows):
+            return np.clip(rows, 0, nrows - 1)
+
+        nrows, ncols = im.shape[-3:-1]
+
+        Ia = im[..., rclip(row_lo), cclip(col_lo), :]
+        Ib = im[..., rclip(row_hi), cclip(col_lo), :]
+        Ic = im[..., rclip(row_lo), cclip(col_hi), :]
+        Id = im[..., rclip(row_hi), cclip(col_hi), :]
+
+        wa = np.expand_dims((col_hi - cols) * (row_hi - rows), -1)
+        wb = np.expand_dims((col_hi - cols) * (rows - row_lo), -1)
+        wc = np.expand_dims((cols - col_lo) * (row_hi - rows), -1)
+        wd = np.expand_dims((cols - col_lo) * (rows - row_lo), -1)
+
+        return wa * Ia + wb * Ib + wc * Ic + wd * Id
+
+    nrows, ncols = img.shape[-3:-1]
+    deltas = (0.5 / resize_rates[0], 0.5 / resize_rates[1])
+
+    rows = np.linspace(deltas[0], nrows - deltas[0], np.int32(resize_rates[0] * nrows))
+    cols = np.linspace(deltas[1], ncols - deltas[1], np.int32(resize_rates[1] * ncols))
+    rows_grid, cols_grid = np.meshgrid(rows, cols, indexing="ij")
+
+    img_resize_vec = interpolate_bilinear(img, rows_grid.flatten(), cols_grid.flatten())
+    img_resize = img_resize_vec.reshape(
+        img.shape[:-3] + (len(rows), len(cols)) + img.shape[-1:]
+    )
+
+    return img_resize
+
+
 class GenAttack(FixedEpsilonAttack):
     """A black-box algorithm for L-infinity adversarials. [#Alz18]_
 
@@ -54,7 +104,7 @@ class GenAttack(FixedEpsilonAttack):
     distance = linf
 
     def apply_noise(
-        self, x: ep.TensorType, noise: ep.TensorType, epsilon: float
+        self, x: ep.TensorType, noise: ep.TensorType, epsilon: float, channel_axis: int
     ) -> ep.TensorType:
         if noise.shape[2:] != x.shape[1:]:
             # upscale noise
@@ -76,7 +126,18 @@ class GenAttack(FixedEpsilonAttack):
                 factors = [float(d[1]) / d[0] for d in zip(noise.shape, x.shape)]
                 noise = ep.astensor(scipy.ndimage.zoom(noise.raw, factors, order=2))
             else:
-                raise NotImplementedError("upsampling not yet implemented")
+                if channel_axis != -1:
+                    noise = np.swapaxes(noise, channel_axis, -1)
+
+                factors = [
+                    float(d[1]) / d[0] for d in zip(noise.shape[1:-1], x.shape[1:-1])
+                ]
+                noise = rescale_jax(noise.raw, factors)
+                if channel_axis != -1:
+                    noise = np.swapaxes(noise, channel_axis, -1)
+                noise = ep.astensor(noise)
+                print("noise.shape", noise.shape, x.shape)
+                # raise NotImplementedError("upsampling not yet implemented")
                 # TODO: use https://github.com/google/jax/issues/862 for JAX
 
         return ep.clip(noise + x, -epsilon, +epsilon)
@@ -166,7 +227,7 @@ class GenAttack(FixedEpsilonAttack):
             fitness_l, is_adv_l = [], []
 
             for i in range(self.population):
-                it = self.apply_noise(x, noise_pops[:, i], epsilon)
+                it = self.apply_noise(x, noise_pops[:, i], epsilon, channel_axis)
                 logits = model(it)
                 f = calculate_fitness(logits)
                 a = is_adversarial(logits)
@@ -182,7 +243,9 @@ class GenAttack(FixedEpsilonAttack):
 
             # early stopping
             if is_adv.all():
-                return restore_type(self.apply_noise(x, elite_noise, epsilon))
+                return restore_type(
+                    self.apply_noise(x, elite_noise, epsilon, channel_axis)
+                )
 
             probs = ep.softmax(fitness / self.sampling_temperature, 0)
             parents_idxs = np.stack(
@@ -252,4 +315,4 @@ class GenAttack(FixedEpsilonAttack):
                 0.5 * ep.exp(math.log(0.9) * ep.ones_like(num_plateaus) * num_plateaus),
             )
 
-        return restore_type(self.apply_noise(x, elite_noise, epsilon))
+        return restore_type(self.apply_noise(x, elite_noise, epsilon, channel_axis))
