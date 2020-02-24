@@ -22,6 +22,25 @@ def test_pytorch_numpy_compatibility() -> None:
     assert np.allclose(x_up_np, x_up_torch)
 
 
+def test_pytorch_numpy_compatibility_different_axis() -> None:
+    import numpy as np
+    import torch
+
+    x_np = np.random.uniform(0.0, 1.0, size=(16, 64, 64, 3))
+    x_torch = torch.from_numpy(x_np)
+
+    x_np_ep = ep.astensor(x_np)
+    x_torch_ep = ep.astensor(x_torch)
+
+    x_up_np_ep = rescale_images(x_np_ep, (16, 128, 128, 3), -1)
+    x_up_torch_ep = rescale_images(x_torch_ep, (16, 128, 128, 3), -1)
+
+    x_up_np = x_up_np_ep.numpy()
+    x_up_torch = x_up_torch_ep.numpy()
+
+    assert np.allclose(x_up_np, x_up_torch)
+
+
 def test_pytorch_tensorflow_compatibility() -> None:
     import numpy as np
     import torch

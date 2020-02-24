@@ -56,7 +56,11 @@ class GenAttack(FixedEpsilonAttack):
     distance = linf
 
     def apply_noise(
-        self, x: ep.TensorType, noise: ep.TensorType, epsilon: float, channel_axis: int
+        self,
+        x: ep.TensorType,
+        noise: ep.TensorType,
+        epsilon: float,
+        channel_axis: Optional[int],
     ) -> ep.TensorType:
         if noise.shape != x.shape:
             # upscale noise
@@ -98,7 +102,7 @@ class GenAttack(FixedEpsilonAttack):
             )
 
         noise_shape: Union[Tuple[int, int, int, int], Tuple[int, ...]]
-        channel_axis: int
+        channel_axis: Optional[int] = None
         if self.reduced_dims is not None:
             if x.ndim != 4:
                 raise NotImplementedError(
