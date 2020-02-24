@@ -62,7 +62,7 @@ class GenAttack(FixedEpsilonAttack):
         epsilon: float,
         channel_axis: Optional[int],
     ) -> ep.TensorType:
-        if noise.shape != x.shape:
+        if noise.shape != x.shape and channel_axis is not None:
             # upscale noise
 
             noise = rescale_images(noise, x.shape, channel_axis)
