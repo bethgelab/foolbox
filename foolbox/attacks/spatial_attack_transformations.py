@@ -21,7 +21,6 @@ def rotate_and_shift(
     theta = np.tile(theta[None], (bs, 1, 1)).reshape(bs, 2, 3)
     if isinstance(inputs, TensorFlowTensor):
         # convert from pixels to relative translation (bs, x, y, n_ch)
-        print("theta ", theta.shape, inputs.shape)
         theta[:, 0, 2] /= inputs.shape[1] / 2.0
         theta[:, 1, 2] /= inputs.shape[2] / 2.0
         theta = tf.convert_to_tensor(theta)
