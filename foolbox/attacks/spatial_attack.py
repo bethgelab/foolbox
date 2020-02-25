@@ -25,15 +25,15 @@ class SpatialAttack(Attack):
            Translation Suffice: Fooling CNNs with Simple Transformations",
            http://arxiv.org/abs/1712.02779
     """
-    def __init__(
-            self,
-            max_translation: float = 3,
-            max_rotation: float = 30,
-            num_translations = 5,
-            num_rotations: int = 5,
-            grid_search: bool = True,
-            random_steps: int = 100
 
+    def __init__(
+        self,
+        max_translation: float = 3,
+        max_rotation: float = 30,
+        num_translations=5,
+        num_rotations: int = 5,
+        grid_search: bool = True,
+        random_steps: int = 100,
     ):
 
         self.max_trans = max_translation
@@ -49,10 +49,7 @@ class SpatialAttack(Attack):
         self.random_steps = random_steps
 
     def __call__(
-            self,
-            model: Model,
-            inputs: T,
-            criterion: Union[Criterion, T],
+        self, model: Model, inputs: T, criterion: Union[Criterion, T],
     ):
         x, restore_type = ep.astensor_(inputs)
         del inputs
@@ -73,16 +70,16 @@ class SpatialAttack(Attack):
         return xp_, success
 
     def run(
-            self,
-            model: Model,
-            inputs: T,
-            criterion: Union[Criterion, T],
-            restore_type,
-            *,
-            early_stop: Optional[float] = None,
-            **kwargs: Any,
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[Criterion, T],
+        restore_type,
+        *,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
     ) -> T:
-        is_adversarial= get_is_adversarial(criterion, model)
+        is_adversarial = get_is_adversarial(criterion, model)
 
         found = is_adversarial(inputs)
         results = inputs
@@ -107,7 +104,9 @@ class SpatialAttack(Attack):
         for dphi, dx, dy in gen:
             # TODO: reduce the batch size to the ones that haven't been successful
 
-            x_p = rotate_and_shift(inputs, restore_type, translation=(dx , dy), rotation=dphi)
+            x_p = rotate_and_shift(
+                inputs, restore_type, translation=(dx, dy), rotation=dphi
+            )
             is_adv = is_adversarial(x_p)
             new_adv = ep.logical_and(is_adv, found.logical_not())
 
@@ -119,4 +118,3 @@ class SpatialAttack(Attack):
 
     def repeat(self, times: int) -> "Attack":
         return self
-
