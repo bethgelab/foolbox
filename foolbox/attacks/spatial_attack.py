@@ -56,7 +56,6 @@ class SpatialAttack(Attack):
         criterion = get_criterion(criterion)
 
         is_adversarial = get_is_adversarial(criterion, model)
-        print(is_adversarial(x))
 
         if x.ndim != 4:
             raise NotImplementedError(
