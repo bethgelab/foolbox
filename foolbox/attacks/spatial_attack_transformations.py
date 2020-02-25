@@ -1,33 +1,36 @@
 from typing import Tuple
-
 import numpy as np
 import tensorflow as tf
 import torch
 import math
-from eagerpy import astensor_
-from .base import T
-
-
+from eagerpy import astensor_, Tensor
 from eagerpy.tensor import TensorFlowTensor, PyTorchTensor
 
 
-def rotate_and_shift(inputs: T,
+def rotate_and_shift(inputs: Tensor,
                      restore_type,
                      translation: Tuple[int, int] = (0, 0),
-                     rotation: int =0):
+                     rotation: float = 0):
     rotation = rotation * math.pi / 180.
     bs = inputs.shape[0]
-    theta = np.zeros((2, 3))
+    theta = np.zeros((2, 3)).astype(np.float32)
     theta[0, :] = [np.cos(rotation), -np.sin(rotation), translation[0]]
     theta[1, :] = [np.sin(rotation), np.cos(rotation), translation[1]]
     theta= np.tile(theta[None], (bs, 1, 1)).reshape(bs, 2, 3)
     if isinstance(inputs, TensorFlowTensor):
+        # convert from pixels to relative translation (bs, x, y, n_ch)
+        print('theta ', theta.shape, inputs.shape)
+        theta[:, 0, 2] /= inputs.shape[1] / 2.
+        theta[:, 1, 2] /= inputs.shape[2] / 2.
         theta = tf.convert_to_tensor(theta)
         tf_tensor = restore_type(inputs)
         transformed_tensor = transform_tf(tf_tensor, theta)
     elif isinstance(inputs, PyTorchTensor):
-        torch.tensor(theta)
+        # convert from pixels to relative translation, (bs, n_ch, x, y)
+        theta[:, 0, 2] /= inputs.shape[2] / 2.
+        theta[:, 1, 2] /= inputs.shape[3] / 2.
         pt_tensor = restore_type(inputs)
+        theta = torch.tensor(theta, device=pt_tensor.device)
         transformed_tensor = transform_pt(pt_tensor, theta)
     else:
         raise NotImplementedError()
@@ -42,12 +45,11 @@ def transform_pt(x, theta):
     assert theta.shape[1:] == (2, 3)
 
     bs, _, n_x, n_y, = x.shape
-
     def create_meshgrid(x):
         space_x = torch.linspace(-1, 1, n_x, device=x.device)
         space_y = torch.linspace(-1, 1, n_y, device=x.device)
         meshgrid = torch.meshgrid([space_x, space_y])
-        ones = torch.ones(meshgrid[0].shape)
+        ones = torch.ones(meshgrid[0].shape, device=x.device)
         gridder = torch.stack([meshgrid[1], meshgrid[0], ones], dim=2)
         grid = gridder[None, ...].repeat(bs, 1, 1, 1)[..., None]
         return grid
@@ -57,8 +59,7 @@ def transform_pt(x, theta):
     new_coords = torch.matmul(theta, meshgrid)
     new_coords = new_coords.squeeze_(-1)
 
-    # same as tensorflow addons, for pytorch version >=1.4 align_corners=True
-    print("bile")
+    # align_corners=True to match tf implementation
     transformed_images = torch.nn.functional.grid_sample(
         x, new_coords, mode="bilinear", padding_mode="zeros", align_corners=True
     )
@@ -144,10 +145,11 @@ def transform_tf(x, theta):
         y1 = y0 + 1
 
         # clip to range [0, n_x-1/n_y-1] to not violate img boundaries
-        x0 = tf.clip_by_value(x0, zero, max_x)
-        x1 = tf.clip_by_value(x1, zero, max_x)
-        y0 = tf.clip_by_value(y0, zero, max_y)
-        y1 = tf.clip_by_value(y1, zero, max_y)
+        min_val = -1
+        x0 = tf.clip_by_value(x0, min_val, max_x + 1)
+        x1 = tf.clip_by_value(x1, min_val, max_x + 1)
+        y0 = tf.clip_by_value(y0, min_val, max_y + 1)
+        y1 = tf.clip_by_value(y1, min_val, max_y + 1)
 
         # get pixel value at corner coords
         Ia = get_pixel_value(img, x0, y0)
@@ -245,3 +247,20 @@ def transform_tf(x, theta):
     transformed_images = bilinear_sampler(x, x_s, y_s)
 
     return transformed_images
+
+
+def test_transforms():
+    rot = 8.3
+    shift_x, shift_y = (24.4, -4)
+    a_n = np.random.uniform(size=(3, 100, 100, 3)).astype(np.float32)
+    a_t = tf.convert_to_tensor(a_n)
+    a_p = torch.tensor(a_n).permute(0, 3, 1, 2)
+    x_t, restore_type = astensor_(a_t)
+    x_t_rot = rotate_and_shift(x_t, restore_type, rotation=rot,
+                               translation=(shift_x, shift_y)).numpy()
+    x_p, restore_type = ep.astensor_(a_p)
+    x_p_rot = rotate_and_shift(x_p, restore_type, rotation=rot,
+                               translation=(shift_x, shift_y)).raw.permute(0, 2, 3, 1).numpy()
+
+    diff = x_p_rot[:, :, :, :] - x_t_rot[:, :, :, :]
+    return (np.max(diff)) < 1e-4 and (np.median(diff) == 0)
