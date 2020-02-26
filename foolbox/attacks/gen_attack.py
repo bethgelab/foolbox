@@ -131,7 +131,7 @@ class GenAttack(FixedEpsilonAttack):
                     "expected 'channel_axis' to be 1 or 3, got {channel_axis}"
                 )
         else:
-            noise_shape = x.shape[1:]
+            noise_shape = x.shape[1:]  # pragma: no cover
 
         def is_adversarial(logits: ep.TensorType) -> ep.TensorType:
             return ep.argmax(logits, 1) == classes
@@ -152,6 +152,7 @@ class GenAttack(FixedEpsilonAttack):
 
             return first - second
 
+        n_its_wo_change = ep.zeros(x, (N,))
         for step in range(self.steps):
             fitness_l, is_adv_l = [], []
 
@@ -172,7 +173,7 @@ class GenAttack(FixedEpsilonAttack):
 
             # early stopping
             if is_adv.all():
-                return restore_type(
+                return restore_type(  # pragma: no cover
                     self.apply_noise(x, elite_noise, epsilon, channel_axis)
                 )
 
@@ -230,10 +231,17 @@ class GenAttack(FixedEpsilonAttack):
 
             noise_pops = ep.stack(new_noise_pops, 1)
 
-            # TODO: increase num_plateaus if fitness does not improve
-            #  for 100 consecutive steps
-
-            # TODO: update parameters with ep.pow
+            # increase num_plateaus if fitness does not improve
+            # for 100 consecutive steps
+            n_its_wo_change = ep.where(
+                elite_idxs == 0, n_its_wo_change + 1, ep.zeros_like(n_its_wo_change)
+            )
+            num_plateaus = ep.where(
+                n_its_wo_change >= 100, num_plateaus + 1, num_plateaus
+            )
+            n_its_wo_change = ep.where(
+                n_its_wo_change >= 100, ep.zeros_like(n_its_wo_change), n_its_wo_change
+            )
 
             mutation_probability = ep.maximum(
                 self.min_mutation_probability,
