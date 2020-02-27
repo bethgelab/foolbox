@@ -10,7 +10,7 @@ from eagerpy.tensor import TensorFlowTensor, PyTorchTensor
 def rotate_and_shift(
     inputs: Tensor,
     restore_type,
-    translation: Tuple[int, int] = (0, 0),
+    translation: Tuple[float, float] = (0, 0),
     rotation: float = 0,
 ):
     rotation = rotation * math.pi / 180.0
@@ -24,13 +24,13 @@ def rotate_and_shift(
         theta[:, 0, 2] /= inputs.shape[1] / 2.0
         theta[:, 1, 2] /= inputs.shape[2] / 2.0
         theta = tf.convert_to_tensor(theta)
-        tf_tensor = restore_type(inputs)
+        tf_tensor = inputs.raw
         transformed_tensor = transform_tf(tf_tensor, theta)
     elif isinstance(inputs, PyTorchTensor):
         # convert from pixels to relative translation, (bs, n_ch, x, y)
         theta[:, 0, 2] /= inputs.shape[2] / 2.0
         theta[:, 1, 2] /= inputs.shape[3] / 2.0
-        pt_tensor = restore_type(inputs)
+        pt_tensor = inputs.raw
         theta = torch.tensor(theta, device=pt_tensor.device)
         transformed_tensor = transform_pt(pt_tensor, theta)
     else:
@@ -94,7 +94,6 @@ def transform_tf(x, theta):
     bs = tf.shape(x)[0]
     n_x = tf.shape(x)[1]  # height matrix
     n_y = tf.shape(x)[2]  # width matrix
-
     def get_pixel_value(img, x, y):
         """
         Utility function to get pixel value for coordinate
@@ -250,25 +249,32 @@ def transform_tf(x, theta):
 
     return transformed_images
 
-
 def test_transforms():
+    import torch
+    import tensorflow as tf
     rot = 8.3
-    shift_x, shift_y = (24.4, -4)
+    shift_x, shift_y = (24.4, 4)
+
+    # numpy
     a_n = np.random.uniform(size=(3, 100, 100, 3)).astype(np.float32)
-    a_t = tf.convert_to_tensor(a_n)
+
+    # pt
     a_p = torch.tensor(a_n).permute(0, 3, 1, 2)
-    x_t, restore_type = astensor_(a_t)
-    x_t_rot = rotate_and_shift(
-        x_t, restore_type, rotation=rot, translation=(shift_x, shift_y)
-    ).numpy()
     x_p, restore_type = ep.astensor_(a_p)
     x_p_rot = (
         rotate_and_shift(
-            x_p, restore_type, rotation=rot, translation=(shift_x, shift_y)
+            x_p, restore_type, translation=(shift_x, shift_y), rotation=rot
         )
         .raw.permute(0, 2, 3, 1)
         .numpy()
     )
 
+    # tf
+    a_t = tf.convert_to_tensor(a_n)
+    x_t, restore_type = astensor_(a_t)
+    x_t_rot = rotate_and_shift(
+        x_t, restore_type, translation=(shift_x, shift_y), rotation=rot
+    ).numpy()
+
     diff = x_p_rot[:, :, :, :] - x_t_rot[:, :, :, :]
-    return (np.max(diff)) < 1e-4 and (np.median(diff) == 0)
+    assert (np.max(diff)) < 1e-4 and (np.median(diff) == 0)

@@ -1,4 +1,4 @@
-from typing import Union, Optional, Any
+from typing import Union, Optional, Any, Tuple
 import eagerpy as ep
 import numpy as np
 
@@ -30,10 +30,10 @@ class SpatialAttack(Attack):
         self,
         max_translation: float = 3,
         max_rotation: float = 30,
-        num_translations=5,
+        num_translations: int = 5,
         num_rotations: int = 5,
         grid_search: bool = True,
-        random_steps: int = 100,
+        random_steps: int = 20,
     ):
 
         self.max_trans = max_translation
@@ -49,8 +49,12 @@ class SpatialAttack(Attack):
         self.random_steps = random_steps
 
     def __call__(
-        self, model: Model, inputs: T, criterion: Union[Criterion, T],
-    ):
+        self,
+            model: Model,
+            inputs: T,
+            criterion: Union[Criterion, T],
+            **kwargs: Any,
+    ) -> Tuple[T, T, T]:
         x, restore_type = ep.astensor_(inputs)
         del inputs
         criterion = get_criterion(criterion)
@@ -66,7 +70,7 @@ class SpatialAttack(Attack):
         success = is_adversarial(xp)
 
         xp_ = restore_type(xp)
-        return xp_, success
+        return xp_, xp_, success   # xp_twice for api consistency
 
     def run(
         self,

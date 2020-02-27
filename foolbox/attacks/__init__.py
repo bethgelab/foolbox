@@ -35,6 +35,7 @@ from .carlini_wagner import L2CarliniWagnerAttack  # noqa: F401
 from .newtonfool import NewtonFoolAttack  # noqa: F401
 from .ead import EADAttack  # noqa: F401
 from .blur import GaussianBlurAttack  # noqa: F401
+from .spatial_attack import SpatialAttack  # noqa: F401
 from .deepfool import L2DeepFoolAttack, LinfDeepFoolAttack  # noqa: F401
 from .saltandpepper import SaltAndPepperNoiseAttack  # noqa: F401
 from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
