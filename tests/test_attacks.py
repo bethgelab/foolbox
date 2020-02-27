@@ -21,6 +21,7 @@ def get_attack_id(x: Tuple[fbn.Attack, bool, bool]) -> str:
 
 # attack, eps / None, attack_uses_grad, requires_real_model
 attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
+    (fa.SinglePixelAttack(steps=100), None, False, True),
     (fa.DDNAttack(init_epsilon=2.0), None, True, False),
     (fa.InversionAttack(), None, False, False),
     (

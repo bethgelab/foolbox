@@ -47,6 +47,7 @@ from .brendel_bethge import (  # noqa: F401
     L2BrendelBethgeAttack,
     LinfinityBrendelBethgeAttack,
 )
+from .single_pixel import SinglePixelAttack  # noqa: F401
 
 # from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
 # from .brendel_bethge import (  # noqa: F401
