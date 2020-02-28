@@ -16,7 +16,7 @@ from .base import get_channel_axis
 from .base import raise_if_kwargs
 import math
 
-from ..rescale_images import rescale_images
+from .gen_attack_utils import rescale_images
 
 
 class GenAttack(FixedEpsilonAttack):

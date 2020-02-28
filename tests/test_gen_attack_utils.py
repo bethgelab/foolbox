@@ -1,6 +1,6 @@
 import eagerpy as ep
 
-from foolbox.rescale_images import rescale_images
+from foolbox.attacks.gen_attack_utils import rescale_images
 
 
 def test_pytorch_numpy_compatibility() -> None:
