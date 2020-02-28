@@ -12,13 +12,15 @@ def get_attack_id(x: Tuple[fbn.Attack, bool, bool]) -> str:
 # attack
 attacks: List[Tuple[fbn.Attack, bool]] = [
     (fa.SpatialAttack(), False),
-    (fa.SpatialAttack(grid_search=False), False)
+    (fa.SpatialAttack(grid_search=False), False),
 ]
 
 
 @pytest.mark.parametrize("attack_grad_real", attacks, ids=get_attack_id)
 def test_spatial_attacks(
-    fmodel_and_data_ext_for_attacks: Tuple[Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool],
+    fmodel_and_data_ext_for_attacks: Tuple[
+        Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
+    ],
     attack_grad_real: Tuple[fbn.Attack, Optional[float], bool],
 ) -> None:
 

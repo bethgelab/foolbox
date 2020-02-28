@@ -19,6 +19,7 @@ def rotate_and_shift(
     theta = np.tile(theta[None], (bs, 1, 1)).reshape(bs, 2, 3)
     if isinstance(inputs, TensorFlowTensor):
         import tensorflow as tf
+
         # convert from pixels to relative translation (bs, x, y, n_ch)
         theta[:, 0, 2] /= inputs.shape[1] / 2.0
         theta[:, 1, 2] /= inputs.shape[2] / 2.0
@@ -27,6 +28,7 @@ def rotate_and_shift(
         transformed_tensor = transform_tf(tf_tensor, theta)
     elif isinstance(inputs, PyTorchTensor):
         import torch
+
         # convert from pixels to relative translation, (bs, n_ch, x, y)
         theta[:, 0, 2] /= inputs.shape[2] / 2.0
         theta[:, 1, 2] /= inputs.shape[3] / 2.0
@@ -67,7 +69,6 @@ def transform_pt(x, theta):
     transformed_images = torch.nn.functional.grid_sample(
         x, new_coords, mode="bilinear", padding_mode="zeros", align_corners=True
     )
-
     return transformed_images
 
 
