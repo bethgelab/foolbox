@@ -1,4 +1,4 @@
-from typing import Union, Optional, Any
+from typing import Union, Optional, Any, Tuple
 import eagerpy as ep
 import numpy as np
 
@@ -50,7 +50,7 @@ class SpatialAttack(Attack):
 
     def __call__(
         self, model: Model, inputs: T, criterion: Union[Criterion, T],
-    ):
+    ) -> Tuple[T, T, T]:
         x, restore_type = ep.astensor_(inputs)
         del inputs
         criterion = get_criterion(criterion)
@@ -66,7 +66,7 @@ class SpatialAttack(Attack):
         success = is_adversarial(xp)
 
         xp_ = restore_type(xp)
-        return xp_, success
+        return xp_, xp_, success
 
     def run(
         self,

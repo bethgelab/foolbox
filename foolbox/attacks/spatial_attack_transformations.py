@@ -18,17 +18,19 @@ def rotate_and_shift(
     theta[1, :] = [np.sin(rotation), np.cos(rotation), translation[1]]
     theta = np.tile(theta[None], (bs, 1, 1)).reshape(bs, 2, 3)
     if isinstance(inputs, TensorFlowTensor):
+        import tensorflow as tf
         # convert from pixels to relative translation (bs, x, y, n_ch)
         theta[:, 0, 2] /= inputs.shape[1] / 2.0
         theta[:, 1, 2] /= inputs.shape[2] / 2.0
         theta = tf.convert_to_tensor(theta)
-        tf_tensor = restore_type(inputs)
+        tf_tensor = inputs.raw
         transformed_tensor = transform_tf(tf_tensor, theta)
     elif isinstance(inputs, PyTorchTensor):
+        import torch
         # convert from pixels to relative translation, (bs, n_ch, x, y)
         theta[:, 0, 2] /= inputs.shape[2] / 2.0
         theta[:, 1, 2] /= inputs.shape[3] / 2.0
-        pt_tensor = restore_type(inputs)
+        pt_tensor = inputs.raw
         theta = torch.tensor(theta, device=pt_tensor.device)
         transformed_tensor = transform_pt(pt_tensor, theta)
     else:
@@ -134,7 +136,6 @@ def transform_tf(x, theta):
         """
         max_y = tf.cast(n_x - 1, "int32")
         max_x = tf.cast(n_y - 1, "int32")
-        zero = tf.zeros([], dtype="int32")
 
         # rescale x and y to [0, n_y-1/n_x-1]
         x = tf.cast(x, "float32")
@@ -149,11 +150,11 @@ def transform_tf(x, theta):
         y1 = y0 + 1
 
         # clip to range [0, n_x-1/n_y-1] to not violate img boundaries
-        min_val = -1
-        x0 = tf.clip_by_value(x0, min_val, max_x + 1)
-        x1 = tf.clip_by_value(x1, min_val, max_x + 1)
-        y0 = tf.clip_by_value(y0, min_val, max_y + 1)
-        y1 = tf.clip_by_value(y1, min_val, max_y + 1)
+        min_val = 0
+        x0 = tf.clip_by_value(x0, min_val, max_x)
+        x1 = tf.clip_by_value(x1, min_val, max_x)
+        y0 = tf.clip_by_value(y0, min_val, max_y)
+        y1 = tf.clip_by_value(y1, min_val, max_y)
 
         # get pixel value at corner coords
         Ia = get_pixel_value(img, x0, y0)
@@ -266,7 +267,7 @@ def test_transforms():
     x_t_rot = rotate_and_shift(
         x_t, restore_type, rotation=rot, translation=(shift_x, shift_y)
     ).numpy()
-    x_p, restore_type = ep.astensor_(a_p)
+    x_p, restore_type = astensor_(a_p)
     x_p_rot = (
         rotate_and_shift(
             x_p, restore_type, rotation=rot, translation=(shift_x, shift_y)

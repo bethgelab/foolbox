@@ -1,14 +1,13 @@
 from typing import List, Tuple, Optional
 import pytest
 import eagerpy as ep
-import numpy as np
-
 import foolbox as fbn
 import foolbox.attacks as fa
-from foolbox.attacks.spatial_attack_transformations import rotate_and_shift
+
 
 def get_attack_id(x: Tuple[fbn.Attack, bool, bool]) -> str:
     return repr(x[0])
+
 
 # attack
 attacks: List[Tuple[fbn.Attack, bool]] = [
@@ -25,7 +24,7 @@ def test_spatial_attacks(
 
     attack, attack_uses_grad = attack_grad_real
     (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
-    if  not real:
+    if not real:
         pytest.skip()
 
     if isinstance(x, ep.NumPyTensor) and attack_uses_grad:
