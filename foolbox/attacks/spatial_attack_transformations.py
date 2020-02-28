@@ -1,7 +1,5 @@
 from typing import Tuple
 import numpy as np
-import tensorflow as tf
-import torch
 import math
 from eagerpy import astensor_, Tensor
 from eagerpy.tensor import TensorFlowTensor, PyTorchTensor
@@ -40,6 +38,8 @@ def rotate_and_shift(
 
 
 def transform_pt(x, theta):
+    import torch
+
     # x shape: (bs, nch, x, y)
     # angles: scalar or Tensor with (bs,)
     assert len(x.shape) == 4
@@ -73,6 +73,8 @@ def transform_pt(x, theta):
 # https://github.com/kevinzakka/spatial-transformer-network/blob/master/stn/transformer.py
 # state @375f990 on 3 Jun 2018
 def transform_tf(x, theta):
+    import tensorflow as tf
+
     """
     Input
     -----
@@ -252,6 +254,9 @@ def transform_tf(x, theta):
 
 
 def test_transforms():
+    import tensorflow as tf
+    import torch
+
     rot = 8.3
     shift_x, shift_y = (24.4, -4)
     a_n = np.random.uniform(size=(3, 100, 100, 3)).astype(np.float32)
