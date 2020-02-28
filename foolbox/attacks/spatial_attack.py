@@ -78,6 +78,9 @@ class SpatialAttack(Attack):
         early_stop: Optional[float] = None,
         **kwargs: Any,
     ) -> T:
+
+        inputs, restore_type = ep.astensor_(inputs)
+
         is_adversarial = get_is_adversarial(criterion, model)
 
         found = is_adversarial(inputs)
