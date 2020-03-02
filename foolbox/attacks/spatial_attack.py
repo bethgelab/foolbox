@@ -67,7 +67,7 @@ class SpatialAttack(Attack):
         success = is_adversarial(xp)
 
         xp_ = restore_type(xp)
-        return xp_, xp_, restore_type(success)   # twice to match API
+        return xp_, xp_, restore_type(success)  # twice to match API
 
     def run(
         self, model: Model, inputs: T, criterion: Union[Criterion, T], **kwargs: Any,
