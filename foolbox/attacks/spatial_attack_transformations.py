@@ -1,57 +1,52 @@
 from typing import Tuple
 import numpy as np
 import math
-from eagerpy import astensor_, Tensor
+from eagerpy import astensor, Tensor
 from eagerpy.tensor import TensorFlowTensor, PyTorchTensor
 
 
 def rotate_and_shift(
     inputs: Tensor,
-    restore_type,
-    translation: Tuple[int, int] = (0, 0),
-    rotation: float = 0,
-):
+    translation: Tuple[float, float] = (0.0, 0.0),
+    rotation: float = 0.0,
+) -> Tensor:
     rotation = rotation * math.pi / 180.0
-    bs = inputs.shape[0]
-    theta = np.zeros((2, 3)).astype(np.float32)
-    theta[0, :] = [np.cos(rotation), -np.sin(rotation), translation[0]]
-    theta[1, :] = [np.sin(rotation), np.cos(rotation), translation[1]]
-    theta = np.tile(theta[None], (bs, 1, 1)).reshape(bs, 2, 3)
     if isinstance(inputs, TensorFlowTensor):
-        import tensorflow as tf
-
-        # convert from pixels to relative translation (bs, x, y, n_ch)
-        theta[:, 0, 2] /= inputs.shape[1] / 2.0
-        theta[:, 1, 2] /= inputs.shape[2] / 2.0
-        theta = tf.convert_to_tensor(theta)
-        tf_tensor = inputs.raw
-        transformed_tensor = transform_tf(tf_tensor, theta)
+        transformed_tensor = transform_tf(inputs, translation, rotation)
     elif isinstance(inputs, PyTorchTensor):
-        import torch
-
-        # convert from pixels to relative translation, (bs, n_ch, x, y)
-        theta[:, 0, 2] /= inputs.shape[2] / 2.0
-        theta[:, 1, 2] /= inputs.shape[3] / 2.0
-        pt_tensor = inputs.raw
-        theta = torch.tensor(theta, device=pt_tensor.device)
-        transformed_tensor = transform_pt(pt_tensor, theta)
+        transformed_tensor = transform_pt(inputs, translation, rotation)
     else:
         raise NotImplementedError()
 
-    return astensor_(transformed_tensor)[0]
+    return transformed_tensor
 
 
-def transform_pt(x, theta):
+def transform_pt(
+    x: Tensor, translation: Tuple[float, float] = (0.0, 0.0), rotation: float = 0.0,
+) -> Tensor:
     import torch
 
     # x shape: (bs, nch, x, y)
     # angles: scalar or Tensor with (bs,)
+    bs = x.shape[0]
+    theta = np.zeros((2, 3)).astype(np.float32)
+    theta[0, :] = [np.cos(rotation), -np.sin(rotation), translation[0]]
+    theta[1, :] = [np.sin(rotation), np.cos(rotation), translation[1]]
+    theta = np.tile(theta[None], (bs, 1, 1)).reshape(bs, 2, 3)
+    # convert from pixels to relative translation, (bs, n_ch, x, y)
+    theta[:, 0, 2] /= x.shape[2] / 2.0
+    theta[:, 1, 2] /= x.shape[3] / 2.0
+
+    # to pt
+    x = x.raw
+    theta = torch.tensor(theta, device=x.device)
+
     assert len(x.shape) == 4
     assert theta.shape[1:] == (2, 3)
 
     bs, _, n_x, n_y, = x.shape
 
-    def create_meshgrid(x):
+    def create_meshgrid(x: torch.Tensor) -> torch.Tensor:
         space_x = torch.linspace(-1, 1, n_x, device=x.device)
         space_y = torch.linspace(-1, 1, n_y, device=x.device)
         meshgrid = torch.meshgrid([space_x, space_y])
@@ -69,15 +64,31 @@ def transform_pt(x, theta):
     transformed_images = torch.nn.functional.grid_sample(
         x, new_coords, mode="bilinear", padding_mode="zeros", align_corners=True
     )
-    return transformed_images
+    return astensor(transformed_images)
 
 
 # adapted adapted from
 # https://github.com/kevinzakka/spatial-transformer-network/blob/master/stn/transformer.py
 # state @375f990 on 3 Jun 2018
-def transform_tf(x, theta):
+def transform_tf(
+    x: Tensor, translation: Tuple[float, float] = (0.0, 0.0), rotation: float = 0.0,
+) -> Tensor:
+
     import tensorflow as tf
 
+    bs = x.shape[0]
+    theta = np.zeros((2, 3)).astype(np.float32)
+
+    theta[0, :] = [np.cos(rotation), -np.sin(rotation), translation[0]]
+    theta[1, :] = [np.sin(rotation), np.cos(rotation), translation[1]]
+    theta = np.tile(theta[None], (bs, 1, 1)).reshape(bs, 2, 3)
+    # convert from pixels to relative translation (bs, x, y, n_ch)
+    theta[:, 0, 2] /= x.shape[1] / 2.0
+    theta[:, 1, 2] /= x.shape[2] / 2.0
+
+    # to tf
+    theta = tf.convert_to_tensor(theta)
+    x = x.raw
     """
     Input
     -----
@@ -100,7 +111,7 @@ def transform_tf(x, theta):
     n_x = tf.shape(x)[1]  # height matrix
     n_y = tf.shape(x)[2]  # width matrix
 
-    def get_pixel_value(img, x, y):
+    def get_pixel_value(img: tf.Tensor, x: tf.Tensor, y: tf.Tensor) -> tf.Tensor:
         """
         Utility function to get pixel value for coordinate
         vectors x and y from a  4D tensor image.
@@ -119,7 +130,7 @@ def transform_tf(x, theta):
         indices = tf.stack([b, y, x], 3)
         return tf.gather_nd(img, indices)
 
-    def bilinear_sampler(img, x, y):
+    def bilinear_sampler(img: tf.Tensor, x: tf.int32, y: tf.int32) -> tf.Tensor:
         """
         Performs bilinear sampling of the input images according to the
         normalized coordinates provided by the sampling grid. Note that
@@ -186,7 +197,9 @@ def transform_tf(x, theta):
 
         return out
 
-    def affine_grid_generator(height, width, theta):
+    def affine_grid_generator(
+        height: tf.int32, width: tf.int32, theta: tf.Tensor
+    ) -> tf.Tensor:
         """
         This function returns a sampling grid, which when
         used with the bilinear sampler on the input feature
@@ -252,10 +265,10 @@ def transform_tf(x, theta):
     # sample input with grid to get output
     transformed_images = bilinear_sampler(x, x_s, y_s)
 
-    return transformed_images
+    return astensor(transformed_images)
 
 
-def test_transforms():
+def test_transforms() -> None:
     import tensorflow as tf
     import torch
 
@@ -264,18 +277,17 @@ def test_transforms():
     a_n = np.random.uniform(size=(3, 100, 100, 3)).astype(np.float32)
     a_t = tf.convert_to_tensor(a_n)
     a_p = torch.tensor(a_n).permute(0, 3, 1, 2)
-    x_t, restore_type = astensor_(a_t)
+    x_t = astensor(a_t)
     x_t_rot = rotate_and_shift(
-        x_t, restore_type, rotation=rot, translation=(shift_x, shift_y)
+        x_t, rotation=rot, translation=(shift_x, shift_y)
     ).numpy()
-    x_p, restore_type = astensor_(a_p)
+    x_p = astensor(a_p)
     x_p_rot = (
-        rotate_and_shift(
-            x_p, restore_type, rotation=rot, translation=(shift_x, shift_y)
-        )
+        rotate_and_shift(x_p, translation=(shift_x, shift_y), rotation=rot)
         .raw.permute(0, 2, 3, 1)
         .numpy()
     )
 
     diff = x_p_rot[:, :, :, :] - x_t_rot[:, :, :, :]
-    return (np.max(diff)) < 1e-4 and (np.median(diff) == 0)
+    assert (np.max(diff)) < 1e-4 and (np.median(diff) == 0)
+    return
