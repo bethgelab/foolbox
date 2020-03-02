@@ -49,7 +49,7 @@ class SpatialAttack(Attack):
         # grid search false
         self.random_steps = random_steps
 
-    def __call__(
+    def __call__(  # type: ignore
         self, model: Model, inputs: T, criterion: Union[Criterion, T],
     ) -> Tuple[T, T, T]:
         x, restore_type = ep.astensor_(inputs)

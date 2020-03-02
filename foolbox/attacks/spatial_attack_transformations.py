@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Any
 import numpy as np
 import math
 from eagerpy import astensor, Tensor
@@ -9,7 +9,7 @@ def rotate_and_shift(
     inputs: Tensor,
     translation: Tuple[float, float] = (0.0, 0.0),
     rotation: float = 0.0,
-) -> Tensor:
+) -> Any:
     rotation = rotation * math.pi / 180.0
     if isinstance(inputs, TensorFlowTensor):
         transformed_tensor = transform_tf(inputs, translation, rotation)
@@ -22,23 +22,23 @@ def rotate_and_shift(
 
 
 def transform_pt(
-    x: Tensor, translation: Tuple[float, float] = (0.0, 0.0), rotation: float = 0.0,
-) -> Tensor:
+    x_e: Tensor, translation: Tuple[float, float] = (0.0, 0.0), rotation: float = 0.0,
+) -> Any:
     import torch
 
-    # x shape: (bs, nch, x, y)
+    # x_e shape: (bs, nch, x, y)
     # angles: scalar or Tensor with (bs,)
-    bs = x.shape[0]
+    bs = x_e.shape[0]
     theta = np.zeros((2, 3)).astype(np.float32)
     theta[0, :] = [np.cos(rotation), -np.sin(rotation), translation[0]]
     theta[1, :] = [np.sin(rotation), np.cos(rotation), translation[1]]
     theta = np.tile(theta[None], (bs, 1, 1)).reshape(bs, 2, 3)
     # convert from pixels to relative translation, (bs, n_ch, x, y)
-    theta[:, 0, 2] /= x.shape[2] / 2.0
-    theta[:, 1, 2] /= x.shape[3] / 2.0
+    theta[:, 0, 2] /= x_e.shape[2] / 2.0
+    theta[:, 1, 2] /= x_e.shape[3] / 2.0
 
     # to pt
-    x = x.raw
+    x = x_e.raw
     theta = torch.tensor(theta, device=x.device)
 
     assert len(x.shape) == 4
@@ -49,7 +49,7 @@ def transform_pt(
     def create_meshgrid(x: torch.Tensor) -> torch.Tensor:
         space_x = torch.linspace(-1, 1, n_x, device=x.device)
         space_y = torch.linspace(-1, 1, n_y, device=x.device)
-        meshgrid = torch.meshgrid([space_x, space_y])
+        meshgrid = torch.meshgrid([space_x, space_y])  # type: ignore
         ones = torch.ones(meshgrid[0].shape, device=x.device)
         gridder = torch.stack([meshgrid[1], meshgrid[0], ones], dim=2)
         grid = gridder[None, ...].repeat(bs, 1, 1, 1)[..., None]
@@ -61,7 +61,7 @@ def transform_pt(
     new_coords = new_coords.squeeze_(-1)
 
     # align_corners=True to match tf implementation
-    transformed_images = torch.nn.functional.grid_sample(
+    transformed_images = torch.nn.functional.grid_sample(  # type: ignore
         x, new_coords, mode="bilinear", padding_mode="zeros", align_corners=True
     )
     return astensor(transformed_images)
@@ -71,24 +71,23 @@ def transform_pt(
 # https://github.com/kevinzakka/spatial-transformer-network/blob/master/stn/transformer.py
 # state @375f990 on 3 Jun 2018
 def transform_tf(
-    x: Tensor, translation: Tuple[float, float] = (0.0, 0.0), rotation: float = 0.0,
-) -> Tensor:
-
+    x_e: Tensor, translation: Tuple[float, float] = (0.0, 0.0), rotation: float = 0.0,
+) -> Any:
     import tensorflow as tf
 
-    bs = x.shape[0]
+    bs = x_e.shape[0]
     theta = np.zeros((2, 3)).astype(np.float32)
 
     theta[0, :] = [np.cos(rotation), -np.sin(rotation), translation[0]]
     theta[1, :] = [np.sin(rotation), np.cos(rotation), translation[1]]
     theta = np.tile(theta[None], (bs, 1, 1)).reshape(bs, 2, 3)
     # convert from pixels to relative translation (bs, x, y, n_ch)
-    theta[:, 0, 2] /= x.shape[1] / 2.0
-    theta[:, 1, 2] /= x.shape[2] / 2.0
+    theta[:, 0, 2] /= x_e.shape[1] / 2.0
+    theta[:, 1, 2] /= x_e.shape[2] / 2.0
 
     # to tf
     theta = tf.convert_to_tensor(theta)
-    x = x.raw
+    x = x_e.raw
     """
     Input
     -----
@@ -111,7 +110,7 @@ def transform_tf(
     n_x = tf.shape(x)[1]  # height matrix
     n_y = tf.shape(x)[2]  # width matrix
 
-    def get_pixel_value(img: tf.Tensor, x: tf.Tensor, y: tf.Tensor) -> tf.Tensor:
+    def get_pixel_value(img: Any, x: Any, y: Any) -> Any:
         """
         Utility function to get pixel value for coordinate
         vectors x and y from a  4D tensor image.
@@ -130,7 +129,7 @@ def transform_tf(
         indices = tf.stack([b, y, x], 3)
         return tf.gather_nd(img, indices)
 
-    def bilinear_sampler(img: tf.Tensor, x: tf.int32, y: tf.int32) -> tf.Tensor:
+    def bilinear_sampler(img: Any, x: Any, y: Any) -> Any:
         """
         Performs bilinear sampling of the input images according to the
         normalized coordinates provided by the sampling grid. Note that
@@ -197,9 +196,7 @@ def transform_tf(
 
         return out
 
-    def affine_grid_generator(
-        height: tf.int32, width: tf.int32, theta: tf.Tensor
-    ) -> tf.Tensor:
+    def affine_grid_generator(height: Any, width: Any, theta: Any) -> Any:
         """
         This function returns a sampling grid, which when
         used with the bilinear sampler on the input feature
