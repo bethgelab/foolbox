@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 import pytest
 import eagerpy as ep
 import foolbox as fbn
