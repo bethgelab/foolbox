@@ -263,28 +263,3 @@ def transform_tf(
     transformed_images = bilinear_sampler(x, x_s, y_s)
 
     return astensor(transformed_images)
-
-
-def test_transforms() -> None:
-    import tensorflow as tf
-    import torch
-
-    rot = 8.3
-    shift_x, shift_y = (24.4, -4)
-    a_n = np.random.uniform(size=(3, 100, 100, 3)).astype(np.float32)
-    a_t = tf.convert_to_tensor(a_n)
-    a_p = torch.tensor(a_n).permute(0, 3, 1, 2)
-    x_t = astensor(a_t)
-    x_t_rot = rotate_and_shift(
-        x_t, rotation=rot, translation=(shift_x, shift_y)
-    ).numpy()
-    x_p = astensor(a_p)
-    x_p_rot = (
-        rotate_and_shift(x_p, translation=(shift_x, shift_y), rotation=rot)
-        .raw.permute(0, 2, 3, 1)
-        .numpy()
-    )
-
-    diff = x_p_rot[:, :, :, :] - x_t_rot[:, :, :, :]
-    assert (np.max(diff)) < 1e-4 and (np.median(diff) == 0)
-    return
