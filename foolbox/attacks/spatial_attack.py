@@ -50,7 +50,7 @@ class SpatialAttack(Attack):
         self.random_steps = random_steps
 
     def __call__(  # type: ignore
-        self, model: Model, inputs: T, criterion: Union[Criterion, T],
+        self, model: Model, inputs: T, criterion: Any, **kwargs: Any,
     ) -> Tuple[T, T, T]:
         x, restore_type = ep.astensor_(inputs)
         del inputs

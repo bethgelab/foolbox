@@ -36,6 +36,5 @@ def test_spatial_attacks(
     fmodel = fmodel.transform_bounds((0, 1))
     acc = fbn.accuracy(fmodel, x, y)
     assert acc > 0
-
-    advs, _, _ = attack(fmodel, x, y)
+    advs, _, _ = attack(fmodel, x, y)  # type: ignore
     assert fbn.accuracy(fmodel, advs, y) < acc
