@@ -5,14 +5,14 @@ import foolbox as fbn
 import foolbox.attacks as fa
 
 
-def get_attack_id(x: Tuple[fbn.Attack, bool, bool]) -> str:
-    return repr(x[0])
+def get_attack_id(x: fbn.Attack) -> str:
+    return repr(x)
 
 
 # attack
-attacks: List[Tuple[fbn.Attack, bool]] = [
-    (fa.SpatialAttack(), False),
-    (fa.SpatialAttack(grid_search=False), False),
+attacks: List[fbn.Attack] = [
+    fa.SpatialAttack(),
+    fa.SpatialAttack(grid_search=False),
 ]
 
 
@@ -21,15 +21,12 @@ def test_spatial_attacks(
     fmodel_and_data_ext_for_attacks: Tuple[
         Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
     ],
-    attack_grad_real: Tuple[fbn.Attack, bool],
+    attack_grad_real:fbn.Attack,
 ) -> None:
 
-    attack, attack_uses_grad = attack_grad_real
+    attack = attack_grad_real
     (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
     if not real:
-        pytest.skip()
-
-    if isinstance(x, ep.NumPyTensor) and attack_uses_grad:
         pytest.skip()
 
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)

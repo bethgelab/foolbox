@@ -16,12 +16,13 @@ from .base import raise_if_kwargs
 
 
 class SpatialAttack(Attack):
-    """Adversarially chosen rotations and translations [1].
+    """Adversarially chosen rotations and translations. [#Engs]
     This implementation is based on the reference implementation by
     Madry et al.: https://github.com/MadryLab/adversarial_spatial
-    References
+
+    References:
     ----------
-    .. [1] Logan Engstrom*, Brandon Tran*, Dimitris Tsipras*,
+    .. [#Engs] Logan Engstrom*, Brandon Tran*, Dimitris Tsipras*,
            Ludwig Schmidt, Aleksander Mądry: "A Rotation and a
            Translation Suffice: Fooling CNNs with Simple Transformations",
            http://arxiv.org/abs/1712.02779
@@ -110,8 +111,8 @@ class SpatialAttack(Attack):
             results = ep.where(atleast_kd(new_adv, x_p.ndim), x_p, results)
             found = ep.logical_or(new_adv, found)
             if found.all():
-                return restore_type(results)
+                break  # all images in batch misclassified
         return restore_type(results)
 
-    def repeat(self, times: int) -> "Attack":
-        return self
+    def repeat(self, times: int) -> Attack:
+        raise NotImplementedError

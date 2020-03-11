@@ -27,6 +27,7 @@ def transform_pt(
     import torch
 
     # x_e shape: (bs, nch, x, y)
+    # rotation in rad, translation in pixel
     # angles: scalar or Tensor with (bs,)
     bs = x_e.shape[0]
     theta = np.zeros((2, 3)).astype(np.float32)
@@ -73,6 +74,23 @@ def transform_pt(
 def transform_tf(
     x_e: Tensor, translation: Tuple[float, float] = (0.0, 0.0), rotation: float = 0.0,
 ) -> Any:
+    """
+    Input
+    -----
+    - x: Ep tensor of shape (bs, n_x, n_y, C).
+    - translation: tuple of x, y translation in pixels
+    - rotation: rotation in rad
+
+    Returns
+    -------
+    - out_fmap: transformed input feature map. Tensor of size (bs, n_x, n_y, C).
+    Notes
+    -----
+
+    References:
+    [#Jade]: 'Spatial Transformer Networks', Jaderberg et. al,
+         (https://arxiv.org/abs/1506.02025)
+    """
     import tensorflow as tf
 
     bs = x_e.shape[0]
@@ -88,21 +106,7 @@ def transform_tf(
     # to tf
     theta = tf.convert_to_tensor(theta)
     x = x_e.raw
-    """
-    Input
-    -----
-    - x: Images, should be a tensor of shape (bs, n_x, n_y, C).
-    - theta: affine transform tensor of shape (bs, 2, 3). Permits cropping,
-      translation and isotropic scaling. Initialize to identity matrix.
-      It is the output of the localization network.
-    Returns
-    -------
-    - out_fmap: transformed input feature map. Tensor of size (bs, n_x, n_y, C).
-    Notes
-    -----
-    [1]: 'Spatial Transformer Networks', Jaderberg et. al,
-         (https://arxiv.org/abs/1506.02025)
-    """
+
     # grab input dimensions
     assert theta.shape[1:] == (2, 3)
     assert len(x.shape) == 4
@@ -114,12 +118,14 @@ def transform_tf(
         """
         Utility function to get pixel value for coordinate
         vectors x and y from a  4D tensor image.
-        Input
+
+        Args:
         -----
         - img: tensor of shape (bs, n_x, n_y, C)
         - x: flattened tensor of shape (bs*n_x*n_y,)
         - y: flattened tensor of shape (bs*n_x*n_y,)
-        Returns
+
+        Returns:
         -------
         - output: tensor of shape (bs, n_x, n_y, C)
         """
@@ -137,11 +143,13 @@ def transform_tf(
         To test if the function works properly, output image should be
         identical to input image when theta is initialized to identity
         transform.
-        Input
+
+        Args:
         -----
         - img: batch of images in (bs, n_x, n_y, C) layout.
         - grid: x, y which is the output of affine_grid_generator.
-        Returns
+
+        Returns:
         -------
         - out: interpolated images according to grids. Same size as grid.
         """
@@ -202,7 +210,8 @@ def transform_tf(
         used with the bilinear sampler on the input feature
         map, will create an output feature map that is an
         affine transformation [1] of the input feature map.
-        Input
+
+        Args:
         -----
         - height: desired height of grid/output. Used
           to downsample or upsample.
@@ -211,7 +220,8 @@ def transform_tf(
         - theta: affine transform matrices of shape (num_batch, 2, 3).
           For each image in the batch, we have 6 theta parameters of
           the form (2x3) that define the affine transformation T.
-        Returns
+
+        Returns:
         -------
         - normalized grid (-1, 1) of shape (num_batch, 2, n_x, n_y).
           The 2nd dimension has 2 components: (x, y) which are the
