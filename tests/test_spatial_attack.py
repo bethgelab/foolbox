@@ -21,7 +21,7 @@ def test_spatial_attacks(
     fmodel_and_data_ext_for_attacks: Tuple[
         Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
     ],
-    attack_grad_real:fbn.Attack,
+    attack_grad_real: fbn.Attack,
 ) -> None:
 
     attack = attack_grad_real
