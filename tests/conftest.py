@@ -109,6 +109,17 @@ def pytorch_simple_model_object(request: Any) -> ModelAndData:
 
 
 @register("pytorch", real=True)
+def pytorch_mnist(request: Any) -> ModelAndData:
+    fmodel = fbn.zoo.ModelLoader.get().load(
+        "examples/zoo/mnist/", module_name="foolbox_model"
+    )
+    x, y = fbn.samples(fmodel, dataset="mnist", batchsize=16)
+    x = ep.astensor(x)
+    y = ep.astensor(y)
+    return fmodel, x, y
+
+
+@register("pytorch", real=True)
 def pytorch_resnet18(request: Any) -> ModelAndData:
     if request.config.option.skipslow:
         pytest.skip()
