@@ -31,7 +31,7 @@ def test_rescale_axis_nhwc(request: Any, dummy: ep.Tensor) -> None:
 
     x_np = np.random.uniform(0.0, 1.0, size=(16, 64, 64, 3))
     x_np_ep = ep.astensor(x_np)
-    x_up_np_ep = rescale_images(x_np_ep, (16, 128, 128, 3), 1)
+    x_up_np_ep = rescale_images(x_np_ep, (16, 128, 128, 3), -1)
     x_up_np = x_up_np_ep.numpy()
 
     x = ep.from_numpy(dummy, x_np)
