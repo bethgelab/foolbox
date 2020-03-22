@@ -5,14 +5,17 @@ from .contrast import L2ContrastReductionAttack  # noqa: F401
 from .virtual_adversarial_attack import VirtualAdversarialAttack  # noqa: F401
 from .ddn import DDNAttack  # noqa: F401
 from .projected_gradient_descent import (  # noqa: F401
+    L1ProjectedGradientDescentAttack,
     L2ProjectedGradientDescentAttack,
     LinfProjectedGradientDescentAttack,
 )
 from .basic_iterative_method import (  # noqa: F401
+    L1BasicIterativeAttack,
     L2BasicIterativeAttack,
     LinfBasicIterativeAttack,
 )
 from .fast_gradient_method import (  # noqa: F401
+    L1FastGradientAttack,
     L2FastGradientAttack,
     LinfFastGradientAttack,
 )
@@ -66,6 +69,7 @@ from .gen_attack import GenAttack  # noqa: F401
 
 FGM = L2FastGradientAttack
 FGSM = LinfFastGradientAttack
+L1PGD = L1ProjectedGradientDescentAttack
 L2PGD = L2ProjectedGradientDescentAttack
 LinfPGD = LinfProjectedGradientDescentAttack
 PGD = LinfPGD
