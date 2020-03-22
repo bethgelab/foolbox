@@ -102,7 +102,7 @@ def _samples(
 
         assert image.ndim == 3
 
-        if dataset != "mnist" and data_format == "channels_first":
+        if data_format == "channels_first":
             image = np.transpose(image, (2, 0, 1))
 
         images.append(image)

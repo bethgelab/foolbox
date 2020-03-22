@@ -27,6 +27,7 @@ from .additive_noise import (  # noqa: F401
     L2RepeatedAdditiveUniformNoiseAttack,
     LinfRepeatedAdditiveUniformNoiseAttack,
 )
+from .sparse_l1_descent_attack import SparseL1DescentAttack  # noqa: F401
 
 # MinimizatonAttack subclasses
 from .inversion import InversionAttack  # noqa: F401
@@ -50,7 +51,7 @@ from .brendel_bethge import (  # noqa: F401
     L2BrendelBethgeAttack,
     LinfinityBrendelBethgeAttack,
 )
-from .sparse_l1_descent_attack import SparseL1DescentAttack  # noqa: F401
+from .gen_attack import GenAttack  # noqa: F401
 
 # from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
 # from .brendel_bethge import (  # noqa: F401

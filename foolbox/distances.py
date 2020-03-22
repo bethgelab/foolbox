@@ -55,6 +55,9 @@ class LpDistance(Distance):
         """
         (x, y), restore_type = ep.astensors_(references, perturbed)
         p = y - x
+        if self.p == ep.inf:
+            clipped_perturbation = ep.clip(p, -epsilon, epsilon)
+            return restore_type(x + clipped_perturbation)
         norms = ep.norms.lp(flatten(p), self.p, axis=-1)
         norms = ep.maximum(norms, 1e-12)  # avoid divsion by zero
         factor = epsilon / norms
