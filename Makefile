@@ -14,6 +14,14 @@ testskipslow:
 	pytest --pdb --skipslow --cov=foolbox --cov-append --backend jax
 	pytest --pdb --skipslow --cov=foolbox --cov-append --backend numpy
 
+.PHONY: testskipslowrev
+testskipslowrev:
+	pytest --pdb --skipslow --cov=foolbox --cov-append --backend numpy
+	pytest --pdb --skipslow --cov=foolbox --cov-append --backend jax
+	pytest --pdb --skipslow --cov=foolbox --cov-append --backend tensorflow
+	pytest --pdb --skipslow --cov=foolbox --cov-append --backend pytorch
+	pytest --pdb --skipslow --cov=foolbox
+
 .PHONY: testattacks
 testattacks:
 	pytest --pdb --cov=foolbox.attacks tests/test_attacks.py
