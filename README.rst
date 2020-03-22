@@ -23,7 +23,7 @@ Foolbox Native: A Python toolbox to create adversarial examples that fool neural
 🔥 Design 
 ----------
 
-`Foolbox 3 a.k.a. Foolbox Native has been rewritten from scratch
+Foolbox 3 a.k.a. Foolbox Native has been rewritten from scratch
 using `EagerPy <https://github.com/jonasrauber/eagerpy>`_ instead of
 NumPy to achieve native performance on models
 developed in PyTorch, TensorFlow and JAX, all with one code base.
