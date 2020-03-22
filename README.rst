@@ -5,9 +5,6 @@
 .. image:: https://badge.fury.io/py/foolbox.svg
    :target: https://badge.fury.io/py/foolbox
 
-.. image:: https://codecov.io/gh/bethgelab/foolbox/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/bethgelab/foolbox
-
 .. image:: https://readthedocs.org/projects/foolbox/badge/?version=latest
     :target: https://foolbox.readthedocs.io/en/latest/
 
