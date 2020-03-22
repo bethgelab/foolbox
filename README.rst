@@ -1,6 +1,6 @@
 .. raw:: html
 
-   <a href="https://foolbox.jonasrauber.de"><img src="https://raw.githubusercontent.com/bethgelab/foolbox/master/guide/.vuepress/public/logo.png" align="right" /></a>
+   <a href="https://foolbox.jonasrauber.de"><img src="https://raw.githubusercontent.com/bethgelab/foolbox/master/guide/.vuepress/public/logo_small.png" align="right" /></a>
 
 .. image:: https://badge.fury.io/py/foolbox.svg
    :target: https://badge.fury.io/py/foolbox
