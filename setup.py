@@ -10,6 +10,8 @@ try:
     readme_path = join(dirname(__file__), "README.rst")
     with open(readme_path, encoding="utf-8") as f:
         README = f.read()
+        # remove raw html not supported by PyPI
+        README = "\n".join(README.split("\n")[3:])
 except IOError:
     README = ""
 
