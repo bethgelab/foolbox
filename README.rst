@@ -23,7 +23,7 @@ Foolbox Native: A Python toolbox to create adversarial examples that fool neural
 🔥 Design 
 ----------
 
-Foolbox 3 a.k.a. Foolbox Native has been rewritten from scratch
+**Foolbox 3** a.k.a. **Foolbox Native** has been rewritten from scratch
 using `EagerPy <https://github.com/jonasrauber/eagerpy>`_ instead of
 NumPy to achieve native performance on models
 developed in PyTorch, TensorFlow and JAX, all with one code base.
@@ -35,9 +35,9 @@ developed in PyTorch, TensorFlow and JAX, all with one code base.
 📖 Documentation
 -----------------
 
-The best place to get started with Foolbox is the official `guide <https://foolbox.jonasrauber.de>`_.
-If you are looking for a tutorial, check out this `Jupyter notebook <https://github.com/jonasrauber/foolbox-native-tutorial/blob/master/foolbox-native-tutorial.ipynb>`_.
-Finally, you can find the full API documentation on `ReadTheDocs <https://foolbox.readthedocs.io/en/stable/>`_.
+- **Guide**: The best place to get started with Foolbox is the official `guide <https://foolbox.jonasrauber.de>`_.
+- **Tutorial**: If you are looking for a tutorial, check out this `Jupyter notebook <https://github.com/jonasrauber/foolbox-native-tutorial/blob/master/foolbox-native-tutorial.ipynb>`_.
+- **Documentaiton**: Finally, you can find the full API documentation on `ReadTheDocs <https://foolbox.readthedocs.io/en/stable/>`_.
 
 🚀 Quickstart
 --------------
