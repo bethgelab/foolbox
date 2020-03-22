@@ -27,6 +27,7 @@ from .additive_noise import (  # noqa: F401
     L2RepeatedAdditiveUniformNoiseAttack,
     LinfRepeatedAdditiveUniformNoiseAttack,
 )
+from .sparse_l1_descent_attack import SparseL1DescentAttack  # noqa: F401
 
 # MinimizatonAttack subclasses
 from .inversion import InversionAttack  # noqa: F401

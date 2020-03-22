@@ -75,6 +75,7 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.LinfBasicIterativeAttack(abs_stepsize=0.2), Linf(1.0), True, False),
     (fa.L2BasicIterativeAttack(), L2(50.0), True, False),
     (fa.L1BasicIterativeAttack(), 5000.0, True, False),
+    (fa.SparseL1DescentAttack(), 5000.0, True, False),
     (fa.FGSM(), Linf(100.0), True, False),
     (FGSM_GE(), Linf(100.0), False, False),
     (fa.FGM(), L2(100.0), True, False),
