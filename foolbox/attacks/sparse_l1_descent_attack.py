@@ -56,15 +56,15 @@ class SparseL1DescentAttack(L1BaseGradientDescent):
         abs_delta = abs(delta)
         mu = -ep.sort(-abs_delta, axis=-1)
         cumsums = mu.cumsum(axis=-1)
-        js = 1.0 / ep.arange(x, 1, d + 1)
+        js = 1.0 / ep.arange(x, 1, d + 1).astype(x.dtype)
         temp = mu - js * (cumsums - epsilon)
-        guarantee_first = ep.arange(x, d) / d
+        guarantee_first = ep.arange(x, d).astype(x.dtype) / d
         # guarantee_first are small values (< 1) that we add to the boolean
         # tensor (only 0 and 1) to break the ties and always return the first
         # argmin, i.e. the first value where the boolean tensor is 0
         # (otherwise, this is not guaranteed on GPUs, see e.g. PyTorch)
-        rho = ep.argmin((temp > 0).float32() + guarantee_first, axis=-1)
-        theta = 1.0 / (1 + rho) * (cumsums[range(n), rho] - epsilon)
+        rho = ep.argmin((temp > 0).astype(x.dtype) + guarantee_first, axis=-1)
+        theta = 1.0 / (1 + rho.astype(x.dtype)) * (cumsums[range(n), rho] - epsilon)
         delta = delta.sign() * ep.maximum(abs_delta - theta[..., ep.newaxis], 0)
         delta = delta.reshape(x.shape)
         return x0 + delta
