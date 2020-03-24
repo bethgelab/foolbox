@@ -114,4 +114,17 @@ class SpatialAttack(Attack):
         return restore_type(results)
 
     def repeat(self, times: int) -> Attack:
-        raise NotImplementedError
+        if self.grid_search:
+            raise ValueError(
+                "repeat is not supported if attack is deterministic"
+            )  # attack is deterministic
+        else:
+            random_steps = self.random_steps * times
+            return SpatialAttack(
+                max_translation=self.max_trans,
+                max_rotation=self.max_rot,
+                num_translations=self.num_trans,
+                num_rotations=self.num_rots,
+                grid_search=self.grid_search,
+                random_steps=random_steps,
+            )
