@@ -10,9 +10,10 @@ def get_attack_id(x: fbn.Attack) -> str:
 
 
 # attack
-attacks: List[fbn.Attack] = [
-    fa.SpatialAttack(),
-    fa.SpatialAttack(grid_search=False),
+attacks: List[Tuple[fbn.Attack, bool]] = [
+    (fa.SpatialAttack(), False),
+    (fa.SpatialAttack(grid_search=False), False),
+    (fa.SpatialAttack(grid_search=False), True),
 ]
 
 
@@ -21,10 +22,12 @@ def test_spatial_attacks(
     fmodel_and_data_ext_for_attacks: Tuple[
         Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
     ],
-    attack_grad_real: fbn.Attack,
+    attack_grad_real: Tuple[fbn.Attack, bool],
 ) -> None:
 
-    attack = attack_grad_real
+    attack, repeated = attack_grad_real
+    if repeated:
+        attack = attack.repeat(2)
     (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
     if not real:
         pytest.skip()
