@@ -76,16 +76,13 @@ def transform_tf(
 ) -> Any:
     """
     Input
-    -----
     - x: Ep tensor of shape (bs, n_x, n_y, C).
     - translation: tuple of x, y translation in pixels
     - rotation: rotation in rad
 
     Returns
-    -------
     - out_fmap: transformed input feature map. Tensor of size (bs, n_x, n_y, C).
     Notes
-    -----
 
     References:
     [#Jade]: 'Spatial Transformer Networks', Jaderberg et. al,
@@ -120,13 +117,11 @@ def transform_tf(
         vectors x and y from a  4D tensor image.
 
         Args:
-        -----
         - img: tensor of shape (bs, n_x, n_y, C)
         - x: flattened tensor of shape (bs*n_x*n_y,)
         - y: flattened tensor of shape (bs*n_x*n_y,)
 
         Returns:
-        -------
         - output: tensor of shape (bs, n_x, n_y, C)
         """
         batch_idx = tf.range(0, bs)
@@ -145,12 +140,10 @@ def transform_tf(
         transform.
 
         Args:
-        -----
         - img: batch of images in (bs, n_x, n_y, C) layout.
         - grid: x, y which is the output of affine_grid_generator.
 
         Returns:
-        -------
         - out: interpolated images according to grids. Same size as grid.
         """
         max_y = tf.cast(n_x - 1, "int32")
@@ -212,7 +205,6 @@ def transform_tf(
         affine transformation [1] of the input feature map.
 
         Args:
-        -----
         - height: desired height of grid/output. Used
           to downsample or upsample.
         - width: desired width of grid/output. Used
@@ -222,7 +214,6 @@ def transform_tf(
           the form (2x3) that define the affine transformation T.
 
         Returns:
-        -------
         - normalized grid (-1, 1) of shape (num_batch, 2, n_x, n_y).
           The 2nd dimension has 2 components: (x, y) which are the
           sampling points of the original image for each point in the

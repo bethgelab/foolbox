@@ -21,7 +21,6 @@ class SpatialAttack(Attack):
     Madry et al.: https://github.com/MadryLab/adversarial_spatial
 
     References:
-    ----------
     .. [#Engs] Logan Engstrom*, Brandon Tran*, Dimitris Tsipras*,
            Ludwig Schmidt, Aleksander Mądry: "A Rotation and a
            Translation Suffice: Fooling CNNs with Simple Transformations",
