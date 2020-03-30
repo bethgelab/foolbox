@@ -24,7 +24,7 @@ class BinarizationRefinementAttack(FlexibleDistanceMinimizationAttack):
     the clean input or to the right side of the threshold.
 
     Args:
-        threshold : The treshold used by the models binarization. If none,
+        threshold : The threshold used by the models binarization. If none,
             defaults to (model.bounds()[1] - model.bounds()[0]) / 2.
         included_in : Whether the threshold value itself belongs to the lower or
             upper interval.

@@ -24,7 +24,7 @@ class PyTorchModel(ModelWithPreprocessing):
         bounds: BoundsInput,
         device: Any = None,
         preprocessing: Preprocessing = None,
-    ) -> None:
+    ):
         import torch
 
         if not isinstance(model, torch.nn.Module):

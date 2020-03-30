@@ -34,7 +34,7 @@ class BinarySearchContrastReductionAttack(FlexibleDistanceMinimizationAttack):
         distance: Optional[Distance] = None,
         binary_search_steps: int = 15,
         target: float = 0.5,
-    ) -> None:
+    ):
         super().__init__(distance=distance)
         self.binary_search_steps = binary_search_steps
         self.target = target

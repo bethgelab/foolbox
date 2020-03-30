@@ -10,6 +10,8 @@ try:
     readme_path = join(dirname(__file__), "README.rst")
     with open(readme_path, encoding="utf-8") as f:
         README = f.read()
+        # remove raw html not supported by PyPI
+        README = "\n".join(README.split("\n")[3:])
 except IOError:
     README = ""
 
@@ -18,7 +20,7 @@ install_requires = [
     "numpy",
     "scipy",
     "setuptools",
-    "eagerpy==0.25.2",
+    "eagerpy==0.27.0",
     "GitPython>=3.0.7",
     "typing-extensions>=3.7.4.1",
 ]

@@ -13,7 +13,7 @@ T = TypeVar("T")
 class NumPyModel(Model):
     def __init__(
         self, model: Callable, bounds: BoundsInput, data_format: Optional[str] = None
-    ) -> None:
+    ):
         self._model = model
         self._bounds = Bounds(*bounds)
         if data_format is not None:

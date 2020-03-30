@@ -22,8 +22,8 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
     """Increases the amount of salt and pepper noise until the input is misclassified.
 
     Args:
-        steps : The number of steps to run
-        across_channels : Whether the noise should be the same across all channels
+        steps : The number of steps to run.
+        across_channels : Whether the noise should be the same across all channels.
         channel_axis : The axis across which the noise should be the same
             (if across_channels is True). If None, will be automatically inferred
             from the model if possible.
@@ -89,7 +89,7 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
             x = ep.clip(x, min_, max_)
 
             # check if we found new best adversarials
-            norms = flatten(x).square().sum(axis=-1).sqrt()
+            norms = flatten(x).norms.l2(axis=-1)
             closer = norms < best_advs_norms
             is_adv = is_adversarial(x)  # TODO: ignore those that are not closer anyway
             is_best_adv = ep.logical_and(is_adv, closer)

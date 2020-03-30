@@ -12,6 +12,33 @@ def test_ead_init_raises() -> None:
         fbn.attacks.EADAttack(binary_search_steps=3, steps=20, decision_rule="invalid")  # type: ignore
 
 
+def test_genattack_numpy(request: Any) -> None:
+    class Model:
+        def __call__(self, inputs: Any) -> Any:
+            return inputs.mean(axis=(2, 3))
+
+    model = Model()
+    with pytest.raises(ValueError):
+        fbn.NumPyModel(model, bounds=(0, 1), data_format="foo")
+
+    fmodel = fbn.NumPyModel(model, bounds=(0, 1))
+    x, y = ep.astensors(
+        *fbn.samples(
+            fmodel, dataset="imagenet", batchsize=16, data_format="channels_first"
+        )
+    )
+
+    with pytest.raises(ValueError, match="data_format"):
+        fbn.attacks.GenAttack(reduced_dims=(2, 2)).run(
+            fmodel, x, fbn.TargetedMisclassification(y), epsilon=0.3
+        )
+
+    with pytest.raises(ValueError, match="channel_axis"):
+        fbn.attacks.GenAttack(channel_axis=2, reduced_dims=(2, 2)).run(
+            fmodel, x, fbn.TargetedMisclassification(y), epsilon=0.3
+        )
+
+
 def test_deepfool_run_raises(
     fmodel_and_data_ext_for_attacks: Tuple[Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool]
 ) -> None:
@@ -153,6 +180,7 @@ targeted_attacks_raises_exception: List[Tuple[fbn.Attack, bool]] = [
     (fbn.attacks.EADAttack(), True),
     (fbn.attacks.DDNAttack(), True),
     (fbn.attacks.L2CarliniWagnerAttack(), True),
+    (fbn.attacks.GenAttack(), False),
 ]
 
 

@@ -25,7 +25,7 @@ class L2ContrastReductionAttack(FixedEpsilonAttack):
 
     distance = l2
 
-    def __init__(self, *, target: float = 0.5) -> None:
+    def __init__(self, *, target: float = 0.5):
         self.target = target
 
     def run(

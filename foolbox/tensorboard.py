@@ -27,7 +27,7 @@ class TensorBoard:
     statements and without any computational overhead if it's disabled.
     """
 
-    def __init__(self, logdir: Union[Literal[False], None, str]) -> None:
+    def __init__(self, logdir: Union[Literal[False], None, str]):
         if logdir or (logdir is None):
             from tensorboardX import SummaryWriter
 

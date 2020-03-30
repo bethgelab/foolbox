@@ -51,10 +51,10 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install requirements-dev.txt
+    - name: Install requirements.txt
       run: |
         python -m pip install --upgrade pip setuptools
-        pip install -r requirements-dev.txt
+        pip install -r requirements.txt
     - name: flake8
       run: |
         flake8 . --count --show-source --statistics
@@ -64,9 +64,9 @@ jobs:
     - name: Install package
       run: |
         pip install -e .
-    - name: Install requirements.txt
+    - name: Install tests/requirements.txt
       run: |
-        pip install -r requirements.txt
+        pip install -r tests/requirements.txt
     - name: mypy (package)
       run: |
         mypy -p foolbox

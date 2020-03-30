@@ -1,0 +1,30 @@
+name: Guide
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  vuepress:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install vuepress
+      run: |
+        sudo apt update
+        sudo apt install yarn
+        sudo yarn global add vuepress
+    - name: Build
+      run: |
+        sudo vuepress build
+      working-directory: ./guide
+    - name: Push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        sudo git init
+        sudo git add -A
+        sudo git commit -m 'deploy'
+        sudo git push -f https://x-access-token:${GITHUB_TOKEN}@github.com/bethgelab/foolbox.git master:gh-pages
+      working-directory: ./guide/.vuepress/dist
