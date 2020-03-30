@@ -136,26 +136,27 @@ def test_untargeted_attacks(
 
 
 targeted_attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
-    (
-        fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20, initial_const=1e1),
-        None,
-        True,
-        False,
-    ),
-    (fa.DDNAttack(init_epsilon=2.0, steps=20), None, True, False),
-    # TODO: targeted EADAttack currently fails repeatedly on MobileNetv2
-    (
-        fa.EADAttack(
-            binary_search_steps=3,
-            steps=20,
-            abort_early=True,
-            regularization=0,
-            initial_const=1e1,
-        ),
-        None,
-        True,
-        False,
-    ),
+    # (
+    #    fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20, initial_const=1e1),
+    #    None,
+    #    True,
+    #    False,
+    # ),
+    # (fa.DDNAttack(init_epsilon=2.0, steps=20), None, True, False),
+    ## TODO: targeted EADAttack currently fails repeatedly on MobileNetv2
+    # (
+    #    fa.EADAttack(
+    #        binary_search_steps=3,
+    #        steps=20,
+    #        abort_early=True,
+    #        regularization=0,
+    #        initial_const=1e1,
+    #    ),
+    #    None,
+    #    True,
+    #    False,
+    # ),
+    (fa.LocalSearchAttack(t=500, p=0.5, d=50), None, False, False),
 ]
 
 
