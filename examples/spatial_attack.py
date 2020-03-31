@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # attacktrys a combination of specified rotations and translations to an image
     # stops early if adversarial shifts and translations for all images are found
     attack = fa.spatial_attack.SpatialAttack(
-        max_translation=6,  # 5px so x in [x-5, x+5] and y in [y-5, y+5]
+        max_translation=6,  # 6px so x in [x-6, x+6] and y in [y-6, y+6]
         num_translations=6,  # number of translations in x, y.
         max_rotation=20,  # +- rotation in degrees
         num_rotations=5,  # number of rotations
