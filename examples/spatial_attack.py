@@ -20,11 +20,13 @@ if __name__ == "__main__":
     print(accuracy(fmodel, images, labels))
     print("")
 
+    # stops early if shifts and translations for all images are found
     attack = fa.spatial_attack.SpatialAttack(
-        max_translation=6,  # 5px so in [x-5, x+5] and y in [y-5, y+5]
-        num_translations=6,  # number of translations in x, y. So 6*6*rot total
+        max_translation=6,  # 5px so x in [x-5, x+5] and y in [y-5, y+5]
+        num_translations=6,  # number of translations in x, y.
         max_rotation=20,  # +- rotation in degrees
-        num_rotations=5,  # number of rotations, so 5*number_trans**2 total
+        num_rotations=5,  # number of rotations
+        # max total iterations = num_rotations * num_translations**2
     )
 
     xp_, _, success = attack(fmodel, images, labels)
