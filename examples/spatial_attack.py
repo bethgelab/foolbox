@@ -22,11 +22,14 @@ if __name__ == "__main__":
 
     attack = fa.spatial_attack.SpatialAttack(
         max_translation=6,  # 5px so in [x-5, x+5] and y in [y-5, y+5]
-        num_translations=6,   # number of translations in x, y. So 6*6*rot total
+        num_translations=6,  # number of translations in x, y. So 6*6*rot total
         max_rotation=20,  # +- rotation in degrees
         num_rotations=5,  # number of rotations, so 5*number_trans**2 total
     )
 
     xp_, _, success = attack(fmodel, images, labels)
-    print('attack success in specified rotation in translation bounds',
-          success.numpy().astype(np.float32).mean() * 100, ' %')
+    print(
+        "attack success in specified rotation in translation bounds",
+        success.numpy().astype(np.float32).mean() * 100,
+        " %",
+    )
