@@ -298,6 +298,14 @@ def numpy_simple_model(request: Any) -> ModelAndData:
     return fmodel, x, y
 
 
+@pytest.fixture(scope="session", params=["pytorch_mnist"])
+def mnist_fmodel_and_data_ext(request: Any) -> Tuple[ModelAndData, bool]:
+    global models
+    model_fn, real = models[request.param]
+    model_and_data = model_fn(request)
+    return model_and_data, real
+
+
 @pytest.fixture(scope="session", params=list(models.keys()))
 def fmodel_and_data_ext(request: Any) -> Tuple[ModelAndData, bool]:
     global models
