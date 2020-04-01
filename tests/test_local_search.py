@@ -17,7 +17,7 @@ targeted_attacks: List[fbn.Attack] = [
 
 @pytest.mark.parametrize("attack", targeted_attacks, ids=get_attack_id)
 def test_targeted_attacks(
-    mnist_fmodel_and_data_ext: Tuple[fbn.Model, ep.Tensor, ep.Tensor],
+    mnist_fmodel_and_data_ext: Tuple[Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool],
     attack: fbn.Attack,
 ) -> None:
 
