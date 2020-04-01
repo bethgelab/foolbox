@@ -5,9 +5,6 @@ import eagerpy as ep
 import foolbox as fbn
 import foolbox.attacks as fa
 
-L2 = fbn.types.L2
-Linf = fbn.types.Linf
-
 
 def get_attack_id(x: fbn.Attack) -> str:
     return repr(x)
