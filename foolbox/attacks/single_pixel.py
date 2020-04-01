@@ -33,7 +33,13 @@ class SinglePixelAttack(MinimizationAttack):
     distance = l0
 
     def run(
-        self, model: Model, inputs: T, criterion: Union[Criterion, T], **kwargs: Any,
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[Criterion, T],
+        *,
+        early_stop: Optional[int] = None,
+        **kwargs: Any,
     ) -> T:
         raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
