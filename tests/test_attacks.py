@@ -161,7 +161,6 @@ targeted_attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
         False,
     ),
     (fa.GenAttack(steps=100, population=6, reduced_dims=(7, 7)), 0.5, False, True),
-    (fa.LocalSearchAttack(t=500, p=0.5, d=50), None, False, False),
 ]
 
 
