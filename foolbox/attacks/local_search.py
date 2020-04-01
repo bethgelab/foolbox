@@ -46,6 +46,7 @@ class LocalSearchAttack(MinimizationAttack):
         p: float = 10.0,
         d: int = 5,
         t: int = 5,
+        max_initial_pixels: int = 150,
         channel_axis: Optional[int] = None,
     ):
         self.steps = steps
@@ -53,6 +54,7 @@ class LocalSearchAttack(MinimizationAttack):
         self.p = p
         self.d = d
         self.t = t
+        self.max_initial_pixels = max_initial_pixels
         self.channel_axis = channel_axis
 
     distance = l0
@@ -141,7 +143,7 @@ class LocalSearchAttack(MinimizationAttack):
 
         def random_locations() -> List["np.ndarray"]:  # type: ignore
             n = int(0.1 * h * w)
-            n = min(n, 128)
+            n = min(n, self.max_initial_pixels)
             locations = np.array([np.random.permutation(h * w)[:n] for _ in range(N)])
             p_x = locations % w
             p_y = locations % h
@@ -178,15 +180,14 @@ class LocalSearchAttack(MinimizationAttack):
         x_adv = x
 
         for step in range(self.steps):
-            if step == 15:
-                raise ValueError()
-
-            # chose a random subset for efficiency
+            # chose a random subset of the px_py indices
             for i in range(N):
-                px_py[i] = px_py[i][np.random.permutation(len(px_py[i]))[:128]]
+                px_py[i] = px_py[i][
+                    np.random.permutation(len(px_py[i]))[: self.max_initial_pixels]
+                ]
 
+            # calculate new px_py_star
             max_length_px_py = max([len(it) for it in px_py])
-
             scores_list: List[List[float]] = [[] for _ in range(N)]
             for l in range(max_length_px_py):
                 mask = [len(it) >= l for it in px_py]
@@ -218,15 +219,14 @@ class LocalSearchAttack(MinimizationAttack):
             indices_list = [np.argsort(lst)[-self.t :] for lst in scores_list]
             px_py_star = [lst[idxs] for lst, idxs in zip(px_py, indices_list)]
 
+            # now calculate new updated I by perturbing it at the locations
+            # px_py_star
             x = batch_cyclic(x, px_py_star, channel_axis)
 
             # Check whether the perturbed input x is an adversarial input
             x_unnorm = unnormalize(x)
             is_adv = is_adversarial(x_unnorm)
             x_adv = ep.where(atleast_kd(is_adv, x.ndim), x_unnorm, x_adv)
-
-            print("probs", ep.softmax(model(x_unnorm))[range(N), classes])
-            print("is_adv", is_adv)
 
             if is_adv.any():
                 break
