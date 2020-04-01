@@ -38,7 +38,7 @@ class SinglePixelAttack(MinimizationAttack):
         inputs: T,
         criterion: Union[Criterion, T],
         *,
-        early_stop: Optional[int] = None,
+        early_stop: Optional[float] = None,
         **kwargs: Any,
     ) -> T:
         raise_if_kwargs(kwargs)
