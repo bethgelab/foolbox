@@ -72,11 +72,15 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.VirtualAdversarialAttack(steps=50, xi=1), 10, True, False),
     (fa.PGD(), Linf(1.0), True, False),
     (fa.L2PGD(), L2(50.0), True, False),
+    (fa.L1PGD(), 5000.0, True, False),
     (fa.LinfBasicIterativeAttack(abs_stepsize=0.2), Linf(1.0), True, False),
     (fa.L2BasicIterativeAttack(), L2(50.0), True, False),
+    (fa.L1BasicIterativeAttack(), 5000.0, True, False),
+    (fa.SparseL1DescentAttack(), 5000.0, True, False),
     (fa.FGSM(), Linf(100.0), True, False),
     (FGSM_GE(), Linf(100.0), False, False),
     (fa.FGM(), L2(100.0), True, False),
+    (fa.L1FastGradientAttack(), 5000.0, True, False),
     (fa.GaussianBlurAttack(steps=10), None, True, True),
     (fa.GaussianBlurAttack(steps=10, max_sigma=224.0), None, True, True),
     (fa.L2DeepFoolAttack(steps=50, loss="logits"), None, True, False),
@@ -136,26 +140,27 @@ def test_untargeted_attacks(
 
 
 targeted_attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
-    # (
-    #    fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20, initial_const=1e1),
-    #    None,
-    #    True,
-    #    False,
-    # ),
-    # (fa.DDNAttack(init_epsilon=2.0, steps=20), None, True, False),
-    ## TODO: targeted EADAttack currently fails repeatedly on MobileNetv2
-    # (
-    #    fa.EADAttack(
-    #        binary_search_steps=3,
-    #        steps=20,
-    #        abort_early=True,
-    #        regularization=0,
-    #        initial_const=1e1,
-    #    ),
-    #    None,
-    #    True,
-    #    False,
-    # ),
+    (
+        fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20, initial_const=1e1),
+        None,
+        True,
+        False,
+    ),
+    (fa.DDNAttack(init_epsilon=2.0, steps=20), None, True, False),
+    # TODO: targeted EADAttack currently fails repeatedly on MobileNetv2
+    (
+        fa.EADAttack(
+            binary_search_steps=3,
+            steps=20,
+            abort_early=True,
+            regularization=0,
+            initial_const=1e1,
+        ),
+        None,
+        True,
+        False,
+    ),
+    (fa.GenAttack(steps=100, population=6, reduced_dims=(7, 7)), 0.5, False, True),
     (fa.LocalSearchAttack(t=500, p=0.5, d=50), None, False, False),
 ]
 
