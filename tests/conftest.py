@@ -12,7 +12,7 @@ CallableModelDescription = NamedTuple(
 )
 ModelDescriptionAndData = NamedTuple(
     "ModelDescriptionAndData",
-    [("model", ModelAndData), ("real", bool), ("small", bool)],
+    [("model_and_data", ModelAndData), ("real", bool), ("small", bool)],
 )
 
 models: Dict[str, CallableModelDescription] = {}
@@ -324,6 +324,5 @@ def fmodel_and_data_ext_for_attacks(request: Any) -> ModelDescriptionAndData:
 
 
 @pytest.fixture(scope="session")
-def fmodel_and_data(fmodel_and_data_ext: Tuple[ModelAndData, bool]) -> ModelAndData:
-    fmodel_and_data, _ = fmodel_and_data_ext
-    return fmodel_and_data
+def fmodel_and_data(fmodel_and_data_ext: ModelDescriptionAndData) -> ModelAndData:
+    return fmodel_and_data_ext.model_and_data
