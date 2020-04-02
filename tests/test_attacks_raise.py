@@ -9,6 +9,57 @@ L2 = fbn.types.L2
 Linf = fbn.types.Linf
 
 
+def test_singlepixel_run_raises() -> None:
+    class Model:
+        def __call__(self, inputs: Any) -> Any:
+            return inputs.mean(axis=(2, 3))
+
+    model = Model()
+    with pytest.raises(ValueError):
+        fbn.NumPyModel(model, bounds=(0, 1), data_format="foo")
+
+    fmodel = fbn.NumPyModel(model, bounds=(0, 1))
+    x, y = ep.astensors(
+        *fbn.samples(
+            fmodel, dataset="imagenet", batchsize=16, data_format="channels_first"
+        )
+    )
+
+    with pytest.raises(ValueError, match="channel_axis"):
+        fbn.attacks.SinglePixelAttack().run(fmodel, x, y)
+
+    with pytest.raises(ValueError, match="channel_axis"):
+        fbn.attacks.SinglePixelAttack(channel_axis=2).run(fmodel, x, y)
+
+
+def test_localsearch_run_raises() -> None:
+    class Model:
+        def __call__(self, inputs: Any) -> Any:
+            return inputs.mean(axis=(2, 3))
+
+    model = Model()
+    with pytest.raises(ValueError):
+        fbn.NumPyModel(model, bounds=(0, 1), data_format="foo")
+
+    fmodel = fbn.NumPyModel(model, bounds=(0, 1))
+    x, y = ep.astensors(
+        *fbn.samples(
+            fmodel, dataset="imagenet", batchsize=16, data_format="channels_first"
+        )
+    )
+
+    with pytest.raises(ValueError, match="channel_axis"):
+        fbn.attacks.LocalSearchAttack().run(fmodel, x, fbn.TargetedMisclassification(y))
+
+    with pytest.raises(ValueError, match="channel_axis"):
+        fbn.attacks.LocalSearchAttack(channel_axis=2).run(
+            fmodel, x, fbn.TargetedMisclassification(y)
+        )
+
+    with pytest.raises(ValueError, match="unsupported criterion"):
+        fbn.attacks.LocalSearchAttack().run(fmodel, x, y)
+
+
 def test_ead_init_raises() -> None:
     with pytest.raises(ValueError, match="invalid decision rule"):
         fbn.attacks.EADAttack(binary_search_steps=3, steps=20, decision_rule="invalid")  # type: ignore
