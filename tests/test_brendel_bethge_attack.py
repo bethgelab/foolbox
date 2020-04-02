@@ -7,6 +7,8 @@ from foolbox.devutils import flatten
 from foolbox.attacks.brendel_bethge import BrendelBethgeAttack
 import pytest
 
+from conftest import ModelDescriptionAndData
+
 
 def get_attack_id(x: Tuple[BrendelBethgeAttack, Union[int, float]]) -> str:
     return repr(x[0])
@@ -23,15 +25,13 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
 @pytest.mark.parametrize("attack_and_p", attacks, ids=get_attack_id)
 def test_brendel_bethge_untargeted_attack(
     request: Any,
-    fmodel_and_data_ext_for_attacks: Tuple[
-        Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
-    ],
+    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
     attack_and_p: Tuple[BrendelBethgeAttack, Union[int, float]],
 ) -> None:
     if request.config.option.skipslow:
         pytest.skip()
 
-    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), real, _ = fmodel_and_data_ext_for_attacks
 
     if isinstance(x, ep.NumPyTensor):
         pytest.skip()
