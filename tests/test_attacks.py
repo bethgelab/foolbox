@@ -1,10 +1,12 @@
-from typing import List, Tuple, Optional, NamedTuple
+from typing import List, Optional, NamedTuple
 import pytest
 import eagerpy as ep
 
 import foolbox as fbn
 import foolbox.attacks as fa
 from foolbox.gradient_estimators import es_gradient_estimator
+
+from conftest import ModelDescriptionAndData
 
 L2 = fbn.types.L2
 Linf = fbn.types.Linf
@@ -118,9 +120,7 @@ attacks: List[AttackTestTarget] = [
 
 @pytest.mark.parametrize("attack_test_target", attacks, ids=get_attack_id)
 def test_untargeted_attacks(
-    fmodel_and_data_ext_for_attacks: Tuple[
-        Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
-    ],
+    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
     attack_test_target: AttackTestTarget,
 ) -> None:
 
@@ -174,9 +174,7 @@ targeted_attacks: List[AttackTestTarget] = [
 
 @pytest.mark.parametrize("attack_test_target", targeted_attacks, ids=get_attack_id)
 def test_targeted_attacks(
-    fmodel_and_data_ext_for_attacks: Tuple[
-        Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
-    ],
+    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
     attack_test_target: AttackTestTarget,
 ) -> None:
 
