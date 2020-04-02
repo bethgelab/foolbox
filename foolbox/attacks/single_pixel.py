@@ -28,7 +28,11 @@ class SinglePixelAttack(MinimizationAttack):
     """
 
     def __init__(
-        self, *, steps: int = 1000, square_size=1, channel_axis: Optional[int] = None
+        self,
+        *,
+        steps: int = 1000,
+        square_size: int = 1,
+        channel_axis: Optional[int] = None,
     ):
         self.steps = steps
         self.channel_axis = channel_axis
