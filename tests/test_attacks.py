@@ -31,7 +31,9 @@ def get_attack_id(x: AttackTestTarget) -> str:
 
 # attack, eps / None, attack_uses_grad, requires_real_model
 attacks: List[AttackTestTarget] = [
-    AttackTestTarget(fa.SinglePixelAttack(steps=100), requires_small_model=True),
+    AttackTestTarget(
+        fa.SinglePixelAttack(steps=100, square_size=2), requires_small_model=True
+    ),
     AttackTestTarget(fa.DDNAttack(init_epsilon=2.0), uses_grad=True),
     AttackTestTarget(fa.InversionAttack()),
     AttackTestTarget(

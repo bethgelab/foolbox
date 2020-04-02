@@ -19,16 +19,20 @@ from .base import raise_if_kwargs
 
 
 class SinglePixelAttack(MinimizationAttack):
-    """Perturbs just a single pixel and sets it to the min or max.
+    """Perturbs just a single pixel (or a square of pixels) and sets it to the min or max.
 
     Args:
         steps : Number of pixels to try out.
+        square_size: Size of the square of pixels which will be treated as one pixel in the attack.
         channel_axis : Index of the channel axis in the input data.
     """
 
-    def __init__(self, *, steps: int = 1000, channel_axis: Optional[int] = None):
+    def __init__(
+        self, *, steps: int = 1000, square_size=1, channel_axis: Optional[int] = None
+    ):
         self.steps = steps
         self.channel_axis = channel_axis
+        self.square_size = square_size
 
     distance = l0
 
@@ -82,6 +86,13 @@ class SinglePixelAttack(MinimizationAttack):
         pixels = np.array(
             [np.random.permutation(h * w)[: self.steps] for _ in range(N)]
         )
+        pixels = ep.from_numpy(x0, pixels)
+
+        idx_x = ep.arange(pixels, w)
+        idx_y = ep.arange(pixels, h)
+        idx_xx, idx_yy = ep.meshgrid(idx_x, idx_y)
+        idx_xx = ep.tile(ep.reshape(idx_xx, (1, w, h)), (N, 1, 1))
+        idx_yy = ep.tile(ep.reshape(idx_yy, (1, w, h)), (N, 1, 1))
 
         for i in range(self.steps):
             px_x = pixels[:, i] % w
@@ -94,14 +105,11 @@ class SinglePixelAttack(MinimizationAttack):
                 #  location.insert(channel_axis, slice(None))
                 #  location = tuple(location)
                 #  x_perturbed = ep.index_update(x0, location, value)
+                mask_x = ep.abs(idx_xx - px_x.reshape((-1, 1, 1))) < self.square_size
+                mask_y = ep.abs(idx_yy - px_y.reshape((-1, 1, 1))) < self.square_size
+                mask = ep.logical_and(mask_x, mask_y)
 
-                mask_x = ep.onehot_like(
-                    ep.zeros(x, (N, w)), ep.astensor(px_x), value=1
-                ).reshape((N, w, 1))
-                mask_y = ep.onehot_like(
-                    ep.zeros(x, (N, h)), ep.astensor(px_y), value=1
-                ).reshape((N, 1, h))
-                mask = ep.expand_dims(mask_x * mask_y, channel_axis)
+                mask = ep.expand_dims(mask, channel_axis)
 
                 x_perturbed = ep.clip(x0 + 2 * value * mask, min_, max_)
 
