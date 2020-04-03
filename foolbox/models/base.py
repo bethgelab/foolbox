@@ -65,7 +65,7 @@ class TransformBoundsWrapper(Model):
         return x * (max_ - min_) + min_
 
     @property
-    def data_format(self) -> str:
+    def data_format(self) -> Any:
         return getattr(self._model, "data_format", None)
 
 
