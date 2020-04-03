@@ -6,16 +6,14 @@ import eagerpy as ep
 import foolbox as fb
 
 ModelAndData = Tuple[fb.Model, ep.Tensor, ep.Tensor]
-CallableModelDescription = NamedTuple(
-    "ModelDescription",
-    [("model_fn", Callable[..., ModelAndData]), ("real", bool), ("small", bool)],
+CallableModelAndDescription = NamedTuple(
+    "ModelDescription", [("model_fn", Callable[..., ModelAndData]), ("real", bool)],
 )
 ModelDescriptionAndData = NamedTuple(
-    "ModelDescriptionAndData",
-    [("model_and_data", ModelAndData), ("real", bool), ("small", bool)],
+    "ModelDescriptionAndData", [("model_and_data", ModelAndData), ("real", bool)],
 )
 
-models: Dict[str, CallableModelDescription] = {}
+models: Dict[str, CallableModelAndDescription] = {}
 models_for_attacks: List[str] = []
 
 
@@ -34,7 +32,7 @@ def dummy(request: Any) -> ep.Tensor:
 
 
 def register(
-    backend: str, *, real: bool = False, small: bool = False, attack: bool = True
+    backend: str, *, real: bool = False, attack: bool = True
 ) -> Callable[[Callable], Callable]:
     def decorator(f: Callable[[Any], ModelAndData]) -> Callable[[Any], ModelAndData]:
         @functools.wraps(f)
@@ -46,9 +44,7 @@ def register(
         global models
         global real_models
 
-        models[model.__name__] = CallableModelDescription(
-            model_fn=model, real=real, small=small
-        )
+        models[model.__name__] = CallableModelAndDescription(model_fn=model, real=real)
         if attack:
             models_for_attacks.append(model.__name__)
         return model
@@ -73,7 +69,7 @@ def pytorch_simple_model(
         model, bounds=bounds, device=device, preprocessing=preprocessing
     )
 
-    x, _ = fb.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -117,7 +113,7 @@ def pytorch_simple_model_object(request: Any) -> ModelAndData:
     return pytorch_simple_model(torch.device("cpu"))
 
 
-@register("pytorch", real=True, small=True)
+@register("pytorch", real=True)
 def pytorch_mnist(request: Any) -> ModelAndData:
     fmodel = fb.zoo.ModelLoader.get().load(
         "examples/zoo/mnist/", module_name="foolbox_model"
@@ -158,7 +154,7 @@ def tensorflow_simple_sequential(
         model, bounds=bounds, device=device, preprocessing=preprocessing
     )
 
-    x, _ = fb.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -202,7 +198,7 @@ def tensorflow_simple_subclassing(request: Any) -> ModelAndData:
     bounds = (0, 1)
     fmodel = fb.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fb.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -222,7 +218,7 @@ def tensorflow_simple_functional(request: Any) -> ModelAndData:
     bounds = (0, 1)
     fmodel = fb.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fb.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -277,7 +273,7 @@ def jax_simple_model(request: Any) -> ModelAndData:
     fmodel = fb.JAXModel(model, bounds=bounds)
 
     x, _ = fb.samples(
-        fmodel, dataset="imagenet", batchsize=16, data_format="channels_last"
+        fmodel, dataset="cifar10", batchsize=16, data_format="channels_last"
     )
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
@@ -296,11 +292,11 @@ def numpy_simple_model(request: Any) -> ModelAndData:
 
     fmodel = fb.NumPyModel(model, bounds=(0, 1))
     with pytest.raises(ValueError, match="data_format"):
-        x, _ = fb.samples(fmodel, dataset="imagenet", batchsize=16)
+        x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
 
     fmodel = fb.NumPyModel(model, bounds=(0, 1), data_format="channels_first")
     with pytest.warns(UserWarning, match="returning NumPy arrays"):
-        x, _ = fb.samples(fmodel, dataset="imagenet", batchsize=16)
+        x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
 
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)

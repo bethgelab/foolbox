@@ -9,7 +9,7 @@ def test_dataset_attack(
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
 ) -> None:
 
-    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
 

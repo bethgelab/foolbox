@@ -31,7 +31,7 @@ def test_brendel_bethge_untargeted_attack(
     if request.config.option.skipslow:
         pytest.skip()
 
-    (fmodel, x, y), real, _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
 
     if isinstance(x, ep.NumPyTensor):
         pytest.skip()

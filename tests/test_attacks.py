@@ -22,7 +22,6 @@ class AttackTestTarget(NamedTuple):
     epsilon: Optional[float] = None
     uses_grad: Optional[bool] = False
     requires_real_model: Optional[bool] = False
-    requires_small_model: Optional[bool] = False
 
 
 def get_attack_id(x: AttackTestTarget) -> str:
@@ -31,9 +30,7 @@ def get_attack_id(x: AttackTestTarget) -> str:
 
 # attack, eps / None, attack_uses_grad, requires_real_model
 attacks: List[AttackTestTarget] = [
-    AttackTestTarget(
-        fa.SinglePixelAttack(steps=100, square_size=2), requires_small_model=True
-    ),
+    AttackTestTarget(fa.SinglePixelAttack(steps=100, square_size=2)),
     AttackTestTarget(fa.DDNAttack(init_epsilon=2.0), uses_grad=True),
     AttackTestTarget(fa.InversionAttack()),
     AttackTestTarget(
@@ -126,12 +123,9 @@ def test_untargeted_attacks(
     attack_test_target: AttackTestTarget,
 ) -> None:
 
-    (fmodel, x, y), real, small = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
     if attack_test_target.requires_real_model and not real:
         pytest.skip()
-    if attack_test_target.requires_small_model and not small:
-        pytest.skip()
-
     if isinstance(x, ep.NumPyTensor) and attack_test_target.uses_grad:
         pytest.skip()
 
@@ -147,9 +141,7 @@ def test_untargeted_attacks(
 
 
 targeted_attacks: List[AttackTestTarget] = [
-    AttackTestTarget(
-        fa.LocalSearchAttack(t=150, p=0.5, d=5), requires_small_model=True
-    ),
+    AttackTestTarget(fa.LocalSearchAttack(t=150, p=0.5, d=5)),
     AttackTestTarget(
         fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20, initial_const=1e1),
         uses_grad=True,
@@ -180,10 +172,8 @@ def test_targeted_attacks(
     attack_test_target: AttackTestTarget,
 ) -> None:
 
-    (fmodel, x, y), real, small = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
     if attack_test_target.requires_real_model and not real:
-        pytest.skip()
-    if attack_test_target.requires_small_model and not small:
         pytest.skip()
 
     if isinstance(x, ep.NumPyTensor) and attack_test_target.uses_grad:

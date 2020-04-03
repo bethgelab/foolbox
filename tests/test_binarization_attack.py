@@ -14,7 +14,7 @@ def test_binarization_attack(
 ) -> None:
 
     # get a model with thresholding
-    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
     fmodel = ThresholdingWrapper(fmodel, threshold=0.5)
