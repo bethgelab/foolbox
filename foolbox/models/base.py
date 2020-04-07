@@ -64,9 +64,11 @@ class TransformBoundsWrapper(Model):
         min_, max_ = self._model.bounds
         return x * (max_ - min_) + min_
 
-    @property
-    def data_format(self) -> Any:
-        return getattr(self._model, "data_format", None)
+    def __getattr__(self, item):
+        if item == "data_format":
+            return getattr(self._model, "data_format")
+        else:
+            return self.__getattribute__(item)
 
 
 ModelType = TypeVar("ModelType", bound="ModelWithPreprocessing")
