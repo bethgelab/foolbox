@@ -250,3 +250,4 @@ def test_transform_bounds_wrapper_missing_data_format() -> None:
     model = Model()
     wrapped_model = fbn.models.TransformBoundsWrapper(model, (0, 1))
     assert not hasattr(wrapped_model, "data_format")
+    assert not hasattr(wrapped_model, "not_data_format")
