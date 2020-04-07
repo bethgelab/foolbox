@@ -64,7 +64,7 @@ class TransformBoundsWrapper(Model):
         min_, max_ = self._model.bounds
         return x * (max_ - min_) + min_
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> Any:
         if item == "data_format":
             return getattr(self._model, "data_format")
         else:
