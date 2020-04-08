@@ -12,7 +12,7 @@ class JAXModel(ModelWithPreprocessing):
         model: Any,
         bounds: BoundsInput,
         preprocessing: Preprocessing = None,
-        data_format: Optional[str] = None,
+        data_format: Optional[str] = "channels_last",
     ):
         dummy = ep.jax.numpy.zeros(0)
         super().__init__(model, bounds=bounds, dummy=dummy, preprocessing=preprocessing)
