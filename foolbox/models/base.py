@@ -66,9 +66,9 @@ class TransformBoundsWrapper(Model):
 
     def __getattr__(self, item: str) -> Any:
         if item == "data_format":
-            return getattr(self._model, "data_format")
+            return self._model.data_format
         else:
-            return self.__getattribute__(item)
+            return super().__getattr__(item)
 
 
 ModelType = TypeVar("ModelType", bound="ModelWithPreprocessing")
