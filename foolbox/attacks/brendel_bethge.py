@@ -427,7 +427,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
                 init_attack = self.init_attack
             # TODO: use call and support all types of attacks (once early_stop is
             # possible in __call__)
-            starting_points = self.init_attack.run(model, originals, criterion_)
+            starting_points = init_attack.run(model, originals, criterion_)
 
         best_advs = ep.astensor(starting_points)
         assert is_adversarial(best_advs).all()
