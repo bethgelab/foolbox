@@ -1,3 +1,4 @@
 include foolbox/VERSION
+include foolbox/py.typed
 include foolbox/data/*.jpg
 include foolbox/data/*.png
