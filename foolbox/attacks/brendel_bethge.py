@@ -895,7 +895,7 @@ class BFGSB(object):
 
         return qk
 
-    def _cauchy_point(self, x, l, u, g, B):
+    def _cauchy_point(self, x, l, u, g, B):  # noqa: E741
         # finds the cauchy point for q(x)=x'Gx+x'd s$t. l<=x<=u
         # g=G*x+d #gradient of q(x)
         # converted from r-code: https://github.com/andrewhooker/PopED/blob/master/R/cauchy_point.R
@@ -949,7 +949,7 @@ class BFGSB(object):
 
         return x_cp
 
-    def _subspace_min(self, x, l, u, x_cp, d, G):
+    def _subspace_min(self, x, l, u, x_cp, d, G):  # noqa: E741
         # converted from r-code: https://github.com/andrewhooker/PopED/blob/master/R/subspace_min.R
         n = x.shape[0]
         Z = np.eye(n)
@@ -990,7 +990,7 @@ class BFGSB(object):
 
         return x_cp + alpha * Z.dot(d[~fixed])
 
-    def _project(self, q, l, u):
+    def _project(self, q, l, u):  # noqa: E741
         N = q.shape[0]
         for k in range(N):
             if q[k] < l[k]:
@@ -1001,7 +1001,22 @@ class BFGSB(object):
         return q
 
     def _line_search_armijo(
-        self, fun_and_jac, pt, dpt, func_calls, m, gk, l, u, x0, x, b, min_, max_, c, r
+        self,
+        fun_and_jac,
+        pt,
+        dpt,
+        func_calls,
+        m,
+        gk,
+        l,  # noqa: E741
+        u,
+        x0,
+        x,
+        b,
+        min_,
+        max_,
+        c,
+        r,
     ):
         ls_rho = 0.6
         ls_c = 1e-4
@@ -1023,7 +1038,16 @@ class BFGSB(object):
         return ls_alpha, ls_pt, gkp1, dgkp1, func_calls
 
     def _line_search_wolfe(  # noqa: C901
-        self, fun_and_jac, xk, pk, gfk, old_fval, old_old_fval, l, u, args
+        self,
+        fun_and_jac,
+        xk,
+        pk,
+        gfk,
+        old_fval,
+        old_old_fval,
+        l,  # noqa: #E741
+        u,
+        args,
     ):
         """Find alpha that satisfies strong Wolfe conditions.
         Uses the line search algorithm to enforce strong Wolfe conditions

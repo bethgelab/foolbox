@@ -146,7 +146,7 @@ class DeepFoolAttack(MinimizationAttack, ABC):
 
             # we don't need the logits
             diffs_ = [(losses, grad) for _, (losses, _), grad in diffs]
-            losses = ep.stack([l for l, _ in diffs_], axis=1)
+            losses = ep.stack([lo for lo, _ in diffs_], axis=1)
             grads = ep.stack([g for _, g in diffs_], axis=1)
             assert losses.shape == (N, candidates - 1)
             assert grads.shape == (N, candidates - 1) + x0.shape[1:]
