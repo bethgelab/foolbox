@@ -6,4 +6,4 @@ tensorflow==2.0.0
 numba==0.49.1
 matplotlib==3.2.1
 pillow==7.1.2
-tensorboardX==2.0.2
+tensorboardX==2.0
