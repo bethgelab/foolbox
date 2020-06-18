@@ -320,7 +320,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             decrease the step size in each iteration and ensure that the attack
             follows the boundary more faithfully.
         lr_decay : The trust region lr is multiplied with lr_decay in regular intervals (see
-            lr_num_interval).
+            lr_num_decay).
         lr_num_decay : Number of learning rate decays in regular intervals of
             length steps / lr_num_decay.
         momentum : Averaging of the boundary estimation over multiple steps. A momentum of
