@@ -452,7 +452,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             upper_bound = ep.where(is_advs, epsilons, upper_bound)
 
         starting_points = self.mid_points(x0, x1, upper_bound, bounds)
-        
+
         tb.scalar("batchsize", N, 0)
 
         # function to compute logits_diff and gradient
