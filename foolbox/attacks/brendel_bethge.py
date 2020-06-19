@@ -23,6 +23,7 @@ from ..distances import l0, l1, l2, linf
 
 try:
     from numba import jitclass  # type: ignore
+    import numba
 except (ModuleNotFoundError, ImportError) as e:  # pragma: no cover
     # delay the error until the attack is initialized
     NUMBA_IMPORT_ERROR = e
@@ -36,7 +37,6 @@ except (ModuleNotFoundError, ImportError) as e:  # pragma: no cover
 
 else:
     NUMBA_IMPORT_ERROR = None
-
 
 EPS = 1e-10
 
@@ -355,6 +355,11 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
         if NUMBA_IMPORT_ERROR is not None:
             raise NUMBA_IMPORT_ERROR  # pragma: no cover
+
+        if "0.49." in numba.__version__:
+            warnings.warn(
+                "There are known issues with numba version 0.49 and we suggest using numba 0.50 or newer."
+            )
 
         self.init_attack = init_attack
         self.overshoot = overshoot
