@@ -356,8 +356,10 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
         if NUMBA_IMPORT_ERROR is not None:
             raise NUMBA_IMPORT_ERROR  # pragma: no cover
 
-        if '0.49.' in numba.__version__:
-            warnings.warn('There are known issues with numba version 0.49 and we suggest using numba 0.50 or newer.')
+        if "0.49." in numba.__version__:
+            warnings.warn(
+                "There are known issues with numba version 0.49 and we suggest using numba 0.50 or newer."
+            )
 
         self.init_attack = init_attack
         self.overshoot = overshoot
