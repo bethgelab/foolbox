@@ -62,7 +62,7 @@ def transform_pt(
     new_coords = new_coords.squeeze_(-1)
 
     # align_corners=True to match tf implementation
-    transformed_images = torch.nn.functional.grid_sample(
+    transformed_images = torch.nn.functional.grid_sample(  # type: ignore
         x, new_coords, mode="bilinear", padding_mode="zeros", align_corners=True
     )
     return astensor(transformed_images)
