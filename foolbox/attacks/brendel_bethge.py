@@ -154,7 +154,7 @@ class Optimizer(object):  # pragma: no cover
         """
         N = x.shape[0]
 
-        lambda_lower = 2 * c / bnorm ** 2
+        lambda_lower = 2 * c / (bnorm ** 2 + EPS)
         lambda_upper = (
             np.sign(c) * np.inf
         )  # optimal initial point (if box-constraints are neglected)
@@ -320,7 +320,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             decrease the step size in each iteration and ensure that the attack
             follows the boundary more faithfully.
         lr_decay : The trust region lr is multiplied with lr_decay in regular intervals (see
-            lr_reduction_interval).
+            lr_num_decay).
         lr_num_decay : Number of learning rate decays in regular intervals of
             length steps / lr_num_decay.
         momentum : Averaging of the boundary estimation over multiple steps. A momentum of
@@ -384,8 +384,6 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
         ----------
         inputs : Tensor that matches model type
             The original clean inputs.
-        labels : Integer tensor that matches model type
-            The reference labels for the inputs.
         criterion : Callable
             A callable that returns true if the given logits of perturbed
             inputs should be considered adversarial w.r.t. to the given labels
@@ -481,7 +479,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
         x = starting_points
         lrs = self.lr * np.ones(N)
-        lr_reduction_interval = min(1, int(self.steps / self.lr_num_decay))
+        lr_reduction_interval = max(1, int(self.steps / self.lr_num_decay))
         converged = np.zeros(N, dtype=np.bool)
         rate_normalization = np.prod(x.shape) * (max_ - min_)
         original_shape = x.shape
