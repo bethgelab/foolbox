@@ -22,7 +22,7 @@ from ..distances import l0, l1, l2, linf
 
 
 try:
-    from numba import jitclass  # type: ignore
+    from numba.experimental import jitclass  # type: ignore
     import numba
 except (ModuleNotFoundError, ImportError) as e:  # pragma: no cover
     # delay the error until the attack is initialized
