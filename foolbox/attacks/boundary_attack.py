@@ -30,7 +30,7 @@ class BoundaryAttack(MinimizationAttack):
     """A powerful adversarial attack that requires neither gradients
     nor probabilities.
 
-    This is the reference implementation for the attack introduced in [#Bren18]_.
+    This is the reference implementation for the attack. [#Bren18]_
 
     Notes:
         Differences to the original reference implementation:

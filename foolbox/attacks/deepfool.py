@@ -146,7 +146,7 @@ class DeepFoolAttack(MinimizationAttack, ABC):
 
             # we don't need the logits
             diffs_ = [(losses, grad) for _, (losses, _), grad in diffs]
-            losses = ep.stack([l for l, _ in diffs_], axis=1)
+            losses = ep.stack([lo for lo, _ in diffs_], axis=1)
             grads = ep.stack([g for _, g in diffs_], axis=1)
             assert losses.shape == (N, candidates - 1)
             assert grads.shape == (N, candidates - 1) + x0.shape[1:]
@@ -200,7 +200,7 @@ class L2DeepFoolAttack(DeepFoolAttack):
         loss  Loss function to use inside the update function.
 
     References:
-        .. [#Moos15]: Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
+        .. [#Moos15] Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
             "DeepFool: a simple and accurate method to fool deep neural
             networks", https://arxiv.org/abs/1511.04599
 
