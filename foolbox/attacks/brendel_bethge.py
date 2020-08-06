@@ -22,7 +22,8 @@ from ..distances import l0, l1, l2, linf
 
 
 try:
-    from numba import jitclass  # type: ignore
+    from numba.experimental import jitclass  # type: ignore
+    import numba
 except (ModuleNotFoundError, ImportError) as e:  # pragma: no cover
     # delay the error until the attack is initialized
     NUMBA_IMPORT_ERROR = e
@@ -36,7 +37,6 @@ except (ModuleNotFoundError, ImportError) as e:  # pragma: no cover
 
 else:
     NUMBA_IMPORT_ERROR = None
-
 
 EPS = 1e-10
 
@@ -154,7 +154,7 @@ class Optimizer(object):  # pragma: no cover
         """
         N = x.shape[0]
 
-        lambda_lower = 2 * c / bnorm ** 2
+        lambda_lower = 2 * c / (bnorm ** 2 + EPS)
         lambda_upper = (
             np.sign(c) * np.inf
         )  # optimal initial point (if box-constraints are neglected)
@@ -294,7 +294,7 @@ class Optimizer(object):  # pragma: no cover
 
 
 class BrendelBethgeAttack(MinimizationAttack, ABC):
-    """Base class for the `Brendel & Bethge adversarial attack`_, a powerful
+    """Base class for the Brendel & Bethge adversarial attack [#Bren19]_, a powerful
     gradient-based adversarial attack that follows the adversarial boundary
     (the boundary between the space of adversarial and non-adversarial images as
     defined by the adversarial criterion) to find the minimum distance to the
@@ -320,7 +320,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             decrease the step size in each iteration and ensure that the attack
             follows the boundary more faithfully.
         lr_decay : The trust region lr is multiplied with lr_decay in regular intervals (see
-            lr_reduction_interval).
+            lr_num_decay).
         lr_num_decay : Number of learning rate decays in regular intervals of
             length steps / lr_num_decay.
         momentum : Averaging of the boundary estimation over multiple steps. A momentum of
@@ -332,8 +332,8 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
         binary_search_steps : Number of binary search steps used to find the adversarial boundary
             between the starting point and the clean image.
 
-    .. _Brendel & Bethge adversarial attack:
-            Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+    References:
+        .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
             Ivan Ustyuzhaninov, Matthias Bethge,
             "Accurate, reliable and fast robustness evaluation",
             33rd Conference on Neural Information Processing Systems (2019)
@@ -355,6 +355,11 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
         if NUMBA_IMPORT_ERROR is not None:
             raise NUMBA_IMPORT_ERROR  # pragma: no cover
+
+        if "0.49." in numba.__version__:
+            warnings.warn(
+                "There are known issues with numba version 0.49 and we suggest using numba 0.50 or newer."
+            )
 
         self.init_attack = init_attack
         self.overshoot = overshoot
@@ -384,8 +389,6 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
         ----------
         inputs : Tensor that matches model type
             The original clean inputs.
-        labels : Integer tensor that matches model type
-            The reference labels for the inputs.
         criterion : Callable
             A callable that returns true if the given logits of perturbed
             inputs should be considered adversarial w.r.t. to the given labels
@@ -481,7 +484,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
         x = starting_points
         lrs = self.lr * np.ones(N)
-        lr_reduction_interval = min(1, int(self.steps / self.lr_num_decay))
+        lr_reduction_interval = max(1, int(self.steps / self.lr_num_decay))
         converged = np.zeros(N, dtype=np.bool)
         rate_normalization = np.prod(x.shape) * (max_ - min_)
         original_shape = x.shape
@@ -597,7 +600,7 @@ def best_other_classes(logits: ep.Tensor, exclude: ep.Tensor) -> ep.Tensor:
 
 
 class L2BrendelBethgeAttack(BrendelBethgeAttack):
-    """L2 variant of the Brendel & Bethge adversarial attack [#Bren19]_.
+    """L2 variant of the Brendel & Bethge adversarial attack. [#Bren19]_
     This is a powerful gradient-based adversarial attack that follows the
     adversarial boundary (the boundary between the space of adversarial and
     non-adversarial images as defined by the adversarial criterion) to find
@@ -605,11 +608,12 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
 
     This is the reference implementation of the Brendel & Bethge attack.
 
-    .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
-       Ivan Ustyuzhaninov, Matthias Bethge,
-       "Accurate, reliable and fast robustness evaluation",
-       33rd Conference on Neural Information Processing Systems (2019)
-       https://arxiv.org/abs/1907.01003
+    References:
+        .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+           Ivan Ustyuzhaninov, Matthias Bethge,
+           "Accurate, reliable and fast robustness evaluation",
+           33rd Conference on Neural Information Processing Systems (2019)
+           https://arxiv.org/abs/1907.01003
    """
 
     distance = l2
@@ -647,11 +651,12 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
 
     This is the reference implementation of the Brendel & Bethge attack.
 
-    .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
-       Ivan Ustyuzhaninov, Matthias Bethge,
-       "Accurate, reliable and fast robustness evaluation",
-       33rd Conference on Neural Information Processing Systems (2019)
-       https://arxiv.org/abs/1907.01003
+    References:
+        .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+           Ivan Ustyuzhaninov, Matthias Bethge,
+           "Accurate, reliable and fast robustness evaluation",
+           33rd Conference on Neural Information Processing Systems (2019)
+           https://arxiv.org/abs/1907.01003
    """
 
     distance = linf
@@ -693,11 +698,12 @@ class L1BrendelBethgeAttack(BrendelBethgeAttack):
 
     This is the reference implementation of the Brendel & Bethge attack.
 
-    .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
-       Ivan Ustyuzhaninov, Matthias Bethge,
-       "Accurate, reliable and fast robustness evaluation",
-       33rd Conference on Neural Information Processing Systems (2019)
-       https://arxiv.org/abs/1907.01003
+    References:
+        .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+           Ivan Ustyuzhaninov, Matthias Bethge,
+           "Accurate, reliable and fast robustness evaluation",
+           33rd Conference on Neural Information Processing Systems (2019)
+           https://arxiv.org/abs/1907.01003
    """
 
     distance = l1
@@ -739,11 +745,12 @@ class L0BrendelBethgeAttack(BrendelBethgeAttack):
 
     This is the reference implementation of the Brendel & Bethge attack.
 
-    .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
-       Ivan Ustyuzhaninov, Matthias Bethge,
-       "Accurate, reliable and fast robustness evaluation",
-       33rd Conference on Neural Information Processing Systems (2019)
-       https://arxiv.org/abs/1907.01003
+    References:
+        .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+           Ivan Ustyuzhaninov, Matthias Bethge,
+           "Accurate, reliable and fast robustness evaluation",
+           33rd Conference on Neural Information Processing Systems (2019)
+           https://arxiv.org/abs/1907.01003
    """
 
     distance = l0
@@ -891,7 +898,7 @@ class BFGSB(object):
 
         return qk
 
-    def _cauchy_point(self, x, l, u, g, B):
+    def _cauchy_point(self, x, l, u, g, B):  # noqa: E741
         # finds the cauchy point for q(x)=x'Gx+x'd s$t. l<=x<=u
         # g=G*x+d #gradient of q(x)
         # converted from r-code: https://github.com/andrewhooker/PopED/blob/master/R/cauchy_point.R
@@ -945,7 +952,7 @@ class BFGSB(object):
 
         return x_cp
 
-    def _subspace_min(self, x, l, u, x_cp, d, G):
+    def _subspace_min(self, x, l, u, x_cp, d, G):  # noqa: E741
         # converted from r-code: https://github.com/andrewhooker/PopED/blob/master/R/subspace_min.R
         n = x.shape[0]
         Z = np.eye(n)
@@ -986,7 +993,7 @@ class BFGSB(object):
 
         return x_cp + alpha * Z.dot(d[~fixed])
 
-    def _project(self, q, l, u):
+    def _project(self, q, l, u):  # noqa: E741
         N = q.shape[0]
         for k in range(N):
             if q[k] < l[k]:
@@ -997,7 +1004,22 @@ class BFGSB(object):
         return q
 
     def _line_search_armijo(
-        self, fun_and_jac, pt, dpt, func_calls, m, gk, l, u, x0, x, b, min_, max_, c, r
+        self,
+        fun_and_jac,
+        pt,
+        dpt,
+        func_calls,
+        m,
+        gk,
+        l,  # noqa: E741
+        u,
+        x0,
+        x,
+        b,
+        min_,
+        max_,
+        c,
+        r,
     ):
         ls_rho = 0.6
         ls_c = 1e-4
@@ -1019,7 +1041,16 @@ class BFGSB(object):
         return ls_alpha, ls_pt, gkp1, dgkp1, func_calls
 
     def _line_search_wolfe(  # noqa: C901
-        self, fun_and_jac, xk, pk, gfk, old_fval, old_old_fval, l, u, args
+        self,
+        fun_and_jac,
+        xk,
+        pk,
+        gfk,
+        old_fval,
+        old_old_fval,
+        l,  # noqa: #E741
+        u,
+        args,
     ):
         """Find alpha that satisfies strong Wolfe conditions.
         Uses the line search algorithm to enforce strong Wolfe conditions
