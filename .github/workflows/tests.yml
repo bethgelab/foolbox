@@ -62,7 +62,7 @@ jobs:
                     done
                     return 1
                 }
-        
+
         python -m pip install --upgrade pip setuptools
         retry-with-backoff pip install -r requirements.txt
     - name: flake8
@@ -76,6 +76,16 @@ jobs:
         pip install -e .
     - name: Install tests/requirements.txt
       run: |
+        function retry-with-backoff() {
+                            for BACKOFF in 0 1 2 4 8 16 32 64; do
+                                sleep $BACKOFF
+                                if "$@"; then
+                                    return 0
+                                fi
+                            done
+                            return 1
+                        }
+        
         retry-with-backoff pip install -r tests/requirements.txt
     - name: mypy (package)
       run: |
