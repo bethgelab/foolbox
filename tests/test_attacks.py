@@ -46,15 +46,13 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
         False,
     ),
     (
-        fa.EADAttack(binary_search_steps=10, steps=20, regularization=0),
+        fa.EADAttack(binary_search_steps=3, steps=20, regularization=0),
         None,
         True,
         False,
     ),
     (
-        fa.EADAttack(
-            binary_search_steps=10, steps=20, regularization=0, confidence=2.0
-        ),
+        fa.EADAttack(binary_search_steps=3, steps=20, regularization=0, confidence=2.0),
         None,
         True,
         False,

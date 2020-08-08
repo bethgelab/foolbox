@@ -120,13 +120,13 @@ def pytorch_mnist(request: Any) -> ModelAndData:
 
 
 @register("pytorch", real=True)
-def pytorch_resnet18(request: Any) -> ModelAndData:
+def pytorch_alexnet(request: Any) -> ModelAndData:
     if request.config.option.skipslow:
         pytest.skip()
 
     import torchvision.models as models
 
-    model = models.resnet18(pretrained=True).eval()
+    model = models.alexnet(pretrained=True).eval()
     preprocessing = dict(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], axis=-3)
     fmodel = fbn.PyTorchModel(model, bounds=(0, 1), preprocessing=preprocessing)
 
@@ -248,6 +248,7 @@ def tensorflow_resnet50(request: Any) -> ModelAndData:
         pytest.skip("ResNet50 test too slow without GPU")
 
     model = tf.keras.applications.ResNet50(weights="imagenet")
+
     preprocessing = dict(flip_axis=-1, mean=[104.0, 116.0, 123.0])  # RGB to BGR
     fmodel = fbn.TensorFlowModel(model, bounds=(0, 255), preprocessing=preprocessing)
 
