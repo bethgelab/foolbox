@@ -75,6 +75,22 @@ def test_pytorch_invalid_model(request: Any) -> None:
         fbn.PyTorchModel(model, bounds=bounds)
 
 
+def test_jax_no_data_format(request: Any) -> None:
+    backend = request.config.option.backend
+    if backend != "jax":
+        pytest.skip()
+
+    class Model:
+        def __call__(self, x: Any) -> Any:
+            return x
+
+    model = Model()
+    bounds = (0, 1)
+    fmodel = fbn.JAXModel(model, bounds, data_format=None)
+    with pytest.raises(AttributeError):
+        fmodel.data_format
+
+
 @pytest.mark.parametrize("bounds", [(0, 1), (-1.0, 1.0), (0, 255), (-32768, 32767)])
 def test_transform_bounds(
     fmodel_and_data: ModelAndData, bounds: fbn.types.BoundsInput
