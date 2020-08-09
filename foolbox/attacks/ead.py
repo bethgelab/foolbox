@@ -177,7 +177,7 @@ class EADAttack(MinimizationAttack):
                         break  # stop optimization if there has been no progress
                     loss_at_previous_check = loss.item()
 
-                found_advs_iter = is_adversarial(x_k, logits)
+                found_advs_iter = is_adversarial(x_k, model(x_k))
 
                 best_advs, best_advs_norms = _apply_decision_rule(
                     self.decision_rule,
