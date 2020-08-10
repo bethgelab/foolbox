@@ -2,7 +2,7 @@
 home: true
 heroImage: /logo.png
 heroText: Foolbox
-tagline: Foolbox Native: Fast adversarial attacks to benchmark the robustness of machine learning models in PyTorch, TensorFlow, and JAX
+tagline: "Foolbox Native: Fast adversarial attacks to benchmark the robustness of machine learning models in PyTorch, TensorFlow, and JAX"
 actionText: Get Started →
 actionLink: /guide/
 features:
