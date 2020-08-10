@@ -23,6 +23,7 @@ install_requires = [
     "eagerpy==0.27.0",
     "GitPython>=3.0.7",
     "typing-extensions>=3.7.4.1",
+    "requests>=2.24.0",
 ]
 tests_require = ["pytest>=5.3.5", "pytest-cov>=2.8.1"]
 
