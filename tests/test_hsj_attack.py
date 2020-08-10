@@ -1,0 +1,54 @@
+from typing import Tuple, Union, List, Any
+import eagerpy as ep
+
+import foolbox as fbn
+import foolbox.attacks as fa
+from foolbox.devutils import flatten
+from foolbox.attacks.brendel_bethge import BrendelBethgeAttack
+import pytest
+
+
+def get_attack_id(x: Tuple[BrendelBethgeAttack, Union[int, float]]) -> str:
+    return repr(x[0])
+
+
+attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
+    (fa.HopSkipJump(steps=3, constraint="linf", gamma=1e6), ep.inf),
+    (fa.HopSkipJump(steps=3, constraint="l2"), 2),
+]
+
+
+@pytest.mark.parametrize("attack_and_p", attacks, ids=get_attack_id)
+def test_hsj_untargeted_attack(
+    request: Any,
+    fmodel_and_data_ext_for_attacks: Tuple[
+        Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
+    ],
+    attack_and_p: Tuple[fa.HopSkipJump, Union[int, float]],
+) -> None:
+    if request.config.option.skipslow:
+        pytest.skip()
+
+    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
+
+    if isinstance(x, ep.NumPyTensor):
+        pytest.skip()
+
+    x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
+    fmodel = fmodel.transform_bounds((0, 1))
+
+    init_attack = fa.DatasetAttack()
+    init_attack.feed(fmodel, x)
+    init_advs = init_attack.run(fmodel, x, y)
+
+    attack, p = attack_and_p
+    advs = attack.run(fmodel, x, y, starting_points=init_advs)
+
+    init_norms = ep.norms.lp(flatten(init_advs - x), p=p, axis=-1)
+    norms = ep.norms.lp(flatten(advs - x), p=p, axis=-1)
+
+    is_smaller = norms < init_norms
+
+    assert fbn.accuracy(fmodel, advs, y) < fbn.accuracy(fmodel, x, y)
+    assert fbn.accuracy(fmodel, advs, y) <= fbn.accuracy(fmodel, init_advs, y)
+    assert is_smaller.any()

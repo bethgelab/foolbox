@@ -29,18 +29,25 @@ class HopSkipJump(MinimizationAttack):
     nor probabilities [#Chen19].
 
     Args:
-        binary_search_steps : Number of steps to perform in the binary search
-            over the const c.
+        init_attack : Attack to use to find a starting points. Defaults to
+            LinearSearchBlendedUniformNoiseAttack. Only used if starting_points is None.
         steps : Number of optimization steps within each binary search step.
-        initial_stepsize : Initial stepsize to update the examples.
-        confidence : Confidence required for an example to be marked as adversarial.
-            Controls the gap between example and decision boundary.
-        initial_const : Initial value of the const c with which the binary search starts.
-        regularization : Controls the L1 regularization.
-        decision_rule : Rule according to which the best adversarial examples are selected.
-            They either minimize the L1 or ElasticNet distance.
-        abort_early : Stop inner search as soons as an adversarial example has been found.
-            Does not affect the binary search over the const c.
+        initial_gradient_eval_steps: Initial number of evaluations for gradient estimation.
+            Larger initial_num_evals increases time efficiency, but
+            may decrease query efficiency.
+        max_gradient_eval_steps : Maximum number of evaluations for gradient estimation.
+        stepsize_search : How to search for stepsize; choices are 'geometric_progression',
+            'grid_search'. 'geometric progression' initializes the stepsize
+            by ||x_t - x||_p / sqrt(iteration), and keep decreasing by half
+            until reaching the target side of the boundary. 'grid_search'
+            chooses the optimal epsilon over a grid, in the scale of
+            ||x_t - x||_p.
+        gamma : The binary search threshold theta is gamma / d^1.5 for
+                   l2 attack and gamma / d^2 for linf attack.
+        tensorboard : The log directory for TensorBoard summaries. If False, TensorBoard
+            summaries will be disabled (default). If None, the logdir will be
+            runs/CURRENT_DATETIME_HOSTNAME.
+        constraint : Norm to minimize, either "l2" or "linf"
 
     References:
         .. [#Chen19] Jianbo Chen, Michael I. Jordan, Martin J. Wainwright,
@@ -54,8 +61,8 @@ class HopSkipJump(MinimizationAttack):
         self,
         init_attack: Optional[MinimizationAttack] = None,
         steps: int = 64,
-        initial_num_evals: int = 100,
-        max_num_evals: int = 10000,
+        initial_gradient_eval_steps: int = 100,
+        max_gradient_eval_steps: int = 10000,
         stepsize_search: Union[
             Literal["geometric_progression"], Literal["grid_search"]
         ] = "geometric_progression",
@@ -67,8 +74,8 @@ class HopSkipJump(MinimizationAttack):
             raise NotImplementedError
         self.init_attack = init_attack
         self.steps = steps
-        self.initial_num_evals = initial_num_evals
-        self.max_num_evals = max_num_evals
+        self.initial_num_evals = initial_gradient_eval_steps
+        self.max_num_evals = max_gradient_eval_steps
         self.stepsize_search = stepsize_search
         self.gamma = gamma
         self.tensorboard = tensorboard
@@ -78,7 +85,7 @@ class HopSkipJump(MinimizationAttack):
         if constraint == "l2":
             self.distance = l2
         else:
-            self.distance = "linf"
+            self.distance = linf
 
     def run(
         self,
@@ -260,8 +267,9 @@ class HopSkipJump(MinimizationAttack):
 
         (x, y), restore_type = ep.astensors_(originals, perturbed)
         p = y - x
-        if self.distance == ep.inf:
-            clipped_perturbation = ep.clip(p, -epsilon, epsilon)
+        if self.constraint == "linf":
+            epsilon = atleast_kd(epsilon, p.ndim)
+            clipped_perturbation = ep.clip(p / epsilon, -1, 1) * epsilon
             return restore_type(x + clipped_perturbation)
         else:
             norms = ep.norms.lp(flatten(p), 2, axis=-1)
@@ -279,6 +287,7 @@ class HopSkipJump(MinimizationAttack):
             highs = linf(originals, perturbed)
             # Stopping criteria.
             # TODO: Check if the threshold is correct
+            #  empirically this seems to be too low
             thresholds = highs * self.gamma / (d * d)
         else:
             highs = ep.ones(perturbed, len(perturbed)) * math.sqrt(d)
@@ -304,6 +313,6 @@ class HopSkipJump(MinimizationAttack):
             d = np.prod(originals.shape[1:])
             theta = self.gamma / (d * d)
             if self.constraint == "linf":
-                return ep.sqrt(d) * theta * distances
+                return np.sqrt(d) * theta * distances
             else:
                 return d * theta * distances
