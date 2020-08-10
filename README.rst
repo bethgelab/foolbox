@@ -34,7 +34,7 @@ developed in PyTorch, TensorFlow and JAX, all with one code base without code du
 
 - **Guide**: The best place to get started with Foolbox is the official `guide <https://foolbox.jonasrauber.de>`_.
 - **Tutorial**: If you are looking for a tutorial, check out this `Jupyter notebook <https://github.com/jonasrauber/foolbox-native-tutorial/blob/master/foolbox-native-tutorial.ipynb>`_.
-- **Documentaiton**: Finally, you can find the full API documentation on `ReadTheDocs <https://foolbox.readthedocs.io/en/stable/>`_.
+- **Documentation**: Finally, you can find the full API documentation on `ReadTheDocs <https://foolbox.readthedocs.io/en/stable/>`_.
 
 🚀 Quickstart
 --------------
