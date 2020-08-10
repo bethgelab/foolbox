@@ -47,7 +47,7 @@ setup(
     author="Jonas Rauber",
     author_email="git@jonasrauber.de",
     url="https://github.com/bethgelab/foolbox",
-    license="",
+    license="MIT License",
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,

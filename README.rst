@@ -52,7 +52,7 @@ developed in PyTorch, TensorFlow and JAX, all with one code base.
    import foolbox as fb
 
    model = ...
-   fmodel = fb.PyTorchModel(model)
+   fmodel = fb.PyTorchModel(model, bounds=(0, 1))
 
    attack = fb.attacks.LinfPGD()
    epsilons = [0.0, 0.001, 0.01, 0.03, 0.1, 0.3, 0.5, 1.0]
