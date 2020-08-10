@@ -15,7 +15,7 @@
 Foolbox Native: Fast adversarial attacks to benchmark the robustness of machine learning models in PyTorch, TensorFlow, and JAX
 ===============================================================================================================================
 
-`Foolbox <https://foolbox.jonasrauber.de>`_ is a **Python library** that let's you easily run adversarial attacks against machine learning models like deep neural networks. It is built on top of EagerPy and works natively with models in `PyTorch <https://pytorch.org>`_, `TensorFlow <https://www.tensorflow.org>`_, and `JAX <https://github.com/google/jax>`_.
+`Foolbox <https://foolbox.jonasrauber.de>`_ is a **Python library** that lets you easily run adversarial attacks against machine learning models like deep neural networks. It is built on top of EagerPy and works natively with models in `PyTorch <https://pytorch.org>`_, `TensorFlow <https://www.tensorflow.org>`_, and `JAX <https://github.com/google/jax>`_.
 
 🔥 Design 
 ----------
