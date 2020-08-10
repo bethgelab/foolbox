@@ -86,9 +86,13 @@ We are currently preparing a new paper for Foolbox Native that will be available
 👍 Contributions
 -----------------
 
-We welcome contributions of all kind, in particular new adversarial attacks.
+We welcome contributions of all kind, please have a look at our
+`development guidelines <https://foolbox.jonasrauber.de/guide/development.html>`_.
+In particular, you are invited to contribute
+`new adversarial attacks <https://foolbox.jonasrauber.de/guide/adding_attacks.html>`_.
 If you would like to help, you can also have a look at the issues that are
-marked with `contributions welcome <https://github.com/bethgelab/foolbox/issues?q=is%3Aopen+is%3Aissue+label%3A%22contributions+welcome%22>`_.
+marked with `contributions welcome
+<https://github.com/bethgelab/foolbox/issues?q=is%3Aopen+is%3Aissue+label%3A%22contributions+welcome%22>`_.
 
 💡 Questions?
 --------------
