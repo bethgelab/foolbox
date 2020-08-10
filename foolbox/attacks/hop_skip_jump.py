@@ -1,5 +1,5 @@
 import logging
-from typing import Union, Any, Optional
+from typing import Union, Any, Optional, Callable, List
 from typing_extensions import Literal
 
 import math
@@ -180,7 +180,10 @@ class HopSkipJump(MinimizationAttack):
 
             elif self.stepsize_search == "grid_search":
                 # Grid search for stepsize.
-                epsilons_grid = ep.logspace(-4, 0, num=20, endpoint=True) * distances
+                epsilons_grid = (
+                    ep.from_numpy(distances, np.logspace(-4, 0, num=20, endpoint=True))
+                    * distances
+                )
 
                 proposals_list = []
 
@@ -214,9 +217,15 @@ class HopSkipJump(MinimizationAttack):
 
         return restore_type(x_advs)
 
-    def approximate_gradients(self, is_adversarial, x_advs, steps, delta):
+    def approximate_gradients(
+        self,
+        is_adversarial: Callable[[ep.Tensor], ep.Tensor],
+        x_advs: ep.Tensor,
+        steps: int,
+        delta: ep.Tensor,
+    ) -> ep.Tensor:
         # (steps, bs, ...)
-        noise_shape = [steps] + list(x_advs.shape)
+        noise_shape = tuple([steps] + list(x_advs.shape))
         if self.constraint == "l2":
             rv = ep.normal(x_advs, noise_shape)
         elif self.constraint == "linf":
@@ -230,10 +239,10 @@ class HopSkipJump(MinimizationAttack):
 
         rv = (perturbed - x_advs) / 2
 
-        multipliers = []
+        multipliers_list: List[ep.Tensor] = []
         for step in range(steps):
             decision = is_adversarial(perturbed[step])
-            multipliers.append(
+            multipliers_list.append(
                 ep.where(
                     decision,
                     ep.ones(x_advs, (len(x_advs,))),
@@ -241,7 +250,7 @@ class HopSkipJump(MinimizationAttack):
                 )
             )
         # (steps, bs, ...)
-        multipliers = ep.stack(multipliers, 0)
+        multipliers = ep.stack(multipliers_list, 0)
 
         vals = ep.where(
             ep.abs(ep.mean(multipliers, axis=0, keepdims=True)) == 1,
@@ -254,33 +263,40 @@ class HopSkipJump(MinimizationAttack):
 
         return grad
 
-    def _project(self, originals: T, perturbed: T, epsilon):
+    def _project(
+        self, originals: ep.Tensor, perturbed: ep.Tensor, epsilons: ep.Tensor
+    ) -> ep.Tensor:
         """Clips the perturbations to epsilon and returns the new perturbed
 
         Args:
             originals: A batch of reference inputs.
             perturbed: A batch of perturbed inputs.
-
+            epsilons: A batch of norm values to project to.
         Returns:
             A tensor like perturbed but with the perturbation clipped to epsilon.
         """
 
-        (x, y), restore_type = ep.astensors_(originals, perturbed)
+        x, y = originals, perturbed
         p = y - x
         if self.constraint == "linf":
-            epsilon = atleast_kd(epsilon, p.ndim)
-            clipped_perturbation = ep.clip(p / epsilon, -1, 1) * epsilon
-            return restore_type(x + clipped_perturbation)
+            epsilons = atleast_kd(epsilons, p.ndim)
+            clipped_perturbation = ep.clip(p / epsilons, -1, 1) * epsilons
+            return x + clipped_perturbation
         else:
             norms = ep.norms.lp(flatten(p), 2, axis=-1)
             norms = ep.maximum(norms, 1e-12)  # avoid division by zero
-            factor = epsilon / norms
+            factor = epsilons / norms
 
             factor = atleast_kd(factor, x.ndim)
             clipped_perturbation = factor * p
-            return restore_type(x + clipped_perturbation)
+            return x + clipped_perturbation
 
-    def _binary_search(self, is_adversarial, originals, perturbed):
+    def _binary_search(
+        self,
+        is_adversarial: Callable[[ep.Tensor], ep.Tensor],
+        originals: ep.Tensor,
+        perturbed: ep.Tensor,
+    ) -> ep.Tensor:
         # Choose upper thresholds in binary search is based on constraint.
         d = np.prod(perturbed.shape[1:])
         if self.constraint == "linf":
@@ -306,13 +322,18 @@ class HopSkipJump(MinimizationAttack):
 
         return self._project(originals, perturbed, highs)
 
-    def select_delta(self, originals, distances, step):
+    def select_delta(
+        self, originals: ep.Tensor, distances: ep.Tensor, step: int
+    ) -> ep.Tensor:
+        result: ep.Tensor
         if step == 0:
-            return 0.1 * ep.ones_like(distances)
+            result = 0.1 * ep.ones_like(distances)
         else:
             d = np.prod(originals.shape[1:])
             theta = self.gamma / (d * d)
             if self.constraint == "linf":
-                return np.sqrt(d) * theta * distances
+                result = np.sqrt(d) * theta * distances
             else:
-                return d * theta * distances
+                result = d * theta * distances
+
+        return result
