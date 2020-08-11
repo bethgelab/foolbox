@@ -187,15 +187,20 @@ class HopSkipJump(MinimizationAttack):
 
             elif self.stepsize_search == "grid_search":
                 # Grid search for stepsize.
-                epsilons_grid = (
-                    ep.from_numpy(distances, np.logspace(-4, 0, num=20, endpoint=True))
-                    * distances
-                )
+                epsilons_grid = ep.expand_dims(
+                    ep.from_numpy(
+                        distances,
+                        np.logspace(-4, 0, num=20, endpoint=True, dtype=np.float32),
+                    ),
+                    1,
+                ) * ep.expand_dims(distances, 0)
 
                 proposals_list = []
 
                 for epsilons in epsilons_grid:
-                    x_advs_proposals = x_advs + epsilons * update
+                    x_advs_proposals = (
+                        x_advs + atleast_kd(epsilons, update.ndim) * update
+                    )
                     x_advs_proposals = ep.clip(x_advs_proposals, 0, 1)
 
                     mask = is_adversarial(x_advs_proposals)
@@ -205,7 +210,9 @@ class HopSkipJump(MinimizationAttack):
                     )
 
                     # only use new values where initial guess was already adversarial
-                    x_advs_proposals = ep.where(mask, x_advs_proposals, x_advs)
+                    x_advs_proposals = ep.where(
+                        atleast_kd(mask, x_advs.ndim), x_advs_proposals, x_advs
+                    )
 
                     proposals_list.append(x_advs_proposals)
 
@@ -217,10 +224,10 @@ class HopSkipJump(MinimizationAttack):
 
                 x_advs = proposals[minimal_idx]
 
-                # log stats
-                tb.histogram("norms", distances, step)
-
             distances = self.distance(originals, x_advs)
+
+            # log stats
+            tb.histogram("norms", distances, step)
 
         return restore_type(x_advs)
 

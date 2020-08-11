@@ -25,6 +25,16 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
         ),
         2,
     ),
+    (
+        fa.HopSkipJump(
+            steps=3,
+            constraint="l2",
+            initial_gradient_eval_steps=50,
+            gamma=1e3,
+            stepsize_search="grid_search",
+        ),
+        2,
+    ),
 ]
 
 
@@ -61,4 +71,49 @@ def test_hsj_untargeted_attack(
 
     assert fbn.accuracy(fmodel, advs, y) < fbn.accuracy(fmodel, x, y)
     assert fbn.accuracy(fmodel, advs, y) <= fbn.accuracy(fmodel, init_advs, y)
+    assert is_smaller.any()
+
+
+@pytest.mark.parametrize("attack_and_p", attacks, ids=get_attack_id)
+def test_hsj_targeted_attack(
+    request: Any,
+    fmodel_and_data_ext_for_attacks: Tuple[
+        Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
+    ],
+    attack_and_p: Tuple[fa.HopSkipJump, Union[int, float]],
+) -> None:
+    if request.config.option.skipslow:
+        pytest.skip()
+
+    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
+
+    if isinstance(x, ep.NumPyTensor):
+        pytest.skip()
+
+    x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
+    fmodel = fmodel.transform_bounds((0, 1))
+
+    num_classes = fmodel(x).shape[-1]
+    target_classes = (y + 1) % num_classes
+    criterion = fbn.TargetedMisclassification(target_classes)
+
+    init_attack = fa.DatasetAttack()
+    init_attack.feed(fmodel, x)
+    init_advs = init_attack.run(fmodel, x, criterion)
+
+    attack, p = attack_and_p
+    advs = attack.run(fmodel, x, criterion, starting_points=init_advs)
+
+    init_norms = ep.norms.lp(flatten(init_advs - x), p=p, axis=-1)
+    norms = ep.norms.lp(flatten(advs - x), p=p, axis=-1)
+
+    is_smaller = norms < init_norms
+
+    assert fbn.accuracy(fmodel, advs, y) < fbn.accuracy(fmodel, x, y)
+    assert fbn.accuracy(fmodel, advs, target_classes) > fbn.accuracy(
+        fmodel, x, target_classes
+    )
+    assert fbn.accuracy(fmodel, advs, target_classes) >= fbn.accuracy(
+        fmodel, init_advs, target_classes
+    )
     assert is_smaller.any()
