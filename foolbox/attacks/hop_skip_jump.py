@@ -138,6 +138,8 @@ class HopSkipJump(MinimizationAttack):
         # Project the initialization to the boundary.
         x_advs = self._binary_search(is_adversarial, originals, x_advs)
 
+        assert ep.all(is_adversarial(x_advs))
+
         distances = self.distance(originals, x_advs)
 
         for step in range(self.steps):
@@ -160,6 +162,7 @@ class HopSkipJump(MinimizationAttack):
             if self.stepsize_search == "geometric_progression":
                 # find step size.
                 epsilons = distances / math.sqrt(step + 1)
+
                 while True:
                     x_advs_proposals = ep.clip(
                         x_advs + atleast_kd(epsilons, x_advs.ndim) * update, 0, 1
@@ -175,8 +178,12 @@ class HopSkipJump(MinimizationAttack):
                     x_advs + atleast_kd(epsilons, update.ndim) * update, 0, 1
                 )
 
+                assert ep.all(is_adversarial(x_advs))
+
                 # Binary search to return to the boundary.
                 x_advs = self._binary_search(is_adversarial, originals, x_advs)
+
+                assert ep.all(is_adversarial(x_advs))
 
             elif self.stepsize_search == "grid_search":
                 # Grid search for stepsize.
@@ -230,7 +237,7 @@ class HopSkipJump(MinimizationAttack):
             rv = ep.normal(x_advs, noise_shape)
         elif self.constraint == "linf":
             rv = ep.uniform(x_advs, low=-1, high=1, shape=noise_shape)
-        rv /= atleast_kd(ep.norms.l2(flatten(rv, keep=1), -1), rv.ndim)
+        rv /= atleast_kd(ep.norms.l2(flatten(rv, keep=1), -1), rv.ndim) + 1e-12
 
         scaled_rv = atleast_kd(ep.expand_dims(delta, 0), rv.ndim) * rv
 
@@ -259,7 +266,7 @@ class HopSkipJump(MinimizationAttack):
         )
         grad = ep.mean(atleast_kd(vals, rv.ndim) * rv, axis=0)
 
-        grad /= ep.norms.l2(atleast_kd(flatten(grad), grad.ndim))
+        grad /= ep.norms.l2(atleast_kd(flatten(grad), grad.ndim)) + 1e-12
 
         return grad
 
@@ -276,20 +283,24 @@ class HopSkipJump(MinimizationAttack):
             A tensor like perturbed but with the perturbation clipped to epsilon.
         """
 
-        x, y = originals, perturbed
-        p = y - x
+        epsilons = atleast_kd(epsilons, originals.ndim)
         if self.constraint == "linf":
-            epsilons = atleast_kd(epsilons, p.ndim)
-            clipped_perturbation = ep.clip(p / epsilons, -1, 1) * epsilons
-            return x + clipped_perturbation
+            epsilons = ep.maximum(epsilons, 1e-12)
+            perturbation = perturbed - originals
+            clipped_perturbation = (
+                ep.clip(perturbation / epsilons, -1.0, +1.0) * epsilons
+            )
+            return originals + clipped_perturbation
         else:
-            norms = ep.norms.lp(flatten(p), 2, axis=-1)
-            norms = ep.maximum(norms, 1e-12)  # avoid division by zero
-            factor = epsilons / norms
+            # norms = ep.norms.lp(flatten(p), 2, axis=-1)
+            # norms = ep.maximum(norms, 1e-12)  # avoid division by zero
+            # factor = epsilons / norms
 
-            factor = atleast_kd(factor, x.ndim)
-            clipped_perturbation = factor * p
-            return x + clipped_perturbation
+            # factor = atleast_kd(factor, x.ndim)
+            # clipped_perturbation = factor * p
+            # return x + clipped_perturbation
+
+            return (1.0 - epsilons) * originals + epsilons * perturbed
 
     def _binary_search(
         self,
@@ -297,21 +308,21 @@ class HopSkipJump(MinimizationAttack):
         originals: ep.Tensor,
         perturbed: ep.Tensor,
     ) -> ep.Tensor:
-        # Choose upper thresholds in binary search is based on constraint.
+        # Choose upper thresholds in binary search based on constraint.
         d = np.prod(perturbed.shape[1:])
         if self.constraint == "linf":
             highs = linf(originals, perturbed)
-            # Stopping criteria.
+
             # TODO: Check if the threshold is correct
             #  empirically this seems to be too low
             thresholds = highs * self.gamma / (d * d)
         else:
-            highs = ep.ones(perturbed, len(perturbed)) * math.sqrt(d)
-            thresholds = self.gamma / math.sqrt(d)
+            highs = ep.ones(perturbed, len(perturbed))
+            thresholds = self.gamma / (d * math.sqrt(d))
 
         lows = ep.zeros_like(highs)
 
-        while ep.all(highs - lows > thresholds):
+        while ep.any(highs - lows > thresholds):
             mids = (lows + highs) / 2
             mids_perturbed = self._project(originals, perturbed, mids)
             is_adversarial_ = is_adversarial(mids_perturbed)
@@ -329,10 +340,12 @@ class HopSkipJump(MinimizationAttack):
             result = 0.1 * ep.ones_like(distances)
         else:
             d = np.prod(originals.shape[1:])
-            theta = self.gamma / (d * d)
+
             if self.constraint == "linf":
-                result = np.sqrt(d) * theta * distances
-            else:
+                theta = self.gamma / (d * d)
                 result = d * theta * distances
+            else:
+                theta = self.gamma / (d * np.sqrt(d))
+                result = np.sqrt(d) * theta * distances
 
         return result
