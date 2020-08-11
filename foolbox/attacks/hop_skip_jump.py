@@ -230,7 +230,7 @@ class HopSkipJump(MinimizationAttack):
             rv = ep.normal(x_advs, noise_shape)
         elif self.constraint == "linf":
             rv = ep.uniform(x_advs, low=-1, high=1, shape=noise_shape)
-        rv /= atleast_kd(ep.norms.l2(flatten(rv, keep=2), -1), rv.ndim)
+        rv /= atleast_kd(ep.norms.l2(flatten(rv, keep=1), -1), rv.ndim)
 
         scaled_rv = atleast_kd(ep.expand_dims(delta, 0), rv.ndim) * rv
 
@@ -307,7 +307,6 @@ class HopSkipJump(MinimizationAttack):
             thresholds = highs * self.gamma / (d * d)
         else:
             highs = ep.ones(perturbed, len(perturbed)) * math.sqrt(d)
-            # TODO: Check if the threshold is correct
             thresholds = self.gamma / math.sqrt(d)
 
         lows = ep.zeros_like(highs)
