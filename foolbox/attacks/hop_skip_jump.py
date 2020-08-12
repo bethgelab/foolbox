@@ -325,7 +325,7 @@ class HopSkipJump(MinimizationAttack):
             #  empirically this seems to be too low
             thresholds = highs * self.gamma / (d * d)
         else:
-            highs = np.ones(len(perturbed), dtype=np.float54)
+            highs = np.ones(len(perturbed), dtype=np.float64)
             thresholds = self.gamma / (d * math.sqrt(d))
 
         lows = np.zeros_like(highs)
