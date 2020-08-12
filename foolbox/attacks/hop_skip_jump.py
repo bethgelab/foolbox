@@ -329,7 +329,6 @@ class HopSkipJump(MinimizationAttack):
 
         lows = np.zeros_like(highs)
 
-        k = 0
         while np.any(highs - lows > thresholds):
             mids = (lows + highs) / 2
             mids_perturbed = self._project(
@@ -339,13 +338,6 @@ class HopSkipJump(MinimizationAttack):
 
             highs = np.where(is_adversarial_, mids, highs)
             lows = np.where(is_adversarial_, lows, mids)
-
-            k += 1
-
-            if k % 50 == 0:
-                import pdb
-
-                pdb.set_trace()
 
         return self._project(originals, perturbed, ep.from_numpy(originals, highs))
 
