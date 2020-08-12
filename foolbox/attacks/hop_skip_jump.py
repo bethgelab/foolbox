@@ -318,26 +318,36 @@ class HopSkipJump(MinimizationAttack):
         # Choose upper thresholds in binary search based on constraint.
         d = np.prod(perturbed.shape[1:])
         if self.constraint == "linf":
-            highs = linf(originals, perturbed)
+            highs = linf(originals, perturbed).numpy().astype(np.float32)
 
             # TODO: Check if the threshold is correct
             #  empirically this seems to be too low
             thresholds = highs * self.gamma / (d * d)
         else:
-            highs = ep.ones(perturbed, len(perturbed))
+            highs = np.ones(len(perturbed), dtype=np.float32)
             thresholds = self.gamma / (d * math.sqrt(d))
 
-        lows = ep.zeros_like(highs)
+        lows = np.zeros_like(highs)
 
-        while ep.any(highs - lows > thresholds):
+        k = 0
+        while np.any(highs - lows > thresholds):
             mids = (lows + highs) / 2
-            mids_perturbed = self._project(originals, perturbed, mids)
+            mids_perturbed = self._project(
+                originals, perturbed, ep.from_numpy(originals, mids)
+            )
             is_adversarial_ = is_adversarial(mids_perturbed)
 
-            highs = ep.where(is_adversarial_, mids, highs)
-            lows = ep.where(is_adversarial_, lows, mids)
+            highs = np.where(is_adversarial_, mids, highs)
+            lows = np.where(is_adversarial_, lows, mids)
 
-        return self._project(originals, perturbed, highs)
+            k += 1
+
+            if k % 50 == 0:
+                import pdb
+
+                pdb.set_trace()
+
+        return self._project(originals, perturbed, ep.from_numpy(originals, highs))
 
     def select_delta(
         self, originals: ep.Tensor, distances: ep.Tensor, step: int

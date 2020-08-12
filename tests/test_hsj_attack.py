@@ -15,7 +15,7 @@ def get_attack_id(x: Tuple[BrendelBethgeAttack, Union[int, float]]) -> str:
 attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
     (
         fa.HopSkipJump(
-            steps=3, constraint="linf", gamma=1e7, initial_gradient_eval_steps=50
+            steps=3, constraint="linf", gamma=1e3, initial_gradient_eval_steps=50
         ),
         ep.inf,
     ),
@@ -93,13 +93,16 @@ def test_hsj_targeted_attack(
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
 
-    num_classes = fmodel(x).shape[-1]
-    target_classes = (y + 1) % num_classes
+    # rotate labels to make sure there exists a sample for every target label
+    # in the data fed to the DatasetAttack
+    target_classes = ep.concatenate((y[1:], y[[0]]))
     criterion = fbn.TargetedMisclassification(target_classes)
 
     init_attack = fa.DatasetAttack()
     init_attack.feed(fmodel, x)
     init_advs = init_attack.run(fmodel, x, criterion)
+    adv_before_attack = criterion(x, fmodel(x))
+    assert not adv_before_attack.all()
 
     attack, p = attack_and_p
     advs = attack.run(fmodel, x, criterion, starting_points=init_advs)
