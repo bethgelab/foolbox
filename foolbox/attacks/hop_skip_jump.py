@@ -329,18 +329,23 @@ class HopSkipJump(MinimizationAttack):
             thresholds = self.gamma / (d * math.sqrt(d))
 
         lows = np.zeros_like(highs)
+        # keep also a float representation of the high values to return them later
+        highs_fl = highs.astype(np.float32)
 
         while np.any(highs - lows > thresholds):
             mids = (lows + highs) / 2
+            mids_fl = mids.astype(np.float32)
             mids_perturbed = self._project(
-                originals, perturbed, ep.from_numpy(originals, mids.astype(np.float32))
+                originals, perturbed, ep.from_numpy(originals, mids_fl)
             )
             is_adversarial_ = is_adversarial(mids_perturbed)
 
             highs = np.where(is_adversarial_, mids, highs)
             lows = np.where(is_adversarial_, lows, mids)
 
-        return self._project(originals, perturbed, ep.from_numpy(originals, highs))
+            highs_fl = np.where(is_adversarial_, mids_fl, highs_fl)
+
+        return self._project(originals, perturbed, ep.from_numpy(originals, highs_fl))
 
     def select_delta(
         self, originals: ep.Tensor, distances: ep.Tensor, step: int
