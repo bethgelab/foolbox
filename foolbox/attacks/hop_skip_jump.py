@@ -316,15 +316,16 @@ class HopSkipJump(MinimizationAttack):
         perturbed: ep.Tensor,
     ) -> ep.Tensor:
         # Choose upper thresholds in binary search based on constraint.
+        # use numpy in binary search to make sure we have full precision
         d = np.prod(perturbed.shape[1:])
         if self.constraint == "linf":
-            highs = linf(originals, perturbed).numpy().astype(np.float32)
+            highs = linf(originals, perturbed).numpy().astype(np.float64)
 
             # TODO: Check if the threshold is correct
             #  empirically this seems to be too low
             thresholds = highs * self.gamma / (d * d)
         else:
-            highs = np.ones(len(perturbed), dtype=np.float32)
+            highs = np.ones(len(perturbed), dtype=np.float54)
             thresholds = self.gamma / (d * math.sqrt(d))
 
         lows = np.zeros_like(highs)
@@ -332,7 +333,7 @@ class HopSkipJump(MinimizationAttack):
         while np.any(highs - lows > thresholds):
             mids = (lows + highs) / 2
             mids_perturbed = self._project(
-                originals, perturbed, ep.from_numpy(originals, mids)
+                originals, perturbed, ep.from_numpy(originals, mids.astype(np.float32))
             )
             is_adversarial_ = is_adversarial(mids_perturbed)
 
