@@ -320,7 +320,6 @@ class HopSkipJump(MinimizationAttack):
         d = np.prod(perturbed.shape[1:])
         if self.constraint == "linf":
             highs = linf(originals, perturbed).numpy().astype(np.float64)
-
             # TODO: Check if the threshold is correct
             #  empirically this seems to be too low
             thresholds = highs * self.gamma / (d * d)
