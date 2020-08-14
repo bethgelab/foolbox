@@ -20,9 +20,13 @@
 
    L2AdditiveGaussianNoiseAttack
    L2AdditiveUniformNoiseAttack
+   L2ClippingAwareAdditiveGaussianNoiseAttack
+   L2ClippingAwareAdditiveUniformNoiseAttack
    LinfAdditiveUniformNoiseAttack
    L2RepeatedAdditiveGaussianNoiseAttack
    L2RepeatedAdditiveUniformNoiseAttack
+   L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack
+   L2ClippingAwareRepeatedAdditiveUniformNoiseAttack
    LinfRepeatedAdditiveUniformNoiseAttack
    InversionAttack
    BinarySearchContrastReductionAttack
@@ -62,9 +66,13 @@
 
 .. autoclass:: L2AdditiveGaussianNoiseAttack
 .. autoclass:: L2AdditiveUniformNoiseAttack
+.. autoclass:: L2ClippingAwareAdditiveGaussianNoiseAttack
+.. autoclass:: L2ClippingAwareAdditiveUniformNoiseAttack
 .. autoclass:: LinfAdditiveUniformNoiseAttack
 .. autoclass:: L2RepeatedAdditiveGaussianNoiseAttack
 .. autoclass:: L2RepeatedAdditiveUniformNoiseAttack
+.. autoclass:: L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack
+.. autoclass:: L2ClippingAwareRepeatedAdditiveUniformNoiseAttack
 .. autoclass:: LinfRepeatedAdditiveUniformNoiseAttack
 .. autoclass:: InversionAttack
 .. autoclass:: BinarySearchContrastReductionAttack

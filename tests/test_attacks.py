@@ -100,6 +100,7 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.SaltAndPepperNoiseAttack(steps=50, channel_axis=1), None, True, False),
     (fa.LinearSearchBlendedUniformNoiseAttack(steps=50), None, False, False),
     (fa.L2AdditiveGaussianNoiseAttack(), 2500.0, False, False),
+    (fa.L2ClippingAwareAdditiveGaussianNoiseAttack(), 500.0, False, False),
     (fa.LinfAdditiveUniformNoiseAttack(), 10.0, False, False),
     (
         fa.L2RepeatedAdditiveGaussianNoiseAttack(check_trivial=False),
@@ -107,8 +108,16 @@ attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
         False,
         False,
     ),
+    (
+        fa.L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack(check_trivial=False),
+        200.0,
+        False,
+        False,
+    ),
     (fa.L2RepeatedAdditiveGaussianNoiseAttack(), 1000.0, False, False),
+    (fa.L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack(), 200.0, False, False),
     (fa.L2RepeatedAdditiveUniformNoiseAttack(), 1000.0, False, False),
+    (fa.L2ClippingAwareRepeatedAdditiveUniformNoiseAttack(), 200.0, False, False),
     (fa.LinfRepeatedAdditiveUniformNoiseAttack(), 3.0, False, False),
 ]
 
