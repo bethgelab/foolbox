@@ -96,19 +96,24 @@ def test_hsj_targeted_attack(
     if isinstance(x, ep.NumPyTensor):
         pytest.skip()
 
+    if not real:
+        pytest.skip()
+
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
 
-    # rotate labels to make sure there exists a sample for every target label
-    # in the data fed to the DatasetAttack
-    target_classes = ep.concatenate((y[1:], y[[0]]))
+    num_classes = fmodel(x).shape[-1]
+    y_np = y.numpy()
+    target_classes_np = (y_np + 1) % num_classes
+    for i in range(len(target_classes_np)):
+        while target_classes_np[i] not in y_np:
+            target_classes_np[i] = (target_classes_np[i] + 1) % num_classes
+    target_classes = ep.from_numpy(y, target_classes_np)
     criterion = fbn.TargetedMisclassification(target_classes)
 
     init_attack = fa.DatasetAttack()
     init_attack.feed(fmodel, x)
     init_advs = init_attack.run(fmodel, x, criterion)
-    adv_before_attack = criterion(x, fmodel(x))
-    assert not adv_before_attack.all()
 
     attack, p = attack_and_p
     advs = attack.run(fmodel, x, criterion, starting_points=init_advs)

@@ -289,24 +289,19 @@ class HopSkipJump(MinimizationAttack):
         Returns:
             A tensor like perturbed but with the perturbation clipped to epsilon.
         """
-
         epsilons = atleast_kd(epsilons, originals.ndim)
         if self.constraint == "linf":
-            epsilons = ep.maximum(epsilons, 1e-12)
             perturbation = perturbed - originals
-            clipped_perturbation = (
-                ep.clip(perturbation / epsilons, -1.0, +1.0) * epsilons
+
+            # ep.clip does not support tensors as min/max
+            clipped_perturbed = ep.where(
+                perturbation > epsilons, originals + epsilons, perturbed
             )
-            return originals + clipped_perturbation
+            clipped_perturbed = ep.where(
+                perturbation < -epsilons, originals - epsilons, clipped_perturbed
+            )
+            return clipped_perturbed
         else:
-            # norms = ep.norms.lp(flatten(p), 2, axis=-1)
-            # norms = ep.maximum(norms, 1e-12)  # avoid division by zero
-            # factor = epsilons / norms
-
-            # factor = atleast_kd(factor, x.ndim)
-            # clipped_perturbation = factor * p
-            # return x + clipped_perturbation
-
             return (1.0 - epsilons) * originals + epsilons * perturbed
 
     def _binary_search(
@@ -316,35 +311,41 @@ class HopSkipJump(MinimizationAttack):
         perturbed: ep.Tensor,
     ) -> ep.Tensor:
         # Choose upper thresholds in binary search based on constraint.
-        # use numpy in binary search to make sure we have full precision
         d = np.prod(perturbed.shape[1:])
         if self.constraint == "linf":
-            highs = linf(originals, perturbed).numpy().astype(np.float64)
+            highs = linf(originals, perturbed)
+
             # TODO: Check if the threshold is correct
             #  empirically this seems to be too low
             thresholds = highs * self.gamma / (d * d)
         else:
-            highs = np.ones(len(perturbed), dtype=np.float64)
+            highs = ep.ones(perturbed, len(perturbed))
             thresholds = self.gamma / (d * math.sqrt(d))
 
-        lows = np.zeros_like(highs)
-        # keep also a float representation of the high values to return them later
-        highs_fl = highs.astype(np.float32)
+        lows = ep.zeros_like(highs)
 
-        while np.any(highs - lows > thresholds):
+        # use this variable to check when mids stays constant and the BS has converged
+        old_mids = highs
+
+        while ep.any(highs - lows > thresholds):
             mids = (lows + highs) / 2
-            mids_fl = mids.astype(np.float32)
-            mids_perturbed = self._project(
-                originals, perturbed, ep.from_numpy(originals, mids_fl)
-            )
+            mids_perturbed = self._project(originals, perturbed, mids)
             is_adversarial_ = is_adversarial(mids_perturbed)
 
-            highs = np.where(is_adversarial_, mids, highs)
-            lows = np.where(is_adversarial_, lows, mids)
+            highs = ep.where(is_adversarial_, mids, highs)
+            lows = ep.where(is_adversarial_, lows, mids)
 
-            highs_fl = np.where(is_adversarial_, mids_fl, highs_fl)
+            # check of there is no more progress due to numerical imprecision
+            reached_numerical_precision = (old_mids == mids).all()
+            old_mids = mids
 
-        return self._project(originals, perturbed, ep.from_numpy(originals, highs_fl))
+            if reached_numerical_precision:
+                # TODO: warn user
+                break
+
+        res = self._project(originals, perturbed, highs)
+
+        return res
 
     def select_delta(
         self, originals: ep.Tensor, distances: ep.Tensor, step: int
