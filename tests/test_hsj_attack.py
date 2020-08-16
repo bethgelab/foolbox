@@ -15,7 +15,7 @@ def get_attack_id(x: Tuple[BrendelBethgeAttack, Union[int, float]]) -> str:
 attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
     (
         fa.HopSkipJump(
-            steps=3,
+            steps=2,
             constraint="linf",
             initial_gradient_eval_steps=100,
             max_gradient_eval_steps=100,
@@ -24,7 +24,7 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
     ),
     (
         fa.HopSkipJump(
-            steps=3,
+            steps=2,
             constraint="l2",
             initial_gradient_eval_steps=100,
             max_gradient_eval_steps=100,
@@ -33,11 +33,12 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
     ),
     (
         fa.HopSkipJump(
-            steps=3,
+            steps=2,
             constraint="l2",
             initial_gradient_eval_steps=100,
             max_gradient_eval_steps=100,
             stepsize_search="grid_search",
+            gamma=1e5,
         ),
         2,
     ),
