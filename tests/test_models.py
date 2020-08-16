@@ -252,6 +252,8 @@ def test_transform_bounds_wrapper_data_format() -> None:
     assert fbn.attacks.base.get_channel_axis(
         model, 3
     ) == fbn.attacks.base.get_channel_axis(wrapped_model, 3)
+    assert hasattr(wrapped_model, "data_format")
+    assert not hasattr(wrapped_model, "not_data_format")
 
 
 def test_transform_bounds_wrapper_missing_data_format() -> None:
