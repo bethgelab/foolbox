@@ -22,9 +22,13 @@ from .fast_gradient_method import (  # noqa: F401
 from .additive_noise import (  # noqa: F401
     L2AdditiveGaussianNoiseAttack,
     L2AdditiveUniformNoiseAttack,
+    L2ClippingAwareAdditiveGaussianNoiseAttack,
+    L2ClippingAwareAdditiveUniformNoiseAttack,
     LinfAdditiveUniformNoiseAttack,
     L2RepeatedAdditiveGaussianNoiseAttack,
     L2RepeatedAdditiveUniformNoiseAttack,
+    L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack,
+    L2ClippingAwareRepeatedAdditiveUniformNoiseAttack,
     LinfRepeatedAdditiveUniformNoiseAttack,
 )
 from .sparse_l1_descent_attack import SparseL1DescentAttack  # noqa: F401

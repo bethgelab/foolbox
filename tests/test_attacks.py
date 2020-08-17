@@ -98,21 +98,22 @@ attacks: List[AttackTestTarget] = [
             update_stats_every_k=1,
         )
     ),
-    AttackTestTarget(fa.SaltAndPepperNoiseAttack(steps=50), uses_grad=True),
+    AttackTestTarget(fa.SaltAndPepperNoiseAttack(steps=50), None, uses_grad=True),
     AttackTestTarget(
-        fa.SaltAndPepperNoiseAttack(steps=50, channel_axis=1), uses_grad=True
+        fa.SaltAndPepperNoiseAttack(steps=50, channel_axis=1), None, uses_grad=True
     ),
-    AttackTestTarget(fa.LinearSearchBlendedUniformNoiseAttack(steps=50)),
+    AttackTestTarget(fa.LinearSearchBlendedUniformNoiseAttack(steps=50), None),
     AttackTestTarget(fa.L2AdditiveGaussianNoiseAttack(), 2500.0),
+    AttackTestTarget(fa.L2ClippingAwareAdditiveGaussianNoiseAttack(), 500.0),
     AttackTestTarget(fa.LinfAdditiveUniformNoiseAttack(), 10.0),
     AttackTestTarget(
-        fa.L2RepeatedAdditiveGaussianNoiseAttack(check_trivial=False),
-        1000.0,
-        False,
-        False,
+        fa.L2RepeatedAdditiveGaussianNoiseAttack(check_trivial=False), 1000.0
     ),
+    (fa.L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack(check_trivial=False), 200.0),
     AttackTestTarget(fa.L2RepeatedAdditiveGaussianNoiseAttack(), 1000.0),
+    AttackTestTarget(fa.L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack(), 200.0),
     AttackTestTarget(fa.L2RepeatedAdditiveUniformNoiseAttack(), 1000.0),
+    AttackTestTarget(fa.L2ClippingAwareRepeatedAdditiveUniformNoiseAttack(), 200.0),
     AttackTestTarget(fa.LinfRepeatedAdditiveUniformNoiseAttack(), 3.0),
 ]
 

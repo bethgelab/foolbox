@@ -67,7 +67,11 @@ class GenAttack(FixedEpsilonAttack):
 
             noise = rescale_images(noise, x.shape, channel_axis)
 
-        return ep.clip(noise + x, -epsilon, +epsilon)
+        # clip noise to valid linf bounds
+        noise = ep.clip(noise, -epsilon, +epsilon)
+
+        # clip to image bounds
+        return ep.clip(x + noise, 0.0, 1.0)
 
     def choice(
         self, a: int, size: Union[int, ep.TensorType], replace: bool, p: ep.TensorType
