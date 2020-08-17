@@ -189,15 +189,15 @@ class LocalSearchAttack(MinimizationAttack):
             # calculate new px_py_star
             max_length_px_py = max([len(it) for it in px_py])
             scores_list: List[List[float]] = [[] for _ in range(N)]
-            for l in range(max_length_px_py):
-                mask = [len(it) >= l for it in px_py]
+            for length in range(max_length_px_py):
+                mask = [len(it) >= length for it in px_py]
 
                 x_masked = x[mask]
                 classes_masked = classes[mask]
                 px_py_masked = np.array(px_py)[mask]
 
-                px_x_masked = [it[l, 0] for it in px_py_masked]
-                px_y_masked = [it[l, 1] for it in px_py_masked]
+                px_x_masked = [it[length, 0] for it in px_py_masked]
+                px_y_masked = [it[length, 1] for it in px_py_masked]
 
                 perturbed_x_masked = pert(
                     x_masked, self.p, px_x_masked, px_y_masked, channel_axis
