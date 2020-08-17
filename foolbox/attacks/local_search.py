@@ -130,13 +130,14 @@ class LocalSearchAttack(MinimizationAttack):
             px_y: "np.ndarray",
             channel_axis: int,
         ) -> ep.TensorType:
-            location_lst = [range(len(x)), px_x, px_y]
+            location_lst = [ep.arange(x, len(x)), px_x, px_y]
             location_lst.insert(channel_axis, slice(None))
             location = tuple(location_lst)
 
             delta_values = p * ep.sign(x[location])
 
             delta = ep.zeros_like(x)
+            location = ep.index[location]
             delta = ep.index_update(delta, location, delta_values)
 
             return delta + x
