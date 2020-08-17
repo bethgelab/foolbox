@@ -67,7 +67,7 @@ class TransformBoundsWrapper(Model):
     @property
     def data_format(self) -> Any:
         if hasattr(self._model, "data_format"):
-            return getattr(self._model, "data_format", None)
+            return self._model.data_format
         else:
             raise AttributeError("data_format")
 
