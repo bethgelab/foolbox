@@ -109,7 +109,10 @@ attacks: List[AttackTestTarget] = [
     AttackTestTarget(
         fa.L2RepeatedAdditiveGaussianNoiseAttack(check_trivial=False), 1000.0
     ),
-    (fa.L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack(check_trivial=False), 200.0),
+    AttackTestTarget(
+        fa.L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack(check_trivial=False),
+        200.0,
+    ),
     AttackTestTarget(fa.L2RepeatedAdditiveGaussianNoiseAttack(), 1000.0),
     AttackTestTarget(fa.L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack(), 200.0),
     AttackTestTarget(fa.L2RepeatedAdditiveUniformNoiseAttack(), 1000.0),
