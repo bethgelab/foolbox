@@ -66,7 +66,7 @@ class TransformBoundsWrapper(Model):
 
     @property
     def data_format(self) -> Any:
-        return getattr(self._model, "data_format", None)
+        return self._model.data_format  # type: ignore
 
 
 ModelType = TypeVar("ModelType", bound="ModelWithPreprocessing")
