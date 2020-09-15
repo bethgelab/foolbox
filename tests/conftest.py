@@ -3,9 +3,10 @@ import functools
 import pytest
 import eagerpy as ep
 
-import foolbox as fb
+import foolbox
+import foolbox as fbn
 
-ModelAndData = Tuple[fb.Model, ep.Tensor, ep.Tensor]
+ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 CallableModelAndDescription = NamedTuple(
     "ModelDescription", [("model_fn", Callable[..., ModelAndData]), ("real", bool)],
 )
@@ -53,7 +54,7 @@ def register(
 
 
 def pytorch_simple_model(
-    device: Any = None, preprocessing: fb.types.Preprocessing = None
+    device: Any = None, preprocessing: fbn.types.Preprocessing = None
 ) -> ModelAndData:
     import torch
 
@@ -65,11 +66,11 @@ def pytorch_simple_model(
 
     model = Model().eval()
     bounds = (0, 1)
-    fmodel = fb.PyTorchModel(
+    fmodel = fbn.PyTorchModel(
         model, bounds=bounds, device=device, preprocessing=preprocessing
     )
 
-    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -115,10 +116,10 @@ def pytorch_simple_model_object(request: Any) -> ModelAndData:
 
 @register("pytorch", real=True)
 def pytorch_mnist(request: Any) -> ModelAndData:
-    fmodel = fb.zoo.ModelLoader.get().load(
+    fmodel = fbn.zoo.ModelLoader.get().load(
         "examples/zoo/mnist/", module_name="foolbox_model"
     )
-    x, y = fb.samples(fmodel, dataset="mnist", batchsize=16)
+    x, y = fbn.samples(fmodel, dataset="mnist", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
@@ -133,16 +134,16 @@ def pytorch_resnet18(request: Any) -> ModelAndData:
 
     model = models.resnet18(pretrained=True).eval()
     preprocessing = dict(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], axis=-3)
-    fmodel = fb.PyTorchModel(model, bounds=(0, 1), preprocessing=preprocessing)
+    fmodel = fbn.PyTorchModel(model, bounds=(0, 1), preprocessing=preprocessing)
 
-    x, y = fb.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
 
 
 def tensorflow_simple_sequential(
-    device: Optional[str] = None, preprocessing: fb.types.Preprocessing = None
+    device: Optional[str] = None, preprocessing: fbn.types.Preprocessing = None
 ) -> ModelAndData:
     import tensorflow as tf
 
@@ -150,11 +151,11 @@ def tensorflow_simple_sequential(
         model = tf.keras.Sequential()
         model.add(tf.keras.layers.GlobalAveragePooling2D())
     bounds = (0, 1)
-    fmodel = fb.TensorFlowModel(
+    fmodel = fbn.TensorFlowModel(
         model, bounds=bounds, device=device, preprocessing=preprocessing
     )
 
-    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -196,9 +197,9 @@ def tensorflow_simple_subclassing(request: Any) -> ModelAndData:
 
     model = Model()
     bounds = (0, 1)
-    fmodel = fb.TensorFlowModel(model, bounds=bounds)
+    fmodel = fbn.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -216,9 +217,9 @@ def tensorflow_simple_functional(request: Any) -> ModelAndData:
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     model = tf.keras.Model(inputs=x_, outputs=x)
     bounds = (0, 1)
-    fmodel = fb.TensorFlowModel(model, bounds=bounds)
+    fmodel = fbn.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -232,11 +233,11 @@ def tensorflow_mobilenetv2(request: Any) -> ModelAndData:
     import tensorflow as tf
 
     model = tf.keras.applications.MobileNetV2(weights="imagenet")
-    fmodel = fb.TensorFlowModel(
+    fmodel = fbn.TensorFlowModel(
         model, bounds=(0, 255), preprocessing=dict(mean=127.5, std=127.5)
     )
 
-    x, y = fb.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
@@ -254,9 +255,9 @@ def tensorflow_resnet50(request: Any) -> ModelAndData:
 
     model = tf.keras.applications.ResNet50(weights="imagenet")
     preprocessing = dict(flip_axis=-1, mean=[104.0, 116.0, 123.0])  # RGB to BGR
-    fmodel = fb.TensorFlowModel(model, bounds=(0, 255), preprocessing=preprocessing)
+    fmodel = fbn.TensorFlowModel(model, bounds=(0, 255), preprocessing=preprocessing)
 
-    x, y = fb.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
@@ -270,9 +271,9 @@ def jax_simple_model(request: Any) -> ModelAndData:
         return jax.numpy.mean(x, axis=(1, 2))
 
     bounds = (0, 1)
-    fmodel = fb.JAXModel(model, bounds=bounds)
+    fmodel = fbn.JAXModel(model, bounds=bounds)
 
-    x, _ = fb.samples(
+    x, _ = fbn.samples(
         fmodel, dataset="cifar10", batchsize=16, data_format="channels_last"
     )
     x = ep.astensor(x)
@@ -288,15 +289,15 @@ def numpy_simple_model(request: Any) -> ModelAndData:
 
     model = Model()
     with pytest.raises(ValueError):
-        fb.NumPyModel(model, bounds=(0, 1), data_format="foo")
+        fbn.NumPyModel(model, bounds=(0, 1), data_format="foo")
 
-    fmodel = fb.NumPyModel(model, bounds=(0, 1))
+    fmodel = fbn.NumPyModel(model, bounds=(0, 1))
     with pytest.raises(ValueError, match="data_format"):
-        x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
+        x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
 
-    fmodel = fb.NumPyModel(model, bounds=(0, 1), data_format="channels_first")
+    fmodel = fbn.NumPyModel(model, bounds=(0, 1), data_format="channels_first")
     with pytest.warns(UserWarning, match="returning NumPy arrays"):
-        x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
+        x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
 
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
