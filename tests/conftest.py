@@ -1,14 +1,19 @@
-from typing import Optional, Callable, Tuple, Dict, Any, List
+from typing import Optional, Callable, Tuple, Dict, Any, List, NamedTuple
 import functools
 import pytest
 import eagerpy as ep
 
-import foolbox
-import foolbox as fbn
+import foolbox as fb
 
-ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
+ModelAndData = Tuple[fb.Model, ep.Tensor, ep.Tensor]
+CallableModelAndDescription = NamedTuple(
+    "ModelDescription", [("model_fn", Callable[..., ModelAndData]), ("real", bool)],
+)
+ModelDescriptionAndData = NamedTuple(
+    "ModelDescriptionAndData", [("model_and_data", ModelAndData), ("real", bool)],
+)
 
-models: Dict[str, Tuple[Callable[..., ModelAndData], bool]] = {}
+models: Dict[str, CallableModelAndDescription] = {}
 models_for_attacks: List[str] = []
 
 
@@ -27,7 +32,7 @@ def dummy(request: Any) -> ep.Tensor:
 
 
 def register(
-    backend: str, *, real: bool, attack: bool = True
+    backend: str, *, real: bool = False, attack: bool = True
 ) -> Callable[[Callable], Callable]:
     def decorator(f: Callable[[Any], ModelAndData]) -> Callable[[Any], ModelAndData]:
         @functools.wraps(f)
@@ -39,7 +44,7 @@ def register(
         global models
         global real_models
 
-        models[model.__name__] = (model, real)
+        models[model.__name__] = CallableModelAndDescription(model_fn=model, real=real)
         if attack:
             models_for_attacks.append(model.__name__)
         return model
@@ -48,7 +53,7 @@ def register(
 
 
 def pytorch_simple_model(
-    device: Any = None, preprocessing: fbn.types.Preprocessing = None
+    device: Any = None, preprocessing: fb.types.Preprocessing = None
 ) -> ModelAndData:
     import torch
 
@@ -60,27 +65,27 @@ def pytorch_simple_model(
 
     model = Model().eval()
     bounds = (0, 1)
-    fmodel = fbn.PyTorchModel(
+    fmodel = fb.PyTorchModel(
         model, bounds=bounds, device=device, preprocessing=preprocessing
     )
 
-    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
-@register("pytorch", real=False)
+@register("pytorch")
 def pytorch_simple_model_default(request: Any) -> ModelAndData:
     return pytorch_simple_model()
 
 
-@register("pytorch", real=False)
+@register("pytorch")
 def pytorch_simple_model_default_flip(request: Any) -> ModelAndData:
     return pytorch_simple_model(preprocessing=dict(flip_axis=-3))
 
 
-@register("pytorch", real=False, attack=False)
+@register("pytorch", attack=False)
 def pytorch_simple_model_default_cpu_native_tensor(request: Any) -> ModelAndData:
     import torch
 
@@ -89,19 +94,19 @@ def pytorch_simple_model_default_cpu_native_tensor(request: Any) -> ModelAndData
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
-@register("pytorch", real=False, attack=False)
+@register("pytorch", attack=False)
 def pytorch_simple_model_default_cpu_eagerpy_tensor(request: Any) -> ModelAndData:
     mean = 0.05 * ep.torch.arange(3).float32()
     std = ep.torch.ones(3) * 2
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
-@register("pytorch", real=False, attack=False)
+@register("pytorch", attack=False)
 def pytorch_simple_model_string(request: Any) -> ModelAndData:
     return pytorch_simple_model("cpu")
 
 
-@register("pytorch", real=False, attack=False)
+@register("pytorch", attack=False)
 def pytorch_simple_model_object(request: Any) -> ModelAndData:
     import torch
 
@@ -110,10 +115,10 @@ def pytorch_simple_model_object(request: Any) -> ModelAndData:
 
 @register("pytorch", real=True)
 def pytorch_mnist(request: Any) -> ModelAndData:
-    fmodel = fbn.zoo.ModelLoader.get().load(
+    fmodel = fb.zoo.ModelLoader.get().load(
         "examples/zoo/mnist/", module_name="foolbox_model"
     )
-    x, y = fbn.samples(fmodel, dataset="mnist", batchsize=16)
+    x, y = fb.samples(fmodel, dataset="mnist", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
@@ -128,16 +133,16 @@ def pytorch_resnet18(request: Any) -> ModelAndData:
 
     model = models.resnet18(pretrained=True).eval()
     preprocessing = dict(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], axis=-3)
-    fmodel = fbn.PyTorchModel(model, bounds=(0, 1), preprocessing=preprocessing)
+    fmodel = fb.PyTorchModel(model, bounds=(0, 1), preprocessing=preprocessing)
 
-    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, y = fb.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
 
 
 def tensorflow_simple_sequential(
-    device: Optional[str] = None, preprocessing: fbn.types.Preprocessing = None
+    device: Optional[str] = None, preprocessing: fb.types.Preprocessing = None
 ) -> ModelAndData:
     import tensorflow as tf
 
@@ -145,22 +150,22 @@ def tensorflow_simple_sequential(
         model = tf.keras.Sequential()
         model.add(tf.keras.layers.GlobalAveragePooling2D())
     bounds = (0, 1)
-    fmodel = fbn.TensorFlowModel(
+    fmodel = fb.TensorFlowModel(
         model, bounds=bounds, device=device, preprocessing=preprocessing
     )
 
-    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
-@register("tensorflow", real=False)
+@register("tensorflow")
 def tensorflow_simple_sequential_cpu(request: Any) -> ModelAndData:
     return tensorflow_simple_sequential("cpu", None)
 
 
-@register("tensorflow", real=False)
+@register("tensorflow")
 def tensorflow_simple_sequential_native_tensors(request: Any) -> ModelAndData:
     import tensorflow as tf
 
@@ -169,14 +174,14 @@ def tensorflow_simple_sequential_native_tensors(request: Any) -> ModelAndData:
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
-@register("tensorflow", real=False)
+@register("tensorflow")
 def tensorflow_simple_sequential_eagerpy_tensors(request: Any) -> ModelAndData:
     mean = ep.tensorflow.zeros(1)
     std = ep.tensorflow.ones(1) * 255.0
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
-@register("tensorflow", real=False)
+@register("tensorflow")
 def tensorflow_simple_subclassing(request: Any) -> ModelAndData:
     import tensorflow as tf
 
@@ -191,15 +196,15 @@ def tensorflow_simple_subclassing(request: Any) -> ModelAndData:
 
     model = Model()
     bounds = (0, 1)
-    fmodel = fbn.TensorFlowModel(model, bounds=bounds)
+    fmodel = fb.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
-@register("tensorflow", real=False)
+@register("tensorflow")
 def tensorflow_simple_functional(request: Any) -> ModelAndData:
     import tensorflow as tf
 
@@ -211,9 +216,9 @@ def tensorflow_simple_functional(request: Any) -> ModelAndData:
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     model = tf.keras.Model(inputs=x_, outputs=x)
     bounds = (0, 1)
-    fmodel = fbn.TensorFlowModel(model, bounds=bounds)
+    fmodel = fb.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -227,11 +232,11 @@ def tensorflow_mobilenetv2(request: Any) -> ModelAndData:
     import tensorflow as tf
 
     model = tf.keras.applications.MobileNetV2(weights="imagenet")
-    fmodel = fbn.TensorFlowModel(
+    fmodel = fb.TensorFlowModel(
         model, bounds=(0, 255), preprocessing=dict(mean=127.5, std=127.5)
     )
 
-    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, y = fb.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
@@ -249,15 +254,15 @@ def tensorflow_resnet50(request: Any) -> ModelAndData:
 
     model = tf.keras.applications.ResNet50(weights="imagenet")
     preprocessing = dict(flip_axis=-1, mean=[104.0, 116.0, 123.0])  # RGB to BGR
-    fmodel = fbn.TensorFlowModel(model, bounds=(0, 255), preprocessing=preprocessing)
+    fmodel = fb.TensorFlowModel(model, bounds=(0, 255), preprocessing=preprocessing)
 
-    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, y = fb.samples(fmodel, dataset="imagenet", batchsize=16)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
 
 
-@register("jax", real=False)
+@register("jax")
 def jax_simple_model(request: Any) -> ModelAndData:
     import jax
 
@@ -265,17 +270,17 @@ def jax_simple_model(request: Any) -> ModelAndData:
         return jax.numpy.mean(x, axis=(1, 2))
 
     bounds = (0, 1)
-    fmodel = fbn.JAXModel(model, bounds=bounds)
+    fmodel = fb.JAXModel(model, bounds=bounds)
 
-    x, _ = fbn.samples(
-        fmodel, dataset="imagenet", batchsize=16, data_format="channels_last"
+    x, _ = fb.samples(
+        fmodel, dataset="cifar10", batchsize=16, data_format="channels_last"
     )
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
-@register("numpy", real=False)
+@register("numpy")
 def numpy_simple_model(request: Any) -> ModelAndData:
     class Model:
         def __call__(self, inputs: Any) -> Any:
@@ -283,15 +288,15 @@ def numpy_simple_model(request: Any) -> ModelAndData:
 
     model = Model()
     with pytest.raises(ValueError):
-        fbn.NumPyModel(model, bounds=(0, 1), data_format="foo")
+        fb.NumPyModel(model, bounds=(0, 1), data_format="foo")
 
-    fmodel = fbn.NumPyModel(model, bounds=(0, 1))
+    fmodel = fb.NumPyModel(model, bounds=(0, 1))
     with pytest.raises(ValueError, match="data_format"):
-        x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+        x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
 
-    fmodel = fbn.NumPyModel(model, bounds=(0, 1), data_format="channels_first")
+    fmodel = fb.NumPyModel(model, bounds=(0, 1), data_format="channels_first")
     with pytest.warns(UserWarning, match="returning NumPy arrays"):
-        x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+        x, _ = fb.samples(fmodel, dataset="cifar10", batchsize=16)
 
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
@@ -299,22 +304,21 @@ def numpy_simple_model(request: Any) -> ModelAndData:
 
 
 @pytest.fixture(scope="session", params=list(models.keys()))
-def fmodel_and_data_ext(request: Any) -> Tuple[ModelAndData, bool]:
+def fmodel_and_data_ext(request: Any) -> ModelDescriptionAndData:
     global models
-    model_fn, real = models[request.param]
-    model_and_data = model_fn(request)
-    return model_and_data, real
+    model_description = models[request.param]
+    model_and_data = model_description.model_fn(request)
+    return ModelDescriptionAndData(model_and_data, *model_description[1:])
 
 
 @pytest.fixture(scope="session", params=models_for_attacks)
-def fmodel_and_data_ext_for_attacks(request: Any) -> Tuple[ModelAndData, bool]:
+def fmodel_and_data_ext_for_attacks(request: Any) -> ModelDescriptionAndData:
     global models
-    model_fn, real = models[request.param]
-    model_and_data = model_fn(request)
-    return model_and_data, real
+    model_description = models[request.param]
+    model_and_data = model_description.model_fn(request)
+    return ModelDescriptionAndData(model_and_data, *model_description[1:])
 
 
 @pytest.fixture(scope="session")
-def fmodel_and_data(fmodel_and_data_ext: Tuple[ModelAndData, bool]) -> ModelAndData:
-    fmodel_and_data, _ = fmodel_and_data_ext
-    return fmodel_and_data
+def fmodel_and_data(fmodel_and_data_ext: ModelDescriptionAndData) -> ModelAndData:
+    return fmodel_and_data_ext.model_and_data

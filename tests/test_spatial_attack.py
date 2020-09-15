@@ -1,8 +1,9 @@
 from typing import List, Tuple
 import pytest
-import eagerpy as ep
 import foolbox as fbn
 import foolbox.attacks as fa
+
+from conftest import ModelDescriptionAndData
 
 
 def get_attack_id(x: fbn.Attack) -> str:
@@ -19,9 +20,7 @@ attacks: List[Tuple[fbn.Attack, bool]] = [
 
 @pytest.mark.parametrize("attack_grad_real", attacks, ids=get_attack_id)
 def test_spatial_attacks(
-    fmodel_and_data_ext_for_attacks: Tuple[
-        Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
-    ],
+    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
     attack_grad_real: Tuple[fbn.Attack, bool],
 ) -> None:
 
