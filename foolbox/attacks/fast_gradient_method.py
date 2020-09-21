@@ -19,7 +19,7 @@ class L1FastGradientAttack(L1BaseGradientDescent):
             rel_stepsize=1.0, steps=1, random_start=random_start,
         )
 
-    def run(
+    def run(  # type: ignore
         self,
         model: Model,
         inputs: T,
@@ -29,7 +29,9 @@ class L1FastGradientAttack(L1BaseGradientDescent):
         **kwargs: Any,
     ) -> T:
         assert not isinstance(criterion, TargetedMisclassification)
-        super().run(model, inputs, criterion, epsilon, **kwargs)
+        return super().run(
+            model=model, inputs=inputs, criterion=criterion, epsilon=epsilon, **kwargs
+        )
 
 
 class L2FastGradientAttack(L2BaseGradientDescent):
@@ -44,7 +46,7 @@ class L2FastGradientAttack(L2BaseGradientDescent):
             rel_stepsize=1.0, steps=1, random_start=random_start,
         )
 
-    def run(
+    def run(  # type: ignore
         self,
         model: Model,
         inputs: T,
@@ -54,7 +56,9 @@ class L2FastGradientAttack(L2BaseGradientDescent):
         **kwargs: Any,
     ) -> T:
         assert not isinstance(criterion, TargetedMisclassification)
-        super().run(model, inputs, criterion, epsilon, **kwargs)
+        return super().run(
+            model=model, inputs=inputs, criterion=criterion, epsilon=epsilon, **kwargs
+        )
 
 
 class LinfFastGradientAttack(LinfBaseGradientDescent):
@@ -69,7 +73,7 @@ class LinfFastGradientAttack(LinfBaseGradientDescent):
             rel_stepsize=1.0, steps=1, random_start=random_start,
         )
 
-    def run(
+    def run(  # type: ignore
         self,
         model: Model,
         inputs: T,
@@ -79,4 +83,6 @@ class LinfFastGradientAttack(LinfBaseGradientDescent):
         **kwargs: Any,
     ) -> T:
         assert not isinstance(criterion, TargetedMisclassification)
-        super().run(model, inputs, criterion, epsilon, **kwargs)
+        return super().run(
+            model=model, inputs=inputs, criterion=criterion, epsilon=epsilon, **kwargs
+        )
