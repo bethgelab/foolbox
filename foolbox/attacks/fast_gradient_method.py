@@ -28,7 +28,9 @@ class L1FastGradientAttack(L1BaseGradientDescent):
         epsilon: float,
         **kwargs: Any,
     ) -> T:
-        assert not isinstance(criterion, TargetedMisclassification)
+        if isinstance(criterion, TargetedMisclassification):
+            raise ValueError("unsupported criterion")
+
         return super().run(
             model=model, inputs=inputs, criterion=criterion, epsilon=epsilon, **kwargs
         )
@@ -55,7 +57,9 @@ class L2FastGradientAttack(L2BaseGradientDescent):
         epsilon: float,
         **kwargs: Any,
     ) -> T:
-        assert not isinstance(criterion, TargetedMisclassification)
+        if isinstance(criterion, TargetedMisclassification):
+            raise ValueError("unsupported criterion")
+
         return super().run(
             model=model, inputs=inputs, criterion=criterion, epsilon=epsilon, **kwargs
         )
@@ -82,7 +86,9 @@ class LinfFastGradientAttack(LinfBaseGradientDescent):
         epsilon: float,
         **kwargs: Any,
     ) -> T:
-        assert not isinstance(criterion, TargetedMisclassification)
+        if isinstance(criterion, TargetedMisclassification):
+            raise ValueError("unsupported criterion")
+
         return super().run(
             model=model, inputs=inputs, criterion=criterion, epsilon=epsilon, **kwargs
         )
