@@ -175,10 +175,6 @@ targeted_attacks: List[Tuple[fbn.Attack, Optional[float], bool, bool]] = [
     (fa.L2BasicIterativeAttack(), L2(50.0), True, False),
     (fa.L1BasicIterativeAttack(), 5000.0, True, False),
     (fa.SparseL1DescentAttack(), 5000.0, True, False),
-    (fa.FGSM(), Linf(100.0), True, False),
-    (FGSM_GE(), Linf(100.0), False, False),
-    (fa.FGM(), L2(100.0), True, False),
-    (fa.L1FastGradientAttack(), 5000.0, True, False),
     (fa.GenAttack(steps=100, population=6, reduced_dims=(7, 7)), 0.5, False, True),
 ]
 
