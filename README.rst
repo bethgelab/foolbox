@@ -100,6 +100,11 @@ marked with `contributions welcome
 If you have a question or need help, feel free to open an issue on GitHub.
 Once GitHub Discussions becomes publically available, we will switch to that.
 
+💨 Performance
+--------------
+
+Foolbox Native is much faster than Foolbox 1 and 2. A basic `performance comparison`_ can be found in the `performance` folder.
+
 🐍 Compatibility
 -----------------
 
@@ -109,3 +114,5 @@ We currently test with the following versions:
 * TensorFlow 2.1.0
 * JAX 0.1.57
 * NumPy 1.18.1
+
+.. _performance comparison: performance/README.md
