@@ -63,7 +63,7 @@ You can see the versions we currently use for testing in the `Compatibility sect
 
 
 More examples can be found in the `examples <./examples/>`_ folder, e.g.
-a full `ResNet-18 example <./examples/pytorch_resnet18.py>`_.
+a full `ResNet-18 example <./examples/single_attack_pytorch_resnet18.py>`_.
 
 📄 Citation
 ------------
