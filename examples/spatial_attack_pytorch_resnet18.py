@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
+"""
+The spatial attack is a very special attack because it tries to find adversarial
+perturbations using a set of translations and rotations rather then in an Lp ball.
+It therefore has a slightly different interface.
+"""
 import torchvision.models as models
 import eagerpy as ep
 from foolbox import PyTorchModel, accuracy, samples
 import foolbox.attacks as fa
-import numpy as np
 
 
-if __name__ == "__main__":
-    # instantiate a model
+def main() -> None:
+    # instantiate a model (could also be a TensorFlow or JAX model)
     model = models.resnet18(pretrained=True).eval()
     preprocessing = dict(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], axis=-3)
     fmodel = PyTorchModel(model, bounds=(0, 1), preprocessing=preprocessing)
@@ -16,13 +20,12 @@ if __name__ == "__main__":
     # wrapping the tensors with ep.astensors is optional, but it allows
     # us to work with EagerPy tensors in the following
     images, labels = ep.astensors(*samples(fmodel, dataset="imagenet", batchsize=16))
-    print("accuracy")
-    print(accuracy(fmodel, images, labels))
-    print("")
+    acc = accuracy(fmodel, images, labels) * 100
+    print(f"clean accuracy:  {acc:.1f} %")
 
-    # attacktrys a combination of specified rotations and translations to an image
+    # the attack trys a combination of specified rotations and translations to an image
     # stops early if adversarial shifts and translations for all images are found
-    attack = fa.spatial_attack.SpatialAttack(
+    attack = fa.SpatialAttack(
         max_translation=6,  # 6px so x in [x-6, x+6] and y in [y-6, y+6]
         num_translations=6,  # number of translations in x, y.
         max_rotation=20,  # +- rotation in degrees
@@ -31,8 +34,14 @@ if __name__ == "__main__":
     )
 
     xp_, _, success = attack(fmodel, images, labels)
+    suc = success.float32().mean().item() * 100
     print(
-        "attack success in specified rotation in translation bounds",
-        success.numpy().astype(np.float32).mean() * 100,
-        " %",
+        f"attack success:  {suc:.1f} % (for the specified rotation and translation bounds)"
     )
+    print(
+        f"robust accuracy: {100 - suc:.1f} % (for the specified rotation and translation bounds)"
+    )
+
+
+if __name__ == "__main__":
+    main()
