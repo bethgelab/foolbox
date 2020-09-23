@@ -69,7 +69,7 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         if isinstance(criterion_, Misclassification):
             gradient_step_sign = 1.0
             classes = criterion_.labels
-        elif isinstance(criterion_, TargetedMisclassification):
+        elif hasattr(criterion_, "target_classes"):
             gradient_step_sign = -1.0
             classes = criterion_.target_classes
         else:
