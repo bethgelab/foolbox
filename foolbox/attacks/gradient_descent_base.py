@@ -71,7 +71,7 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
             classes = criterion_.labels
         elif hasattr(criterion_, "target_classes"):
             gradient_step_sign = -1.0
-            classes = criterion_.target_classes
+            classes = criterion_.target_classes  # type: ignore
         else:
             raise ValueError("unsupported criterion")
 
