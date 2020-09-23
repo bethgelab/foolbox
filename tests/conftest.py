@@ -8,7 +8,8 @@ import foolbox as fbn
 
 ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 CallableModelAndDescription = NamedTuple(
-    "ModelDescription", [("model_fn", Callable[..., ModelAndData]), ("real", bool)],
+    "CallableModelAndDescription",
+    [("model_fn", Callable[..., ModelAndData]), ("real", bool)],
 )
 ModelDescriptionAndData = NamedTuple(
     "ModelDescriptionAndData", [("model_and_data", ModelAndData), ("real", bool)],
