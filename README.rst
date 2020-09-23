@@ -35,11 +35,10 @@ developed in PyTorch, TensorFlow and JAX, all with one code base without code du
 
 - **Guide**: The best place to get started with Foolbox is the official `guide <https://foolbox.jonasrauber.de>`_.
 - **Tutorial**: If you are looking for a tutorial, check out this `Jupyter notebook <https://github.com/jonasrauber/foolbox-native-tutorial/blob/master/foolbox-native-tutorial.ipynb>`_ |colab|.
+- **Documentation**: The API documentation can be found on `ReadTheDocs <https://foolbox.readthedocs.io/en/stable/>`_.
 
 .. |colab| image:: https://colab.research.google.com/assets/colab-badge.svg
    :target: https://colab.research.google.com/github/jonasrauber/foolbox-native-tutorial/blob/master/foolbox-native-tutorial.ipynb
-
-- **Documentation**: Finally, you can find the full API documentation on `ReadTheDocs <https://foolbox.readthedocs.io/en/stable/>`_.
 
 🚀 Quickstart
 --------------
