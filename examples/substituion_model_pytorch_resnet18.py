@@ -23,8 +23,8 @@ def main() -> None:
     # wrapping the tensors with ep.astensors is optional, but it allows
     # us to work with EagerPy tensors in the following
     images, labels = ep.astensors(*samples(fmodel, dataset="imagenet", batchsize=16))
-    clean_acc = accuracy(fmodel, images, labels) * 100
-    print(f"clean accuracy:  {clean_acc:.1f} %")
+    clean_acc = accuracy(fmodel, images, labels)
+    print(f"clean accuracy:  {clean_acc * 100:.1f} %")
 
     # replace the gradient with the gradient from another model
     model2 = fmodel  # demo, we just use the same model
@@ -45,7 +45,21 @@ def main() -> None:
 
     # apply the attack
     attack = Attack()
-    epsilons = [0.0, 0.001, 0.01, 0.03, 0.1, 0.3, 0.5, 1.0]
+    epsilons = [
+        0.0,
+        0.0002,
+        0.0005,
+        0.0008,
+        0.001,
+        0.0015,
+        0.002,
+        0.003,
+        0.01,
+        0.1,
+        0.3,
+        0.5,
+        1.0,
+    ]
     raw_advs, clipped_advs, success = attack(fmodel, images, labels, epsilons=epsilons)
 
     # calculate and report the robust accuracy (the accuracy of the model when
@@ -60,7 +74,7 @@ def main() -> None:
     # we would need to check if the perturbation sizes are actually
     # within the specified epsilon bound
     print()
-    print("manual check:")
+    print("we can also manually check this:")
     print()
     print("robust accuracy for perturbations with")
     for eps, advs_ in zip(epsilons, clipped_advs):
@@ -69,6 +83,8 @@ def main() -> None:
         print("    perturbation sizes:")
         perturbation_sizes = (advs_ - images).norms.linf(axis=(1, 2, 3)).numpy()
         print("    ", str(perturbation_sizes).replace("\n", "\n" + "    "))
+        if acc2 == 0:
+            break
 
 
 if __name__ == "__main__":
