@@ -19,7 +19,7 @@ class L1FastGradientAttack(L1BaseGradientDescent):
             rel_stepsize=1.0, steps=1, random_start=random_start,
         )
 
-    def run(  # type: ignore
+    def run(
         self,
         model: Model,
         inputs: T,
@@ -48,7 +48,7 @@ class L2FastGradientAttack(L2BaseGradientDescent):
             rel_stepsize=1.0, steps=1, random_start=random_start,
         )
 
-    def run(  # type: ignore
+    def run(
         self,
         model: Model,
         inputs: T,
