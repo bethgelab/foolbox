@@ -23,12 +23,12 @@ class L1FastGradientAttack(L1BaseGradientDescent):
         self,
         model: Model,
         inputs: T,
-        criterion: Union[Misclassification, T],
+        criterion: Union[Misclassification, TargetedMisclassification, T],
         *,
         epsilon: float,
         **kwargs: Any,
     ) -> T:
-        if isinstance(criterion, TargetedMisclassification):
+        if not hasattr(criterion, "target_classes"):
             raise ValueError("unsupported criterion")
 
         return super().run(
@@ -52,12 +52,12 @@ class L2FastGradientAttack(L2BaseGradientDescent):
         self,
         model: Model,
         inputs: T,
-        criterion: Union[Misclassification, T],
+        criterion: Union[Misclassification, TargetedMisclassification, T],
         *,
         epsilon: float,
         **kwargs: Any,
     ) -> T:
-        if isinstance(criterion, TargetedMisclassification):
+        if not hasattr(criterion, "target_classes"):
             raise ValueError("unsupported criterion")
 
         return super().run(
@@ -77,16 +77,16 @@ class LinfFastGradientAttack(LinfBaseGradientDescent):
             rel_stepsize=1.0, steps=1, random_start=random_start,
         )
 
-    def run(  # type: ignore
+    def run(
         self,
         model: Model,
         inputs: T,
-        criterion: Union[Misclassification, T],
+        criterion: Union[Misclassification, TargetedMisclassification, T],
         *,
         epsilon: float,
         **kwargs: Any,
     ) -> T:
-        if isinstance(criterion, TargetedMisclassification):
+        if not hasattr(criterion, "target_classes"):
             raise ValueError("unsupported criterion")
 
         return super().run(
