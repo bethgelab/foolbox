@@ -46,7 +46,7 @@ def main() -> None:
     # apply the attack
     attack = Attack()
     epsilons = [0.0, 0.001, 0.01, 0.03, 0.1, 0.3, 0.5, 1.0]
-    advs, _, success = attack(fmodel, images, labels, epsilons=epsilons)
+    raw_advs, clipped_advs, success = attack(fmodel, images, labels, epsilons=epsilons)
 
     # calculate and report the robust accuracy (the accuracy of the model when
     # it is attacked)
@@ -56,16 +56,17 @@ def main() -> None:
         print(f"  Linf norm ≤ {eps:<6}: {acc.item() * 100:4.1f} %")
 
     # we can also manually check this
+    # we will use the clipped advs instead of the raw advs, otherwise
+    # we would need to check if the perturbation sizes are actually
+    # within the specified epsilon bound
     print()
     print("manual check:")
     print()
     print("robust accuracy for perturbations with")
-    for eps, advs_ in zip(epsilons, advs):
+    for eps, advs_ in zip(epsilons, clipped_advs):
         acc2 = accuracy(fmodel, advs_, labels)
         print(f"  Linf norm ≤ {eps:<6}: {acc2 * 100:4.1f} %")
-        # but then we also need to look at the perturbation sizes
-        # and check if they are smaller than eps
-        print(f"    if the perturbation sizes are all smaller then {eps}")
+        print("    perturbation sizes:")
         perturbation_sizes = (advs_ - images).norms.linf(axis=(1, 2, 3)).numpy()
         print("    ", str(perturbation_sizes).replace("\n", "\n" + "    "))
 
