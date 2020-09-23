@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import tensorflow as tf
 import eagerpy as ep
-from foolbox import TensorFlowModel, accuracy, samples
+from foolbox import TensorFlowModel, accuracy, samples, Model
 from foolbox.attacks import LinfPGD
 
 
@@ -9,7 +9,8 @@ if __name__ == "__main__":
     # instantiate a model
     model = tf.keras.applications.ResNet50(weights="imagenet")
     pre = dict(flip_axis=-1, mean=[104.0, 116.0, 123.0])  # RGB to BGR
-    fmodel = TensorFlowModel(model, bounds=(0, 255), preprocessing=pre)
+    fmodel: Model = TensorFlowModel(model, bounds=(0, 255), preprocessing=pre)
+    fmodel = fmodel.transform_bounds((0, 1))
 
     # get data and test the model
     # wrapping the tensors with ep.astensors is optional, but it allows
