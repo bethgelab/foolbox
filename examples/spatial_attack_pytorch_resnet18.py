@@ -20,8 +20,8 @@ def main() -> None:
     # wrapping the tensors with ep.astensors is optional, but it allows
     # us to work with EagerPy tensors in the following
     images, labels = ep.astensors(*samples(fmodel, dataset="imagenet", batchsize=16))
-    acc = accuracy(fmodel, images, labels) * 100
-    print(f"clean accuracy:  {acc:.1f} %")
+    clean_acc = accuracy(fmodel, images, labels) * 100
+    print(f"clean accuracy:  {clean_acc:.1f} %")
 
     # the attack trys a combination of specified rotations and translations to an image
     # stops early if adversarial shifts and translations for all images are found
@@ -33,13 +33,18 @@ def main() -> None:
         # max total iterations = num_rotations * num_translations**2
     )
 
+    # report the success rate of the attack (percentage of samples that could
+    # be adversarially perturbed) and the robust accuracy (the remaining accuracy
+    # of the model when it is attacked)
     xp_, _, success = attack(fmodel, images, labels)
     suc = success.float32().mean().item() * 100
     print(
-        f"attack success:  {suc:.1f} % (for the specified rotation and translation bounds)"
+        f"attack success:  {suc:.1f} %"
+        " (for the specified rotation and translation bounds)"
     )
     print(
-        f"robust accuracy: {100 - suc:.1f} % (for the specified rotation and translation bounds)"
+        f"robust accuracy: {100 - suc:.1f} %"
+        " (for the specified rotation and translation bounds)"
     )
 
 
