@@ -28,7 +28,7 @@ class L1FastGradientAttack(L1BaseGradientDescent):
         epsilon: float,
         **kwargs: Any,
     ) -> T:
-        if not hasattr(criterion, "target_classes"):
+        if hasattr(criterion, "target_classes"):
             raise ValueError("unsupported criterion")
 
         return super().run(
@@ -57,7 +57,7 @@ class L2FastGradientAttack(L2BaseGradientDescent):
         epsilon: float,
         **kwargs: Any,
     ) -> T:
-        if not hasattr(criterion, "target_classes"):
+        if hasattr(criterion, "target_classes"):
             raise ValueError("unsupported criterion")
 
         return super().run(
@@ -86,7 +86,7 @@ class LinfFastGradientAttack(LinfBaseGradientDescent):
         epsilon: float,
         **kwargs: Any,
     ) -> T:
-        if not hasattr(criterion, "target_classes"):
+        if hasattr(criterion, "target_classes"):
             raise ValueError("unsupported criterion")
 
         return super().run(
