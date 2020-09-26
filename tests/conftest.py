@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Tuple, Dict, Any, List
+from typing import Optional, Callable, Tuple, Dict, Any, List, NamedTuple
 import functools
 import pytest
 import eagerpy as ep
@@ -7,8 +7,15 @@ import foolbox
 import foolbox as fbn
 
 ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
+CallableModelAndDescription = NamedTuple(
+    "CallableModelAndDescription",
+    [("model_fn", Callable[..., ModelAndData]), ("real", bool)],
+)
+ModelDescriptionAndData = NamedTuple(
+    "ModelDescriptionAndData", [("model_and_data", ModelAndData), ("real", bool)],
+)
 
-models: Dict[str, Tuple[Callable[..., ModelAndData], bool]] = {}
+models: Dict[str, CallableModelAndDescription] = {}
 models_for_attacks: List[str] = []
 
 
@@ -27,7 +34,7 @@ def dummy(request: Any) -> ep.Tensor:
 
 
 def register(
-    backend: str, *, real: bool, attack: bool = True
+    backend: str, *, real: bool = False, attack: bool = True
 ) -> Callable[[Callable], Callable]:
     def decorator(f: Callable[[Any], ModelAndData]) -> Callable[[Any], ModelAndData]:
         @functools.wraps(f)
@@ -39,7 +46,7 @@ def register(
         global models
         global real_models
 
-        models[model.__name__] = (model, real)
+        models[model.__name__] = CallableModelAndDescription(model_fn=model, real=real)
         if attack:
             models_for_attacks.append(model.__name__)
         return model
@@ -70,17 +77,17 @@ def pytorch_simple_model(
     return fmodel, x, y
 
 
-@register("pytorch", real=False)
+@register("pytorch")
 def pytorch_simple_model_default(request: Any) -> ModelAndData:
     return pytorch_simple_model()
 
 
-@register("pytorch", real=False)
+@register("pytorch")
 def pytorch_simple_model_default_flip(request: Any) -> ModelAndData:
     return pytorch_simple_model(preprocessing=dict(flip_axis=-3))
 
 
-@register("pytorch", real=False, attack=False)
+@register("pytorch", attack=False)
 def pytorch_simple_model_default_cpu_native_tensor(request: Any) -> ModelAndData:
     import torch
 
@@ -89,19 +96,19 @@ def pytorch_simple_model_default_cpu_native_tensor(request: Any) -> ModelAndData
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
-@register("pytorch", real=False, attack=False)
+@register("pytorch", attack=False)
 def pytorch_simple_model_default_cpu_eagerpy_tensor(request: Any) -> ModelAndData:
     mean = 0.05 * ep.torch.arange(3).float32()
     std = ep.torch.ones(3) * 2
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
-@register("pytorch", real=False, attack=False)
+@register("pytorch", attack=False)
 def pytorch_simple_model_string(request: Any) -> ModelAndData:
     return pytorch_simple_model("cpu")
 
 
-@register("pytorch", real=False, attack=False)
+@register("pytorch", attack=False)
 def pytorch_simple_model_object(request: Any) -> ModelAndData:
     import torch
 
@@ -149,18 +156,18 @@ def tensorflow_simple_sequential(
         model, bounds=bounds, device=device, preprocessing=preprocessing
     )
 
-    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
-@register("tensorflow", real=False)
+@register("tensorflow")
 def tensorflow_simple_sequential_cpu(request: Any) -> ModelAndData:
     return tensorflow_simple_sequential("cpu", None)
 
 
-@register("tensorflow", real=False)
+@register("tensorflow")
 def tensorflow_simple_sequential_native_tensors(request: Any) -> ModelAndData:
     import tensorflow as tf
 
@@ -169,14 +176,14 @@ def tensorflow_simple_sequential_native_tensors(request: Any) -> ModelAndData:
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
-@register("tensorflow", real=False)
+@register("tensorflow")
 def tensorflow_simple_sequential_eagerpy_tensors(request: Any) -> ModelAndData:
     mean = ep.tensorflow.zeros(1)
     std = ep.tensorflow.ones(1) * 255.0
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
-@register("tensorflow", real=False)
+@register("tensorflow")
 def tensorflow_simple_subclassing(request: Any) -> ModelAndData:
     import tensorflow as tf
 
@@ -193,13 +200,13 @@ def tensorflow_simple_subclassing(request: Any) -> ModelAndData:
     bounds = (0, 1)
     fmodel = fbn.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="cifar10", batchsize=16)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
-@register("tensorflow", real=False)
+@register("tensorflow")
 def tensorflow_simple_functional(request: Any) -> ModelAndData:
     import tensorflow as tf
 
@@ -257,7 +264,7 @@ def tensorflow_resnet50(request: Any) -> ModelAndData:
     return fmodel, x, y
 
 
-@register("jax", real=False)
+@register("jax")
 def jax_simple_model(request: Any) -> ModelAndData:
     import jax
 
@@ -268,14 +275,14 @@ def jax_simple_model(request: Any) -> ModelAndData:
     fmodel = fbn.JAXModel(model, bounds=bounds)
 
     x, _ = fbn.samples(
-        fmodel, dataset="imagenet", batchsize=16, data_format="channels_last"
+        fmodel, dataset="cifar10", batchsize=16, data_format="channels_last"
     )
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
-@register("numpy", real=False)
+@register("numpy")
 def numpy_simple_model(request: Any) -> ModelAndData:
     class Model:
         def __call__(self, inputs: Any) -> Any:
@@ -299,22 +306,21 @@ def numpy_simple_model(request: Any) -> ModelAndData:
 
 
 @pytest.fixture(scope="session", params=list(models.keys()))
-def fmodel_and_data_ext(request: Any) -> Tuple[ModelAndData, bool]:
+def fmodel_and_data_ext(request: Any) -> ModelDescriptionAndData:
     global models
-    model_fn, real = models[request.param]
-    model_and_data = model_fn(request)
-    return model_and_data, real
+    model_description = models[request.param]
+    model_and_data = model_description.model_fn(request)
+    return ModelDescriptionAndData(model_and_data, *model_description[1:])
 
 
 @pytest.fixture(scope="session", params=models_for_attacks)
-def fmodel_and_data_ext_for_attacks(request: Any) -> Tuple[ModelAndData, bool]:
+def fmodel_and_data_ext_for_attacks(request: Any) -> ModelDescriptionAndData:
     global models
-    model_fn, real = models[request.param]
-    model_and_data = model_fn(request)
-    return model_and_data, real
+    model_description = models[request.param]
+    model_and_data = model_description.model_fn(request)
+    return ModelDescriptionAndData(model_and_data, *model_description[1:])
 
 
 @pytest.fixture(scope="session")
-def fmodel_and_data(fmodel_and_data_ext: Tuple[ModelAndData, bool]) -> ModelAndData:
-    fmodel_and_data, _ = fmodel_and_data_ext
-    return fmodel_and_data
+def fmodel_and_data(fmodel_and_data_ext: ModelDescriptionAndData) -> ModelAndData:
+    return fmodel_and_data_ext.model_and_data

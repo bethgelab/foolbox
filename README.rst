@@ -11,6 +11,7 @@
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/ambv/black
 
+
 ===============================================================================================================================
 Foolbox Native: Fast adversarial attacks to benchmark the robustness of machine learning models in PyTorch, TensorFlow, and JAX
 ===============================================================================================================================
@@ -33,8 +34,11 @@ developed in PyTorch, TensorFlow and JAX, all with one code base without code du
 -----------------
 
 - **Guide**: The best place to get started with Foolbox is the official `guide <https://foolbox.jonasrauber.de>`_.
-- **Tutorial**: If you are looking for a tutorial, check out this `Jupyter notebook <https://github.com/jonasrauber/foolbox-native-tutorial/blob/master/foolbox-native-tutorial.ipynb>`_.
-- **Documentation**: Finally, you can find the full API documentation on `ReadTheDocs <https://foolbox.readthedocs.io/en/stable/>`_.
+- **Tutorial**: If you are looking for a tutorial, check out this `Jupyter notebook <https://github.com/jonasrauber/foolbox-native-tutorial/blob/master/foolbox-native-tutorial.ipynb>`_ |colab|.
+- **Documentation**: The API documentation can be found on `ReadTheDocs <https://foolbox.readthedocs.io/en/stable/>`_.
+
+.. |colab| image:: https://colab.research.google.com/assets/colab-badge.svg
+   :target: https://colab.research.google.com/github/jonasrauber/foolbox-native-tutorial/blob/master/foolbox-native-tutorial.ipynb
 
 🚀 Quickstart
 --------------
@@ -63,7 +67,7 @@ You can see the versions we currently use for testing in the `Compatibility sect
 
 
 More examples can be found in the `examples <./examples/>`_ folder, e.g.
-a full `ResNet-18 example <./examples/pytorch_resnet18.py>`_.
+a full `ResNet-18 example <./examples/single_attack_pytorch_resnet18.py>`_.
 
 📄 Citation
 ------------
@@ -100,6 +104,11 @@ marked with `contributions welcome
 If you have a question or need help, feel free to open an issue on GitHub.
 Once GitHub Discussions becomes publically available, we will switch to that.
 
+💨 Performance
+--------------
+
+Foolbox Native is much faster than Foolbox 1 and 2. A basic `performance comparison`_ can be found in the `performance` folder.
+
 🐍 Compatibility
 -----------------
 
@@ -109,3 +118,5 @@ We currently test with the following versions:
 * TensorFlow 2.1.0
 * JAX 0.1.57
 * NumPy 1.18.1
+
+.. _performance comparison: performance/README.md
