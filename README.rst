@@ -74,7 +74,7 @@ a full `ResNet-18 example <./examples/single_attack_pytorch_resnet18.py>`_.
 📄 Citation
 ------------
 
-If you use Foolbox for your work, please cite our `JOSS paper on Foolbox Native <https://doi.org/10.21105/joss.02607>` and our `ICML workshop paper on Foolbox <https://arxiv.org/abs/1707.04131>`_ using the following BibTeX entries:
+If you use Foolbox for your work, please cite our `JOSS paper on Foolbox Native <https://doi.org/10.21105/joss.02607>`_ and our `ICML workshop paper on Foolbox <https://arxiv.org/abs/1707.04131>`_ using the following BibTeX entries:
 
 .. code-block::
 
