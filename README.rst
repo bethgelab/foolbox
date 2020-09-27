@@ -11,6 +11,8 @@
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/ambv/black
 
+.. image:: https://joss.theoj.org/papers/10.21105/joss.02607/status.svg
+   :target: https://doi.org/10.21105/joss.02607
 
 ===============================================================================================================================
 Foolbox Native: Fast adversarial attacks to benchmark the robustness of machine learning models in PyTorch, TensorFlow, and JAX
@@ -72,7 +74,22 @@ a full `ResNet-18 example <./examples/single_attack_pytorch_resnet18.py>`_.
 📄 Citation
 ------------
 
-If you use Foolbox for your work, please cite our `paper <https://arxiv.org/abs/1707.04131>`_ using the this BibTex entry:
+If you use Foolbox for your work, please cite our `JOSS paper on Foolbox Native <https://doi.org/10.21105/joss.02607>` and our `ICML workshop paper on Foolbox <https://arxiv.org/abs/1707.04131>`_ using the following BibTeX entries:
+
+.. code-block::
+
+   @article{rauber2017foolboxnative,
+     doi = {10.21105/joss.02607},
+     url = {https://doi.org/10.21105/joss.02607},
+     year = {2020},
+     publisher = {The Open Journal},
+     volume = {5},
+     number = {53},
+     pages = {2607},
+     author = {Jonas Rauber and Roland Zimmermann and Matthias Bethge and Wieland Brendel},
+     title = {Foolbox Native: Fast adversarial attacks to benchmark the robustness of machine learning models in PyTorch, TensorFlow, and JAX},
+     journal = {Journal of Open Source Software}
+   }
 
 .. code-block::
 
@@ -84,8 +101,6 @@ If you use Foolbox for your work, please cite our `paper <https://arxiv.org/abs/
      url={http://arxiv.org/abs/1707.04131},
    }
 
-
-We are currently preparing a new paper for Foolbox Native that will be available here in the near future.
 
 👍 Contributions
 -----------------
