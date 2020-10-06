@@ -165,6 +165,15 @@ targeted_attacks: List[AttackTestTarget] = [
         epsilon=0.5,
         requires_real_model=True,
     ),
+    AttackTestTarget(fa.PGD(), Linf(1.0), uses_grad=True),
+    AttackTestTarget(fa.L2PGD(), L2(50.0), uses_grad=True),
+    AttackTestTarget(fa.L1PGD(), 5000.0, uses_grad=True),
+    AttackTestTarget(
+        fa.LinfBasicIterativeAttack(abs_stepsize=0.2), Linf(1.0), uses_grad=True
+    ),
+    AttackTestTarget(fa.L2BasicIterativeAttack(), L2(50.0), uses_grad=True),
+    AttackTestTarget(fa.L1BasicIterativeAttack(), 5000.0, uses_grad=True),
+    AttackTestTarget(fa.SparseL1DescentAttack(), 5000.0, uses_grad=True),
 ]
 
 
