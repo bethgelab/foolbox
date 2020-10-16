@@ -114,7 +114,8 @@ class DDNAttack(MinimizationAttack):
         for i in range(self.steps):
             # perform cosine annealing of LR starting from 1.0 to 0.01
             stepsize = (
-                0.01 + (max_stepsize - 0.01) * (1 + math.cos(math.pi * i / self.steps)) / 2
+                0.01 + (max_stepsize - 0.01) *
+                (1 + math.cos(math.pi * i / self.steps)) / 2
             )
 
             x_adv = x + delta
