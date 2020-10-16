@@ -87,7 +87,7 @@ class DDNAttack(MinimizationAttack):
                 f"expected {name} to have shape ({N},), got {classes.shape}"
             )
 
-        stepsize = 1.0
+        max_stepsize = 1.0
         min_, max_ = model.bounds
 
         def loss_fn(
@@ -114,7 +114,7 @@ class DDNAttack(MinimizationAttack):
         for i in range(self.steps):
             # perform cosine annealing of LR starting from 1.0 to 0.01
             stepsize = (
-                0.01 + (stepsize - 0.01) * (1 + math.cos(math.pi * i / self.steps)) / 2
+                0.01 + (max_stepsize - 0.01) * (1 + math.cos(math.pi * i / self.steps)) / 2
             )
 
             x_adv = x + delta
