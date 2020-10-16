@@ -12,8 +12,7 @@ CallableModelAndDescription = NamedTuple(
     [("model_fn", Callable[..., ModelAndData]), ("real", bool)],
 )
 ModelDescriptionAndData = NamedTuple(
-    "ModelDescriptionAndData",
-    [("model_and_data", ModelAndData), ("real", bool)],
+    "ModelDescriptionAndData", [("model_and_data", ModelAndData), ("real", bool)],
 )
 
 models: Dict[str, CallableModelAndDescription] = {}

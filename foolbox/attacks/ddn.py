@@ -50,11 +50,7 @@ class DDNAttack(MinimizationAttack):
     distance = l2
 
     def __init__(
-        self,
-        *,
-        init_epsilon: float = 1.0,
-        steps: int = 10,
-        gamma: float = 0.05,
+        self, *, init_epsilon: float = 1.0, steps: int = 10, gamma: float = 0.05,
     ):
         self.init_epsilon = init_epsilon
         self.steps = steps
@@ -118,8 +114,7 @@ class DDNAttack(MinimizationAttack):
         for i in range(self.steps):
             # perform cosine annealing of LR starting from 1.0 to 0.01
             stepsize = (
-                0.01
-                + (max_stepsize - 0.01) * (1 + math.cos(math.pi * i / self.steps)) / 2
+                0.01 + (max_stepsize - 0.01) * (1 + math.cos(math.pi * i / self.steps)) / 2
             )
 
             x_adv = x + delta

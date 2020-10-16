@@ -50,11 +50,7 @@ class SpatialAttack(Attack):
         self.random_steps = random_steps
 
     def __call__(  # type: ignore
-        self,
-        model: Model,
-        inputs: T,
-        criterion: Any,
-        **kwargs: Any,
+        self, model: Model, inputs: T, criterion: Any, **kwargs: Any,
     ) -> Tuple[T, T, T]:
         x, restore_type = ep.astensor_(inputs)
         del inputs
@@ -74,11 +70,7 @@ class SpatialAttack(Attack):
         return xp_, xp_, restore_type(success)  # twice to match API
 
     def run(
-        self,
-        model: Model,
-        inputs: T,
-        criterion: Union[Criterion, T],
-        **kwargs: Any,
+        self, model: Model, inputs: T, criterion: Union[Criterion, T], **kwargs: Any,
     ) -> T:
         raise_if_kwargs(kwargs)
 
