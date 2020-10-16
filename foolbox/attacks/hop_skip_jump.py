@@ -187,13 +187,16 @@ class HopSkipJump(MinimizationAttack):
 
             elif self.stepsize_search == "grid_search":
                 # Grid search for stepsize.
-                epsilons_grid = ep.expand_dims(
-                    ep.from_numpy(
-                        distances,
-                        np.logspace(-4, 0, num=20, endpoint=True, dtype=np.float32),
-                    ),
-                    1,
-                ) * ep.expand_dims(distances, 0)
+                epsilons_grid = (
+                    ep.expand_dims(
+                        ep.from_numpy(
+                            distances,
+                            np.logspace(-4, 0, num=20, endpoint=True, dtype=np.float32),
+                        ),
+                        1,
+                    )
+                    * ep.expand_dims(distances, 0)
+                )
 
                 proposals_list = []
 
@@ -259,8 +262,22 @@ class HopSkipJump(MinimizationAttack):
             multipliers_list.append(
                 ep.where(
                     decision,
-                    ep.ones(x_advs, (len(x_advs,))),
-                    -ep.ones(x_advs, (len(decision,))),
+                    ep.ones(
+                        x_advs,
+                        (
+                            len(
+                                x_advs,
+                            )
+                        ),
+                    ),
+                    -ep.ones(
+                        x_advs,
+                        (
+                            len(
+                                decision,
+                            )
+                        ),
+                    ),
                 )
             )
         # (steps, bs, ...)

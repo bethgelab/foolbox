@@ -42,14 +42,14 @@ EPS = 1e-10
 
 
 class Optimizer(object):  # pragma: no cover
-    """ Base class for the trust-region optimization. If feasible, this optimizer solves the problem
+    """Base class for the trust-region optimization. If feasible, this optimizer solves the problem
 
-        min_delta distance(x0, x + delta) s.t. ||delta||_2 <= r AND delta^T b = c AND min_ <= x + delta <= max_
+    min_delta distance(x0, x + delta) s.t. ||delta||_2 <= r AND delta^T b = c AND min_ <= x + delta <= max_
 
-        where x0 is the original sample, x is the current optimisation state, r is the trust-region radius,
-        b is the current estimate of the normal vector of the decision boundary, c is the estimated distance of x
-        to the trust region and [min_, max_] are the value constraints of the input. The function distance(.,.)
-        is the distance measure to be optimised (e.g. L2, L1, L0).
+    where x0 is the original sample, x is the current optimisation state, r is the trust-region radius,
+    b is the current estimate of the normal vector of the decision boundary, c is the estimated distance of x
+    to the trust region and [min_, max_] are the value constraints of the input. The function distance(.,.)
+    is the distance measure to be optimised (e.g. L2, L1, L0).
 
     """
 
@@ -124,33 +124,33 @@ class Optimizer(object):  # pragma: no cover
         return cmax, np.sqrt(norm)
 
     def _minimum_norm_to_boundary(self, x, b, _ell, _u, c, bnorm):
-        """ Computes the minimum norm necessary to reach the boundary. More precisely, we aim to solve the
-            following optimization problem
+        """Computes the minimum norm necessary to reach the boundary. More precisely, we aim to solve the
+        following optimization problem
 
-                min ||delta||_2^2 s.t. lower <= x + delta <= upper AND b.dot(delta) = c
+            min ||delta||_2^2 s.t. lower <= x + delta <= upper AND b.dot(delta) = c
 
-            Lets forget about the box constraints for a second, i.e.
+        Lets forget about the box constraints for a second, i.e.
 
-                min ||delta||_2^2 s.t. b.dot(delta) = c
+            min ||delta||_2^2 s.t. b.dot(delta) = c
 
-            The dual of this problem is quite straight-forward to solve,
+        The dual of this problem is quite straight-forward to solve,
 
-                g(lambda, delta) = ||delta||_2^2 + lambda * (c - b.dot(delta))
+            g(lambda, delta) = ||delta||_2^2 + lambda * (c - b.dot(delta))
 
-            The minimum of this Lagrangian is delta^* = lambda * b / 2, and so
+        The minimum of this Lagrangian is delta^* = lambda * b / 2, and so
 
-                inf_delta g(lambda, delta) = lambda^2 / 4 ||b||_2^2 + lambda * c
+            inf_delta g(lambda, delta) = lambda^2 / 4 ||b||_2^2 + lambda * c
 
-            and so the optimal lambda, which maximizes inf_delta g(lambda, delta), is given by
+        and so the optimal lambda, which maximizes inf_delta g(lambda, delta), is given by
 
-                lambda^* = 2c / ||b||_2^2
+            lambda^* = 2c / ||b||_2^2
 
-            which in turn yields the optimal delta:
+        which in turn yields the optimal delta:
 
-                delta^* = c * b / ||b||_2^2
+            delta^* = c * b / ||b||_2^2
 
-            To take into account the box-constraints we perform a binary search over lambda and apply the box
-            constraint in each step.
+        To take into account the box-constraints we perform a binary search over lambda and apply the box
+        constraint in each step.
         """
         N = x.shape[0]
 
@@ -217,9 +217,9 @@ class Optimizer(object):  # pragma: no cover
     def optimize_distance_s_t_boundary_and_trustregion(
         self, x0, x, b, min_, max_, c, r
     ):
-        """ Find the solution to the optimization problem
+        """Find the solution to the optimization problem
 
-            min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
+        min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
         """
         params0 = np.array([0.0, 0.0])
         bounds = np.array([(-np.inf, np.inf), (0, np.inf)])
@@ -265,14 +265,14 @@ class Optimizer(object):  # pragma: no cover
             return -nominator / EPS
 
     def optimize_boundary_s_t_trustregion(self, x0, x, b, min_, max_, c, r):
-        """ Find the solution to the optimization problem
+        """Find the solution to the optimization problem
 
-            min_delta sign(c) b^T delta s.t. ||delta||_2^2 <= r^2 AND min_ <= x + delta <= max_
+        min_delta sign(c) b^T delta s.t. ||delta||_2^2 <= r^2 AND min_ <= x + delta <= max_
 
-            Note: this optimization problem is independent of the Lp norm being optimized.
+        Note: this optimization problem is independent of the Lp norm being optimized.
 
-            Lagrangian: g(delta) = sign(c) b^T delta + mu * (||delta||_2^2 - r^2)
-            Optimal delta: delta = - sign(c) * b / (2 * mu)
+        Lagrangian: g(delta) = sign(c) b^T delta + mu * (||delta||_2^2 - r^2)
+        Optimal delta: delta = - sign(c) * b / (2 * mu)
         """
         params0 = np.array([1.0])
         args = (x0, x, b, min_, max_, c, r)
@@ -614,7 +614,7 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
            "Accurate, reliable and fast robustness evaluation",
            33rd Conference on Neural Information Processing Systems (2019)
            https://arxiv.org/abs/1907.01003
-   """
+    """
 
     distance = l2
 
@@ -657,7 +657,7 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
            "Accurate, reliable and fast robustness evaluation",
            33rd Conference on Neural Information Processing Systems (2019)
            https://arxiv.org/abs/1907.01003
-   """
+    """
 
     distance = linf
 
@@ -704,7 +704,7 @@ class L1BrendelBethgeAttack(BrendelBethgeAttack):
            "Accurate, reliable and fast robustness evaluation",
            33rd Conference on Neural Information Processing Systems (2019)
            https://arxiv.org/abs/1907.01003
-   """
+    """
 
     distance = l1
 
@@ -751,7 +751,7 @@ class L0BrendelBethgeAttack(BrendelBethgeAttack):
            "Accurate, reliable and fast robustness evaluation",
            33rd Conference on Neural Information Processing Systems (2019)
            https://arxiv.org/abs/1907.01003
-   """
+    """
 
     distance = l0
 
@@ -1387,7 +1387,7 @@ class L2Optimizer(Optimizer):
     def optimize_distance_s_t_boundary_and_trustregion(  # noqa: C901
         self, x0, x, b, min_, max_, c, r
     ):
-        """ Solves the L2 trust region problem
+        """Solves the L2 trust region problem
 
         min ||x0 - x - delta||_2 s.t. b^top delta = c
                                     & ell <= x + delta <= u
@@ -1735,9 +1735,9 @@ class LinfOptimizer(Optimizer):
     def optimize_distance_s_t_boundary_and_trustregion(
         self, x0, x, b, min_, max_, c, r
     ):
-        """ Find the solution to the optimization problem
+        """Find the solution to the optimization problem
 
-            min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
+        min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
         """
         params0 = np.array([0.0, 0.0])
         bounds = np.array([(-np.inf, np.inf), (0, np.inf)])
@@ -1801,33 +1801,33 @@ class LinfOptimizer(Optimizer):
         return _ell, _u
 
     def fun(self, epsilon, x0, x, b, ell, u, c, r, lambda0=None):
-        """ Computes the minimum norm necessary to reach the boundary. More precisely, we aim to solve the
-            following optimization problem
+        """Computes the minimum norm necessary to reach the boundary. More precisely, we aim to solve the
+        following optimization problem
 
-                min ||delta||_2^2 s.t. lower <= x + delta <= upper AND b.dot(delta) = c
+            min ||delta||_2^2 s.t. lower <= x + delta <= upper AND b.dot(delta) = c
 
-            Lets forget about the box constraints for a second, i.e.
+        Lets forget about the box constraints for a second, i.e.
 
-                min ||delta||_2^2 s.t. b.dot(delta) = c
+            min ||delta||_2^2 s.t. b.dot(delta) = c
 
-            The dual of this problem is quite straight-forward to solve,
+        The dual of this problem is quite straight-forward to solve,
 
-                g(lambda, delta) = ||delta||_2^2 + lambda * (c - b.dot(delta))
+            g(lambda, delta) = ||delta||_2^2 + lambda * (c - b.dot(delta))
 
-            The minimum of this Lagrangian is delta^* = lambda * b / 2, and so
+        The minimum of this Lagrangian is delta^* = lambda * b / 2, and so
 
-                inf_delta g(lambda, delta) = lambda^2 / 4 ||b||_2^2 + lambda * c
+            inf_delta g(lambda, delta) = lambda^2 / 4 ||b||_2^2 + lambda * c
 
-            and so the optimal lambda, which maximizes inf_delta g(lambda, delta), is given by
+        and so the optimal lambda, which maximizes inf_delta g(lambda, delta), is given by
 
-                lambda^* = 2c / ||b||_2^2
+            lambda^* = 2c / ||b||_2^2
 
-            which in turn yields the optimal delta:
+        which in turn yields the optimal delta:
 
-                delta^* = c * b / ||b||_2^2
+            delta^* = c * b / ||b||_2^2
 
-            To take into account the box-constraints we perform a binary search over lambda and apply the box
-            constraint in each step.
+        To take into account the box-constraints we perform a binary search over lambda and apply the box
+        constraint in each step.
         """
         N = x.shape[0]
 
@@ -1929,9 +1929,9 @@ class L0Optimizer(Optimizer):
     def optimize_distance_s_t_boundary_and_trustregion(
         self, x0, x, b, min_, max_, c, r
     ):
-        """ Find the solution to the optimization problem
+        """Find the solution to the optimization problem
 
-            min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
+        min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
         """
         params0 = np.array([0.0, 0.0])
         bounds = np.array([(-np.inf, np.inf), (0, np.inf)])

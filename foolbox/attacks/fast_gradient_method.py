@@ -16,7 +16,9 @@ class L1FastGradientAttack(L1BaseGradientDescent):
 
     def __init__(self, *, random_start: bool = False):
         super().__init__(
-            rel_stepsize=1.0, steps=1, random_start=random_start,
+            rel_stepsize=1.0,
+            steps=1,
+            random_start=random_start,
         )
 
     def run(
@@ -45,7 +47,9 @@ class L2FastGradientAttack(L2BaseGradientDescent):
 
     def __init__(self, *, random_start: bool = False):
         super().__init__(
-            rel_stepsize=1.0, steps=1, random_start=random_start,
+            rel_stepsize=1.0,
+            steps=1,
+            random_start=random_start,
         )
 
     def run(
@@ -74,7 +78,9 @@ class LinfFastGradientAttack(LinfBaseGradientDescent):
 
     def __init__(self, *, random_start: bool = False):
         super().__init__(
-            rel_stepsize=1.0, steps=1, random_start=random_start,
+            rel_stepsize=1.0,
+            steps=1,
+            random_start=random_start,
         )
 
     def run(
