@@ -15,7 +15,8 @@ attacks = [
 
 @pytest.mark.parametrize("attack", attacks)
 def test_call_one_epsilon(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData, attack: fbn.Attack,
+    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    attack: fbn.Attack,
 ) -> None:
     (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
 
