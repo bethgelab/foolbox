@@ -908,9 +908,9 @@ class BFGSB(object):
 
         for i in range(n):
             if g[i] < 0:
-                t[i] = (x[i] - u[i]) / g[i]
+                t[i] = (x[i] - u[i]) / (g[i] - EPS)
             elif g[i] > 0:
-                t[i] = (x[i] - l[i]) / g[i]
+                t[i] = (x[i] - l[i]) / (g[i] + EPS)
             elif g[i] == 0:
                 t[i] = np.inf
 
@@ -978,7 +978,7 @@ class BFGSB(object):
                     temp1 = 0
                 else:
                     if dk * alpha < temp2:
-                        temp1 = temp2 / dk
+                        temp1 = temp2 / (dk - EPS)
                     else:
                         temp2 = u[i] - x_cp[i]
             else:
@@ -987,7 +987,7 @@ class BFGSB(object):
                     temp1 = 0
                 else:
                     if dk * alpha > temp2:
-                        temp1 = temp2 / dk
+                        temp1 = temp2 / (dk + EPS)
 
             alpha = min(temp1, alpha)
 
@@ -1647,7 +1647,7 @@ class L1Optimizer(Optimizer):
             for n in range(N):
                 dx = x0[n] - x[n]
                 bn = b[n]
-                t = 1 / (2 * mu)
+                t = 1 / (2 * mu + EPS)
                 u = -lam * bn * t - dx
 
                 if np.abs(u) - t < 0:
@@ -1694,7 +1694,7 @@ class L1Optimizer(Optimizer):
                 if np.abs(b[n]) > 0:
                     dx = x0[n] - x[n]
                     old_d = delta[n]
-                    new_d = old_d + dc / b[n]
+                    new_d = old_d + dc / (b[n] + np.sign(b[n]) * EPS)
 
                     if (
                         x[n] + new_d <= max_
@@ -1721,7 +1721,7 @@ class L1Optimizer(Optimizer):
                 idx = min_distance_idx
                 old_d = delta[idx]
 
-                new_d = old_d + dc / b[idx]
+                new_d = old_d + dc / (b[idx] + np.sign(b[idx]) * EPS)
                 delta[idx] = new_d
 
         return delta
@@ -1754,7 +1754,7 @@ class LinfOptimizer(Optimizer):
         func_calls = 0
 
         bnorm = np.linalg.norm(b)
-        lambda0 = 2 * c / bnorm ** 2
+        lambda0 = 2 * c / (bnorm ** 2 + EPS)
 
         k = 0
 
@@ -1892,7 +1892,7 @@ class LinfOptimizer(Optimizer):
                     # update is stepping out of feasible region, fallback to binary search
                     _lambda = (lambda_max - lambda_min) / 2 + lambda_min
                 else:
-                    _lambda += 2 * (c - _c) / _active_bnorm
+                    _lambda += 2 * (c - _c) / (_active_bnorm + EPS)
 
                 dlambda = lambda_max - lambda_min
                 if (
@@ -2312,7 +2312,7 @@ class L0Optimizer(Optimizer):
         g = -mu * r ** 2 - lam * c
 
         if mu > 0:
-            t = 1 / (2 * mu)
+            t = 1 / (2 * mu + EPS)
 
             for n in range(N):
                 dx = x0[n] - x[n]
@@ -2394,7 +2394,7 @@ class L0Optimizer(Optimizer):
             for n in range(N):
                 dx = x0[n] - x[n]
                 bn = b[n]
-                t = 1 / (2 * mu)
+                t = 1 / (2 * mu + EPS)
 
                 case1 = lam * bn * dx + mu * dx ** 2
 
@@ -2449,7 +2449,7 @@ class L0Optimizer(Optimizer):
                 if np.abs(b[n]) > 0:
                     dx = x0[n] - x[n]
                     old_d = delta[n]
-                    new_d = old_d + dc / b[n]
+                    new_d = old_d + dc / (b[n] + np.sign(b[n]) * EPS)
 
                     if (
                         x[n] + new_d <= max_
@@ -2486,7 +2486,7 @@ class L0Optimizer(Optimizer):
                 idx = min_distance_idx
                 old_d = delta[idx]
 
-                new_d = old_d + dc / b[idx]
+                new_d = old_d + dc / (b[idx] + np.sign(b[idx]) * EPS)
                 delta[idx] = new_d
 
                 return delta
