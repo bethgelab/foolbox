@@ -1588,7 +1588,7 @@ class L1Optimizer(Optimizer):
             for n in range(N):
                 dx = x0[n] - x[n]
                 bn = b[n]
-                t = 1 / (2 * mu)
+                t = 1 / (2 * mu + EPS)
                 u = -lam * bn * t - dx
 
                 if np.abs(u) - t < 0:
