@@ -19,7 +19,7 @@ from .base import T
 from ..criteria import Misclassification, TargetedMisclassification
 from .base import raise_if_kwargs
 from ..distances import l0, l1, l2, linf
-
+from joblib import Parallel, delayed
 
 try:
     from numba.experimental import jitclass  # type: ignore
@@ -489,87 +489,82 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
         rate_normalization = np.prod(x.shape) * (max_ - min_)
         original_shape = x.shape
         _best_advs = best_advs.numpy()
+        
+        with Parallel(n_jobs=10, backend='threading') as parallel:
+            for step in range(1, self.steps + 1):
+                if converged.all():
+                    break  # pragma: no cover
 
-        for step in range(1, self.steps + 1):
-            if converged.all():
-                break  # pragma: no cover
+                # get logits and local boundary geometry
+                # TODO: only perform forward pass on non-converged samples
+                logits_diffs, _boundary = logits_diff_and_grads(x)
 
-            # get logits and local boundary geometry
-            # TODO: only perform forward pass on non-converged samples
-            logits_diffs, _boundary = logits_diff_and_grads(x)
+                # record optimal adversarials
+                distances = self.norms(originals - x)
+                source_norms = self.norms(originals - best_advs)
 
-            # record optimal adversarials
-            distances = self.norms(originals - x)
-            source_norms = self.norms(originals - best_advs)
+                closer = distances < source_norms
+                is_advs = logits_diffs < 0
+                closer = closer.logical_and(ep.from_numpy(x, is_advs))
 
-            closer = distances < source_norms
-            is_advs = logits_diffs < 0
-            closer = closer.logical_and(ep.from_numpy(x, is_advs))
+                x_np_flatten = x.numpy().reshape((N, -1))
 
-            x_np_flatten = x.numpy().reshape((N, -1))
+                if closer.any():
+                    _best_advs = best_advs.numpy().copy()
+                    _closer = closer.numpy().flatten()
+                    for idx in np.arange(N)[_closer]:
+                        _best_advs[idx] = x_np_flatten[idx].reshape(original_shape[1:])
 
-            if closer.any():
-                _best_advs = best_advs.numpy().copy()
-                _closer = closer.numpy().flatten()
-                for idx in np.arange(N)[_closer]:
-                    _best_advs[idx] = x_np_flatten[idx].reshape(original_shape[1:])
+                best_advs = ep.from_numpy(x, _best_advs)
 
-            best_advs = ep.from_numpy(x, _best_advs)
-
-            # denoise estimate of boundary using a short history of the boundary
-            if step == 1:
-                boundary = _boundary
-            else:
-                boundary = (1 - self.momentum) * _boundary + self.momentum * boundary
-
-            # learning rate adaptation
-            if (step + 1) % lr_reduction_interval == 0:
-                lrs *= self.lr_decay
-
-            # compute optimal step within trust region depending on metric
-            x = x.reshape((N, -1))
-            region = lrs * rate_normalization
-
-            # we aim to slight overshoot over the boundary to stay within the adversarial region
-            corr_logits_diffs = np.where(
-                -logits_diffs < 0,
-                -self.overshoot * logits_diffs,
-                -(2 - self.overshoot) * logits_diffs,
-            )
-
-            # employ solver to find optimal step within trust region
-            # for each sample
-            deltas, k = [], 0
-
-            for sample in range(N):
-                if converged[sample]:
-                    # don't perform optimisation on converged samples
-                    deltas.append(
-                        np.zeros_like(x0_np_flatten[sample])
-                    )  # pragma: no cover
+                # denoise estimate of boundary using a short history of the boundary
+                if step == 1:
+                    boundary = _boundary
                 else:
-                    _x0 = x0_np_flatten[sample]
-                    _x = x_np_flatten[sample]
-                    _b = boundary[k].flatten()
-                    _c = corr_logits_diffs[k]
-                    r = region[sample]
+                    boundary = (1 - self.momentum) * _boundary + self.momentum * boundary
 
-                    delta = self._optimizer.solve(  # type: ignore
-                        _x0, _x, _b, bounds[0], bounds[1], _c, r
-                    )
-                    deltas.append(delta)
+                # learning rate adaptation
+                if (step + 1) % lr_reduction_interval == 0:
+                    lrs *= self.lr_decay
 
-                    k += 1  # idx of masked sample
+                # compute optimal step within trust region depending on metric
+                x = x.reshape((N, -1))
+                region = lrs * rate_normalization
 
-            deltas = np.stack(deltas)
-            deltas = ep.from_numpy(x, deltas.astype(np.float32))  # type: ignore
+                # we aim to slight overshoot over the boundary to stay within the adversarial region
+                corr_logits_diffs = np.where(
+                    -logits_diffs < 0,
+                    -self.overshoot * logits_diffs,
+                    -(2 - self.overshoot) * logits_diffs,
+                )
 
-            # add step to current perturbation
-            x = (x + ep.astensor(deltas)).reshape(original_shape)
+                # employ solver to find optimal step within trust region
+                # for each sample
+                def optimum(sample):
+                    if converged[sample]:
+                        return np.zeros_like(x0_np_flatten[sample])
+                    else:
+                        _x0 = x0_np_flatten[sample]
+                        _x = x_np_flatten[sample]
+                        k = sample - converged.sum()
+                        _b = boundary[k].flatten()
+                        _c = corr_logits_diffs[k]
+                        r = region[sample]
+                        return self._optimizer.solve(  # type: ignore
+                            _x0, _x, _b, bounds[0], bounds[1], _c, r
+                        )
 
-            tb.probability("converged", converged, step)
-            tb.histogram("norms", source_norms, step)
-            tb.histogram("candidates/distances", distances, step)
+                deltas = parallel(delayed(optimum)(sample) for sample in range(N))
+
+                deltas = np.stack(deltas)
+                deltas = ep.from_numpy(x, deltas.astype(np.float32))  # type: ignore
+
+                # add step to current perturbation
+                x = (x + ep.astensor(deltas)).reshape(original_shape)
+
+                tb.probability("converged", converged, step)
+                tb.histogram("norms", source_norms, step)
+                tb.histogram("candidates/distances", distances, step)
 
         tb.close()
 
