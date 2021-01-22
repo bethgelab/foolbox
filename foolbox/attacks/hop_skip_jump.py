@@ -251,7 +251,7 @@ class HopSkipJump(MinimizationAttack):
         perturbed = ep.expand_dims(x_advs, 0) + scaled_rv
         perturbed = ep.clip(perturbed, 0, 1)
 
-        rv = (perturbed - x_advs) / 2
+        rv = (perturbed - x_advs) / atleast_kd(ep.expand_dims(delta, 0), rv.ndim)
 
         multipliers_list: List[ep.Tensor] = []
         for step in range(steps):
