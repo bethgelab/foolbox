@@ -50,7 +50,7 @@ class DDNAttack(MinimizationAttack):
     distance = l2
 
     def __init__(
-        self, *, init_epsilon: float = 1.0, steps: int = 10, gamma: float = 0.05,
+        self, *, init_epsilon: float = 1.0, steps: int = 100, gamma: float = 0.05,
     ):
         self.init_epsilon = init_epsilon
         self.steps = steps
