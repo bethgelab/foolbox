@@ -22,6 +22,7 @@ class AttackTestTarget(NamedTuple):
     epsilon: Optional[float] = None
     uses_grad: Optional[bool] = False
     requires_real_model: Optional[bool] = False
+    requires_small_model: Optional[bool] = False
 
 
 def get_attack_id(x: AttackTestTarget) -> str:
@@ -117,6 +118,10 @@ attacks: List[AttackTestTarget] = [
     AttackTestTarget(fa.L2RepeatedAdditiveUniformNoiseAttack(), 1000.0),
     AttackTestTarget(fa.L2ClippingAwareRepeatedAdditiveUniformNoiseAttack(), 200.0),
     AttackTestTarget(fa.LinfRepeatedAdditiveUniformNoiseAttack(), 3.0),
+    AttackTestTarget(
+        fa.PointwiseAttack(fa.SaltAndPepperNoiseAttack(steps=50)),
+        requires_small_model=True,
+    )
 ]
 
 
@@ -126,8 +131,10 @@ def test_untargeted_attacks(
     attack_test_target: AttackTestTarget,
 ) -> None:
 
-    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), real, small = fmodel_and_data_ext_for_attacks
     if attack_test_target.requires_real_model and not real:
+        pytest.skip()
+    if attack_test_target.requires_small_model and not small:
         pytest.skip()
     if isinstance(x, ep.NumPyTensor) and attack_test_target.uses_grad:
         pytest.skip()
@@ -183,8 +190,10 @@ def test_targeted_attacks(
     attack_test_target: AttackTestTarget,
 ) -> None:
 
-    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), real, small = fmodel_and_data_ext_for_attacks
     if attack_test_target.requires_real_model and not real:
+        pytest.skip()
+    if attack_test_target.requires_small_model and not small:
         pytest.skip()
 
     if isinstance(x, ep.NumPyTensor) and attack_test_target.uses_grad:
