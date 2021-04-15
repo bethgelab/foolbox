@@ -93,6 +93,7 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
             while i < max([len(it) for it in untouched_indices]):
                 # mask all samples that still have pixels to manipulate left
                 relevant_mask = [len(it) > i for it in untouched_indices]
+                relevant_mask = np.array(relevant_mask, dtype=bool)
                 relevant_mask_index = np.flatnonzero(relevant_mask)
 
                 # for each image get the index of the next pixel we try out
@@ -146,6 +147,7 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
             while i < max([len(it) for it in untouched_indices]):
                 # mask all samples that still have pixels to manipulate left
                 relevant_mask = [len(it) > i for it in untouched_indices]
+                relevant_mask = np.array(relevant_mask, dtype=bool)
                 relevant_mask_index = np.flatnonzero(relevant_mask)
 
                 # for each image get the index of the next pixel we try out
