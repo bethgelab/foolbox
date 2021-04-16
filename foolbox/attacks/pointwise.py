@@ -14,7 +14,6 @@ from .base import MinimizationAttack
 from .base import get_is_adversarial
 from .base import get_criterion
 from .base import T
-from ..criteria import Misclassification, TargetedMisclassification
 from .base import raise_if_kwargs
 
 

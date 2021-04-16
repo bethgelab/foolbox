@@ -1,10 +1,9 @@
-from typing import Tuple, Union, List, Any
+from typing import List, Any
 import eagerpy as ep
 
 import foolbox as fbn
 import foolbox.attacks as fa
 from foolbox.devutils import flatten
-from foolbox.attacks.brendel_bethge import BrendelBethgeAttack
 import pytest
 
 from tests.conftest import ModelDescriptionAndData

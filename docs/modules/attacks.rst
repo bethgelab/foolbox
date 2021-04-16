@@ -47,6 +47,7 @@
    L1BrendelBethgeAttack
    L2BrendelBethgeAttack
    LinfinityBrendelBethgeAttack
+   PointwiseAttack
 
    FGM
    FGSM
@@ -93,6 +94,7 @@
 .. autoclass:: L1BrendelBethgeAttack
 .. autoclass:: L2BrendelBethgeAttack
 .. autoclass:: LinfinityBrendelBethgeAttack
+.. autoclass:: PointwiseAttack
 
 .. autoclass:: FGM
 .. autoclass:: FGSM
