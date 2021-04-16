@@ -24,7 +24,7 @@ def test_pointwise_untargeted_attack(
 ) -> None:
     (fmodel, x, y), real, small = fmodel_and_data_ext_for_attacks
 
-    if not small:
+    if not small or not real:
         pytest.skip()
 
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
@@ -58,8 +58,7 @@ def test_pointwise_targeted_attack(
 ) -> None:
     (fmodel, x, y), real, small = fmodel_and_data_ext_for_attacks
 
-    if not small:
-        print("small", small)
+    if not small or not real:
         pytest.skip()
 
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
