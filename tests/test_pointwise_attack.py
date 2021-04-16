@@ -20,7 +20,7 @@ attacks: List[fa.Attack] = [fa.PointwiseAttack()]
 def test_pointwise_untargeted_attack(
     request: Any,
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
-    attack: fa.Attack,
+    attack: fa.PointwiseAttack,
 ) -> None:
     (fmodel, x, y), real, small = fmodel_and_data_ext_for_attacks
 
@@ -54,7 +54,7 @@ def test_pointwise_untargeted_attack(
 def test_pointwise_targeted_attack(
     request: Any,
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
-    attack: fa.Attack,
+    attack: fa.PointwiseAttack,
 ) -> None:
     (fmodel, x, y), real, small = fmodel_and_data_ext_for_attacks
 
