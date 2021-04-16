@@ -45,7 +45,7 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
         self,
         model: Model,
         inputs: T,
-        criterion: Misclassification,
+        criterion: Union[Criterion, Any],
         *,
         early_stop: Optional[float] = None,
         **kwargs: Any,

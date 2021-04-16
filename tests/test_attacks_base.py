@@ -17,7 +17,7 @@ attacks = [
 def test_call_one_epsilon(
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData, attack: fbn.Attack,
 ) -> None:
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
 
     assert ep.istensor(x)
     assert ep.istensor(y)
