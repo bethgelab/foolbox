@@ -77,9 +77,11 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
         x_flat = flatten(x)
         x_adv_flat = flatten(x_adv)
 
-        found_index = ep.from_numpy(x, np.ones(N, dtype=bool))
+        # was there a pixel left in the samples to manipulate,
+        # i.e. reset to the clean version?
+        found_index_to_manipulate = ep.from_numpy(x, np.ones(N, dtype=bool))
 
-        while ep.any(found_index):
+        while ep.any(found_index_to_manipulate):
             diff_mask = (ep.abs(x_flat - x_adv_flat) > 1e-8).numpy()
             diff_idxs = [z.nonzero()[0] for z in diff_mask]
             untouched_indices = [z.tolist() for z in diff_idxs]
@@ -87,8 +89,14 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
                 np.random.permutation(it).tolist() for it in untouched_indices
             ]
 
-            found_index = ep.from_numpy(x, np.zeros(N, dtype=bool))
+            found_index_to_manipulate = ep.from_numpy(x, np.zeros(N, dtype=bool))
 
+            # since the number of pixels still left to manipulate might differ
+            # across different samples we track each of them separately and
+            # and manipulate the images until there is no pixel left for
+            # any of the samples. to not update already finished samples, we mask
+            # the updates such that only samples that still have pixels left to manipulate
+            # will be updated
             i = 0
             while i < max([len(it) for it in untouched_indices]):
                 # mask all samples that still have pixels to manipulate left
@@ -107,12 +115,12 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
 
                 # check if still adversarial
                 is_adv = is_adversarial(x_adv_flat.reshape(original_shape))
-                found_index = ep.index_update(
-                    found_index,
+                found_index_to_manipulate = ep.index_update(
+                    found_index_to_manipulate,
                     relevant_mask_index,
-                    ep.logical_or(found_index, is_adv)[relevant_mask],
+                    ep.logical_or(found_index_to_manipulate, is_adv)[relevant_mask],
                 )
-                # found_index = ep.logical_or(found_index, is_adv)
+                # found_index_to_manipulate = ep.logical_or(found_index_to_manipulate, is_adv)
 
                 # if not, undo change
                 new_or_old_values = ep.where(
@@ -126,7 +134,7 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
 
                 i += 1
 
-            if not ep.any(found_index):
+            if not ep.any(found_index_to_manipulate):
                 break
 
         while True:
@@ -143,6 +151,7 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
 
             logging.info("Starting new loop through all values")
 
+            # use the same logic as above
             i = 0
             while i < max([len(it) for it in untouched_indices]):
                 # mask all samples that still have pixels to manipulate left
