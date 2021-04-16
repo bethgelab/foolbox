@@ -1,4 +1,4 @@
-from typing import Union, Any, Optional
+from typing import Union, Any, Optional, Tuple, Callable, List
 import eagerpy as ep
 import numpy as np
 import logging
@@ -215,15 +215,15 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
 
     def _binary_search(
         self,
-        x_adv_flat,
-        mask,
-        mask_indices,
-        indices,
-        adv_values,
-        non_adv_values,
-        original_shape,
-        is_adversarial,
-    ):
+        x_adv_flat: ep.Tensor,
+        mask: Union[ep.Tensor, List[bool]],
+        mask_indices: ep.Tensor,
+        indices: Union[ep.Tensor, List[int]],
+        adv_values: ep.Tensor,
+        non_adv_values: ep.Tensor,
+        original_shape: Tuple,
+        is_adversarial: Callable,
+    ) -> ep.Tensor:
         for i in range(10):
             next_values = (adv_values + non_adv_values) / 2
             x_adv_flat = ep.index_update(
