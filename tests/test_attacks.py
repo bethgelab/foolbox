@@ -118,10 +118,6 @@ attacks: List[AttackTestTarget] = [
     AttackTestTarget(fa.L2RepeatedAdditiveUniformNoiseAttack(), 1000.0),
     AttackTestTarget(fa.L2ClippingAwareRepeatedAdditiveUniformNoiseAttack(), 200.0),
     AttackTestTarget(fa.LinfRepeatedAdditiveUniformNoiseAttack(), 3.0),
-    AttackTestTarget(
-        fa.PointwiseAttack(fa.SaltAndPepperNoiseAttack(steps=50)),
-        requires_small_model=True,
-    )
 ]
 
 

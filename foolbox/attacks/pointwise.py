@@ -201,6 +201,8 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
                 # no improvement for any of the indices
                 break
 
+        x_adv = x_adv_flat.reshape(original_shape)
+
         return restore_type(x_adv)
 
     def _binary_search(
