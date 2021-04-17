@@ -18,6 +18,7 @@ from ..distances import l1, linf, l2, l0, LpDistance
 ps = {l0: 0, l1: 1, l2: 2, linf: ep.inf, LpDistance: ep.nan}
 duals = {l0: ep.nan, l1: ep.inf, l2: 2, linf: 1, LpDistance: ep.nan}
 
+
 def best_other_classes(logits: ep.Tensor, exclude: ep.Tensor) -> ep.Tensor:
     other_logits = logits - ep.onehot_like(logits, exclude, value=ep.inf)
     return other_logits.argmax(axis=-1)
@@ -193,8 +194,8 @@ class FMNAttackLp(MinimizationAttack, ABC):
         if self.p != 0:
             epsilon = ep.inf * ep.ones(x, len(x))
         else:
-            epsilon = (
-                ep.maximum(ep.ones(x, len(x)), ep.norms.l0(flatten(delta), axis=-1))
+            epsilon = ep.maximum(
+                ep.ones(x, len(x)), ep.norms.l0(flatten(delta), axis=-1)
             )
         if self.p != 0:
             worst_norm = ep.norms.lp(
@@ -410,7 +411,11 @@ class L2FMNAttack(FMNAttackLp):
         return x0 + (x - x0) * factor
 
     def mid_points(
-        self, x0: ep.Tensor, x1: ep.Tensor, epsilons: ep.Tensor, bounds: Tuple[float, float]
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
     ) -> ep.Tensor:
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
