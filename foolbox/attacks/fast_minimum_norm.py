@@ -1,5 +1,5 @@
 import math
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from typing import Union, Optional, Any, Tuple
 
 import eagerpy as ep
@@ -9,21 +9,21 @@ from .base import MinimizationAttack, raise_if_kwargs, get_criterion, get_is_adv
 from .gradient_descent_base import (
     uniform_l1_n_balls,
     normalize_lp_norms,
-    clip_lp_norms,
     uniform_l2_n_balls,
 )
 from .. import Model, Misclassification, TargetedMisclassification
 from ..devutils import atleast_kd, flatten
-from ..distances import l1, linf, l2, l0
-from ..types import Bounds
+from ..distances import l1, linf, l2, l0, LpDistance
 
+ps = {l0: 0, l1: 1, l2: 2, linf: ep.inf, LpDistance: ep.nan}
+duals = {l0: ep.nan, l1: ep.inf, l2: 2, linf: 1, LpDistance: ep.nan}
 
 def best_other_classes(logits: ep.Tensor, exclude: ep.Tensor) -> ep.Tensor:
     other_logits = logits - ep.onehot_like(logits, exclude, value=ep.inf)
     return other_logits.argmax(axis=-1)
 
 
-def project_onto_l1_ball(x: ep.Tensor, eps: ep.Tensor):
+def project_onto_l1_ball(x: ep.Tensor, eps: ep.Tensor) -> ep.Tensor:
     """Computes Euclidean projection onto the L1 ball for a batch. [#Duchi08]_
 
     Adapted from the pytorch version by Tony Duan:
@@ -59,7 +59,7 @@ def project_onto_l1_ball(x: ep.Tensor, eps: ep.Tensor):
     return x.reshape(original_shape)
 
 
-class FMNAttackLp(MinimizationAttack):
+class FMNAttackLp(MinimizationAttack, ABC):
     """The Fast Minimum Norm adversarial attack, in Lp norm. [#Pintor21]_
 
     Args:
@@ -91,7 +91,7 @@ class FMNAttackLp(MinimizationAttack):
         *,
         steps: int = 100,
         max_stepsize: float = 1.0,
-        min_stepsize: float = None,
+        min_stepsize: Optional[float] = None,
         gamma: float = 0.05,
         init_attack: Optional[MinimizationAttack] = None,
         binary_search_steps: int = 10,
@@ -106,7 +106,8 @@ class FMNAttackLp(MinimizationAttack):
         self.binary_search_steps = binary_search_steps
         self.gamma = gamma
 
-        self.p = self.distance.p
+        self.p = ps[self.distance]
+        self.dual = duals[self.distance]
 
     def run(
         self,
@@ -150,19 +151,19 @@ class FMNAttackLp(MinimizationAttack):
         x, restore_type = ep.astensor_(inputs)
         del inputs, criterion, kwargs
         N = len(x)
-
+        initialized = False
         # start from initialization points/attack
         if starting_points is not None:
             x1 = starting_points
+            initialized = True
         else:
             if self.init_attack is not None:
                 x1 = self.init_attack.run(model, x, criterion_)
-            else:
-                x1 = None
+                initialized = True
 
         # if initial points or initialization attacks are provided,
         #   search for the boundary
-        if x1 is not None:
+        if initialized is True:
             is_adv = get_is_adversarial(criterion_, model)
             assert is_adv(x1).all()
             lower_bound = ep.zeros(x, shape=(N,))
@@ -193,9 +194,7 @@ class FMNAttackLp(MinimizationAttack):
             epsilon = ep.inf * ep.ones(x, len(x))
         else:
             epsilon = (
-                ep.ones(x, len(x))
-                if x1 is None
-                else ep.norms.l0(flatten(delta), axis=-1)
+                ep.maximum(ep.ones(x, len(x)), ep.norms.l0(flatten(delta), axis=-1))
             )
         if self.p != 0:
             worst_norm = ep.norms.lp(
@@ -275,7 +274,7 @@ class FMNAttackLp(MinimizationAttack):
             epsilon = ep.minimum(epsilon, worst_norm)
 
             # computes normalized gradient update
-            grad_ = self.normalize(gradients, x=x, bounds=model.bounds) * stepsize
+            grad_ = self.normalize(gradients) * stepsize
 
             # do step
             delta = delta + grad_
@@ -289,13 +288,11 @@ class FMNAttackLp(MinimizationAttack):
         x_adv = x + best_delta
         return restore_type(x_adv)
 
-    def normalize(
-        self, gradients: ep.Tensor, *, x: ep.Tensor, bounds: Bounds
-    ) -> ep.Tensor:
+    def normalize(self, gradients: ep.Tensor) -> ep.Tensor:
         return normalize_lp_norms(gradients, p=2)
 
     @abstractmethod
-    def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
+    def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: ep.Tensor) -> ep.Tensor:
         ...
 
     @abstractmethod
@@ -336,6 +333,7 @@ class L1FMNAttack(FMNAttackLp):
     """
 
     distance = l1
+    p = 1
     dual = ep.inf
 
     def get_random_start(self, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
@@ -343,7 +341,7 @@ class L1FMNAttack(FMNAttackLp):
         r = uniform_l1_n_balls(x0, batch_size, n).reshape(x0.shape)
         return x0 + epsilon * r
 
-    def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
+    def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: ep.Tensor) -> ep.Tensor:
         return x0 + project_onto_l1_ball(x - x0, epsilon)
 
     def mid_points(
@@ -396,6 +394,7 @@ class L2FMNAttack(FMNAttackLp):
     """
 
     distance = l2
+    p = 2
     dual = 2
 
     def get_random_start(self, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
@@ -403,11 +402,15 @@ class L2FMNAttack(FMNAttackLp):
         r = uniform_l2_n_balls(x0, batch_size, n).reshape(x0.shape)
         return x0 + epsilon * r
 
-    def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
-        return x0 + clip_lp_norms(x - x0, norm=epsilon, p=2)
+    def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: ep.Tensor) -> ep.Tensor:
+        norms = flatten(x).norms.l2(axis=-1)
+        norms = ep.maximum(norms, 1e-12)
+        factor = ep.minimum(1, norms / norms)
+        factor = atleast_kd(factor, x.ndim)
+        return x0 + (x - x0) * factor
 
     def mid_points(
-        self, x0: ep.Tensor, x1: ep.Tensor, epsilons: ep.Tensor, bounds
+        self, x0: ep.Tensor, x1: ep.Tensor, epsilons: ep.Tensor, bounds: Tuple[float, float]
     ) -> ep.Tensor:
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
@@ -446,6 +449,7 @@ class LInfFMNAttack(FMNAttackLp):
     """
 
     distance = linf
+    p = ep.inf
     dual = 1
 
     def get_random_start(self, x0: ep.Tensor, epsilon: float) -> ep.Tensor:
@@ -462,7 +466,7 @@ class LInfFMNAttack(FMNAttackLp):
         x1: ep.Tensor,
         epsilons: ep.Tensor,
         bounds: Tuple[float, float],
-    ):
+    ) -> ep.Tensor:
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         delta = x1 - x0
@@ -506,6 +510,7 @@ class L0FMNAttack(FMNAttackLp):
     """
 
     distance = l0
+    p = 0
 
     def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: ep.Tensor) -> ep.Tensor:
         flatten_delta = flatten(x - x0)
@@ -524,7 +529,7 @@ class L0FMNAttack(FMNAttackLp):
         x1: ep.Tensor,
         epsilons: ep.Tensor,
         bounds: Tuple[float, float],
-    ):
+    ) -> ep.Tensor:
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
         # returns x1
