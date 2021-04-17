@@ -6,8 +6,12 @@ import eagerpy as ep
 from eagerpy.astensor import T
 
 from .base import MinimizationAttack, raise_if_kwargs, get_criterion, get_is_adversarial
-from .gradient_descent_base import uniform_l1_n_balls, normalize_lp_norms, clip_lp_norms, \
-    uniform_l2_n_balls
+from .gradient_descent_base import (
+    uniform_l1_n_balls,
+    normalize_lp_norms,
+    clip_lp_norms,
+    uniform_l2_n_balls,
+)
 from .. import Model, Misclassification, TargetedMisclassification
 from ..devutils import atleast_kd, flatten
 from ..distances import l1, linf, l2, l0
@@ -20,78 +24,78 @@ def best_other_classes(logits: ep.Tensor, exclude: ep.Tensor) -> ep.Tensor:
 
 
 def project_onto_l1_ball(x: ep.Tensor, eps: ep.Tensor):
-    """
-    Compute Euclidean projection onto the L1 ball for a batch.
-      min ||x - u||_2 s.t. ||u||_1 <= eps
-    Inspired by the corresponding numpy version by Adrien Gaidon.
-    Adapted from the pytorch version by Tony Duan: https://gist.github.com/tonyduan/1329998205d88c566588e57e3e2c0c55
-    Parameters
-    ----------
-    x: (batch_size, *) torch array
-      batch of arbitrary-size tensors to project, possibly on GPU
-    eps: float
-      radius of l-1 ball to project onto
-    Returns
-    -------
-    u: (batch_size, *) torch array
-      batch of projected tensors, reshaped to match the original
-    Notes
-    -----
-    The complexity of this algorithm is in O(dlogd) as it involves sorting x.
-    References
-    ----------
-    [1] Efficient Projections onto the l1-Ball for Learning in High Dimensions
-        John Duchi, Shai Shalev-Shwartz, Yoram Singer, and Tushar Chandra.
-        International Conference on Machine Learning (ICML 2008)
+    """Computes Euclidean projection onto the L1 ball for a batch. [#Duchi08]_
+
+    Adapted from the pytorch version by Tony Duan:
+    https://gist.github.com/tonyduan/1329998205d88c566588e57e3e2c0c55
+
+    Args:
+        x: Batch of arbitrary-size tensors to project, possibly on GPU
+        eps: radius of l-1 ball to project onto
+
+    References:
+      ..[#Duchi08] Efficient Projections onto the l1-Ball for Learning in High Dimensions
+         John Duchi, Shai Shalev-Shwartz, Yoram Singer, and Tushar Chandra.
+         International Conference on Machine Learning (ICML 2008)
     """
     original_shape = x.shape
     x = flatten(x)
     mask = (ep.norms.l1(x, axis=1) < eps).astype(x.dtype).expand_dims(1)
-    mu = ep.flip(ep.sort(ep.abs(x)), axis=-1)
+    mu = ep.flip(ep.sort(ep.abs(x)), axis=-1).astype(x.dtype)
     cumsum = ep.cumsum(mu, axis=-1)
-    arange = ep.arange(x, 1, x.shape[1] + 1)
-    rho = ep.max((mu * arange > (cumsum - eps.expand_dims(1))) * arange, axis=-1) - 1
-    theta = (cumsum[ep.arange(x, x.shape[0]), rho] - eps) / (rho + 1.0)
+    arange = ep.arange(x, 1, x.shape[1] + 1).astype(x.dtype)
+    rho = (
+        ep.max(
+            ((mu * arange > (cumsum - eps.expand_dims(1)))).astype(x.dtype) * arange,
+            axis=-1,
+        )
+        - 1
+    )
+    theta = (
+        cumsum[ep.arange(x, x.shape[0]), rho.astype(ep.arange(x, 1).dtype)] - eps
+    ) / (rho + 1.0)
     proj = (ep.abs(x) - theta.expand_dims(1)).clip(min_=0, max_=ep.inf)
     x = mask * x + (1 - mask) * proj * ep.sign(x)
     return x.reshape(original_shape)
 
 
 class FMNAttackLp(MinimizationAttack):
-    """
-    The Fast Minimum Norm adversarial attack, in Lp norm.
-    """
+    """The Fast Minimum Norm adversarial attack, in Lp norm. [#Pintor21]_
 
-    def __init__(
-            self, *, steps: int = 10,
-            max_stepsize: float = 1.0,
-            min_stepsize: float = None,
-            gamma: float = 0.05,
-            restarts: int = 0,
-            init_attack: Optional[MinimizationAttack] = None,
-            binary_search_steps: int = 10,
-    ):
-        """
-        :param steps: Number of steps to run the attack.
-        :param max_stepsize: Initial stepsize for the gradient update.
-        :param min_stepsize: Final stepsize for the gradient update. The
+    Args:
+        steps: Number of iterations.
+        max_stepsize: Initial stepsize for the gradient update.
+        min_stepsize: Final stepsize for the gradient update. The
             stepsize will be reduced with a cosine annealing policy.
-        :param gamma: Initial stepsize for the epsilon update. It will
+        gamma: Initial stepsize for the epsilon update. It will
             be updated with a cosine annealing reduction up to 0.001.
-        :param restarts: Number of restarts for the cosine annealing
-            update. Default is zero, which means the stepsize will
-            never be reset, following the cosine annealing decay. If
-            a number greated than zero is specified, the stepsize will
-            be cyclically restarted for the number of times indicated.
-        :param init_attack: Optional initial attack. If an initial attack
+        init_attack: Optional initial attack. If an initial attack
             is specified (or initial points are provided in the run), the
             attack will first try to search for the boundary between the
             initial point and the points in a class that satisfies the
             adversarial criterion.
-        :param binary_search_steps: Number of steps to use for the search
+        binary_search_steps: Number of steps to use for the search
             from the adversarial points. If no initial attack or adversarial
             starting point is provided, this parameter will be ignored.
-        """
+
+    References:
+        .. [#Pintor21] Maura Pintor, Fabio Roli, Wieland Brendel,
+            Battista Biggio, "Fast Minimum-norm Adversarial
+            Attacks through Adaptive Norm Constraints."
+            arXiv preprint arXiv:2102.12827 (2021).
+            https://arxiv.org/abs/2102.12827
+    """
+
+    def __init__(
+        self,
+        *,
+        steps: int = 100,
+        max_stepsize: float = 1.0,
+        min_stepsize: float = None,
+        gamma: float = 0.05,
+        init_attack: Optional[MinimizationAttack] = None,
+        binary_search_steps: int = 10,
+    ):
         self.steps = steps
         self.max_stepsize = max_stepsize
         self.init_attack = init_attack
@@ -100,20 +104,19 @@ class FMNAttackLp(MinimizationAttack):
         else:
             self.min_stepsize = max_stepsize / 100
         self.binary_search_steps = binary_search_steps
-        self.restarts = restarts
         self.gamma = gamma
 
         self.p = self.distance.p
 
     def run(
-            self,
-            model: Model,
-            inputs: T,
-            criterion: Union[Misclassification, TargetedMisclassification, T],
-            *,
-            starting_points: Optional[ep.Tensor] = None,
-            early_stop: Optional[float] = None,
-            **kwargs: Any,
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[Misclassification, TargetedMisclassification, T],
+        *,
+        starting_points: Optional[ep.Tensor] = None,
+        early_stop: Optional[float] = None,
+        **kwargs: Any,
     ) -> T:
         raise_if_kwargs(kwargs)
         criterion_ = get_criterion(criterion)
@@ -128,7 +131,7 @@ class FMNAttackLp(MinimizationAttack):
             raise ValueError("unsupported criterion")
 
         def loss_fn(
-                inputs: ep.Tensor, labels: ep.Tensor
+            inputs: ep.Tensor, labels: ep.Tensor
         ) -> Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]:
 
             logits = model(inputs)
@@ -189,11 +192,15 @@ class FMNAttackLp(MinimizationAttack):
         if self.p != 0:
             epsilon = ep.inf * ep.ones(x, len(x))
         else:
-            epsilon = ep.ones(x, len(x)) if x1 is None \
+            epsilon = (
+                ep.ones(x, len(x))
+                if x1 is None
                 else ep.norms.l0(flatten(delta), axis=-1)
+            )
         if self.p != 0:
-            worst_norm = ep.norms.lp(flatten(ep.maximum(x - min_, max_ - x)),
-                                     p=self.p, axis=-1)
+            worst_norm = ep.norms.lp(
+                flatten(ep.maximum(x - min_, max_ - x)), p=self.p, axis=-1
+            )
         else:
             worst_norm = flatten(ep.ones_like(x)).bool().sum(axis=1).float32()
 
@@ -204,19 +211,20 @@ class FMNAttackLp(MinimizationAttack):
         for i in range(self.steps):
             # perform cosine annealing of learning rates
             stepsize = (
-                    self.min_stepsize + (self.max_stepsize - self.min_stepsize) * (
-                    1 + math.cos(math.pi * i / self.steps)) / 2
+                self.min_stepsize
+                + (self.max_stepsize - self.min_stepsize)
+                * (1 + math.cos(math.pi * i / self.steps))
+                / 2
             )
             gamma = (
-                    0.001 + (self.gamma - 0.001) * (
-                    1 + math.cos(math.pi * (i / self.steps))) / 2
+                0.001
+                + (self.gamma - 0.001) * (1 + math.cos(math.pi * (i / self.steps))) / 2
             )
 
             x_adv = x + delta
 
             loss, (logits, loss_batch), gradients = grad_and_logits(x_adv, classes)
             is_adversarial = criterion_(x_adv, logits)
-
             lp = ep.norms.lp(flatten(delta), p=self.p, axis=-1)
             is_smaller = lp <= best_lp
             is_both = ep.logical_and(is_adversarial, is_smaller)
@@ -226,19 +234,42 @@ class FMNAttackLp(MinimizationAttack):
 
             # update epsilon
             if self.p != 0:
-                distance_to_boundary = abs(loss_batch) / ep.norms.lp(flatten(gradients), p=self.dual, axis=-1)
-                epsilon = ep.where(is_adversarial,
-                                   ep.minimum(epsilon * (1 - gamma),
-                                              ep.norms.lp(flatten(best_delta), p=self.p, axis=-1)),
-                                   ep.where(adv_found, epsilon * (1 + gamma),
-                                            ep.norms.lp(flatten(delta), p=self.p, axis=-1) + distance_to_boundary))
+                distance_to_boundary = abs(loss_batch) / ep.norms.lp(
+                    flatten(gradients), p=self.dual, axis=-1
+                )
+                epsilon = ep.where(
+                    is_adversarial,
+                    ep.minimum(
+                        epsilon * (1 - gamma),
+                        ep.norms.lp(flatten(best_delta), p=self.p, axis=-1),
+                    ),
+                    ep.where(
+                        adv_found,
+                        epsilon * (1 + gamma),
+                        ep.norms.lp(flatten(delta), p=self.p, axis=-1)
+                        + distance_to_boundary,
+                    ),
+                )
             else:
-                epsilon = ep.where(is_adversarial,
-                                   ep.minimum(ep.minimum(epsilon - 1,
-                                                         (epsilon * (1 - gamma)).astype(int).astype(epsilon.dtype)),
-                                              ep.norms.lp(flatten(best_delta), p=self.p, axis=-1)),
-                                   ep.maximum(epsilon + 1, (epsilon * (1 + gamma)).astype(int).astype(epsilon.dtype)))
-                epsilon = ep.maximum(0, epsilon).astype(epsilon.dtype)
+                epsilon = ep.where(
+                    is_adversarial,
+                    ep.minimum(
+                        ep.minimum(
+                            epsilon - 1,
+                            (epsilon * (1 - gamma))
+                            .astype(ep.arange(x, 1).dtype)
+                            .astype(epsilon.dtype),
+                        ),
+                        ep.norms.lp(flatten(best_delta), p=self.p, axis=-1),
+                    ),
+                    ep.maximum(
+                        epsilon + 1,
+                        (epsilon * (1 + gamma))
+                        .astype(ep.arange(x, 1).dtype)
+                        .astype(epsilon.dtype),
+                    ),
+                )
+                epsilon = ep.maximum(1, epsilon).astype(epsilon.dtype)
 
             # clip epsilon
             epsilon = ep.minimum(epsilon, worst_norm)
@@ -259,7 +290,7 @@ class FMNAttackLp(MinimizationAttack):
         return restore_type(x_adv)
 
     def normalize(
-            self, gradients: ep.Tensor, *, x: ep.Tensor, bounds: Bounds
+        self, gradients: ep.Tensor, *, x: ep.Tensor, bounds: Bounds
     ) -> ep.Tensor:
         return normalize_lp_norms(gradients, p=2)
 
@@ -269,16 +300,41 @@ class FMNAttackLp(MinimizationAttack):
 
     @abstractmethod
     def mid_points(
-            self,
-            x0: ep.Tensor,
-            x1: ep.Tensor,
-            epsilons: ep.Tensor,
-            bounds: Tuple[float, float],
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
     ) -> ep.Tensor:
         raise NotImplementedError
 
 
 class L1FMNAttack(FMNAttackLp):
+    """The L1 Fast Minimum Norm adversarial attack, in Lp norm. [#Pintor21L1]_
+
+    Args:
+        steps: Number of iterations.
+        max_stepsize: Initial stepsize for the gradient update.
+        min_stepsize: Final stepsize for the gradient update. The
+            stepsize will be reduced with a cosine annealing policy.
+        gamma: Initial stepsize for the epsilon update. It will
+            be updated with a cosine annealing reduction up to 0.001.
+        init_attack: Optional initial attack. If an initial attack
+            is specified (or initial points are provided in the run), the
+            attack will first try to search for the boundary between the
+            initial point and the points in a class that satisfies the
+            adversarial criterion.
+        binary_search_steps: Number of steps to use for the search
+            from the adversarial points. If no initial attack or adversarial
+            starting point is provided, this parameter will be ignored.
+
+    References:
+        .. [#Pintor21L1] Maura Pintor, Fabio Roli, Wieland Brendel,
+            Battista Biggio, "Fast Minimum-norm Adversarial
+            Attacks through Adaptive Norm Constraints."
+            arXiv preprint arXiv:2102.12827 (2021).
+    """
+
     distance = l1
     dual = ep.inf
 
@@ -291,11 +347,11 @@ class L1FMNAttack(FMNAttackLp):
         return x0 + project_onto_l1_ball(x - x0, epsilon)
 
     def mid_points(
-            self,
-            x0: ep.Tensor,
-            x1: ep.Tensor,
-            epsilons: ep.Tensor,
-            bounds: Tuple[float, float],
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
     ) -> ep.Tensor:
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
@@ -313,6 +369,32 @@ class L1FMNAttack(FMNAttackLp):
 
 
 class L2FMNAttack(FMNAttackLp):
+    """The L2 Fast Minimum Norm adversarial attack, in Lp norm. [#Pintor21L2]_
+
+    Args:
+        steps: Number of iterations.
+        max_stepsize: Initial stepsize for the gradient update.
+        min_stepsize: Final stepsize for the gradient update. The
+            stepsize will be reduced with a cosine annealing policy.
+        gamma: Initial stepsize for the epsilon update. It will
+            be updated with a cosine annealing reduction up to 0.001.
+        init_attack: Optional initial attack. If an initial attack
+            is specified (or initial points are provided in the run), the
+            attack will first try to search for the boundary between the
+            initial point and the points in a class that satisfies the
+            adversarial criterion.
+        binary_search_steps: Number of steps to use for the search
+            from the adversarial points. If no initial attack or adversarial
+            starting point is provided, this parameter will be ignored.
+
+    References:
+        .. [#Pintor21L2] Maura Pintor, Fabio Roli, Wieland Brendel,
+            Battista Biggio, "Fast Minimum-norm Adversarial
+            Attacks through Adaptive Norm Constraints."
+            arXiv preprint arXiv:2102.12827 (2021).
+            https://arxiv.org/abs/2102.12827
+    """
+
     distance = l2
     dual = 2
 
@@ -325,7 +407,7 @@ class L2FMNAttack(FMNAttackLp):
         return x0 + clip_lp_norms(x - x0, norm=epsilon, p=2)
 
     def mid_points(
-            self, x0: ep.Tensor, x1: ep.Tensor, epsilons: ep.Tensor, bounds
+        self, x0: ep.Tensor, x1: ep.Tensor, epsilons: ep.Tensor, bounds
     ) -> ep.Tensor:
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
@@ -337,6 +419,32 @@ class L2FMNAttack(FMNAttackLp):
 
 
 class LInfFMNAttack(FMNAttackLp):
+    """The L-infinity Fast Minimum Norm adversarial attack, in Lp norm. [#Pintor21Linf]_
+
+    Args:
+        steps: Number of iterations.
+        max_stepsize: Initial stepsize for the gradient update.
+        min_stepsize: Final stepsize for the gradient update. The
+            stepsize will be reduced with a cosine annealing policy.
+        gamma: Initial stepsize for the epsilon update. It will
+            be updated with a cosine annealing reduction up to 0.001.
+        init_attack: Optional initial attack. If an initial attack
+            is specified (or initial points are provided in the run), the
+            attack will first try to search for the boundary between the
+            initial point and the points in a class that satisfies the
+            adversarial criterion.
+        binary_search_steps: Number of steps to use for the search
+            from the adversarial points. If no initial attack or adversarial
+            starting point is provided, this parameter will be ignored.
+
+    References:
+        .. [#Pintor21Linf] Maura Pintor, Fabio Roli, Wieland Brendel,
+            Battista Biggio, "Fast Minimum-norm Adversarial
+            Attacks through Adaptive Norm Constraints."
+            arXiv preprint arXiv:2102.12827 (2021).
+            https://arxiv.org/abs/2102.12827
+    """
+
     distance = linf
     dual = 1
 
@@ -349,11 +457,11 @@ class LInfFMNAttack(FMNAttackLp):
         return x0 + clipped.reshape(x0.shape)
 
     def mid_points(
-            self,
-            x0: ep.Tensor,
-            x1: ep.Tensor,
-            epsilons: ep.Tensor,
-            bounds: Tuple[float, float],
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
     ):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
@@ -371,24 +479,51 @@ class LInfFMNAttack(FMNAttackLp):
 
 
 class L0FMNAttack(FMNAttackLp):
+    """The L0 Fast Minimum Norm adversarial attack, in Lp norm. [#Pintor21L0]_
+
+    Args:
+        steps: Number of iterations.
+        max_stepsize: Initial stepsize for the gradient update.
+        min_stepsize: Final stepsize for the gradient update. The
+            stepsize will be reduced with a cosine annealing policy.
+        gamma: Initial stepsize for the epsilon update. It will
+            be updated with a cosine annealing reduction up to 0.001.
+        init_attack: Optional initial attack. If an initial attack
+            is specified (or initial points are provided in the run), the
+            attack will first try to search for the boundary between the
+            initial point and the points in a class that satisfies the
+            adversarial criterion.
+        binary_search_steps: Number of steps to use for the search
+            from the adversarial points. If no initial attack or adversarial
+            starting point is provided, this parameter will be ignored.
+
+    References:
+        .. [#Pintor21L0] Maura Pintor, Fabio Roli, Wieland Brendel,
+            Battista Biggio, "Fast Minimum-norm Adversarial
+            Attacks through Adaptive Norm Constraints."
+            arXiv preprint arXiv:2102.12827 (2021).
+            https://arxiv.org/abs/2102.12827
+    """
+
     distance = l0
 
     def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: ep.Tensor) -> ep.Tensor:
         flatten_delta = flatten(x - x0)
+        n, d = flatten_delta.shape
         abs_delta = abs(flatten_delta)
-        epsilon = epsilon.astype(int)
-        rows = range(flatten_delta.shape[0])
-        idx_sorted = ep.argsort(abs_delta, axis=-1)[rows, -epsilon]
+        epsilon = epsilon.astype(ep.arange(x, 1).dtype)
+        rows = range(n)
+        idx_sorted = ep.flip(ep.argsort(abs_delta, axis=1), -1)[rows, epsilon]
         thresholds = (ep.ones_like(flatten_delta).T * abs_delta[rows, idx_sorted]).T
         clipped = ep.where(abs_delta >= thresholds, flatten_delta, 0)
         return x0 + clipped.reshape(x0.shape).astype(x0.dtype)
 
     def mid_points(
-            self,
-            x0: ep.Tensor,
-            x1: ep.Tensor,
-            epsilons: ep.Tensor,
-            bounds: Tuple[float, float],
+        self,
+        x0: ep.Tensor,
+        x1: ep.Tensor,
+        epsilons: ep.Tensor,
+        bounds: Tuple[float, float],
     ):
         # returns a point between x0 and x1 where
         # epsilon = 0 returns x0 and epsilon = 1
