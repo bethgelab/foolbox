@@ -31,7 +31,7 @@ def get_attack_id(x: AttackTestTarget) -> str:
 # attack, eps / None, attack_uses_grad, requires_real_model
 attacks: List[AttackTestTarget] = [
     AttackTestTarget(fa.DDNAttack(init_epsilon=2.0), uses_grad=True),
-    AttackTestTarget(fa.L0FMNAttack(), uses_grad=True),
+    AttackTestTarget(fa.L0FMNAttack(max_stepsize=10.0), uses_grad=True),
     AttackTestTarget(fa.L1FMNAttack(), uses_grad=True),
     AttackTestTarget(fa.L2FMNAttack(), uses_grad=True),
     AttackTestTarget(fa.LInfFMNAttack(), uses_grad=True),
@@ -153,7 +153,7 @@ targeted_attacks: List[AttackTestTarget] = [
         uses_grad=True,
     ),
     AttackTestTarget(fa.DDNAttack(init_epsilon=2.0, steps=20), uses_grad=True),
-    AttackTestTarget(fa.L0FMNAttack(max_stepsize=1.0, steps=20), uses_grad=True),
+    AttackTestTarget(fa.L0FMNAttack(max_stepsize=10.0, steps=200), uses_grad=True),
     AttackTestTarget(fa.L1FMNAttack(max_stepsize=1.0, steps=20), uses_grad=True),
     AttackTestTarget(fa.L2FMNAttack(max_stepsize=1.0, steps=20), uses_grad=True),
     AttackTestTarget(fa.LInfFMNAttack(max_stepsize=1.0, steps=20), uses_grad=True),
