@@ -61,7 +61,7 @@ from .fast_minimum_norm import (  # noqa: F401
     L0FMNAttack,
     L1FMNAttack,
     L2FMNAttack,
-    LInfFMNAttack
+    LInfFMNAttack,
 )
 from .gen_attack import GenAttack  # noqa: F401
 
