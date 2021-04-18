@@ -1,4 +1,4 @@
-from typing import Tuple, Union, List, Any
+from typing import Tuple, Union, List
 import eagerpy as ep
 
 import foolbox as fbn
@@ -24,12 +24,9 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
 
 @pytest.mark.parametrize("attack_and_p", attacks, ids=get_attack_id)
 def test_fast_minimum_norm_untargeted_attack(
-    request: Any,
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
     attack_and_p: Tuple[FMNAttackLp, Union[int, float]],
 ) -> None:
-    if request.config.option.skipslow:
-        pytest.skip()
 
     (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
 
