@@ -41,7 +41,7 @@ def project_onto_l1_ball(x: ep.Tensor, eps: ep.Tensor) -> ep.Tensor:
     """
     original_shape = x.shape
     x = flatten(x)
-    mask = (ep.norms.l1(x, axis=1) < eps).astype(x.dtype).expand_dims(1)
+    mask = (ep.norms.l1(x, axis=1) <= eps).astype(x.dtype).expand_dims(1)
     mu = ep.flip(ep.sort(ep.abs(x)), axis=-1).astype(x.dtype)
     cumsum = ep.cumsum(mu, axis=-1)
     arange = ep.arange(x, 1, x.shape[1] + 1).astype(x.dtype)
@@ -52,6 +52,8 @@ def project_onto_l1_ball(x: ep.Tensor, eps: ep.Tensor) -> ep.Tensor:
         )
         - 1
     )
+    # samples already under norm will have to select
+    rho = ep.maximum(rho, 0)
     theta = (
         cumsum[ep.arange(x, x.shape[0]), rho.astype(ep.arange(x, 1).dtype)] - eps
     ) / (rho + 1.0)
