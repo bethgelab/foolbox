@@ -41,7 +41,7 @@ class PyTorchModel(ModelWithPreprocessing):
 
         device = get_device(device)
         model = model.to(device)
-        dummy = ep.torch.zeros(0, device=device)
+        dummy = ep.astensor(ep.torch.zeros(0, device=device))
 
         # we need to make sure the output only requires_grad if the input does
         def _model(x: torch.Tensor) -> torch.Tensor:
