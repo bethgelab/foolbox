@@ -191,7 +191,7 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
                     x_adv_flat = ep.index_update(
                         x_adv_flat,
                         (relevant_mask_index, relevant_indices),
-                        ep.where(is_adv[relevant_mask], new_values, updated_new_values)
+                        ep.where(is_adv[relevant_mask], new_values, updated_new_values),
                     )
 
                     improved = ep.index_update(
