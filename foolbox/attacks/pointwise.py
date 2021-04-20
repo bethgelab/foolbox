@@ -119,7 +119,6 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
                     relevant_mask_index,
                     ep.logical_or(found_index_to_manipulate, is_adv)[relevant_mask],
                 )
-                # found_index_to_manipulate = ep.logical_or(found_index_to_manipulate, is_adv)
 
                 # if not, undo change
                 new_or_old_values = ep.where(
@@ -192,7 +191,7 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
                     x_adv_flat = ep.index_update(
                         x_adv_flat,
                         (relevant_mask_index, relevant_indices),
-                        updated_new_values,
+                        ep.where(is_adv[relevant_mask], new_values, updated_new_values)
                     )
 
                     improved = ep.index_update(
