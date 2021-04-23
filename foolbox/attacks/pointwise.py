@@ -30,8 +30,10 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
 
     def __init__(
         self, init_attack: Optional[MinimizationAttack] = None,
+        l2_binary_search: bool = True
     ):
         self.init_attack = init_attack
+        self.l2_binary_search = l2_binary_search
 
     def run(
         self,
@@ -135,78 +137,79 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
             if not ep.any(found_index_to_manipulate):
                 break
 
-        while True:
-            diff_mask = (ep.abs(x_flat - x_adv_flat) > 1e-12).numpy()
-            diff_idxs = [z.nonzero()[0] for z in diff_mask]
-            untouched_indices = [z.tolist() for z in diff_idxs]
-            # draw random shuffling of all indices for all samples
-            untouched_indices = [
-                np.random.permutation(it).tolist() for it in untouched_indices
-            ]
+        if self.l2_binary_search:
+            while True:
+                diff_mask = (ep.abs(x_flat - x_adv_flat) > 1e-12).numpy()
+                diff_idxs = [z.nonzero()[0] for z in diff_mask]
+                untouched_indices = [z.tolist() for z in diff_idxs]
+                # draw random shuffling of all indices for all samples
+                untouched_indices = [
+                    np.random.permutation(it).tolist() for it in untouched_indices
+                ]
 
-            # whether that run through all values made any improvement
-            improved = ep.from_numpy(x, np.zeros(N, dtype=bool)).astype(bool)
+                # whether that run through all values made any improvement
+                improved = ep.from_numpy(x, np.zeros(N, dtype=bool)).astype(bool)
 
-            logging.info("Starting new loop through all values")
+                logging.info("Starting new loop through all values")
 
-            # use the same logic as above
-            i = 0
-            while i < max([len(it) for it in untouched_indices]):
-                # mask all samples that still have pixels to manipulate left
-                relevant_mask = [len(it) > i for it in untouched_indices]
-                relevant_mask = np.array(relevant_mask, dtype=bool)
-                relevant_mask_index = np.flatnonzero(relevant_mask)
+                # use the same logic as above
+                i = 0
+                while i < max([len(it) for it in untouched_indices]):
+                    # mask all samples that still have pixels to manipulate left
+                    relevant_mask = [len(it) > i for it in untouched_indices]
+                    relevant_mask = np.array(relevant_mask, dtype=bool)
+                    relevant_mask_index = np.flatnonzero(relevant_mask)
 
-                # for each image get the index of the next pixel we try out
-                relevant_indices = [it[i] for it in untouched_indices if len(it) > i]
+                    # for each image get the index of the next pixel we try out
+                    relevant_indices = [it[i] for it in untouched_indices if len(it) > i]
 
-                old_values = x_adv_flat[relevant_mask_index, relevant_indices]
-                new_values = x_flat[relevant_mask_index, relevant_indices]
+                    old_values = x_adv_flat[relevant_mask_index, relevant_indices]
+                    new_values = x_flat[relevant_mask_index, relevant_indices]
 
-                x_adv_flat = ep.index_update(
-                    x_adv_flat, (relevant_mask_index, relevant_indices), new_values
-                )
-
-                # check if still adversarial
-                is_adv = is_adversarial(x_adv_flat.reshape(original_shape))
-
-                improved = ep.index_update(
-                    improved,
-                    relevant_mask_index,
-                    ep.logical_or(improved, is_adv)[relevant_mask],
-                )
-
-                if not ep.all(is_adv):
-                    # run binary search for examples that became non-adversarial
-                    updated_new_values = self._binary_search(
-                        x_adv_flat,
-                        relevant_mask,
-                        relevant_mask_index,
-                        relevant_indices,
-                        old_values,
-                        new_values,
-                        (-1, *original_shape[1:]),
-                        is_adversarial,
-                    )
                     x_adv_flat = ep.index_update(
-                        x_adv_flat,
-                        (relevant_mask_index, relevant_indices),
-                        ep.where(is_adv[relevant_mask], new_values, updated_new_values),
+                        x_adv_flat, (relevant_mask_index, relevant_indices), new_values
                     )
+
+                    # check if still adversarial
+                    is_adv = is_adversarial(x_adv_flat.reshape(original_shape))
 
                     improved = ep.index_update(
                         improved,
                         relevant_mask_index,
-                        ep.logical_or(
-                            old_values != updated_new_values, improved[relevant_mask]
-                        ),
+                        ep.logical_or(improved, is_adv)[relevant_mask],
                     )
 
-                i += 1
+                    if not ep.all(is_adv):
+                        # run binary search for examples that became non-adversarial
+                        updated_new_values = self._binary_search(
+                            x_adv_flat,
+                            relevant_mask,
+                            relevant_mask_index,
+                            relevant_indices,
+                            old_values,
+                            new_values,
+                            (-1, *original_shape[1:]),
+                            is_adversarial,
+                        )
+                        x_adv_flat = ep.index_update(
+                            x_adv_flat,
+                            (relevant_mask_index, relevant_indices),
+                            ep.where(is_adv[relevant_mask], new_values, updated_new_values),
+                        )
 
-            if not ep.any(improved):
-                # no improvement for any of the indices
-                break
+                        improved = ep.index_update(
+                            improved,
+                            relevant_mask_index,
+                            ep.logical_or(
+                                old_values != updated_new_values, improved[relevant_mask]
+                            ),
+                        )
+
+                    i += 1
+
+                if not ep.any(improved):
+                    # no improvement for any of the indices
+                    break
 
         x_adv = x_adv_flat.reshape(original_shape)
 

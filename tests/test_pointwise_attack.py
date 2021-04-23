@@ -13,7 +13,10 @@ def get_attack_id(x: fa.Attack) -> str:
     return repr(x)
 
 
-attacks: List[fa.Attack] = [fa.PointwiseAttack()]
+attacks: List[fa.Attack] = [
+    fa.PointwiseAttack(),
+    fa.PointwiseAttack(l2_binary_search=False)
+]
 
 
 @pytest.mark.parametrize("attack", attacks, ids=get_attack_id)
