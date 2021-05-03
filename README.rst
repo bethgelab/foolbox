@@ -1,4 +1,4 @@
-📣 Hi! I am **`Jonas <https://jonasrauber.de>`_**, the lead developer of `Foolbox <https://github.com/bethgelab/foolbox>`_ and `EagerPy <https://github.com/jonasrauber/eagerpy>`_.
+📣 Hi! I am `Jonas <https://jonasrauber.de>`_, the lead developer of `Foolbox <https://github.com/bethgelab/foolbox>`_ and `EagerPy <https://github.com/jonasrauber/eagerpy>`_.
 
 I have recently handed in my PhD dissertation 🎓 in Machine Learning and **I am currently looking for new job opportunities in Europe 🇪🇺🇨🇭🇬🇧 and abroad 🇺🇸**.
 
