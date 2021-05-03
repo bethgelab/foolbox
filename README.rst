@@ -1,8 +1,8 @@
-📣 Hi! I am `Jonas <https://jonasrauber.de>`_, the lead developer of `Foolbox <https://github.com/bethgelab/foolbox>`_ and `EagerPy <https://github.com/jonasrauber/eagerpy>`_.
+📣 Hi! I am **`Jonas <https://jonasrauber.de>`_**, the lead developer of `Foolbox <https://github.com/bethgelab/foolbox>`_ and `EagerPy <https://github.com/jonasrauber/eagerpy>`_.
 
-I have recently handed in my PhD dissertation 🎓 in Machine Learning and **I am currently looking for new job opportunities in Europe 🇪🇺 and abroad 🇺🇸**.
+I have recently handed in my PhD dissertation 🎓 in Machine Learning and **I am currently looking for new job opportunities in Europe 🇪🇺🇨🇭🇬🇧 and abroad 🇺🇸**.
 
-If you or your company are looking for a **machine learning 👨‍💻 researcher or engineer**, please `reach out <https://www.linkedin.com/in/jonasrauber/>`_. 🚀
+**If you or your company are looking for a machine learning researcher 👨‍🔬 or engineer 🚀**, please `reach out <https://www.linkedin.com/in/jonasrauber/>`_.
 
 ----
 
