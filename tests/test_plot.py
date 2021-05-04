@@ -13,6 +13,10 @@ def test_plot(dummy: ep.Tensor) -> None:
     fbn.plot.images(images, ncols=3)
     fbn.plot.images(images, nrows=2, ncols=6)
     fbn.plot.images(images, nrows=2, ncols=4)
+    fbn.plot.images(
+        images, nrows=2, ncols=4, labels=[str(i) for i in range(len(images))]
+    )
+    fbn.plot.images(images, nrows=2, ncols=4, return_fig=True)
     with pytest.raises(ValueError):
         images = ep.zeros(dummy, (10, 3, 3, 3))
         fbn.plot.images(images)
