@@ -13,6 +13,9 @@ def test_plot(dummy: ep.Tensor) -> None:
     fbn.plot.images(images, ncols=3)
     fbn.plot.images(images, nrows=2, ncols=6)
     fbn.plot.images(images, nrows=2, ncols=4)
+    # test for single channel images
+    images = ep.zeros(dummy, (10, 32, 32, 1))
+    fbn.plot.images(images)
     with pytest.raises(ValueError):
         images = ep.zeros(dummy, (10, 3, 3, 3))
         fbn.plot.images(images)
