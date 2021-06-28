@@ -47,6 +47,10 @@
    L1BrendelBethgeAttack
    L2BrendelBethgeAttack
    LinfinityBrendelBethgeAttack
+   L0FMNAttack
+   L1FMNAttack
+   L2FMNAttack
+   LInfFMNAttack
    PointwiseAttack
 
    FGM
@@ -94,6 +98,10 @@
 .. autoclass:: L1BrendelBethgeAttack
 .. autoclass:: L2BrendelBethgeAttack
 .. autoclass:: LinfinityBrendelBethgeAttack
+.. autoclass:: L0FMNAttack
+.. autoclass:: L1FMNAttack
+.. autoclass:: L2FMNAttack
+.. autoclass:: LInfFMNAttack
 .. autoclass:: PointwiseAttack
 
 .. autoclass:: FGM

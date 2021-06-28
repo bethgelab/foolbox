@@ -57,6 +57,12 @@ from .brendel_bethge import (  # noqa: F401
     L2BrendelBethgeAttack,
     LinfinityBrendelBethgeAttack,
 )
+from .fast_minimum_norm import (  # noqa: F401
+    L0FMNAttack,
+    L1FMNAttack,
+    L2FMNAttack,
+    LInfFMNAttack,
+)
 from .gen_attack import GenAttack  # noqa: F401
 from .pointwise import PointwiseAttack  # noqa: F401
 
