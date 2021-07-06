@@ -109,6 +109,7 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         return loss_fn
 
     def get_optimizer(self, x: ep.Tensor, stepsize: float) -> Optimizer:
+        # can be overridden by users
         return GDOptimizer(x, stepsize)
 
     def value_and_grad(
