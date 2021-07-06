@@ -20,6 +20,8 @@ from .base import T
 from .base import get_criterion
 from .base import raise_if_kwargs
 
+from .gradient_descent_base import AdamOptimizer
+
 
 class L2CarliniWagnerAttack(MinimizationAttack):
     """Implementation of the Carlini & Wagner L2 Attack. [#Carl16]_
@@ -153,7 +155,7 @@ class L2CarliniWagnerAttack(MinimizationAttack):
 
             # create a new optimizer find the delta that minimizes the loss
             delta = ep.zeros_like(x_attack)
-            optimizer = AdamOptimizer(delta)
+            optimizer = AdamOptimizer(delta, self.stepsize)
 
             # tracks whether adv with the current consts was found
             found_advs = np.full((N,), fill_value=False)
@@ -163,7 +165,7 @@ class L2CarliniWagnerAttack(MinimizationAttack):
 
             for step in range(self.steps):
                 loss, (perturbed, logits), gradient = loss_aux_and_grad(delta, consts_)
-                delta += optimizer(gradient, self.stepsize)
+                delta += optimizer(gradient)
 
                 if self.abort_early and step % (np.ceil(self.steps / 10)) == 0:
                     # after each tenth of the overall steps, check progress
@@ -192,34 +194,6 @@ class L2CarliniWagnerAttack(MinimizationAttack):
             )
 
         return restore_type(best_advs)
-
-
-class AdamOptimizer:
-    def __init__(self, x: ep.Tensor):
-        self.m = ep.zeros_like(x)
-        self.v = ep.zeros_like(x)
-        self.t = 0
-
-    def __call__(
-        self,
-        gradient: ep.Tensor,
-        stepsize: float,
-        beta1: float = 0.9,
-        beta2: float = 0.999,
-        epsilon: float = 1e-8,
-    ) -> ep.Tensor:
-        self.t += 1
-
-        self.m = beta1 * self.m + (1 - beta1) * gradient
-        self.v = beta2 * self.v + (1 - beta2) * gradient ** 2
-
-        bias_correction_1 = 1 - beta1 ** self.t
-        bias_correction_2 = 1 - beta2 ** self.t
-
-        m_hat = self.m / bias_correction_1
-        v_hat = self.v / bias_correction_2
-
-        return -stepsize * m_hat / (ep.sqrt(v_hat) + epsilon)
 
 
 def best_other_classes(logits: ep.Tensor, exclude: ep.Tensor) -> ep.Tensor:

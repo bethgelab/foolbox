@@ -70,20 +70,6 @@ class GDOptimizer(Optimizer):
         return self.stepsize * gradient
 
 
-class MomentumGDOptimizer(Optimizer):
-    def __init__(
-        self, x: ep.Tensor, stepsize: float, gamma: float = 0.9,
-    ):
-        self.stepsize = stepsize
-        self.gamma = gamma
-        self.m = ep.zeros_like(x)
-
-    def __call__(self, gradient: ep.Tensor) -> ep.Tensor:
-        self.m = self.gamma * self.m + (1 - self.gamma) * gradient
-
-        return self.stepsize * self.m
-
-
 class BaseGradientDescent(FixedEpsilonAttack, ABC):
     def __init__(
         self,
