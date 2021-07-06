@@ -19,6 +19,71 @@ from .base import get_criterion
 from .base import raise_if_kwargs
 
 
+class Optimizer(ABC):
+    def __init__(self, x: ep.Tensor):
+        pass
+
+    @abstractmethod
+    def __call__(self, gradient: ep.Tensor, stepsize: float, **kwargs) -> ep.Tensor:
+        pass
+
+
+class AdamOptimizer(Optimizer):
+    def __init__(
+        self,
+        x: ep.Tensor,
+        stepsize: float,
+        beta1: float = 0.9,
+        beta2: float = 0.999,
+        epsilon: float = 1e-8,
+    ):
+
+        self.stepsize = stepsize
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.epsilon = epsilon
+
+        self.m = ep.zeros_like(x)
+        self.v = ep.zeros_like(x)
+        self.t = 0
+
+    def __call__(self, gradient: ep.Tensor) -> ep.Tensor:
+        self.t += 1
+
+        self.m = self.beta1 * self.m + (1 - self.beta1) * gradient
+        self.v = self.beta2 * self.v + (1 - self.beta2) * gradient ** 2
+
+        bias_correction_1 = 1 - self.beta1 ** self.t
+        bias_correction_2 = 1 - self.beta2 ** self.t
+
+        m_hat = self.m / bias_correction_1
+        v_hat = self.v / bias_correction_2
+
+        return self.stepsize * m_hat / (ep.sqrt(v_hat) + self.epsilon)
+
+
+class GDOptimizer(Optimizer):
+    def __init__(self, x: ep.Tensor, stepsize: float):
+        self.stepsize = stepsize
+
+    def __call__(self, gradient: ep.Tensor,) -> ep.Tensor:
+        return self.stepsize * gradient
+
+
+class MomentumGDOptimizer(Optimizer):
+    def __init__(
+        self, x: ep.Tensor, stepsize: float, gamma: float = 0.9,
+    ):
+        self.stepsize = stepsize
+        self.gamma = gamma
+        self.m = ep.zeros_like(x)
+
+    def __call__(self, gradient: ep.Tensor) -> ep.Tensor:
+        self.m = self.gamma * self.m + (1 - self.gamma) * gradient
+
+        return self.stepsize * self.m
+
+
 class BaseGradientDescent(FixedEpsilonAttack, ABC):
     def __init__(
         self,
@@ -42,6 +107,9 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
             return ep.crossentropy(logits, labels).sum()
 
         return loss_fn
+
+    def get_optimizer(self, x: ep.Tensor, stepsize: float) -> Optimizer:
+        return GDOptimizer(x, stepsize)
 
     def value_and_grad(
         # can be overridden by users
@@ -82,6 +150,8 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         else:
             stepsize = self.abs_stepsize
 
+        optimizer = self.get_optimizer(x0, stepsize)
+
         if self.random_start:
             x = self.get_random_start(x0, epsilon)
             x = ep.clip(x, *model.bounds)
@@ -91,7 +161,7 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         for _ in range(self.steps):
             _, gradients = self.value_and_grad(loss_fn, x)
             gradients = self.normalize(gradients, x=x, bounds=model.bounds)
-            x = x + gradient_step_sign * stepsize * gradients
+            x = x + gradient_step_sign * optimizer(gradients)
             x = self.project(x, x0, epsilon)
             x = ep.clip(x, *model.bounds)
 
