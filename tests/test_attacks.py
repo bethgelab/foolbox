@@ -71,6 +71,14 @@ attacks: List[AttackTestTarget] = [
     ),
     AttackTestTarget(fa.L2BasicIterativeAttack(), L2(50.0), uses_grad=True),
     AttackTestTarget(fa.L1BasicIterativeAttack(), 5000.0, uses_grad=True),
+    AttackTestTarget(fa.AdamPGD(), Linf(1.0), uses_grad=True),
+    AttackTestTarget(fa.L2AdamPGD(), L2(50.0), uses_grad=True),
+    AttackTestTarget(fa.L1AdamPGD(), 5000.0, uses_grad=True),
+    AttackTestTarget(
+        fa.LinfAdamBasicIterativeAttack(abs_stepsize=0.2), Linf(1.0), uses_grad=True
+    ),
+    AttackTestTarget(fa.L2AdamBasicIterativeAttack(), L2(50.0), uses_grad=True),
+    AttackTestTarget(fa.L1AdamBasicIterativeAttack(), 5000.0, uses_grad=True),
     AttackTestTarget(fa.SparseL1DescentAttack(), 5000.0, uses_grad=True),
     AttackTestTarget(fa.FGSM(), Linf(100.0), uses_grad=True),
     AttackTestTarget(FGSM_GE(), Linf(100.0)),
@@ -173,6 +181,14 @@ targeted_attacks: List[AttackTestTarget] = [
     ),
     AttackTestTarget(fa.L2BasicIterativeAttack(), L2(50.0), uses_grad=True),
     AttackTestTarget(fa.L1BasicIterativeAttack(), 5000.0, uses_grad=True),
+    AttackTestTarget(fa.AdamPGD(), Linf(1.0), uses_grad=True),
+    AttackTestTarget(fa.L2AdamPGD(), L2(50.0), uses_grad=True),
+    AttackTestTarget(fa.L1AdamPGD(), 5000.0, uses_grad=True),
+    AttackTestTarget(
+        fa.LinfAdamBasicIterativeAttack(abs_stepsize=0.2), Linf(1.0), uses_grad=True
+    ),
+    AttackTestTarget(fa.L2AdamBasicIterativeAttack(), L2(50.0), uses_grad=True),
+    AttackTestTarget(fa.L1BAdamasicIterativeAttack(), 5000.0, uses_grad=True),
     AttackTestTarget(fa.SparseL1DescentAttack(), 5000.0, uses_grad=True),
 ]
 

@@ -85,7 +85,7 @@ class LinfBasicIterativeAttack(LinfBaseGradientDescent):
         )
 
 
-class L1BAdamBasicIterativeAttack(L1BaseGradientDescent):
+class L1AdamBasicIterativeAttack(L1BaseGradientDescent):
     """L1 Basic Iterative Method with Adam optimizer
 
     Args:

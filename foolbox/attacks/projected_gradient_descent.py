@@ -1,8 +1,9 @@
 from typing import Optional
 
-from .gradient_descent_base import L1BaseGradientDescent
+from .gradient_descent_base import L1BaseGradientDescent, AdamOptimizer, Optimizer
 from .gradient_descent_base import L2BaseGradientDescent
 from .gradient_descent_base import LinfBaseGradientDescent
+import eagerpy as ep
 
 
 class L1ProjectedGradientDescentAttack(L1BaseGradientDescent):
@@ -80,4 +81,64 @@ class LinfProjectedGradientDescentAttack(LinfBaseGradientDescent):
             abs_stepsize=abs_stepsize,
             steps=steps,
             random_start=random_start,
+        )
+
+
+class L1AdamProjectedGradientDescentAttack(L1ProjectedGradientDescentAttack):
+    """L1 Projected Gradient Descent
+
+    Args:
+        rel_stepsize: Stepsize relative to epsilon
+        abs_stepsize: If given, it takes precedence over rel_stepsize.
+        steps : Number of update steps to perform.
+        random_start : Whether the perturbation is initialized randomly or starts at zero.
+    """
+
+    def get_optimizer(self, x: ep.Tensor, stepsize: float) -> Optimizer:
+        return AdamOptimizer(
+            x,
+            stepsize,
+            self.optimizer_beta1,
+            self.optimizer_beta2,
+            self.optimizer_epsilon,
+        )
+
+
+class L2PAdamProjectedGradientDescentAttack(L2ProjectedGradientDescentAttack):
+    """L2 Projected Gradient Descent
+
+    Args:
+        rel_stepsize: Stepsize relative to epsilon
+        abs_stepsize: If given, it takes precedence over rel_stepsize.
+        steps : Number of update steps to perform.
+        random_start : Whether the perturbation is initialized randomly or starts at zero.
+    """
+
+    def get_optimizer(self, x: ep.Tensor, stepsize: float) -> Optimizer:
+        return AdamOptimizer(
+            x,
+            stepsize,
+            self.optimizer_beta1,
+            self.optimizer_beta2,
+            self.optimizer_epsilon,
+        )
+
+
+class LinfAdamProjectedGradientDescentAttack(LinfProjectedGradientDescentAttack):
+    """Linf Projected Gradient Descent
+
+    Args:
+        rel_stepsize: Stepsize relative to epsilon (defaults to 0.01 / 0.3).
+        abs_stepsize: If given, it takes precedence over rel_stepsize.
+        steps : Number of update steps to perform.
+        random_start : Whether the perturbation is initialized randomly or starts at zero.
+    """
+
+    def get_optimizer(self, x: ep.Tensor, stepsize: float) -> Optimizer:
+        return AdamOptimizer(
+            x,
+            stepsize,
+            self.optimizer_beta1,
+            self.optimizer_beta2,
+            self.optimizer_epsilon,
         )
