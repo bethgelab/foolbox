@@ -9,10 +9,11 @@ import foolbox as fbn
 ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 CallableModelAndDescription = NamedTuple(
     "CallableModelAndDescription",
-    [("model_fn", Callable[..., ModelAndData]), ("real", bool)],
+    [("model_fn", Callable[..., ModelAndData]), ("real", bool), ("small", bool)],
 )
 ModelDescriptionAndData = NamedTuple(
-    "ModelDescriptionAndData", [("model_and_data", ModelAndData), ("real", bool)],
+    "ModelDescriptionAndData",
+    [("model_and_data", ModelAndData), ("real", bool), ("small", bool)],
 )
 
 models: Dict[str, CallableModelAndDescription] = {}
@@ -34,7 +35,7 @@ def dummy(request: Any) -> ep.Tensor:
 
 
 def register(
-    backend: str, *, real: bool = False, attack: bool = True
+    backend: str, *, real: bool = False, small: bool = False, attack: bool = True
 ) -> Callable[[Callable], Callable]:
     def decorator(f: Callable[[Any], ModelAndData]) -> Callable[[Any], ModelAndData]:
         @functools.wraps(f)
@@ -46,7 +47,9 @@ def register(
         global models
         global real_models
 
-        models[model.__name__] = CallableModelAndDescription(model_fn=model, real=real)
+        models[model.__name__] = CallableModelAndDescription(
+            model_fn=model, real=real, small=small
+        )
         if attack:
             models_for_attacks.append(model.__name__)
         return model
@@ -115,7 +118,7 @@ def pytorch_simple_model_object(request: Any) -> ModelAndData:
     return pytorch_simple_model(torch.device("cpu"))
 
 
-@register("pytorch", real=True)
+@register("pytorch", real=True, small=True)
 def pytorch_mnist(request: Any) -> ModelAndData:
     fmodel = fbn.zoo.ModelLoader.get().load(
         "examples/zoo/mnist/", module_name="foolbox_model"
@@ -162,12 +165,12 @@ def tensorflow_simple_sequential(
     return fmodel, x, y
 
 
-@register("tensorflow")
+@register("tensorflow", small=True)
 def tensorflow_simple_sequential_cpu(request: Any) -> ModelAndData:
     return tensorflow_simple_sequential("cpu", None)
 
 
-@register("tensorflow")
+@register("tensorflow", small=True)
 def tensorflow_simple_sequential_native_tensors(request: Any) -> ModelAndData:
     import tensorflow as tf
 
@@ -176,14 +179,14 @@ def tensorflow_simple_sequential_native_tensors(request: Any) -> ModelAndData:
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
-@register("tensorflow")
+@register("tensorflow", small=True)
 def tensorflow_simple_sequential_eagerpy_tensors(request: Any) -> ModelAndData:
     mean = ep.tensorflow.zeros(1)
     std = ep.tensorflow.ones(1) * 255.0
     return tensorflow_simple_sequential("cpu", dict(mean=mean, std=std))
 
 
-@register("tensorflow")
+@register("tensorflow", small=True)
 def tensorflow_simple_subclassing(request: Any) -> ModelAndData:
     import tensorflow as tf
 
@@ -264,7 +267,7 @@ def tensorflow_resnet50(request: Any) -> ModelAndData:
     return fmodel, x, y
 
 
-@register("jax")
+@register("jax", small=True)
 def jax_simple_model(request: Any) -> ModelAndData:
     import jax
 
