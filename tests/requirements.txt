@@ -2,7 +2,7 @@ torch==1.4.0
 torchvision==0.5.0
 jaxlib==0.1.46
 jax==0.1.66
-tensorflow==2.5.0
+tensorflow==2.5.1
 numba==0.50.1
 matplotlib==3.2.1
 pillow==8.1.1
