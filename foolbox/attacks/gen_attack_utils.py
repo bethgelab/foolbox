@@ -49,8 +49,8 @@ def rescale_jax(x: ep.JAXTensor, target_shape: List[int]) -> ep.JAXTensor:
     rows_grid, cols_grid = np.meshgrid(rows - 0.5, cols - 0.5, indexing="ij")
 
     img_resize_vec = interpolate_bilinear(img, rows_grid.flatten(), cols_grid.flatten())
-    img_resize = img_resize_vec.reshape(
-        img.shape[:-3] + (len(rows), len(cols)) + img.shape[-1:]
+    img_resize = np.reshape(
+        img_resize_vec, img.shape[:-3] + (len(rows), len(cols)) + img.shape[-1:]
     )  # type: ignore
 
     return ep.JAXTensor(img_resize)
