@@ -244,7 +244,7 @@ def tensorflow_mobilenetv3(request: Any) -> ModelAndData:
 
     import tensorflow as tf
 
-    model = tf.keras.applications.MobileNetV3(weights="imagenet", minimalistic=True)
+    model = tf.keras.applications.MobileNetV3Small(weights="imagenet", minimalistic=True)
     fmodel = fbn.TensorFlowModel(
         model, bounds=(0, 255), preprocessing=dict(mean=127.5, std=127.5)
     )
