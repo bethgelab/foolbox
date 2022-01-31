@@ -1,4 +1,4 @@
-from setuptools import setup  # type: ignore
+from setuptools import setup
 from setuptools import find_packages
 from os.path import join, dirname
 
