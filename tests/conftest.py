@@ -9,7 +9,11 @@ import foolbox as fbn
 ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 CallableModelAndDescription = NamedTuple(
     "CallableModelAndDescription",
-    [("model_fn", Callable[..., ModelAndData]), ("real", bool), ("low_dimensional_input", bool)],
+    [
+        ("model_fn", Callable[..., ModelAndData]),
+        ("real", bool),
+        ("low_dimensional_input", bool),
+    ],
 )
 ModelDescriptionAndData = NamedTuple(
     "ModelDescriptionAndData",
@@ -35,7 +39,11 @@ def dummy(request: Any) -> ep.Tensor:
 
 
 def register(
-    backend: str, *, real: bool = False, low_dimensional_input: bool = False, attack: bool = True
+    backend: str,
+    *,
+    real: bool = False,
+    low_dimensional_input: bool = False,
+    attack: bool = True,
 ) -> Callable[[Callable], Callable]:
     def decorator(f: Callable[[Any], ModelAndData]) -> Callable[[Any], ModelAndData]:
         @functools.wraps(f)
