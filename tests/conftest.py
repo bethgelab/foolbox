@@ -82,7 +82,7 @@ def pytorch_simple_model(
         model, bounds=bounds, device=device, preprocessing=preprocessing
     )
 
-    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=8)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -131,24 +131,24 @@ def pytorch_mnist(request: Any) -> ModelAndData:
     fmodel = fbn.zoo.ModelLoader.get().load(
         "examples/zoo/mnist/", module_name="foolbox_model"
     )
-    x, y = fbn.samples(fmodel, dataset="mnist", batchsize=16)
+    x, y = fbn.samples(fmodel, dataset="mnist", batchsize=8)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
 
 
 @register("pytorch", real=True)
-def pytorch_resnet18(request: Any) -> ModelAndData:
+def pytorch_shufflenetv2(request: Any) -> ModelAndData:
     if request.config.option.skipslow:
         pytest.skip()
 
     import torchvision.models as models
 
-    model = models.resnet18(pretrained=True).eval()
+    model = models.shufflenet_v2_x0_5(pretrained=True).eval()
     preprocessing = dict(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], axis=-3)
     fmodel = fbn.PyTorchModel(model, bounds=(0, 1), preprocessing=preprocessing)
 
-    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=8)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
@@ -167,7 +167,7 @@ def tensorflow_simple_sequential(
         model, bounds=bounds, device=device, preprocessing=preprocessing
     )
 
-    x, _ = fbn.samples(fmodel, dataset="cifar10", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="cifar10", batchsize=8)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -211,7 +211,7 @@ def tensorflow_simple_subclassing(request: Any) -> ModelAndData:
     bounds = (0, 1)
     fmodel = fbn.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fbn.samples(fmodel, dataset="cifar10", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="cifar10", batchsize=8)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
@@ -231,25 +231,25 @@ def tensorflow_simple_functional(request: Any) -> ModelAndData:
     bounds = (0, 1)
     fmodel = fbn.TensorFlowModel(model, bounds=bounds)
 
-    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=8)
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
     return fmodel, x, y
 
 
 @register("tensorflow", real=True)
-def tensorflow_mobilenetv2(request: Any) -> ModelAndData:
+def tensorflow_mobilenetv3(request: Any) -> ModelAndData:
     if request.config.option.skipslow:
         pytest.skip()
 
     import tensorflow as tf
 
-    model = tf.keras.applications.MobileNetV2(weights="imagenet")
+    model = tf.keras.applications.MobileNetV3(weights="imagenet", minimalistic=True)
     fmodel = fbn.TensorFlowModel(
         model, bounds=(0, 255), preprocessing=dict(mean=127.5, std=127.5)
     )
 
-    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=8)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
@@ -269,7 +269,7 @@ def tensorflow_resnet50(request: Any) -> ModelAndData:
     preprocessing = dict(flip_axis=-1, mean=[104.0, 116.0, 123.0])  # RGB to BGR
     fmodel = fbn.TensorFlowModel(model, bounds=(0, 255), preprocessing=preprocessing)
 
-    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+    x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=8)
     x = ep.astensor(x)
     y = ep.astensor(y)
     return fmodel, x, y
@@ -286,7 +286,7 @@ def jax_simple_model(request: Any) -> ModelAndData:
     fmodel = fbn.JAXModel(model, bounds=bounds)
 
     x, _ = fbn.samples(
-        fmodel, dataset="cifar10", batchsize=16, data_format="channels_last"
+        fmodel, dataset="cifar10", batchsize=8, data_format="channels_last"
     )
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
@@ -305,11 +305,11 @@ def numpy_simple_model(request: Any) -> ModelAndData:
 
     fmodel = fbn.NumPyModel(model, bounds=(0, 1))
     with pytest.raises(ValueError, match="data_format"):
-        x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+        x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=8)
 
     fmodel = fbn.NumPyModel(model, bounds=(0, 1), data_format="channels_first")
     with pytest.warns(UserWarning, match="returning NumPy arrays"):
-        x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=16)
+        x, _ = fbn.samples(fmodel, dataset="imagenet", batchsize=8)
 
     x = ep.astensor(x)
     y = fmodel(x).argmax(axis=-1)
