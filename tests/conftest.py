@@ -65,7 +65,7 @@ def pytorch_simple_model(
             x = torch.mean(x, 2)
             return x
 
-    model = Model().eval()  # type: ignore
+    model = Model().eval()
     bounds = (0, 1)
     fmodel = fbn.PyTorchModel(
         model, bounds=bounds, device=device, preprocessing=preprocessing
