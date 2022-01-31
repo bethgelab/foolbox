@@ -7,7 +7,7 @@ import eagerpy as ep
 def test_evaluate(fmodel_and_data: Tuple[fbn.Model, ep.Tensor, ep.Tensor]) -> None:
     pytest.skip()
     assert False
-    fmodel, x, y = fmodel_and_data 
+    fmodel, x, y = fmodel_and_data
 
     attacks = [
         # L2BasicIterativeAttack,
