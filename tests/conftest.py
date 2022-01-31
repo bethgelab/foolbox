@@ -60,7 +60,7 @@ def pytorch_simple_model(
     import torch
 
     class Model(torch.nn.Module):
-        def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
             x = torch.mean(x, 3)
             x = torch.mean(x, 2)
             return x

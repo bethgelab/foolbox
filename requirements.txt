@@ -5,5 +5,5 @@ pytest-cov==2.8.1
 coverage==5.1
 codecov==2.0.15
 coveralls==1.10.0
-mypy==0.770
+mypy==0.931
 pre-commit==2.3.0
