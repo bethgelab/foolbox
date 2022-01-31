@@ -7,7 +7,7 @@ from foolbox.devutils import flatten
 from foolbox.attacks.brendel_bethge import BrendelBethgeAttack
 import pytest
 
-from tests.conftest import ModelDescriptionAndData
+from conftest import ModelDescriptionAndData
 
 
 def get_attack_id(x: Tuple[BrendelBethgeAttack, Union[int, float]]) -> str:
