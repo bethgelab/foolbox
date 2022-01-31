@@ -21,7 +21,7 @@ def test_rescale_axis(request: Any, dummy: ep.Tensor) -> None:
     x_up_ep = rescale_images(x_ep, (16, 3, 128, 128), 1)
     x_up = x_up_ep.numpy()
 
-    assert np.allclose(x_up_np, x_up)
+    assert np.allclose(x_up_np, x_up, atol=1e-5)
 
 
 def test_rescale_axis_nhwc(request: Any, dummy: ep.Tensor) -> None:
@@ -39,4 +39,4 @@ def test_rescale_axis_nhwc(request: Any, dummy: ep.Tensor) -> None:
     x_up_ep = rescale_images(x_ep, (16, 128, 128, 3), -1)
     x_up = x_up_ep.numpy()
 
-    assert np.allclose(x_up_np, x_up)
+    assert np.allclose(x_up_np, x_up, atol=1e-5)
