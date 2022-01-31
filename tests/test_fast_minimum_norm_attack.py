@@ -28,7 +28,7 @@ def test_fast_minimum_norm_untargeted_attack(
     attack_and_p: Tuple[FMNAttackLp, Union[int, float]],
 ) -> None:
 
-    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), real, low_dimensional_input = fmodel_and_data_ext_for_attacks
 
     if isinstance(x, ep.NumPyTensor):
         pytest.skip()

@@ -44,7 +44,7 @@ def test_genattack_numpy(request: Any) -> None:
 def test_deepfool_run_raises(
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
 ) -> None:
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     if isinstance(x, ep.NumPyTensor):
         pytest.skip()
 
@@ -56,7 +56,7 @@ def test_deepfool_run_raises(
 def test_blended_noise_attack_run_warns(
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
 ) -> None:
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     attack = fbn.attacks.LinearSearchBlendedUniformNoiseAttack(directions=1)
     attack.run(fmodel, x, y)
 
@@ -64,7 +64,7 @@ def test_blended_noise_attack_run_warns(
 def test_boundary_attack_run_raises(
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
 ) -> None:
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
 
     with pytest.raises(ValueError, match="starting_points are not adversarial"):
         attack = fbn.attacks.BoundaryAttack()
@@ -82,7 +82,7 @@ def test_boundary_attack_run_raises(
 def test_newtonfool_run_raises(
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
 ) -> None:
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     if isinstance(x, ep.NumPyTensor):
         pytest.skip()
 
@@ -98,7 +98,7 @@ def test_newtonfool_run_raises(
 def test_fgsm_run_raises(
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
 ) -> None:
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     if isinstance(x, ep.NumPyTensor):
         pytest.skip()
 
@@ -110,7 +110,7 @@ def test_fgsm_run_raises(
 def test_vat_run_raises(
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
 ) -> None:
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     if isinstance(x, ep.NumPyTensor):
         pytest.skip()
 
@@ -131,7 +131,7 @@ def test_blended_noise_init_raises() -> None:
 def test_blur_run_raises(
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
 ) -> None:
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     with pytest.raises(ValueError, match="to be 1 or 3"):
         attack = fbn.attacks.GaussianBlurAttack(steps=10, channel_axis=2)
         attack.run(fmodel, x, y)
@@ -159,7 +159,7 @@ def test_blur_numpy(request: Any) -> None:
 def test_dataset_attack_raises(
     fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
 ) -> None:
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
 
     attack = fbn.attacks.DatasetAttack()
 
@@ -195,7 +195,7 @@ def test_targeted_attacks_call_raises_exception(
 ) -> None:
 
     attack, attack_uses_grad = attack_exception_text_and_grad
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
 
     if isinstance(x, ep.NumPyTensor) and attack_uses_grad:
         pytest.skip()

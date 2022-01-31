@@ -27,7 +27,7 @@ def test_spatial_attacks(
     attack, repeated = attack_grad_real
     if repeated:
         attack = attack.repeat(2)
-    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), real, _ = fmodel_and_data_ext_for_attacks
     if not real:
         pytest.skip()
 
