@@ -1,6 +1,6 @@
 torch==1.10.0
 torchvision==0.11.2
-jaxlib==0.1.76
+jaxlib==0.1.69
 jax==0.2.27
 tensorflow==2.7.0
 numba==0.50.1
