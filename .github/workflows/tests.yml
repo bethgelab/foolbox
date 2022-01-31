@@ -89,6 +89,7 @@ jobs:
         retry-with-backoff pip install -r tests/requirements.txt
     - name: mypy (package)
       run: |
+        mypy --install-types --non-interactive foolbox/
         mypy -p foolbox
     - name: mypy (tests)
       run: |

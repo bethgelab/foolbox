@@ -50,7 +50,7 @@ def transform_pt(
     def create_meshgrid(x: torch.Tensor) -> torch.Tensor:
         space_x = torch.linspace(-1, 1, n_x, device=x.device)
         space_y = torch.linspace(-1, 1, n_y, device=x.device)
-        meshgrid = torch.meshgrid([space_x, space_y])  # type: ignore
+        meshgrid = torch.meshgrid([space_x, space_y])
         ones = torch.ones(meshgrid[0].shape, device=x.device)
         gridder = torch.stack([meshgrid[1], meshgrid[0], ones], dim=2)
         grid = gridder[None, ...].repeat(bs, 1, 1, 1)[..., None]
@@ -62,7 +62,7 @@ def transform_pt(
     new_coords = new_coords.squeeze_(-1)
 
     # align_corners=True to match tf implementation
-    transformed_images = torch.nn.functional.grid_sample(  # type: ignore
+    transformed_images = torch.nn.functional.grid_sample(
         x, new_coords, mode="bilinear", padding_mode="zeros", align_corners=True
     )
     return astensor(transformed_images)
