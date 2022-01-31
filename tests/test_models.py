@@ -51,10 +51,10 @@ def test_pytorch_training_warning(request: Any) -> None:
     import torch
 
     class Model(torch.nn.Module):
-        def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
             return x
 
-    model = Model().train()
+    model = Model().train()  # type: ignore
     bounds = (0, 1)
     with pytest.warns(UserWarning):
         fbn.PyTorchModel(model, bounds=bounds, device="cpu")

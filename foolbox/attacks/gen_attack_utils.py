@@ -12,7 +12,7 @@ def rescale_jax(x: ep.JAXTensor, target_shape: List[int]) -> ep.JAXTensor:
 
     resize_rates = (target_shape[1] / x.shape[1], target_shape[2] / x.shape[2])
 
-    def interpolate_bilinear(  # type: ignore
+    def interpolate_bilinear(
         im: np.ndarray, rows: np.ndarray, cols: np.ndarray
     ) -> np.ndarray:
         # based on http://stackoverflow.com/a/12729229
@@ -21,11 +21,11 @@ def rescale_jax(x: ep.JAXTensor, target_shape: List[int]) -> ep.JAXTensor:
         row_lo = np.floor(rows).astype(int)
         row_hi = row_lo + 1
 
-        def cclip(cols: np.ndarray) -> np.ndarray:  # type: ignore
-            return np.clip(cols, 0, ncols - 1)
+        def cclip(cols: np.ndarray) -> np.ndarray:
+            return np.clip(cols, 0, ncols - 1)  # type: ignore
 
-        def rclip(rows: np.ndarray) -> np.ndarray:  # type: ignore
-            return np.clip(rows, 0, nrows - 1)
+        def rclip(rows: np.ndarray) -> np.ndarray:
+            return np.clip(rows, 0, nrows - 1)  # type: ignore
 
         nrows, ncols = im.shape[-3:-1]
 
@@ -39,7 +39,7 @@ def rescale_jax(x: ep.JAXTensor, target_shape: List[int]) -> ep.JAXTensor:
         wc = np.expand_dims((cols - col_lo) * (row_hi - rows), -1)
         wd = np.expand_dims((cols - col_lo) * (rows - row_lo), -1)
 
-        return wa * Ia + wb * Ib + wc * Ic + wd * Id
+        return wa * Ia + wb * Ib + wc * Ic + wd * Id  # type: ignore
 
     nrows, ncols = img.shape[-3:-1]
     deltas = (0.5 / resize_rates[0], 0.5 / resize_rates[1])
