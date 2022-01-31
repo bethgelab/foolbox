@@ -1,5 +1,5 @@
 torch==1.10.0
-torchvision==0.11.3
+torchvision==0.11.2
 jaxlib==0.1.79
 jax==0.2.27
 tensorflow==2.7.0
