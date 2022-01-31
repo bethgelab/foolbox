@@ -56,9 +56,11 @@ def test_hsj_untargeted_attack(
     if request.config.option.skipslow:
         pytest.skip()
 
-    (fmodel, x, y), real, _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), real, low_dimensional_input = fmodel_and_data_ext_for_attacks
 
     if isinstance(x, ep.NumPyTensor):
+        pytest.skip()
+    if low_dimensional_input:
         pytest.skip()
 
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
