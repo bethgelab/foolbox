@@ -112,7 +112,7 @@ attacks: List[AttackTestTarget] = [
         fa.SaltAndPepperNoiseAttack(steps=50, channel_axis=1), None, uses_grad=True
     ),
     AttackTestTarget(fa.LinearSearchBlendedUniformNoiseAttack(steps=50), None),
-    AttackTestTarget(fa.L2AdditiveGaussianNoiseAttack(), 2500.0),
+    AttackTestTarget(fa.L2AdditiveGaussianNoiseAttack(), 3000.0),
     AttackTestTarget(fa.L2ClippingAwareAdditiveGaussianNoiseAttack(), 500.0),
     AttackTestTarget(fa.LinfAdditiveUniformNoiseAttack(), 10.0),
     AttackTestTarget(
