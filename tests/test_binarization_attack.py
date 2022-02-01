@@ -6,11 +6,11 @@ from foolbox.devutils import flatten
 from foolbox.attacks import BinarySearchContrastReductionAttack
 from foolbox.attacks import BinarizationRefinementAttack
 
-from conftest import ModelDescriptionAndData
+from conftest import ModeAndDataAndDescription
 
 
 def test_binarization_attack(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
 
     # get a model with thresholding

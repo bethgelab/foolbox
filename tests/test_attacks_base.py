@@ -2,7 +2,7 @@ import pytest
 import eagerpy as ep
 import foolbox as fbn
 
-from conftest import ModelDescriptionAndData
+from conftest import ModeAndDataAndDescription
 
 
 attacks = [
@@ -15,7 +15,7 @@ attacks = [
 
 @pytest.mark.parametrize("attack", attacks)
 def test_call_one_epsilon(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData, attack: fbn.Attack,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription, attack: fbn.Attack,
 ) -> None:
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
 

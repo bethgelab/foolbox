@@ -7,20 +7,20 @@ import foolbox
 import foolbox as fbn
 
 ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
-CallableModelAndDescription = NamedTuple(
-    "CallableModelAndDescription",
+CallableModelAndDataAndDescription = NamedTuple(
+    "CallableModelAndDataAndDescription",
     [
         ("model_fn", Callable[..., ModelAndData]),
         ("real", bool),
         ("low_dimensional_input", bool),
     ],
 )
-ModelDescriptionAndData = NamedTuple(
-    "ModelDescriptionAndData",
+ModeAndDataAndDescription = NamedTuple(
+    "ModeAndDataAndDescription",
     [("model_and_data", ModelAndData), ("real", bool), ("low_dimensional_input", bool)],
 )
 
-models: Dict[str, CallableModelAndDescription] = {}
+models: Dict[str, CallableModelAndDataAndDescription] = {}
 models_for_attacks: List[str] = []
 
 
@@ -55,7 +55,7 @@ def register(
         global models
         global real_models
 
-        models[model.__name__] = CallableModelAndDescription(
+        models[model.__name__] = CallableModelAndDataAndDescription(
             model_fn=model, real=real, low_dimensional_input=low_dimensional_input
         )
         if attack:
@@ -317,21 +317,21 @@ def numpy_simple_model(request: Any) -> ModelAndData:
 
 
 @pytest.fixture(scope="session", params=list(models.keys()))
-def fmodel_and_data_ext(request: Any) -> ModelDescriptionAndData:
+def fmodel_and_data_ext(request: Any) -> ModeAndDataAndDescription:
     global models
     model_description = models[request.param]
     model_and_data = model_description.model_fn(request)
-    return ModelDescriptionAndData(model_and_data, *model_description[1:])
+    return ModeAndDataAndDescription(model_and_data, *model_description[1:])
 
 
 @pytest.fixture(scope="session", params=models_for_attacks)
-def fmodel_and_data_ext_for_attacks(request: Any) -> ModelDescriptionAndData:
+def fmodel_and_data_ext_for_attacks(request: Any) -> ModeAndDataAndDescription:
     global models
     model_description = models[request.param]
     model_and_data = model_description.model_fn(request)
-    return ModelDescriptionAndData(model_and_data, *model_description[1:])
+    return ModeAndDataAndDescription(model_and_data, *model_description[1:])
 
 
 @pytest.fixture(scope="session")
-def fmodel_and_data(fmodel_and_data_ext: ModelDescriptionAndData) -> ModelAndData:
+def fmodel_and_data(fmodel_and_data_ext: ModeAndDataAndDescription) -> ModelAndData:
     return fmodel_and_data_ext.model_and_data

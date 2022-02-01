@@ -2,11 +2,11 @@ import pytest
 
 import foolbox as fbn
 
-from conftest import ModelDescriptionAndData
+from conftest import ModeAndDataAndDescription
 
 
 def test_dataset_attack(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
 
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks

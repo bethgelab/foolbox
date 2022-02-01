@@ -6,7 +6,7 @@ import foolbox as fbn
 import foolbox.attacks as fa
 from foolbox.gradient_estimators import es_gradient_estimator
 
-from conftest import ModelDescriptionAndData
+from conftest import ModeAndDataAndDescription
 
 L2 = fbn.types.L2
 Linf = fbn.types.Linf
@@ -23,6 +23,7 @@ class AttackTestTarget(NamedTuple):
     uses_grad: Optional[bool] = False
     requires_real_model: Optional[bool] = False
     requires_low_dimensional_input: Optional[bool] = False
+    stochastic_attack: Optional[bool] = False
 
 
 def get_attack_id(x: AttackTestTarget) -> str:
@@ -107,32 +108,63 @@ attacks: List[AttackTestTarget] = [
             update_stats_every_k=1,
         )
     ),
-    AttackTestTarget(fa.SaltAndPepperNoiseAttack(steps=50), None, uses_grad=True),
     AttackTestTarget(
-        fa.SaltAndPepperNoiseAttack(steps=50, channel_axis=1), None, uses_grad=True
+        fa.SaltAndPepperNoiseAttack(steps=50),
+        None,
+        uses_grad=True,
+        stochastic_attack=True,
     ),
-    AttackTestTarget(fa.LinearSearchBlendedUniformNoiseAttack(steps=50), None),
-    AttackTestTarget(fa.L2AdditiveGaussianNoiseAttack(), 3000.0),
-    AttackTestTarget(fa.L2ClippingAwareAdditiveGaussianNoiseAttack(), 500.0),
-    AttackTestTarget(fa.LinfAdditiveUniformNoiseAttack(), 10.0),
     AttackTestTarget(
-        fa.L2RepeatedAdditiveGaussianNoiseAttack(check_trivial=False), 1000.0
+        fa.SaltAndPepperNoiseAttack(steps=50, channel_axis=1),
+        None,
+        uses_grad=True,
+        stochastic_attack=True,
+    ),
+    AttackTestTarget(
+        fa.LinearSearchBlendedUniformNoiseAttack(steps=50), None, stochastic_attack=True
+    ),
+    AttackTestTarget(
+        fa.L2AdditiveGaussianNoiseAttack(), 3000.0, stochastic_attack=True
+    ),
+    AttackTestTarget(
+        fa.L2ClippingAwareAdditiveGaussianNoiseAttack(), 500.0, stochastic_attack=True
+    ),
+    AttackTestTarget(fa.LinfAdditiveUniformNoiseAttack(), 10.0, stochastic_attack=True),
+    AttackTestTarget(
+        fa.L2RepeatedAdditiveGaussianNoiseAttack(check_trivial=False),
+        1000.0,
+        stochastic_attack=True,
     ),
     AttackTestTarget(
         fa.L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack(check_trivial=False),
         200.0,
+        stochastic_attack=True,
     ),
-    AttackTestTarget(fa.L2RepeatedAdditiveGaussianNoiseAttack(), 1000.0),
-    AttackTestTarget(fa.L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack(), 200.0),
-    AttackTestTarget(fa.L2RepeatedAdditiveUniformNoiseAttack(), 1000.0),
-    AttackTestTarget(fa.L2ClippingAwareRepeatedAdditiveUniformNoiseAttack(), 200.0),
-    AttackTestTarget(fa.LinfRepeatedAdditiveUniformNoiseAttack(), 3.0),
+    AttackTestTarget(
+        fa.L2RepeatedAdditiveGaussianNoiseAttack(), 1000.0, stochastic_attack=True
+    ),
+    AttackTestTarget(
+        fa.L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack(),
+        200.0,
+        stochastic_attack=True,
+    ),
+    AttackTestTarget(
+        fa.L2RepeatedAdditiveUniformNoiseAttack(), 1000.0, stochastic_attack=True
+    ),
+    AttackTestTarget(
+        fa.L2ClippingAwareRepeatedAdditiveUniformNoiseAttack(),
+        200.0,
+        stochastic_attack=True,
+    ),
+    AttackTestTarget(
+        fa.LinfRepeatedAdditiveUniformNoiseAttack(), 3.0, stochastic_attack=True
+    ),
 ]
 
 
 @pytest.mark.parametrize("attack_test_target", attacks, ids=get_attack_id)
 def test_untargeted_attacks(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
     attack_test_target: AttackTestTarget,
 ) -> None:
 
@@ -149,10 +181,17 @@ def test_untargeted_attacks(
     acc = fbn.accuracy(fmodel, x, y)
     assert acc > 0
 
-    advs, _, _ = attack_test_target.attack(
-        fmodel, x, y, epsilons=attack_test_target.epsilon
-    )
-    assert fbn.accuracy(fmodel, advs, y) < acc
+    # repeat stochastic attacks three times before we mark them as failed
+    attack_repetitions = 3 if attack_test_target.stochastic_attack else 1
+
+    for _ in range(attack_repetitions):
+        advs, _, _ = attack_test_target.attack(
+            fmodel, x, y, epsilons=attack_test_target.epsilon
+        )
+        adv_acc = fbn.accuracy(fmodel, advs, y)
+        if adv_acc < acc:
+            break
+    assert adv_acc < acc
 
 
 targeted_attacks: List[AttackTestTarget] = [
@@ -194,7 +233,7 @@ targeted_attacks: List[AttackTestTarget] = [
 
 @pytest.mark.parametrize("attack_test_target", targeted_attacks, ids=get_attack_id)
 def test_targeted_attacks(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
     attack_test_target: AttackTestTarget,
 ) -> None:
 
@@ -216,8 +255,17 @@ def test_targeted_attacks(
     adv_before_attack = criterion(x, fmodel(x))
     assert not adv_before_attack.all()
 
-    advs, _, _ = attack_test_target.attack(
-        fmodel, x, criterion, epsilons=attack_test_target.epsilon
-    )
-    adv_after_attack = criterion(advs, fmodel(advs))
-    assert adv_after_attack.sum().item() > adv_before_attack.sum().item()
+    asr = adv_before_attack.sum().item()
+
+    # repeat stochastic attacks three times before we mark them as failed
+    attack_repetitions = 3 if attack_test_target.stochastic_attack else 1
+
+    for _ in range(attack_repetitions):
+        advs, _, _ = attack_test_target.attack(
+            fmodel, x, criterion, epsilons=attack_test_target.epsilon
+        )
+        adv_after_attack = criterion(advs, fmodel(advs))
+        adv_asr = adv_after_attack.sum().item()
+        if adv_asr > asr:
+            break
+    assert adv_asr > asr

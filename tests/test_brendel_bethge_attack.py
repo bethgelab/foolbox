@@ -7,7 +7,7 @@ from foolbox.devutils import flatten
 from foolbox.attacks.brendel_bethge import BrendelBethgeAttack
 import pytest
 
-from conftest import ModelDescriptionAndData
+from conftest import ModeAndDataAndDescription
 
 
 def get_attack_id(x: Tuple[BrendelBethgeAttack, Union[int, float]]) -> str:
@@ -25,7 +25,7 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
 @pytest.mark.parametrize("attack_and_p", attacks, ids=get_attack_id)
 def test_brendel_bethge_untargeted_attack(
     request: Any,
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
     attack_and_p: Tuple[BrendelBethgeAttack, Union[int, float]],
 ) -> None:
     if request.config.option.skipslow:
