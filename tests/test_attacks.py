@@ -157,7 +157,9 @@ def test_untargeted_attacks(
 
 targeted_attacks: List[AttackTestTarget] = [
     AttackTestTarget(
-        fa.L2CarliniWagnerAttack(binary_search_steps=3, steps=20, initial_const=1e1),
+        fa.L2CarliniWagnerAttack(
+            binary_search_steps=2, steps=100, stepsize=0.05, initial_const=1e1
+        ),
         uses_grad=True,
     ),
     AttackTestTarget(fa.DDNAttack(init_epsilon=2.0, steps=20), uses_grad=True),
@@ -173,9 +175,10 @@ targeted_attacks: List[AttackTestTarget] = [
         uses_grad=True,
     ),
     AttackTestTarget(
-        fa.GenAttack(steps=100, population=6, reduced_dims=(7, 7)),
+        fa.GenAttack(steps=100, population=6, reduced_dims=(8, 8)),
         epsilon=0.5,
         requires_real_model=True,
+        requires_low_dimensional_input=True,
     ),
     AttackTestTarget(fa.PGD(), Linf(1.0), uses_grad=True),
     AttackTestTarget(fa.L2PGD(), L2(50.0), uses_grad=True),
