@@ -129,7 +129,7 @@ class HopSkipJump(MinimizationAttack):
                 )
             else:
                 raise ValueError(
-                    f"{int(failed)} of {len(is_adv)} starting_points are not adversarial"
+                    f"{failed} of {len(is_adv)} starting_points are not adversarial"
                 )
         del starting_points
 

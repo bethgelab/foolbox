@@ -87,9 +87,9 @@ class DatasetAttack(FlexibleDistanceMinimizationAttack):
         batch_size = len(x)
 
         # for every sample try every other sample
-        index_pools = []
+        index_pools: List[List[int]] = []
         for i in range(batch_size):
-            indices = set(range(batch_size))
+            indices = list(range(batch_size))
             indices.remove(i)
             indices = list(indices)
             np.random.shuffle(indices)
