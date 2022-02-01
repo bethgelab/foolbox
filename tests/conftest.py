@@ -88,17 +88,17 @@ def pytorch_simple_model(
     return fmodel, x, y
 
 
-@register("pytorch")
+@register("pytorch", low_dimensional_input=True)
 def pytorch_simple_model_default(request: Any) -> ModelAndData:
     return pytorch_simple_model()
 
 
-@register("pytorch")
+@register("pytorch", low_dimensional_input=True)
 def pytorch_simple_model_default_flip(request: Any) -> ModelAndData:
     return pytorch_simple_model(preprocessing=dict(flip_axis=-3))
 
 
-@register("pytorch", attack=False)
+@register("pytorch", attack=False, low_dimensional_input=True)
 def pytorch_simple_model_default_cpu_native_tensor(request: Any) -> ModelAndData:
     import torch
 
@@ -107,19 +107,19 @@ def pytorch_simple_model_default_cpu_native_tensor(request: Any) -> ModelAndData
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
-@register("pytorch", attack=False)
+@register("pytorch", attack=False, low_dimensional_input=True)
 def pytorch_simple_model_default_cpu_eagerpy_tensor(request: Any) -> ModelAndData:
     mean = 0.05 * ep.torch.arange(3).float32()
     std = ep.torch.ones(3) * 2
     return pytorch_simple_model("cpu", preprocessing=dict(mean=mean, std=std, axis=-3))
 
 
-@register("pytorch", attack=False)
+@register("pytorch", attack=False, low_dimensional_input=True)
 def pytorch_simple_model_string(request: Any) -> ModelAndData:
     return pytorch_simple_model("cpu")
 
 
-@register("pytorch", attack=False)
+@register("pytorch", attack=False, low_dimensional_input=True)
 def pytorch_simple_model_object(request: Any) -> ModelAndData:
     import torch
 

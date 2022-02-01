@@ -14,7 +14,12 @@ def test_binarization_attack(
 ) -> None:
 
     # get a model with thresholding
-    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, low_dimensional_input = fmodel_and_data_ext_for_attacks
+
+    # binarization doesn't work well for imagenet models
+    if not low_dimensional_input:
+        pytest.skip()
+
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
     fmodel = ThresholdingWrapper(fmodel, threshold=0.5)
