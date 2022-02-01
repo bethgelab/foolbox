@@ -248,7 +248,7 @@ def tensorflow_mobilenetv3(request: Any) -> ModelAndData:
         weights="imagenet", minimalistic=True
     )
     fmodel = fbn.TensorFlowModel(
-        model, bounds=(0, 255), preprocessing=dict(mean=127.5, std=127.5)
+        model, bounds=(0, 255), preprocessing=None,
     )
 
     x, y = fbn.samples(fmodel, dataset="imagenet", batchsize=8)
