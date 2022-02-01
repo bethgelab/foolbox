@@ -13,7 +13,7 @@ jobs:
     strategy:
       max-parallel: 20
       matrix:
-        python-version: [3.6, 3.7]
+        python-version: ['3.8', '3.9']
         backend: ["none", "pytorch", "tensorflow", "jax", "numpy"]
 
     steps:
@@ -63,7 +63,7 @@ jobs:
           return 1
         }
 
-        python -m pip install --upgrade pip setuptools
+        python -m pip install --upgrade pip setuptools wheel
         retry-with-backoff pip install -r requirements.txt
     - name: flake8
       run: |
