@@ -103,8 +103,10 @@ def test_hsj_targeted_attack(
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
 
-    num_classes = fmodel(x).shape[-1]
-    y_np = y.numpy()
+    logits_np = fmodel(x).numpy()
+    num_classes = logits_np.shape[-1]
+    y_np = logits_np.argmax(-1)
+
     target_classes_np = (y_np + 1) % num_classes
     for i in range(len(target_classes_np)):
         while target_classes_np[i] not in y_np:
