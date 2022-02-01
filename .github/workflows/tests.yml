@@ -96,7 +96,7 @@ jobs:
         mypy tests/
     - name: Test with pytest (backend ${{ matrix.backend }})
       run: |
-        pytest --cov-report term-missing --cov=foolbox --verbose --backend ${{ matrix.backend }}
+        pytest --durations=0 --cov-report term-missing --cov=foolbox --verbose --backend ${{ matrix.backend }}
     - name: Codecov
       continue-on-error: true
       env:
