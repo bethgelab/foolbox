@@ -86,6 +86,7 @@ jobs:
           return 1
         }
 
+        retry-with-backoff pip install llvmlite==0.38.0
         retry-with-backoff pip install -r tests/requirements.txt
     - name: mypy (package)
       run: |
