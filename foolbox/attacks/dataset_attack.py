@@ -99,7 +99,7 @@ class DatasetAttack(FlexibleDistanceMinimizationAttack):
             if found.all():
                 break
 
-            indices = [pool[i] for pool in index_pools]
+            indices = np.array([pool[i] for pool in index_pools])
 
             xp = self.inputs[indices]
             yp = self.outputs[indices]
