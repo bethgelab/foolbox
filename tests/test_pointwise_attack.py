@@ -6,7 +6,7 @@ import foolbox.attacks as fa
 from foolbox.devutils import flatten
 import pytest
 
-from conftest import ModelAndDescriptionAndData
+from conftest import ModeAndDataAndDescription
 
 
 def get_attack_id(x: fa.Attack) -> str:
@@ -22,7 +22,7 @@ attacks: List[fa.Attack] = [
 @pytest.mark.parametrize("attack", attacks, ids=get_attack_id)
 def test_pointwise_untargeted_attack(
     request: Any,
-    fmodel_and_data_ext_for_attacks: ModelAndDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
     attack: fa.PointwiseAttack,
 ) -> None:
     (fmodel, x, y), real, low_dimensional_input = fmodel_and_data_ext_for_attacks
@@ -56,7 +56,7 @@ def test_pointwise_untargeted_attack(
 @pytest.mark.parametrize("attack", attacks, ids=get_attack_id)
 def test_pointwise_targeted_attack(
     request: Any,
-    fmodel_and_data_ext_for_attacks: ModelAndDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
     attack: fa.PointwiseAttack,
 ) -> None:
     (fmodel, x, y), real, low_dimensional_input = fmodel_and_data_ext_for_attacks
