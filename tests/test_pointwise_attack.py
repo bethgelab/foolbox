@@ -6,7 +6,7 @@ import foolbox.attacks as fa
 from foolbox.devutils import flatten
 import pytest
 
-from tests.conftest import ModelDescriptionAndData
+from conftest import ModelDescriptionAndData
 
 
 def get_attack_id(x: fa.Attack) -> str:
@@ -15,7 +15,7 @@ def get_attack_id(x: fa.Attack) -> str:
 
 attacks: List[fa.Attack] = [
     fa.PointwiseAttack(),
-    fa.PointwiseAttack(l2_binary_search=False)
+    fa.PointwiseAttack(l2_binary_search=False),
 ]
 
 

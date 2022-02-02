@@ -29,8 +29,9 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
     """
 
     def __init__(
-        self, init_attack: Optional[MinimizationAttack] = None,
-        l2_binary_search: bool = True
+        self,
+        init_attack: Optional[MinimizationAttack] = None,
+        l2_binary_search: bool = True,
     ):
         self.init_attack = init_attack
         self.l2_binary_search = l2_binary_search
@@ -161,7 +162,9 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
                     relevant_mask_index = np.flatnonzero(relevant_mask)
 
                     # for each image get the index of the next pixel we try out
-                    relevant_indices = [it[i] for it in untouched_indices if len(it) > i]
+                    relevant_indices = [
+                        it[i] for it in untouched_indices if len(it) > i
+                    ]
 
                     old_values = x_adv_flat[relevant_mask_index, relevant_indices]
                     new_values = x_flat[relevant_mask_index, relevant_indices]
@@ -194,14 +197,17 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
                         x_adv_flat = ep.index_update(
                             x_adv_flat,
                             (relevant_mask_index, relevant_indices),
-                            ep.where(is_adv[relevant_mask], new_values, updated_new_values),
+                            ep.where(
+                                is_adv[relevant_mask], new_values, updated_new_values
+                            ),
                         )
 
                         improved = ep.index_update(
                             improved,
                             relevant_mask_index,
                             ep.logical_or(
-                                old_values != updated_new_values, improved[relevant_mask]
+                                old_values != updated_new_values,
+                                improved[relevant_mask],
                             ),
                         )
 
