@@ -64,6 +64,7 @@ from .fast_minimum_norm import (  # noqa: F401
     LInfFMNAttack,
 )
 from .gen_attack import GenAttack  # noqa: F401
+from .pointwise import PointwiseAttack  # noqa: F401
 
 # from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
 # from .brendel_bethge import (  # noqa: F401

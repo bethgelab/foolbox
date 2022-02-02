@@ -51,6 +51,7 @@
    L1FMNAttack
    L2FMNAttack
    LInfFMNAttack
+   PointwiseAttack
 
    FGM
    FGSM
@@ -101,6 +102,7 @@
 .. autoclass:: L1FMNAttack
 .. autoclass:: L2FMNAttack
 .. autoclass:: LInfFMNAttack
+.. autoclass:: PointwiseAttack
 
 .. autoclass:: FGM
 .. autoclass:: FGSM

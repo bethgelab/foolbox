@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Union
 import eagerpy as ep
 
 from ..criteria import Misclassification
@@ -45,7 +45,7 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
         self,
         model: Model,
         inputs: T,
-        criterion: Misclassification,
+        criterion: Union[Misclassification, Any],
         *,
         early_stop: Optional[float] = None,
         **kwargs: Any,
