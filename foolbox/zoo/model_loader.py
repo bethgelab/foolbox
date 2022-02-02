@@ -45,5 +45,5 @@ class DefaultLoader(ModelLoader):
         self, path: str, module_name: str = "foolbox_model", **kwargs: Any
     ) -> Model:
         module = super()._import_module(path, module_name=module_name)
-        model = module.create(**kwargs)  # type: ignore
+        model = module.create(**kwargs)
         return cast(Model, model)

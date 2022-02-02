@@ -13,7 +13,7 @@ jobs:
     strategy:
       max-parallel: 20
       matrix:
-        python-version: [3.6, 3.7]
+        python-version: ['3.8', '3.9']
         backend: ["none", "pytorch", "tensorflow", "jax", "numpy"]
 
     steps:
@@ -63,7 +63,7 @@ jobs:
           return 1
         }
 
-        python -m pip install --upgrade pip setuptools
+        python -m pip install --upgrade pip setuptools wheel
         retry-with-backoff pip install -r requirements.txt
     - name: flake8
       run: |
@@ -89,13 +89,14 @@ jobs:
         retry-with-backoff pip install -r tests/requirements.txt
     - name: mypy (package)
       run: |
+        mypy --install-types --non-interactive foolbox/
         mypy -p foolbox
     - name: mypy (tests)
       run: |
         mypy tests/
     - name: Test with pytest (backend ${{ matrix.backend }})
       run: |
-        pytest --cov-report term-missing --cov=foolbox --verbose --backend ${{ matrix.backend }}
+        pytest --durations=0 --cov-report term-missing --cov=foolbox --verbose --backend ${{ matrix.backend }}
     - name: Codecov
       continue-on-error: true
       env:

@@ -7,7 +7,7 @@ from foolbox.devutils import flatten
 from foolbox.attacks.brendel_bethge import BrendelBethgeAttack
 import pytest
 
-from tests.conftest import ModelDescriptionAndData
+from conftest import ModeAndDataAndDescription
 
 
 def get_attack_id(x: Tuple[BrendelBethgeAttack, Union[int, float]]) -> str:
@@ -50,15 +50,17 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
 @pytest.mark.parametrize("attack_and_p", attacks, ids=get_attack_id)
 def test_hsj_untargeted_attack(
     request: Any,
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
     attack_and_p: Tuple[fa.HopSkipJump, Union[int, float]],
 ) -> None:
     if request.config.option.skipslow:
         pytest.skip()
 
-    (fmodel, x, y), real, _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), real, low_dimensional_input = fmodel_and_data_ext_for_attacks
 
     if isinstance(x, ep.NumPyTensor):
+        pytest.skip()
+    if low_dimensional_input:
         pytest.skip()
 
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
@@ -84,7 +86,7 @@ def test_hsj_untargeted_attack(
 @pytest.mark.parametrize("attack_and_p", attacks, ids=get_attack_id)
 def test_hsj_targeted_attack(
     request: Any,
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
     attack_and_p: Tuple[fa.HopSkipJump, Union[int, float]],
 ) -> None:
     if request.config.option.skipslow:
@@ -101,8 +103,10 @@ def test_hsj_targeted_attack(
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
 
-    num_classes = fmodel(x).shape[-1]
-    y_np = y.numpy()
+    logits_np = fmodel(x).numpy()
+    num_classes = logits_np.shape[-1]
+    y_np = logits_np.argmax(-1)
+
     target_classes_np = (y_np + 1) % num_classes
     for i in range(len(target_classes_np)):
         while target_classes_np[i] not in y_np:

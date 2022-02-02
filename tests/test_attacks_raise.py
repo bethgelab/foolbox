@@ -3,7 +3,7 @@ import pytest
 import eagerpy as ep
 import foolbox as fbn
 
-from conftest import ModelDescriptionAndData
+from conftest import ModeAndDataAndDescription
 
 L2 = fbn.types.L2
 Linf = fbn.types.Linf
@@ -42,7 +42,7 @@ def test_genattack_numpy(request: Any) -> None:
 
 
 def test_deepfool_run_raises(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     if isinstance(x, ep.NumPyTensor):
@@ -54,7 +54,7 @@ def test_deepfool_run_raises(
 
 
 def test_blended_noise_attack_run_warns(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     attack = fbn.attacks.LinearSearchBlendedUniformNoiseAttack(directions=1)
@@ -62,7 +62,7 @@ def test_blended_noise_attack_run_warns(
 
 
 def test_boundary_attack_run_raises(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
 
@@ -80,7 +80,7 @@ def test_boundary_attack_run_raises(
 
 
 def test_newtonfool_run_raises(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     if isinstance(x, ep.NumPyTensor):
@@ -96,7 +96,7 @@ def test_newtonfool_run_raises(
 
 
 def test_fgsm_run_raises(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     if isinstance(x, ep.NumPyTensor):
@@ -108,7 +108,7 @@ def test_fgsm_run_raises(
 
 
 def test_vat_run_raises(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     if isinstance(x, ep.NumPyTensor):
@@ -129,7 +129,7 @@ def test_blended_noise_init_raises() -> None:
 
 
 def test_blur_run_raises(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     with pytest.raises(ValueError, match="to be 1 or 3"):
@@ -157,7 +157,7 @@ def test_blur_numpy(request: Any) -> None:
 
 
 def test_dataset_attack_raises(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
 
@@ -190,7 +190,7 @@ targeted_attacks_raises_exception: List[Tuple[fbn.Attack, bool]] = [
     "attack_exception_text_and_grad", targeted_attacks_raises_exception
 )
 def test_targeted_attacks_call_raises_exception(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
     attack_exception_text_and_grad: Tuple[fbn.Attack, bool],
 ) -> None:
 

@@ -404,7 +404,7 @@ class MinimizationAttack(AttackWithDistance):
         if any(eps is None for eps in epsilons):
             early_stop = None
         else:
-            early_stop = min(epsilons)
+            early_stop = min(epsilons)  # type: ignore
 
         # run the actual attack
         xp = self.run(model, x, criterion, early_stop=early_stop, **kwargs)

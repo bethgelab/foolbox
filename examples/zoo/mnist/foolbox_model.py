@@ -14,7 +14,7 @@ def create() -> PyTorchModel:
         nn.ReLU(),
         nn.MaxPool2d(2),
         nn.Dropout2d(0.25),
-        nn.Flatten(),  # type: ignore
+        nn.Flatten(),
         nn.Linear(9216, 128),
         nn.ReLU(),
         nn.Dropout2d(0.5),

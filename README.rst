@@ -49,7 +49,7 @@ developed in PyTorch, TensorFlow and JAX, all with one code base without code du
 
    pip install foolbox
 
-Foolbox requires Python 3.6 or newer. To use it with `PyTorch <https://pytorch.org>`_, `TensorFlow <https://www.tensorflow.org>`_, or `JAX <https://github.com/google/jax>`_, the respective framework needs to be installed separately. These frameworks are not declared as dependencies because not everyone wants to use and thus install all of them and because some of these packages have different builds for different architectures and CUDA versions. Besides that, all essential dependencies are automatically installed.
+Foolbox is tested with Python 3.9 and newer - however, it will most likely also work with version 3.6 - 3.8. To use it with `PyTorch <https://pytorch.org>`_, `TensorFlow <https://www.tensorflow.org>`_, or `JAX <https://github.com/google/jax>`_, the respective framework needs to be installed separately. These frameworks are not declared as dependencies because not everyone wants to use and thus install all of them and because some of these packages have different builds for different architectures and CUDA versions. Besides that, all essential dependencies are automatically installed.
 
 You can see the versions we currently use for testing in the `Compatibility section <#-compatibility>`_ below, but newer versions are in general expected to work.
 

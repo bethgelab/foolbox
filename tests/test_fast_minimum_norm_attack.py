@@ -7,7 +7,7 @@ from foolbox.devutils import flatten
 from foolbox.attacks.fast_minimum_norm import FMNAttackLp
 import pytest
 
-from conftest import ModelDescriptionAndData
+from conftest import ModeAndDataAndDescription
 
 
 def get_attack_id(x: Tuple[FMNAttackLp, Union[int, float]]) -> str:
@@ -24,11 +24,11 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
 
 @pytest.mark.parametrize("attack_and_p", attacks, ids=get_attack_id)
 def test_fast_minimum_norm_untargeted_attack(
-    fmodel_and_data_ext_for_attacks: ModelDescriptionAndData,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
     attack_and_p: Tuple[FMNAttackLp, Union[int, float]],
 ) -> None:
 
-    (fmodel, x, y), real = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), real, low_dimensional_input = fmodel_and_data_ext_for_attacks
 
     if isinstance(x, ep.NumPyTensor):
         pytest.skip()

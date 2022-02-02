@@ -195,18 +195,8 @@ class GenAttack(FixedEpsilonAttack):
                 1,
             )
 
-            mutations = [
-                ep.uniform(
-                    x,
-                    noise_shape,
-                    -mutation_range[i].item() * epsilon,
-                    mutation_range[i].item() * epsilon,
-                )
-                for i in range(N)
-            ]
-
             new_noise_pops = [elite_noise]
-            for i in range(0, self.population - 1):
+            for i in range(self.population - 1):
                 parents_1 = noise_pops[range(N), parents_idxs[2 * i]]
                 parents_2 = noise_pops[range(N), parents_idxs[2 * i + 1]]
 
@@ -222,11 +212,24 @@ class GenAttack(FixedEpsilonAttack):
                 children = ep.where(crossover_mask, parents_1, parents_2)
 
                 # calculate mutation
+                mutations = ep.stack(
+                    [
+                        ep.uniform(
+                            x,
+                            noise_shape,
+                            -mutation_range[i].item() * epsilon,
+                            mutation_range[i].item() * epsilon,
+                        )
+                        for i in range(N)
+                    ],
+                    0,
+                )
+
                 mutation_mask = ep.uniform(children, children.shape)
                 mutation_mask = mutation_mask <= atleast_kd(
                     mutation_probability, children.ndim
                 )
-                children = ep.where(mutation_mask, children + mutations[i], children)
+                children = ep.where(mutation_mask, children + mutations, children)
 
                 # project back to epsilon range
                 children = ep.clip(children, -epsilon, epsilon)
@@ -253,7 +256,7 @@ class GenAttack(FixedEpsilonAttack):
             )
             mutation_range = ep.maximum(
                 self.min_mutation_range,
-                0.5 * ep.exp(math.log(0.9) * ep.ones_like(num_plateaus) * num_plateaus),
+                0.4 * ep.exp(math.log(0.9) * ep.ones_like(num_plateaus) * num_plateaus),
             )
 
         return restore_type(self.apply_noise(x, elite_noise, epsilon, channel_axis))

@@ -1,4 +1,4 @@
-from setuptools import setup  # type: ignore
+from setuptools import setup
 from setuptools import find_packages
 from os.path import join, dirname
 
@@ -20,7 +20,7 @@ install_requires = [
     "numpy",
     "scipy",
     "setuptools",
-    "eagerpy==0.29.0",
+    "eagerpy>=0.30.0",
     "GitPython>=3.0.7",
     "typing-extensions>=3.7.4.1",
     "requests>=2.24.0",
