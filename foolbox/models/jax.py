@@ -14,7 +14,7 @@ class JAXModel(ModelWithPreprocessing):
         preprocessing: Preprocessing = None,
         data_format: Optional[str] = "channels_last",
     ):
-        dummy = ep.astensor(ep.jax.numpy.zeros(0))
+        dummy = ep.jax.numpy.zeros(0)
         super().__init__(model, bounds=bounds, dummy=dummy, preprocessing=preprocessing)
         self._data_format = data_format
 

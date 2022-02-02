@@ -33,7 +33,7 @@ class TensorFlowModel(ModelWithPreprocessing):
 
         device = get_device(device)
         with device:
-            dummy = ep.astensor(ep.tensorflow.zeros(0))
+            dummy = ep.tensorflow.zeros(0)
         super().__init__(model, bounds, dummy, preprocessing=preprocessing)
 
         self.device = device
