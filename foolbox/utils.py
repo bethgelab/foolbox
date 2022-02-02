@@ -109,7 +109,7 @@ def _samples(
         labels.append(label)
 
     images_ = np.stack(images)
-    labels_ = np.array(labels)
+    labels_ = np.array(labels).astype(np.int64)
 
     if bounds != (0, 255):
         images_ = images_ / 255 * (bounds[1] - bounds[0]) + bounds[0]

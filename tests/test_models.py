@@ -51,7 +51,7 @@ def test_pytorch_training_warning(request: Any) -> None:
     import torch
 
     class Model(torch.nn.Module):
-        def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
             return x
 
     model = Model().train()
@@ -234,3 +234,38 @@ def test_preprocessing(fmodel_and_data: ModelAndData) -> None:
         fmodel = fbn.models.base.ModelWithPreprocessing(
             fmodel._model, fmodel.bounds, fmodel.dummy, preprocessing
         )
+
+
+def test_transform_bounds_wrapper_data_format() -> None:
+    class Model(fbn.models.Model):
+        data_format = "channels_first"
+
+        @property
+        def bounds(self) -> fbn.types.Bounds:
+            return fbn.types.Bounds(0, 1)
+
+        def __call__(self, inputs: fbn.models.base.T) -> fbn.models.base.T:
+            return inputs
+
+    model = Model()
+    wrapped_model = fbn.models.TransformBoundsWrapper(model, (0, 1))
+    assert fbn.attacks.base.get_channel_axis(
+        model, 3
+    ) == fbn.attacks.base.get_channel_axis(wrapped_model, 3)
+    assert hasattr(wrapped_model, "data_format")
+    assert not hasattr(wrapped_model, "not_data_format")
+
+
+def test_transform_bounds_wrapper_missing_data_format() -> None:
+    class Model(fbn.models.Model):
+        @property
+        def bounds(self) -> fbn.types.Bounds:
+            return fbn.types.Bounds(0, 1)
+
+        def __call__(self, inputs: fbn.models.base.T) -> fbn.models.base.T:
+            return inputs
+
+    model = Model()
+    wrapped_model = fbn.models.TransformBoundsWrapper(model, (0, 1))
+    assert not hasattr(wrapped_model, "data_format")
+    assert not hasattr(wrapped_model, "not_data_format")

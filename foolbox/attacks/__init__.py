@@ -22,9 +22,13 @@ from .fast_gradient_method import (  # noqa: F401
 from .additive_noise import (  # noqa: F401
     L2AdditiveGaussianNoiseAttack,
     L2AdditiveUniformNoiseAttack,
+    L2ClippingAwareAdditiveGaussianNoiseAttack,
+    L2ClippingAwareAdditiveUniformNoiseAttack,
     LinfAdditiveUniformNoiseAttack,
     L2RepeatedAdditiveGaussianNoiseAttack,
     L2RepeatedAdditiveUniformNoiseAttack,
+    L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack,
+    L2ClippingAwareRepeatedAdditiveUniformNoiseAttack,
     LinfRepeatedAdditiveUniformNoiseAttack,
 )
 from .sparse_l1_descent_attack import SparseL1DescentAttack  # noqa: F401
@@ -46,11 +50,18 @@ from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
 from .binarization import BinarizationRefinementAttack  # noqa: F401
 from .dataset_attack import DatasetAttack  # noqa: F401
 from .boundary_attack import BoundaryAttack  # noqa: F401
+from .hop_skip_jump import HopSkipJump  # noqa: F401
 from .brendel_bethge import (  # noqa: F401
     L0BrendelBethgeAttack,
     L1BrendelBethgeAttack,
     L2BrendelBethgeAttack,
     LinfinityBrendelBethgeAttack,
+)
+from .fast_minimum_norm import (  # noqa: F401
+    L0FMNAttack,
+    L1FMNAttack,
+    L2FMNAttack,
+    LInfFMNAttack,
 )
 from .gen_attack import GenAttack  # noqa: F401
 

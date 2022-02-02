@@ -84,11 +84,22 @@ class DatasetAttack(FlexibleDistanceMinimizationAttack):
         result = x
         found = criterion(x, model(x))
 
-        dataset_size = len(self.inputs)
         batch_size = len(x)
 
-        while not found.all():
-            indices = np.random.randint(0, dataset_size, size=(batch_size,))
+        # for every sample try every other sample
+        index_pools: List[List[int]] = []
+        for i in range(batch_size):
+            indices = list(range(batch_size))
+            indices.remove(i)
+            indices = list(indices)
+            np.random.shuffle(indices)
+            index_pools.append(indices)
+
+        for i in range(batch_size - 1):
+            if found.all():
+                break
+
+            indices = np.array([pool[i] for pool in index_pools])
 
             xp = self.inputs[indices]
             yp = self.outputs[indices]

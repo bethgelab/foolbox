@@ -1,10 +1,9 @@
-torch==1.4.0
-torchvision==0.5.0
-jaxlib==0.1.46
-jax==0.1.66
-tensorflow==2.0.1
-numba==0.50.1
-matplotlib==3.2.1
-pillow==7.1.2
+torch==1.10.1
+torchvision==0.11.2
+jax[cpu]==0.2.17
+tensorflow==2.6.2
+numba==0.55.1
+matplotlib==3.5.1
+pillow==9.0.0
 tensorboardX==2.0
 responses==0.10.9

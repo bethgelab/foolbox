@@ -1,7 +1,8 @@
-from typing import Tuple
 import pytest
 import eagerpy as ep
 import foolbox as fbn
+
+from conftest import ModeAndDataAndDescription
 
 
 attacks = [
@@ -14,12 +15,9 @@ attacks = [
 
 @pytest.mark.parametrize("attack", attacks)
 def test_call_one_epsilon(
-    fmodel_and_data_ext_for_attacks: Tuple[
-        Tuple[fbn.Model, ep.Tensor, ep.Tensor], bool
-    ],
-    attack: fbn.Attack,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription, attack: fbn.Attack,
 ) -> None:
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
 
     assert ep.istensor(x)
     assert ep.istensor(y)
@@ -45,21 +43,3 @@ def test_get_channel_axis() -> None:
     model.data_format = "invalid"  # type: ignore
     with pytest.raises(ValueError):
         assert fbn.attacks.base.get_channel_axis(model, 3)  # type: ignore
-
-
-def test_transform_bounds_wrapper_data_format() -> None:
-    class Model(fbn.models.Model):
-        data_format = "channels_first"
-
-        @property
-        def bounds(self) -> fbn.types.Bounds:
-            return fbn.types.Bounds(0, 1)
-
-        def __call__(self, inputs: fbn.models.base.T) -> fbn.models.base.T:
-            return inputs
-
-    model = Model()
-    wrapped_model = fbn.models.TransformBoundsWrapper(model, (0, 1))
-    assert fbn.attacks.base.get_channel_axis(
-        model, 3
-    ) == fbn.attacks.base.get_channel_axis(wrapped_model, 3)

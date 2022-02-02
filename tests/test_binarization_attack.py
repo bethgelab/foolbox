@@ -1,20 +1,25 @@
-from typing import Tuple
 import pytest
-import eagerpy as ep
 
-from foolbox import accuracy, Model
+from foolbox import accuracy
 from foolbox.models import ThresholdingWrapper
 from foolbox.devutils import flatten
 from foolbox.attacks import BinarySearchContrastReductionAttack
 from foolbox.attacks import BinarizationRefinementAttack
 
+from conftest import ModeAndDataAndDescription
+
 
 def test_binarization_attack(
-    fmodel_and_data_ext_for_attacks: Tuple[Tuple[Model, ep.Tensor, ep.Tensor], bool],
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
 
     # get a model with thresholding
-    (fmodel, x, y), _ = fmodel_and_data_ext_for_attacks
+    (fmodel, x, y), _, low_dimensional_input = fmodel_and_data_ext_for_attacks
+
+    # binarization doesn't work well for imagenet models
+    if not low_dimensional_input:
+        pytest.skip()
+
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
     fmodel = ThresholdingWrapper(fmodel, threshold=0.5)
