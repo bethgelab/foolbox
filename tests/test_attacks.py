@@ -205,7 +205,7 @@ def test_untargeted_attacks(
 targeted_attacks: List[AttackTestTarget] = [
     AttackTestTarget(
         fa.L2CarliniWagnerAttack(
-            binary_search_steps=2, steps=150, stepsize=0.05, initial_const=1e1
+            binary_search_steps=2, steps=100, stepsize=0.05, initial_const=1e1
         ),
         uses_grad=True,
     ),

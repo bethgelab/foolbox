@@ -165,7 +165,7 @@ class L2CarliniWagnerAttack(MinimizationAttack):
 
             for step in range(self.steps):
                 loss, (perturbed, logits), gradient = loss_aux_and_grad(delta, consts_)
-                delta += optimizer(gradient)
+                delta -= optimizer(gradient)
 
                 if self.abort_early and step % (np.ceil(self.steps / 10)) == 0:
                     # after each tenth of the overall steps, check progress
