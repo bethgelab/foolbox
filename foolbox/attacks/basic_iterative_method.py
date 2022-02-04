@@ -187,7 +187,7 @@ class LinfAdamBasicIterativeAttack(LinfBaseGradientDescent):
         return AdamOptimizer(
             x,
             stepsize,
-            self.optimizer_beta1,
-            self.optimizer_beta2,
-            self.optimizer_epsilon,
+            self.adam_beta1,
+            self.adam_beta2,
+            self.adam_epsilon,
         )
