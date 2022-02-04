@@ -104,8 +104,8 @@ class L1AdamProjectedGradientDescentAttack(L1ProjectedGradientDescentAttack):
         abs_stepsize: Optional[float] = None,
         steps: int = 50,
         random_start: bool = True,
-        adam_beta1: float = 0.99,
-        adam_beta2: float = 0.99,
+        adam_beta1: float = 0.9,
+        adam_beta2: float = 0.999,
         adam_epsilon: float = 1e-8,
     ):
         super().__init__(
@@ -145,8 +145,8 @@ class L2PAdamProjectedGradientDescentAttack(L2ProjectedGradientDescentAttack):
         abs_stepsize: Optional[float] = None,
         steps: int = 50,
         random_start: bool = True,
-        adam_beta1: float = 0.99,
-        adam_beta2: float = 0.99,
+        adam_beta1: float = 0.9,
+        adam_beta2: float = 0.999,
         adam_epsilon: float = 1e-8,
     ):
         super().__init__(
@@ -186,8 +186,8 @@ class LinfAdamProjectedGradientDescentAttack(LinfProjectedGradientDescentAttack)
         abs_stepsize: Optional[float] = None,
         steps: int = 50,
         random_start: bool = True,
-        adam_beta1: float = 0.99,
-        adam_beta2: float = 0.99,
+        adam_beta1: float = 0.9,
+        adam_beta2: float = 0.999,
         adam_epsilon: float = 1e-8,
     ):
         super().__init__(
