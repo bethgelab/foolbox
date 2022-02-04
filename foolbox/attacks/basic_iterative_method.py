@@ -185,9 +185,5 @@ class LinfAdamBasicIterativeAttack(LinfBaseGradientDescent):
 
     def get_optimizer(self, x: ep.Tensor, stepsize: float) -> Optimizer:
         return AdamOptimizer(
-            x,
-            stepsize,
-            self.adam_beta1,
-            self.adam_beta2,
-            self.adam_epsilon,
+            x, stepsize, self.adam_beta1, self.adam_beta2, self.adam_epsilon,
         )
