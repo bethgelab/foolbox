@@ -24,7 +24,7 @@ class Optimizer(ABC):
         pass
 
     @abstractmethod
-    def __call__(self, gradient: ep.Tensor, stepsize: float, **kwargs) -> ep.Tensor:
+    def __call__(self, gradient: ep.Tensor) -> ep.Tensor:
         pass
 
 
