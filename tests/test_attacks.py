@@ -282,6 +282,6 @@ def test_targeted_attacks(
         )
         adv_after_attack = criterion(advs, fmodel(advs))
         adv_asr = adv_after_attack.sum().item()
-        if adv_asr > asr:
+        if adv_asr > asr or (adv_asr == asr and asr == 1.0):
             break
-    assert adv_asr > asr
+    assert adv_asr > asr or (adv_asr == asr and asr == 1.0)
