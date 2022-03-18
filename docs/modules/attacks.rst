@@ -32,6 +32,8 @@
    BinarySearchContrastReductionAttack
    LinearSearchContrastReductionAttack
 
+   HopSkipJumpAttack
+
    L2CarliniWagnerAttack
    NewtonFoolAttack
    EADAttack
