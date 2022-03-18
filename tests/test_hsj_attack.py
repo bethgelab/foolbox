@@ -16,7 +16,7 @@ def get_attack_id(x: Tuple[BrendelBethgeAttack, Union[int, float]]) -> str:
 
 attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
     (
-        fa.HopSkipJump(
+        fa.HopSkipJumpAttack(
             steps=1,
             constraint="linf",
             initial_gradient_eval_steps=100,
@@ -25,7 +25,7 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
         ep.inf,
     ),
     (
-        fa.HopSkipJump(
+        fa.HopSkipJumpAttack(
             steps=1,
             constraint="l2",
             initial_gradient_eval_steps=100,
@@ -34,7 +34,7 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
         2,
     ),
     (
-        fa.HopSkipJump(
+        fa.HopSkipJumpAttack(
             steps=1,
             constraint="l2",
             initial_gradient_eval_steps=100,
@@ -51,7 +51,7 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
 def test_hsj_untargeted_attack(
     request: Any,
     fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
-    attack_and_p: Tuple[fa.HopSkipJump, Union[int, float]],
+    attack_and_p: Tuple[fa.HopSkipJumpAttack, Union[int, float]],
 ) -> None:
     if request.config.option.skipslow:
         pytest.skip()
@@ -87,7 +87,7 @@ def test_hsj_untargeted_attack(
 def test_hsj_targeted_attack(
     request: Any,
     fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
-    attack_and_p: Tuple[fa.HopSkipJump, Union[int, float]],
+    attack_and_p: Tuple[fa.HopSkipJumpAttack, Union[int, float]],
 ) -> None:
     if request.config.option.skipslow:
         pytest.skip()
