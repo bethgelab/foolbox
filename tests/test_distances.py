@@ -1,8 +1,10 @@
-from typing import Tuple, Any, Dict, Callable, TypeVar
+from typing import Any, Callable, Dict, Tuple, TypeVar
+
+import eagerpy as ep
 import numpy as np
 import pytest
+
 import foolbox as fbn
-import eagerpy as ep
 
 distances = {
     0: fbn.distances.l0,

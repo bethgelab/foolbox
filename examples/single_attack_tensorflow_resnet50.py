@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import tensorflow as tf
 import eagerpy as ep
-from foolbox import TensorFlowModel, accuracy, samples, Model
+import tensorflow as tf
+
+from foolbox import Model, TensorFlowModel, accuracy, samples
 from foolbox.attacks import LinfPGD
 
 

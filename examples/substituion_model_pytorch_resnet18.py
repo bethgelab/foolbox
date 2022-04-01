@@ -6,8 +6,9 @@ from another model to make the attack more reliable. That is, the forward pass
 should go through model 1, but the backward pass should go through model 2.
 This example shows how that can be done in Foolbox.
 """
-import torchvision.models as models
 import eagerpy as ep
+import torchvision.models as models
+
 from foolbox import PyTorchModel, accuracy, samples
 from foolbox.attacks import LinfPGD
 from foolbox.attacks.base import get_criterion

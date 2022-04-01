@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-import torchvision.models as models
 import eagerpy as ep
-from foolbox import PyTorchModel, accuracy, samples
-import foolbox.attacks as fa
 import numpy as np
+import torchvision.models as models
 
+import foolbox.attacks as fa
+from foolbox import PyTorchModel, accuracy, samples
 
 if __name__ == "__main__":
     # instantiate a model (could also be a TensorFlow or JAX model)

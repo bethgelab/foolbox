@@ -1,8 +1,9 @@
-from typing import Tuple, Any
-import numpy as np
 import math
-from eagerpy import astensor, Tensor
-from eagerpy.tensor import TensorFlowTensor, PyTorchTensor
+from typing import Any, Tuple
+
+import numpy as np
+from eagerpy import Tensor, astensor
+from eagerpy.tensor import PyTorchTensor, TensorFlowTensor
 
 
 def rotate_and_shift(

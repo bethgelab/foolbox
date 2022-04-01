@@ -1,7 +1,8 @@
+from typing import Any
+
 import eagerpy as ep
 import numpy as np
 import pytest
-from typing import Any
 
 from foolbox.attacks.gen_attack_utils import rescale_images
 

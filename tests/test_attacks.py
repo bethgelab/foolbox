@@ -1,12 +1,12 @@
-from typing import List, Optional, NamedTuple
-import pytest
+from typing import List, NamedTuple, Optional
+
 import eagerpy as ep
+import pytest
+from conftest import ModeAndDataAndDescription
 
 import foolbox as fbn
 import foolbox.attacks as fa
 from foolbox.gradient_estimators import es_gradient_estimator
-
-from conftest import ModeAndDataAndDescription
 
 L2 = fbn.types.L2
 Linf = fbn.types.Linf

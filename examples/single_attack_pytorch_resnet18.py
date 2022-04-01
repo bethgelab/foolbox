@@ -4,8 +4,9 @@ A simple example that demonstrates how to run a single attack against
 a PyTorch ResNet-18 model for different epsilons and how to then report
 the robust accuracy.
 """
-import torchvision.models as models
 import eagerpy as ep
+import torchvision.models as models
+
 from foolbox import PyTorchModel, accuracy, samples
 from foolbox.attacks import LinfPGD
 

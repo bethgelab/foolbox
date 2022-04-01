@@ -1,9 +1,10 @@
 from typing import List, Tuple
+
 import pytest
+from conftest import ModeAndDataAndDescription
+
 import foolbox as fbn
 import foolbox.attacks as fa
-
-from conftest import ModeAndDataAndDescription
 
 
 def get_attack_id(x: fbn.Attack) -> str:

@@ -1,6 +1,7 @@
-from typing import Tuple, Any, Optional
-import numpy as np
+from typing import Any, Optional, Tuple
+
 import eagerpy as ep
+import numpy as np
 
 
 def images(

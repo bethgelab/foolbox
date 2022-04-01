@@ -1,9 +1,10 @@
-from typing import List, Tuple, Any
-import pytest
-import eagerpy as ep
-import foolbox as fbn
+from typing import Any, List, Tuple
 
+import eagerpy as ep
+import pytest
 from conftest import ModeAndDataAndDescription
+
+import foolbox as fbn
 
 L2 = fbn.types.L2
 Linf = fbn.types.Linf

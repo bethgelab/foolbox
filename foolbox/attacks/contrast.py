@@ -1,18 +1,12 @@
-from typing import Union, Any
+from typing import Any, Union
+
 import eagerpy as ep
 
-from ..devutils import flatten
-from ..devutils import atleast_kd
-
 from ..criteria import Criterion
-
+from ..devutils import atleast_kd, flatten
 from ..distances import l2
-
 from ..models import Model
-
-from .base import FixedEpsilonAttack
-from .base import T
-from .base import raise_if_kwargs
+from .base import FixedEpsilonAttack, T, raise_if_kwargs
 
 
 class L2ContrastReductionAttack(FixedEpsilonAttack):

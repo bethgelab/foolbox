@@ -16,7 +16,6 @@
 
 import foolbox
 
-
 # -- Project information -----------------------------------------------------
 
 project = "Foolbox"

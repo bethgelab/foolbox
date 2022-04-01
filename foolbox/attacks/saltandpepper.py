@@ -1,21 +1,13 @@
-from typing import Optional, Any, Union
+from typing import Any, Optional, Union
+
 import eagerpy as ep
 
 from ..criteria import Misclassification
-
+from ..devutils import atleast_kd, flatten
 from ..distances import l2
-
-from ..devutils import flatten
-from ..devutils import atleast_kd
-
-from .base import MinimizationAttack
-from .base import get_is_adversarial
-from .base import get_channel_axis
-
 from ..models.base import Model
-from .base import get_criterion
-from .base import T
-from .base import raise_if_kwargs
+from .base import (MinimizationAttack, T, get_channel_axis, get_criterion,
+                   get_is_adversarial, raise_if_kwargs)
 
 
 class SaltAndPepperNoiseAttack(MinimizationAttack):

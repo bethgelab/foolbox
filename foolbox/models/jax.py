@@ -1,8 +1,8 @@
 from typing import Any, Optional
+
 import eagerpy as ep
 
 from ..types import BoundsInput, Preprocessing
-
 from .base import ModelWithPreprocessing
 
 

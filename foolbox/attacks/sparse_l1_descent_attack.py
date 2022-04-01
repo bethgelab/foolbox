@@ -1,14 +1,11 @@
 from typing import Optional
+
 import eagerpy as ep
 import numpy as np
 
-from ..devutils import flatten
-from ..devutils import atleast_kd
-
+from ..devutils import atleast_kd, flatten
 from ..types import Bounds
-
-from .gradient_descent_base import L1BaseGradientDescent
-from .gradient_descent_base import normalize_lp_norms
+from .gradient_descent_base import L1BaseGradientDescent, normalize_lp_norms
 
 
 class SparseL1DescentAttack(L1BaseGradientDescent):

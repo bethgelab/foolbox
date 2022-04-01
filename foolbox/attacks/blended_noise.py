@@ -1,20 +1,13 @@
-from typing import Union, Optional, Any
-import numpy as np
+import warnings
+from typing import Any, Optional, Union
+
 import eagerpy as ep
+import numpy as np
 
 from ..devutils import atleast_kd
-
 from ..distances import Distance
-
-from .base import FlexibleDistanceMinimizationAttack
-from .base import Model
-from .base import Criterion
-from .base import T
-from .base import get_is_adversarial
-from .base import get_criterion
-from .base import raise_if_kwargs
-
-import warnings
+from .base import (Criterion, FlexibleDistanceMinimizationAttack, Model, T,
+                   get_criterion, get_is_adversarial, raise_if_kwargs)
 
 
 class LinearSearchBlendedUniformNoiseAttack(FlexibleDistanceMinimizationAttack):

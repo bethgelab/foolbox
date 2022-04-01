@@ -1,13 +1,13 @@
-from typing import Tuple, Union, List, Any
+from typing import Any, List, Tuple, Union
+
 import eagerpy as ep
+import pytest
+from conftest import ModeAndDataAndDescription
 
 import foolbox as fbn
 import foolbox.attacks as fa
-from foolbox.devutils import flatten
 from foolbox.attacks.brendel_bethge import BrendelBethgeAttack
-import pytest
-
-from conftest import ModeAndDataAndDescription
+from foolbox.devutils import flatten
 
 
 def get_attack_id(x: Tuple[BrendelBethgeAttack, Union[int, float]]) -> str:

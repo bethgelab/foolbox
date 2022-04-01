@@ -1,9 +1,7 @@
 import eagerpy as ep
 
 from ..types import Bounds
-
-from .base import Model
-from .base import T
+from .base import Model, T
 
 
 class ThresholdingWrapper(Model):

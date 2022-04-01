@@ -1,9 +1,9 @@
 """Internal module for attacks that support logging to TensorBoard"""
-from typing import Union, Callable, TypeVar, Any, cast
-from typing_extensions import Literal
-import eagerpy as ep
 from functools import wraps
+from typing import Any, Callable, TypeVar, Union, cast
 
+import eagerpy as ep
+from typing_extensions import Literal
 
 FuncType = Callable[..., None]
 F = TypeVar("F", bound=FuncType)

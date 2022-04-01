@@ -1,18 +1,12 @@
-from typing import Union, Tuple, Any, Optional
+from typing import Any, Optional, Tuple, Union
+
 import eagerpy as ep
 
-from ..models import Model
-
 from ..criteria import Misclassification
-
-from ..distances import l2
-
 from ..devutils import atleast_kd, flatten
-
-from .base import MinimizationAttack
-from .base import get_criterion
-from .base import T
-from .base import raise_if_kwargs
+from ..distances import l2
+from ..models import Model
+from .base import MinimizationAttack, T, get_criterion, raise_if_kwargs
 
 
 class NewtonFoolAttack(MinimizationAttack):

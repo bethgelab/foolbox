@@ -1,5 +1,6 @@
-import pytest
 import eagerpy as ep
+import pytest
+
 import foolbox as fbn
 
 

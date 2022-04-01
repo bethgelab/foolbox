@@ -1,11 +1,12 @@
-from typing import Optional, Tuple, Any
-import eagerpy as ep
-import warnings
 import os
+import warnings
+from typing import Any, Optional, Tuple
+
+import eagerpy as ep
 import numpy as np
 
-from .types import Bounds
 from .models import Model
+from .types import Bounds
 
 
 def accuracy(fmodel: Model, inputs: Any, labels: Any) -> float:

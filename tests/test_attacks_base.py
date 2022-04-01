@@ -1,12 +1,11 @@
 from typing import Any
 
-import pytest
 import eagerpy as ep
-import foolbox as fbn
 import numpy as np
-
+import pytest
 from conftest import ModeAndDataAndDescription
 
+import foolbox as fbn
 
 attacks = [
     fbn.attacks.InversionAttack(distance=fbn.distances.l2),

@@ -1,27 +1,20 @@
 import logging
-from typing import Union, Any, Optional, Callable, List
-from typing_extensions import Literal
-
 import math
+from typing import Any, Callable, List, Optional, Union
 
 import eagerpy as ep
 import numpy as np
+from typing_extensions import Literal
 
 from foolbox.attacks import LinearSearchBlendedUniformNoiseAttack
 from foolbox.tensorboard import TensorBoard
-from ..models import Model
 
 from ..criteria import Criterion
-
-from ..distances import l1
-
 from ..devutils import atleast_kd, flatten
-
-from .base import MinimizationAttack, get_is_adversarial
-from .base import get_criterion
-from .base import T
-from .base import raise_if_kwargs
-from ..distances import l2, linf
+from ..distances import l1, l2, linf
+from ..models import Model
+from .base import (MinimizationAttack, T, get_criterion, get_is_adversarial,
+                   raise_if_kwargs)
 
 
 class HopSkipJumpAttack(MinimizationAttack):

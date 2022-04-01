@@ -1,8 +1,9 @@
-from typing import Tuple, Any
-import pytest
+import copy
+from typing import Any, Tuple
+
 import eagerpy as ep
 import numpy as np
-import copy
+import pytest
 
 import foolbox as fbn
 

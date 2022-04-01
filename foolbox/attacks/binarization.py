@@ -1,19 +1,14 @@
-from typing import Union, Optional, Any
-from typing_extensions import Literal
+from typing import Any, Optional, Union
+
 import eagerpy as ep
 import numpy as np
-
-from ..models import Model
+from typing_extensions import Literal
 
 from ..criteria import Criterion
-
 from ..distances import Distance
-
-from .base import FlexibleDistanceMinimizationAttack
-from .base import T
-from .base import get_is_adversarial
-from .base import get_criterion
-from .base import raise_if_kwargs
+from ..models import Model
+from .base import (FlexibleDistanceMinimizationAttack, T, get_criterion,
+                   get_is_adversarial, raise_if_kwargs)
 
 
 class BinarizationRefinementAttack(FlexibleDistanceMinimizationAttack):

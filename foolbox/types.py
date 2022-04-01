@@ -1,4 +1,4 @@
-from typing import NewType, NamedTuple, Union, Tuple, Optional, Dict, Any
+from typing import Any, Dict, NamedTuple, NewType, Optional, Tuple, Union
 
 
 class Bounds(NamedTuple):
