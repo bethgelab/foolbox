@@ -130,6 +130,10 @@ class Repeated(AttackWithDistance):
         x, restore_type = ep.astensor_(inputs)
         del inputs
 
+        # verify that input to the attack lies within model's input bounds
+        assert x.min() >= model.bounds.lower
+        assert x.max() >= model.bounds.upper
+
         criterion = get_criterion(criterion)
 
         was_iterable = True
