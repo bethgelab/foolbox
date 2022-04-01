@@ -2,9 +2,13 @@ from typing import Optional
 
 import eagerpy as ep
 
-from .gradient_descent_base import (AdamOptimizer, L1BaseGradientDescent,
-                                    L2BaseGradientDescent,
-                                    LinfBaseGradientDescent, Optimizer)
+from .gradient_descent_base import (
+    AdamOptimizer,
+    L1BaseGradientDescent,
+    L2BaseGradientDescent,
+    LinfBaseGradientDescent,
+    Optimizer,
+)
 
 
 class L1BasicIterativeAttack(L1BaseGradientDescent):

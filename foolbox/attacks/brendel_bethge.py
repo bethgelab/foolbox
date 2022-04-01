@@ -14,8 +14,14 @@ from ..devutils import flatten
 from ..distances import l0, l1, l2, linf
 from ..tensorboard import TensorBoard
 from . import LinearSearchBlendedUniformNoiseAttack
-from .base import (MinimizationAttack, Model, T, get_criterion,
-                   get_is_adversarial, raise_if_kwargs)
+from .base import (
+    MinimizationAttack,
+    Model,
+    T,
+    get_criterion,
+    get_is_adversarial,
+    raise_if_kwargs,
+)
 
 try:
     import numba

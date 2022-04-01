@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from typing import (Any, Callable, Dict, List, Optional, Sequence, Tuple,
-                    TypeVar, Union)
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 
 import eagerpy as ep
 from typing_extensions import final, overload

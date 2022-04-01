@@ -3,9 +3,11 @@ from typing import Any, Union
 from ..criteria import Misclassification, TargetedMisclassification
 from ..models.base import Model
 from .base import T
-from .gradient_descent_base import (L1BaseGradientDescent,
-                                    L2BaseGradientDescent,
-                                    LinfBaseGradientDescent)
+from .gradient_descent_base import (
+    L1BaseGradientDescent,
+    L2BaseGradientDescent,
+    LinfBaseGradientDescent,
+)
 
 
 class L1FastGradientAttack(L1BaseGradientDescent):

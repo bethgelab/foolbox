@@ -6,8 +6,15 @@ import eagerpy as ep
 from ..devutils import atleast_kd, flatten
 from ..distances import l2, linf
 from ..external.clipping_aware_rescaling import l2_clipping_aware_rescaling
-from .base import (Criterion, FixedEpsilonAttack, Model, T, get_criterion,
-                   get_is_adversarial, raise_if_kwargs)
+from .base import (
+    Criterion,
+    FixedEpsilonAttack,
+    Model,
+    T,
+    get_criterion,
+    get_is_adversarial,
+    raise_if_kwargs,
+)
 
 
 class BaseAdditiveNoiseAttack(FixedEpsilonAttack, ABC):

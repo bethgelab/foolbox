@@ -7,8 +7,7 @@ from ..criteria import Criterion
 from ..devutils import atleast_kd
 from ..distances import Distance
 from ..models import Model
-from .base import (FlexibleDistanceMinimizationAttack, T, get_criterion,
-                   raise_if_kwargs)
+from .base import FlexibleDistanceMinimizationAttack, T, get_criterion, raise_if_kwargs
 
 
 class DatasetAttack(FlexibleDistanceMinimizationAttack):

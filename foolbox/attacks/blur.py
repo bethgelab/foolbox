@@ -8,8 +8,14 @@ from ..criteria import Criterion
 from ..devutils import atleast_kd
 from ..distances import Distance
 from ..models import Model
-from .base import (FlexibleDistanceMinimizationAttack, T, get_channel_axis,
-                   get_criterion, get_is_adversarial, raise_if_kwargs)
+from .base import (
+    FlexibleDistanceMinimizationAttack,
+    T,
+    get_channel_axis,
+    get_criterion,
+    get_is_adversarial,
+    raise_if_kwargs,
+)
 
 
 class GaussianBlurAttack(FlexibleDistanceMinimizationAttack):

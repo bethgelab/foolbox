@@ -11,8 +11,13 @@ from ..distances import l2
 from ..models import Model
 from ..tensorboard import TensorBoard
 from ..types import Bounds
-from .base import (MinimizationAttack, T, get_criterion, get_is_adversarial,
-                   raise_if_kwargs)
+from .base import (
+    MinimizationAttack,
+    T,
+    get_criterion,
+    get_is_adversarial,
+    raise_if_kwargs,
+)
 from .blended_noise import LinearSearchBlendedUniformNoiseAttack
 
 

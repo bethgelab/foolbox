@@ -6,8 +6,14 @@ from ..criteria import Misclassification
 from ..devutils import atleast_kd, flatten
 from ..distances import l2
 from ..models.base import Model
-from .base import (MinimizationAttack, T, get_channel_axis, get_criterion,
-                   get_is_adversarial, raise_if_kwargs)
+from .base import (
+    MinimizationAttack,
+    T,
+    get_channel_axis,
+    get_criterion,
+    get_is_adversarial,
+    raise_if_kwargs,
+)
 
 
 class SaltAndPepperNoiseAttack(MinimizationAttack):

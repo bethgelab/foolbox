@@ -7,8 +7,13 @@ from typing_extensions import Literal
 from ..criteria import Criterion
 from ..distances import Distance
 from ..models import Model
-from .base import (FlexibleDistanceMinimizationAttack, T, get_criterion,
-                   get_is_adversarial, raise_if_kwargs)
+from .base import (
+    FlexibleDistanceMinimizationAttack,
+    T,
+    get_criterion,
+    get_is_adversarial,
+    raise_if_kwargs,
+)
 
 
 class BinarizationRefinementAttack(FlexibleDistanceMinimizationAttack):

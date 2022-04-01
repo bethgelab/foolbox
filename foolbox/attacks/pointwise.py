@@ -6,9 +6,15 @@ import numpy as np
 
 from ..criteria import Criterion
 from ..devutils import flatten
-from .base import (FlexibleDistanceMinimizationAttack, MinimizationAttack,
-                   Model, T, get_criterion, get_is_adversarial,
-                   raise_if_kwargs)
+from .base import (
+    FlexibleDistanceMinimizationAttack,
+    MinimizationAttack,
+    Model,
+    T,
+    get_criterion,
+    get_is_adversarial,
+    raise_if_kwargs,
+)
 from .saltandpepper import SaltAndPepperNoiseAttack
 
 

@@ -13,8 +13,13 @@ from ..criteria import Criterion
 from ..devutils import atleast_kd, flatten
 from ..distances import l1, l2, linf
 from ..models import Model
-from .base import (MinimizationAttack, T, get_criterion, get_is_adversarial,
-                   raise_if_kwargs)
+from .base import (
+    MinimizationAttack,
+    T,
+    get_criterion,
+    get_is_adversarial,
+    raise_if_kwargs,
+)
 
 
 class HopSkipJumpAttack(MinimizationAttack):

@@ -8,10 +8,12 @@ from eagerpy.astensor import T
 from .. import Misclassification, Model, TargetedMisclassification
 from ..devutils import atleast_kd, flatten
 from ..distances import LpDistance, l0, l1, l2, linf
-from .base import (MinimizationAttack, get_criterion, get_is_adversarial,
-                   raise_if_kwargs)
-from .gradient_descent_base import (normalize_lp_norms, uniform_l1_n_balls,
-                                    uniform_l2_n_balls)
+from .base import MinimizationAttack, get_criterion, get_is_adversarial, raise_if_kwargs
+from .gradient_descent_base import (
+    normalize_lp_norms,
+    uniform_l1_n_balls,
+    uniform_l2_n_balls,
+)
 
 ps = {l0: 0, l1: 1, l2: 2, linf: ep.inf, LpDistance: ep.nan}
 duals = {l0: ep.nan, l1: ep.inf, l2: 2, linf: 1, LpDistance: ep.nan}

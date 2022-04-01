@@ -5,8 +5,7 @@ import numpy as np
 
 from ..criteria import Criterion
 from ..devutils import atleast_kd
-from .base import (Attack, Model, T, get_criterion, get_is_adversarial,
-                   raise_if_kwargs)
+from .base import Attack, Model, T, get_criterion, get_is_adversarial, raise_if_kwargs
 from .spatial_attack_transformations import rotate_and_shift
 
 
