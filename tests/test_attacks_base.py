@@ -49,9 +49,9 @@ def test_model_bounds(
     fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
-    attack = fbn.attacks.SaltAndPepperNoiseAttack(steps=5)
+    attack = fbn.attacks.InversionAttack()
 
     with pytest.raises(AssertionError):
-        attack(fmodel, x - 0.1)
+        attack.run(fmodel, x - 0.1, y)
     with pytest.raises(AssertionError):
-        attack(fmodel, x + 1.1)
+        attack.run(fmodel, x + 1.1, y)
