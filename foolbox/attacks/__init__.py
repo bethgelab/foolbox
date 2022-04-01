@@ -12,25 +12,17 @@ from .additive_noise import (  # noqa: F401
 )
 from .base import Attack  # noqa: F401
 from .basic_iterative_method import L1AdamBasicIterativeAttack  # noqa: F401
-from .basic_iterative_method import (  # noqa: F401
-    L1BasicIterativeAttack,
-    L2AdamBasicIterativeAttack,
-    L2BasicIterativeAttack,
-    LinfAdamBasicIterativeAttack,
-    LinfBasicIterativeAttack,
-)
 from .binarization import BinarizationRefinementAttack  # noqa: F401
 from .blended_noise import LinearSearchBlendedUniformNoiseAttack  # noqa: F401
 from .blur import GaussianBlurAttack  # noqa: F401
 from .boundary_attack import BoundaryAttack  # noqa: F401
-from .brendel_bethge import L0BrendelBethgeAttack  # noqa: F401
-from .brendel_bethge import (  # noqa: F401
+from .brendel_bethge import L0BrendelBethgeAttack  # noqa: F401; noqa: F401
+from .brendel_bethge import (
     L1BrendelBethgeAttack,
     L2BrendelBethgeAttack,
     LinfinityBrendelBethgeAttack,
 )
 from .carlini_wagner import L2CarliniWagnerAttack  # noqa: F401
-
 from .contrast import L2ContrastReductionAttack  # noqa: F401
 from .contrast_min import BinarySearchContrastReductionAttack  # noqa: F401
 from .contrast_min import LinearSearchContrastReductionAttack  # noqa: F401
@@ -40,11 +32,10 @@ from .deepfool import L2DeepFoolAttack, LinfDeepFoolAttack  # noqa: F401
 from .ead import EADAttack  # noqa: F401
 from .fast_gradient_method import L1FastGradientAttack  # noqa: F401
 from .fast_gradient_method import L2FastGradientAttack, LinfFastGradientAttack
-from .fast_minimum_norm import L1FMNAttack  # noqa: F401
-from .fast_minimum_norm import L0FMNAttack, L2FMNAttack, LInfFMNAttack  # noqa: F401
+from .fast_minimum_norm import L1FMNAttack  # noqa: F401; noqa: F401
+from .fast_minimum_norm import L0FMNAttack, L2FMNAttack, LInfFMNAttack
 from .gen_attack import GenAttack  # noqa: F401
 from .hop_skip_jump import HopSkipJumpAttack  # noqa: F401
-
 from .inversion import InversionAttack  # noqa: F401
 from .newtonfool import NewtonFoolAttack  # noqa: F401
 from .pointwise import PointwiseAttack  # noqa: F401
@@ -60,6 +51,14 @@ from .saltandpepper import SaltAndPepperNoiseAttack  # noqa: F401
 from .sparse_l1_descent_attack import SparseL1DescentAttack  # noqa: F401
 from .spatial_attack import SpatialAttack  # noqa: F401
 from .virtual_adversarial_attack import VirtualAdversarialAttack  # noqa: F401
+
+from .basic_iterative_method import (  # noqa: F401, isort: skip
+    L1BasicIterativeAttack,
+    L2AdamBasicIterativeAttack,
+    L2BasicIterativeAttack,
+    LinfAdamBasicIterativeAttack,
+    LinfBasicIterativeAttack,
+)
 
 FGM = L2FastGradientAttack
 FGSM = LinfFastGradientAttack
