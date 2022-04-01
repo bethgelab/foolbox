@@ -103,7 +103,10 @@ class ModelWithPreprocessing(Model):
         return restore_type(z)
 
     def transform_bounds(
-        self, bounds: BoundsInput, inplace: bool = False, wrapper: bool = False,
+        self,
+        bounds: BoundsInput,
+        inplace: bool = False,
+        wrapper: bool = False,
     ) -> Model:
         """Returns a new model with the desired bounds and updates the preprocessing accordingly"""
         # more efficient than the base class implementation because it avoids the additional wrapper

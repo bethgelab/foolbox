@@ -18,7 +18,7 @@ from .base import raise_if_kwargs
 
 
 class PointwiseAttack(FlexibleDistanceMinimizationAttack):
-    """ Starts with an adversarial and performs a binary search between
+    """Starts with an adversarial and performs a binary search between
     the adversarial and the original for each dimension of the input
     individually. [#Sch18]_
 

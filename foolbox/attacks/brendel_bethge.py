@@ -34,7 +34,6 @@ except (ModuleNotFoundError, ImportError) as e:  # pragma: no cover
 
         return decorator
 
-
 else:
     NUMBA_IMPORT_ERROR = None
 
@@ -42,14 +41,14 @@ EPS = 1e-10
 
 
 class Optimizer(object):  # pragma: no cover
-    """ Base class for the trust-region optimization. If feasible, this optimizer solves the problem
+    """Base class for the trust-region optimization. If feasible, this optimizer solves the problem
 
-        min_delta distance(x0, x + delta) s.t. ||delta||_2 <= r AND delta^T b = c AND min_ <= x + delta <= max_
+    min_delta distance(x0, x + delta) s.t. ||delta||_2 <= r AND delta^T b = c AND min_ <= x + delta <= max_
 
-        where x0 is the original sample, x is the current optimisation state, r is the trust-region radius,
-        b is the current estimate of the normal vector of the decision boundary, c is the estimated distance of x
-        to the trust region and [min_, max_] are the value constraints of the input. The function distance(.,.)
-        is the distance measure to be optimised (e.g. L2, L1, L0).
+    where x0 is the original sample, x is the current optimisation state, r is the trust-region radius,
+    b is the current estimate of the normal vector of the decision boundary, c is the estimated distance of x
+    to the trust region and [min_, max_] are the value constraints of the input. The function distance(.,.)
+    is the distance measure to be optimised (e.g. L2, L1, L0).
 
     """
 
@@ -99,7 +98,7 @@ class Optimizer(object):  # pragma: no cover
         return _delta
 
     def _max_logit_diff(self, x, b, _ell, _u, c):
-        """ Tests whether the (estimated) boundary can be reached within trust region. """
+        """Tests whether the (estimated) boundary can be reached within trust region."""
         N = x.shape[0]
         cmax = 0.0
         norm = 0.0
@@ -124,37 +123,37 @@ class Optimizer(object):  # pragma: no cover
         return cmax, np.sqrt(norm)
 
     def _minimum_norm_to_boundary(self, x, b, _ell, _u, c, bnorm):
-        """ Computes the minimum norm necessary to reach the boundary. More precisely, we aim to solve the
-            following optimization problem
+        """Computes the minimum norm necessary to reach the boundary. More precisely, we aim to solve the
+        following optimization problem
 
-                min ||delta||_2^2 s.t. lower <= x + delta <= upper AND b.dot(delta) = c
+            min ||delta||_2^2 s.t. lower <= x + delta <= upper AND b.dot(delta) = c
 
-            Lets forget about the box constraints for a second, i.e.
+        Lets forget about the box constraints for a second, i.e.
 
-                min ||delta||_2^2 s.t. b.dot(delta) = c
+            min ||delta||_2^2 s.t. b.dot(delta) = c
 
-            The dual of this problem is quite straight-forward to solve,
+        The dual of this problem is quite straight-forward to solve,
 
-                g(lambda, delta) = ||delta||_2^2 + lambda * (c - b.dot(delta))
+            g(lambda, delta) = ||delta||_2^2 + lambda * (c - b.dot(delta))
 
-            The minimum of this Lagrangian is delta^* = lambda * b / 2, and so
+        The minimum of this Lagrangian is delta^* = lambda * b / 2, and so
 
-                inf_delta g(lambda, delta) = lambda^2 / 4 ||b||_2^2 + lambda * c
+            inf_delta g(lambda, delta) = lambda^2 / 4 ||b||_2^2 + lambda * c
 
-            and so the optimal lambda, which maximizes inf_delta g(lambda, delta), is given by
+        and so the optimal lambda, which maximizes inf_delta g(lambda, delta), is given by
 
-                lambda^* = 2c / ||b||_2^2
+            lambda^* = 2c / ||b||_2^2
 
-            which in turn yields the optimal delta:
+        which in turn yields the optimal delta:
 
-                delta^* = c * b / ||b||_2^2
+            delta^* = c * b / ||b||_2^2
 
-            To take into account the box-constraints we perform a binary search over lambda and apply the box
-            constraint in each step.
+        To take into account the box-constraints we perform a binary search over lambda and apply the box
+        constraint in each step.
         """
         N = x.shape[0]
 
-        lambda_lower = 2 * c / (bnorm ** 2 + EPS)
+        lambda_lower = 2 * c / (bnorm**2 + EPS)
         lambda_upper = (
             np.sign(c) * np.inf
         )  # optimal initial point (if box-constraints are neglected)
@@ -175,12 +174,12 @@ class Optimizer(object):  # pragma: no cover
                         max_step = _u - x[n]
                         delta_step = min(max_step, lam_step)
                         _c += b[n] * delta_step
-                        norm += delta_step ** 2
+                        norm += delta_step**2
                     else:
                         max_step = _ell - x[n]
                         delta_step = max(max_step, lam_step)
                         _c += b[n] * delta_step
-                        norm += delta_step ** 2
+                        norm += delta_step**2
             else:
                 for n in range(N):
                     lam_step = _lambda * b[n] / 2
@@ -188,12 +187,12 @@ class Optimizer(object):  # pragma: no cover
                         max_step = _ell - x[n]
                         delta_step = max(max_step, lam_step)
                         _c += b[n] * delta_step
-                        norm += delta_step ** 2
+                        norm += delta_step**2
                     else:
                         max_step = _u - x[n]
                         delta_step = min(max_step, lam_step)
                         _c += b[n] * delta_step
-                        norm += delta_step ** 2
+                        norm += delta_step**2
 
             # adjust lambda
             if np.abs(_c) < np.abs(c):
@@ -217,9 +216,9 @@ class Optimizer(object):  # pragma: no cover
     def optimize_distance_s_t_boundary_and_trustregion(
         self, x0, x, b, min_, max_, c, r
     ):
-        """ Find the solution to the optimization problem
+        """Find the solution to the optimization problem
 
-            min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
+        min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
         """
         params0 = np.array([0.0, 0.0])
         bounds = np.array([(-np.inf, np.inf), (0, np.inf)])
@@ -238,8 +237,8 @@ class Optimizer(object):  # pragma: no cover
         _mu = params[0]
         t = 1 / (2 * _mu + EPS)
 
-        g = -_mu * r ** 2
-        grad_mu = -(r ** 2)
+        g = -_mu * r**2
+        grad_mu = -(r**2)
 
         for n in range(N):
             d = -s * b[n] * t
@@ -249,9 +248,9 @@ class Optimizer(object):  # pragma: no cover
             elif d > max_ - x[n]:
                 d = max_ - x[n]
             else:
-                grad_mu += (b[n] + 2 * _mu * d) * (b[n] / (2 * _mu ** 2 + EPS))
+                grad_mu += (b[n] + 2 * _mu * d) * (b[n] / (2 * _mu**2 + EPS))
 
-            grad_mu += d ** 2
+            grad_mu += d**2
             g += (b[n] + _mu * d) * d
 
         return -g, -np.array([grad_mu])
@@ -265,14 +264,14 @@ class Optimizer(object):  # pragma: no cover
             return -nominator / EPS
 
     def optimize_boundary_s_t_trustregion(self, x0, x, b, min_, max_, c, r):
-        """ Find the solution to the optimization problem
+        """Find the solution to the optimization problem
 
-            min_delta sign(c) b^T delta s.t. ||delta||_2^2 <= r^2 AND min_ <= x + delta <= max_
+        min_delta sign(c) b^T delta s.t. ||delta||_2^2 <= r^2 AND min_ <= x + delta <= max_
 
-            Note: this optimization problem is independent of the Lp norm being optimized.
+        Note: this optimization problem is independent of the Lp norm being optimized.
 
-            Lagrangian: g(delta) = sign(c) b^T delta + mu * (||delta||_2^2 - r^2)
-            Optimal delta: delta = - sign(c) * b / (2 * mu)
+        Lagrangian: g(delta) = sign(c) b^T delta + mu * (||delta||_2^2 - r^2)
+        Optimal delta: delta = - sign(c) * b / (2 * mu)
         """
         params0 = np.array([1.0])
         args = (x0, x, b, min_, max_, c, r)
@@ -614,7 +613,7 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
            "Accurate, reliable and fast robustness evaluation",
            33rd Conference on Neural Information Processing Systems (2019)
            https://arxiv.org/abs/1907.01003
-   """
+    """
 
     distance = l2
 
@@ -657,7 +656,7 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
            "Accurate, reliable and fast robustness evaluation",
            33rd Conference on Neural Information Processing Systems (2019)
            https://arxiv.org/abs/1907.01003
-   """
+    """
 
     distance = linf
 
@@ -704,7 +703,7 @@ class L1BrendelBethgeAttack(BrendelBethgeAttack):
            "Accurate, reliable and fast robustness evaluation",
            33rd Conference on Neural Information Processing Systems (2019)
            https://arxiv.org/abs/1907.01003
-   """
+    """
 
     distance = l1
 
@@ -751,7 +750,7 @@ class L0BrendelBethgeAttack(BrendelBethgeAttack):
            "Accurate, reliable and fast robustness evaluation",
            33rd Conference on Neural Information Processing Systems (2019)
            https://arxiv.org/abs/1907.01003
-   """
+    """
 
     distance = l0
 
@@ -1347,8 +1346,8 @@ class BFGSB(object):
         if (db == 0) or (dc == 0) or (b == c):
             return None
         denom = (db * dc) ** 2 * (db - dc)
-        A = dc ** 2 * (fb - fa - C * db) - db ** 2 * (fc - fa - C * dc)
-        B = -(dc ** 3) * (fb - fa - C * db) + db ** 3 * (fc - fa - C * dc)
+        A = dc**2 * (fb - fa - C * db) - db**2 * (fc - fa - C * dc)
+        B = -(dc**3) * (fb - fa - C * db) + db**3 * (fc - fa - C * dc)
 
         A /= denom
         B /= denom
@@ -1387,7 +1386,7 @@ class L2Optimizer(Optimizer):
     def optimize_distance_s_t_boundary_and_trustregion(  # noqa: C901
         self, x0, x, b, min_, max_, c, r
     ):
-        """ Solves the L2 trust region problem
+        """Solves the L2 trust region problem
 
         min ||x0 - x - delta||_2 s.t. b^top delta = c
                                     & ell <= x + delta <= u
@@ -1544,15 +1543,15 @@ class L2Optimizer(Optimizer):
 
             distance += (d - dx) ** 2
             b_dot_d += bn * d
-            d_norm += d ** 2
+            d_norm += d**2
 
-            g += (dx - d) ** 2 + mu * d ** 2 + lam * bn * d
+            g += (dx - d) ** 2 + mu * d**2 + lam * bn * d
             d_g_d_lam += bn * d
-            d_g_d_mu += d ** 2
+            d_g_d_mu += d**2
 
-        g += -mu * r ** 2 - lam * c
+        g += -mu * r**2 - lam * c
         d_g_d_lam -= c
-        d_g_d_mu -= r ** 2
+        d_g_d_mu -= r**2
 
         return -g, -np.array([d_g_d_lam, d_g_d_mu])
 
@@ -1611,9 +1610,9 @@ class L1Optimizer(Optimizer):
                         d_g_d_lam -= prefac * bn * t
                         d_g_d_mu -= prefac * 2 * d * t
 
-                g += np.abs(dx - d) + mu * d ** 2 + lam * bn * d
+                g += np.abs(dx - d) + mu * d**2 + lam * bn * d
                 d_g_d_lam += bn * d
-                d_g_d_mu += d ** 2
+                d_g_d_mu += d**2
         else:  # mu == 0
             for n in range(N):
                 dx = x0[n] - x[n]
@@ -1625,13 +1624,13 @@ class L1Optimizer(Optimizer):
                 else:
                     d = min_ - x[n]
 
-                g += np.abs(dx - d) + mu * d ** 2 + lam * bn * d
+                g += np.abs(dx - d) + mu * d**2 + lam * bn * d
                 d_g_d_lam += bn * d
-                d_g_d_mu += d ** 2
+                d_g_d_mu += d**2
 
-        g += -mu * r ** 2 - lam * c
+        g += -mu * r**2 - lam * c
         d_g_d_lam -= c
-        d_g_d_mu -= r ** 2
+        d_g_d_mu -= r**2
 
         return -g, -np.array([d_g_d_lam, d_g_d_mu])
 
@@ -1665,7 +1664,7 @@ class L1Optimizer(Optimizer):
 
                 delta[n] = d
                 b_dot_d += b[n] * d
-                norm_d += d ** 2
+                norm_d += d**2
                 distance += np.abs(d - dx)
         else:  # mu == 0
             for n in range(N):
@@ -1680,7 +1679,7 @@ class L1Optimizer(Optimizer):
 
                 delta[n] = d
                 b_dot_d += b[n] * d
-                norm_d += d ** 2
+                norm_d += d**2
                 distance += np.abs(d - dx)
 
         if touchup:
@@ -1699,7 +1698,7 @@ class L1Optimizer(Optimizer):
                     if (
                         x[n] + new_d <= max_
                         and x[n] + new_d >= min_
-                        and norm_d - old_d ** 2 + new_d ** 2 <= r ** 2
+                        and norm_d - old_d**2 + new_d**2 <= r**2
                     ):
                         # conditions (a) and (b) are fulfilled
                         if k == 0:
@@ -1735,9 +1734,9 @@ class LinfOptimizer(Optimizer):
     def optimize_distance_s_t_boundary_and_trustregion(
         self, x0, x, b, min_, max_, c, r
     ):
-        """ Find the solution to the optimization problem
+        """Find the solution to the optimization problem
 
-            min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
+        min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
         """
         params0 = np.array([0.0, 0.0])
         bounds = np.array([(-np.inf, np.inf), (0, np.inf)])
@@ -1754,7 +1753,7 @@ class LinfOptimizer(Optimizer):
         func_calls = 0
 
         bnorm = np.linalg.norm(b)
-        lambda0 = 2 * c / (bnorm ** 2 + EPS)
+        lambda0 = 2 * c / (bnorm**2 + EPS)
 
         k = 0
 
@@ -1801,33 +1800,33 @@ class LinfOptimizer(Optimizer):
         return _ell, _u
 
     def fun(self, epsilon, x0, x, b, ell, u, c, r, lambda0=None):
-        """ Computes the minimum norm necessary to reach the boundary. More precisely, we aim to solve the
-            following optimization problem
+        """Computes the minimum norm necessary to reach the boundary. More precisely, we aim to solve the
+        following optimization problem
 
-                min ||delta||_2^2 s.t. lower <= x + delta <= upper AND b.dot(delta) = c
+            min ||delta||_2^2 s.t. lower <= x + delta <= upper AND b.dot(delta) = c
 
-            Lets forget about the box constraints for a second, i.e.
+        Lets forget about the box constraints for a second, i.e.
 
-                min ||delta||_2^2 s.t. b.dot(delta) = c
+            min ||delta||_2^2 s.t. b.dot(delta) = c
 
-            The dual of this problem is quite straight-forward to solve,
+        The dual of this problem is quite straight-forward to solve,
 
-                g(lambda, delta) = ||delta||_2^2 + lambda * (c - b.dot(delta))
+            g(lambda, delta) = ||delta||_2^2 + lambda * (c - b.dot(delta))
 
-            The minimum of this Lagrangian is delta^* = lambda * b / 2, and so
+        The minimum of this Lagrangian is delta^* = lambda * b / 2, and so
 
-                inf_delta g(lambda, delta) = lambda^2 / 4 ||b||_2^2 + lambda * c
+            inf_delta g(lambda, delta) = lambda^2 / 4 ||b||_2^2 + lambda * c
 
-            and so the optimal lambda, which maximizes inf_delta g(lambda, delta), is given by
+        and so the optimal lambda, which maximizes inf_delta g(lambda, delta), is given by
 
-                lambda^* = 2c / ||b||_2^2
+            lambda^* = 2c / ||b||_2^2
 
-            which in turn yields the optimal delta:
+        which in turn yields the optimal delta:
 
-                delta^* = c * b / ||b||_2^2
+            delta^* = c * b / ||b||_2^2
 
-            To take into account the box-constraints we perform a binary search over lambda and apply the box
-            constraint in each step.
+        To take into account the box-constraints we perform a binary search over lambda and apply the box
+        constraint in each step.
         """
         N = x.shape[0]
 
@@ -1874,10 +1873,10 @@ class LinfOptimizer(Optimizer):
                     _active_bnorm += b[n] ** 2
 
                 _c += b[n] * delta_step
-                norm += delta_step ** 2
+                norm += delta_step**2
 
             if 0.9999 * np.abs(c) - EPS < np.abs(_c) < 1.0001 * np.abs(c) + EPS:
-                if norm > r ** 2:
+                if norm > r**2:
                     return -np.inf, k, _lambda
                 else:
                     return -epsilon, k, _lambda
@@ -1929,9 +1928,9 @@ class L0Optimizer(Optimizer):
     def optimize_distance_s_t_boundary_and_trustregion(
         self, x0, x, b, min_, max_, c, r
     ):
-        """ Find the solution to the optimization problem
+        """Find the solution to the optimization problem
 
-            min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
+        min_delta ||dx - delta||_p^p s.t. ||delta||_2^2 <= r^2 AND b^T delta = c AND min_ <= x + delta <= max_
         """
         params0 = np.array([0.0, 0.0])
         bounds = np.array([(-np.inf, np.inf), (0, np.inf)])
@@ -2069,7 +2068,7 @@ class L0Optimizer(Optimizer):
 
         ργ = ρ * γ
         ρχ = ρ * χ
-        σ_n = σ ** n
+        σ_n = σ**n
 
         f_val = np.empty(n + 1, dtype=np.float64)
         for i in range(n + 1):
@@ -2309,7 +2308,7 @@ class L0Optimizer(Optimizer):
         lam, mu = params
         N = x0.shape[0]
 
-        g = -mu * r ** 2 - lam * c
+        g = -mu * r**2 - lam * c
 
         if mu > 0:
             t = 1 / (2 * mu + EPS)
@@ -2318,7 +2317,7 @@ class L0Optimizer(Optimizer):
                 dx = x0[n] - x[n]
                 bn = b[n]
 
-                case1 = lam * bn * dx + mu * dx ** 2
+                case1 = lam * bn * dx + mu * dx**2
 
                 optd = -lam * bn * t
                 if optd < min_ - x[n]:
@@ -2326,12 +2325,12 @@ class L0Optimizer(Optimizer):
                 elif optd > max_ - x[n]:
                     optd = max_ - x[n]
 
-                case2 = 1 + lam * bn * optd + mu * optd ** 2
+                case2 = 1 + lam * bn * optd + mu * optd**2
 
                 if case1 <= case2:
-                    g += mu * dx ** 2 + lam * bn * dx
+                    g += mu * dx**2 + lam * bn * dx
                 else:
-                    g += 1 + mu * optd ** 2 + lam * bn * optd
+                    g += 1 + mu * optd**2 + lam * bn * optd
         else:
             # arg min_delta ||delta - dx||_0 + lam * b^T delta
             # case delta[n] = dx[n]: lam * b[n] * dx[n]
@@ -2343,7 +2342,7 @@ class L0Optimizer(Optimizer):
                 case2 = 1 + lam * bn * (min_ - x[n])
                 case3 = 1 + lam * bn * (max_ - x[n])
                 if case1 <= case2 and case1 <= case3:
-                    g += mu * dx ** 2 + lam * bn * dx
+                    g += mu * dx**2 + lam * bn * dx
                 elif case2 < case3:
                     g += 1 + mu * (min_ - x[n]) ** 2 + lam * bn * (min_ - x[n])
                 else:
@@ -2396,7 +2395,7 @@ class L0Optimizer(Optimizer):
                 bn = b[n]
                 t = 1 / (2 * mu + EPS)
 
-                case1 = lam * bn * dx + mu * dx ** 2
+                case1 = lam * bn * dx + mu * dx**2
 
                 optd = -lam * bn * t
                 if optd < min_ - x[n]:
@@ -2404,7 +2403,7 @@ class L0Optimizer(Optimizer):
                 elif optd > max_ - x[n]:
                     optd = max_ - x[n]
 
-                case2 = 1 + lam * bn * optd + mu * optd ** 2
+                case2 = 1 + lam * bn * optd + mu * optd**2
 
                 if case1 <= case2:
                     d = dx
@@ -2414,7 +2413,7 @@ class L0Optimizer(Optimizer):
 
                 delta[n] = d
                 b_dot_d += bn * d
-                norm_d += d ** 2
+                norm_d += d**2
         else:  # mu == 0
             for n in range(N):
                 dx = x0[n] - x[n]
@@ -2432,7 +2431,7 @@ class L0Optimizer(Optimizer):
                     distance += 1
 
                 delta[n] = d
-                norm_d += d ** 2
+                norm_d += d**2
                 b_dot_d += bn * d
 
         if touchup:
@@ -2454,7 +2453,7 @@ class L0Optimizer(Optimizer):
                     if (
                         x[n] + new_d <= max_
                         and x[n] + new_d >= min_
-                        and norm_d - old_d ** 2 + new_d ** 2 <= r ** 2
+                        and norm_d - old_d**2 + new_d**2 <= r**2
                     ):
                         # conditions (a) and (b) are fulfilled
                         if k == 0:
@@ -2464,7 +2463,7 @@ class L0Optimizer(Optimizer):
                                 + (np.abs(new_d - dx) > 1e-10)
                             )
                             min_distance_idx = n
-                            min_norm = norm_d - old_d ** 2 + new_d ** 2
+                            min_norm = norm_d - old_d**2 + new_d**2
                             k += 1
                         else:
                             new_distance = (
@@ -2475,10 +2474,10 @@ class L0Optimizer(Optimizer):
                             if (
                                 min_distance > new_distance
                                 or min_distance == new_distance
-                                and min_norm > norm_d - old_d ** 2 + new_d ** 2
+                                and min_norm > norm_d - old_d**2 + new_d**2
                             ):
                                 min_distance = new_distance
-                                min_norm = norm_d - old_d ** 2 + new_d ** 2
+                                min_norm = norm_d - old_d**2 + new_d**2
                                 min_distance_idx = n
 
             if k > 0:

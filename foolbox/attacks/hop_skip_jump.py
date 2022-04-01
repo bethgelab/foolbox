@@ -259,8 +259,22 @@ class HopSkipJumpAttack(MinimizationAttack):
             multipliers_list.append(
                 ep.where(
                     decision,
-                    ep.ones(x_advs, (len(x_advs,))),
-                    -ep.ones(x_advs, (len(decision,))),
+                    ep.ones(
+                        x_advs,
+                        (
+                            len(
+                                x_advs,
+                            )
+                        ),
+                    ),
+                    -ep.ones(
+                        x_advs,
+                        (
+                            len(
+                                decision,
+                            )
+                        ),
+                    ),
                 )
             )
         # (steps, bs, ...)

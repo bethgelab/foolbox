@@ -22,7 +22,9 @@ def evolutionary_strategies_gradient_estimator(
 
     class GradientEstimator(AttackCls):  # type: ignore
         def value_and_grad(
-            self, loss_fn: Callable[[ep.Tensor], ep.Tensor], x: ep.Tensor,
+            self,
+            loss_fn: Callable[[ep.Tensor], ep.Tensor],
+            x: ep.Tensor,
         ) -> Tuple[ep.Tensor, ep.Tensor]:
             value = loss_fn(x)
 
