@@ -1,9 +1,9 @@
-import warnings
 from typing import Any, cast
-
+import warnings
 import eagerpy as ep
 
 from ..types import BoundsInput, Preprocessing
+
 from .base import ModelWithPreprocessing
 
 

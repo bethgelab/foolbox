@@ -1,12 +1,12 @@
-from typing import Any, List
-
+from typing import List, Any
 import eagerpy as ep
-import pytest
-from conftest import ModeAndDataAndDescription
 
 import foolbox as fbn
 import foolbox.attacks as fa
 from foolbox.devutils import flatten
+import pytest
+
+from conftest import ModeAndDataAndDescription
 
 
 def get_attack_id(x: fa.Attack) -> str:

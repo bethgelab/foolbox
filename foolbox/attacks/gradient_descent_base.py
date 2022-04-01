@@ -1,14 +1,22 @@
+from typing import Union, Any, Optional, Callable, Tuple
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Optional, Tuple, Union
-
 import eagerpy as ep
 
-from ..criteria import Misclassification, TargetedMisclassification
-from ..devutils import atleast_kd, flatten
-from ..distances import l1, l2, linf
-from ..models.base import Model
+from ..devutils import flatten
+from ..devutils import atleast_kd
+
 from ..types import Bounds
-from .base import FixedEpsilonAttack, T, get_criterion, raise_if_kwargs
+
+from ..models.base import Model
+
+from ..criteria import Misclassification, TargetedMisclassification
+
+from ..distances import l1, l2, linf
+
+from .base import FixedEpsilonAttack
+from .base import T
+from .base import get_criterion
+from .base import raise_if_kwargs
 
 
 class Optimizer(ABC):

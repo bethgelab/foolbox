@@ -1,13 +1,13 @@
-from typing import List, Tuple, Union
-
+from typing import Tuple, Union, List
 import eagerpy as ep
-import pytest
-from conftest import ModeAndDataAndDescription
 
 import foolbox as fbn
 import foolbox.attacks as fa
-from foolbox.attacks.fast_minimum_norm import FMNAttackLp
 from foolbox.devutils import flatten
+from foolbox.attacks.fast_minimum_norm import FMNAttackLp
+import pytest
+
+from conftest import ModeAndDataAndDescription
 
 
 def get_attack_id(x: Tuple[FMNAttackLp, Union[int, float]]) -> str:

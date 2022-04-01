@@ -1,18 +1,19 @@
-from typing import Any, Optional, Union
-
+from typing import Union, Any, Optional
 import eagerpy as ep
 
-from ..criteria import Criterion
 from ..devutils import atleast_kd
-from ..distances import Distance
+
 from ..models import Model
-from .base import (
-    FlexibleDistanceMinimizationAttack,
-    T,
-    get_criterion,
-    get_is_adversarial,
-    raise_if_kwargs,
-)
+
+from ..criteria import Criterion
+
+from ..distances import Distance
+
+from .base import FlexibleDistanceMinimizationAttack
+from .base import T
+from .base import get_is_adversarial
+from .base import get_criterion
+from .base import raise_if_kwargs
 
 
 class BinarySearchContrastReductionAttack(FlexibleDistanceMinimizationAttack):

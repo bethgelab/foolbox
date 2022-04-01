@@ -44,10 +44,10 @@ to create a new criterion.
    :members:
    :special-members: __call__
 """
+from typing import TypeVar, Any
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar
-
 import eagerpy as ep
+
 
 T = TypeVar("T")
 

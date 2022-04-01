@@ -1,8 +1,7 @@
+from typing import Optional, Callable, Tuple, Dict, Any, List, NamedTuple
 import functools
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
-
-import eagerpy as ep
 import pytest
+import eagerpy as ep
 
 import foolbox
 import foolbox as fbn

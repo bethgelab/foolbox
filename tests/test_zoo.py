@@ -1,6 +1,5 @@
-import sys
 from typing import Any
-
+import sys
 import pytest
 
 import foolbox as fbn

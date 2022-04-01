@@ -1,14 +1,22 @@
-import math
-from typing import Any, Optional, Tuple, Union
-
-import eagerpy as ep
+from typing import Union, Tuple, Any, Optional
 from typing_extensions import Literal
 
-from ..criteria import Misclassification, TargetedMisclassification
-from ..devutils import atleast_kd, flatten
-from ..distances import l1
+import math
+
+import eagerpy as ep
+
 from ..models import Model
-from .base import MinimizationAttack, T, get_criterion, raise_if_kwargs
+
+from ..criteria import Misclassification, TargetedMisclassification
+
+from ..distances import l1
+
+from ..devutils import atleast_kd, flatten
+
+from .base import MinimizationAttack
+from .base import get_criterion
+from .base import T
+from .base import raise_if_kwargs
 
 
 class EADAttack(MinimizationAttack):

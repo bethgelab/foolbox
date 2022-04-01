@@ -1,21 +1,20 @@
-import logging
-from typing import Any, Callable, List, Optional, Tuple, Union
-
+from typing import Union, Any, Optional, Tuple, Callable, List
 import eagerpy as ep
 import numpy as np
+import logging
 
 from ..criteria import Criterion
-from ..devutils import flatten
-from .base import (
-    FlexibleDistanceMinimizationAttack,
-    MinimizationAttack,
-    Model,
-    T,
-    get_criterion,
-    get_is_adversarial,
-    raise_if_kwargs,
-)
+
+from .base import FlexibleDistanceMinimizationAttack
 from .saltandpepper import SaltAndPepperNoiseAttack
+
+from ..devutils import flatten
+from .base import Model
+from .base import MinimizationAttack
+from .base import get_is_adversarial
+from .base import get_criterion
+from .base import T
+from .base import raise_if_kwargs
 
 
 class PointwiseAttack(FlexibleDistanceMinimizationAttack):

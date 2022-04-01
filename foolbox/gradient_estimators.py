@@ -1,9 +1,7 @@
 from typing import Callable, Tuple, Type
-
 import eagerpy as ep
-
+from .types import BoundsInput, Bounds
 from .attacks.base import Attack
-from .types import Bounds, BoundsInput
 
 
 def evolutionary_strategies_gradient_estimator(

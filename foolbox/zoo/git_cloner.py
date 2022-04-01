@@ -1,10 +1,8 @@
-import logging
 import os
 import shutil
-
 from git import Repo
-
-from .common import home_directory_path, sha256_hash
+import logging
+from .common import sha256_hash, home_directory_path
 
 FOLDER = ".foolbox_zoo"
 

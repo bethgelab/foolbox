@@ -1,19 +1,19 @@
 import math
-from abc import ABC, abstractmethod
-from typing import Any, Optional, Tuple, Union
+from abc import abstractmethod, ABC
+from typing import Union, Optional, Any, Tuple
 
 import eagerpy as ep
 from eagerpy.astensor import T
 
-from .. import Misclassification, Model, TargetedMisclassification
-from ..devutils import atleast_kd, flatten
-from ..distances import LpDistance, l0, l1, l2, linf
-from .base import MinimizationAttack, get_criterion, get_is_adversarial, raise_if_kwargs
+from .base import MinimizationAttack, raise_if_kwargs, get_criterion, get_is_adversarial
 from .gradient_descent_base import (
-    normalize_lp_norms,
     uniform_l1_n_balls,
+    normalize_lp_norms,
     uniform_l2_n_balls,
 )
+from .. import Model, Misclassification, TargetedMisclassification
+from ..devutils import atleast_kd, flatten
+from ..distances import l1, linf, l2, l0, LpDistance
 
 ps = {l0: 0, l1: 1, l2: 2, linf: ep.inf, LpDistance: ep.nan}
 duals = {l0: ep.nan, l1: ep.inf, l2: 2, linf: 1, LpDistance: ep.nan}

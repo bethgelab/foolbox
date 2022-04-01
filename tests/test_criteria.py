@@ -1,8 +1,6 @@
 from typing import Tuple
-
-import eagerpy as ep
-
 import foolbox as fbn
+import eagerpy as ep
 
 
 def test_correct_unperturbed(

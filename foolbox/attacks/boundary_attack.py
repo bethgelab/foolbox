@@ -1,24 +1,29 @@
-import logging
-from typing import Any, Optional, Tuple, Union
-
-import eagerpy as ep
-import numpy as np
+from typing import Union, Tuple, Optional, Any
 from typing_extensions import Literal
+import numpy as np
+import eagerpy as ep
+import logging
+
+from ..devutils import flatten
+from ..devutils import atleast_kd
+
+from ..types import Bounds
+
+from ..models import Model
 
 from ..criteria import Criterion
-from ..devutils import atleast_kd, flatten
+
 from ..distances import l2
-from ..models import Model
+
 from ..tensorboard import TensorBoard
-from ..types import Bounds
-from .base import (
-    MinimizationAttack,
-    T,
-    get_criterion,
-    get_is_adversarial,
-    raise_if_kwargs,
-)
+
 from .blended_noise import LinearSearchBlendedUniformNoiseAttack
+
+from .base import MinimizationAttack
+from .base import T
+from .base import get_criterion
+from .base import get_is_adversarial
+from .base import raise_if_kwargs
 
 
 class BoundaryAttack(MinimizationAttack):

@@ -1,15 +1,23 @@
-import logging
-from abc import ABC, abstractmethod
-from typing import Any, Callable, Optional, Tuple, Union
-
-import eagerpy as ep
+from typing import Union, Optional, Tuple, Any, Callable
 from typing_extensions import Literal
+import eagerpy as ep
+import logging
+from abc import ABC
+from abc import abstractmethod
+
+from ..devutils import flatten
+from ..devutils import atleast_kd
+
+from ..models import Model
 
 from ..criteria import Criterion
-from ..devutils import atleast_kd, flatten
+
 from ..distances import l2, linf
-from ..models import Model
-from .base import MinimizationAttack, T, get_criterion, raise_if_kwargs
+
+from .base import MinimizationAttack
+from .base import T
+from .base import get_criterion
+from .base import raise_if_kwargs
 
 
 class DeepFoolAttack(MinimizationAttack, ABC):

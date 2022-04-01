@@ -1,14 +1,14 @@
-import io
-import os
-import shutil
-import zipfile
-
-import pytest
-import responses
-
 from foolbox.zoo import fetch_weights
 from foolbox.zoo.common import home_directory_path, sha256_hash
 from foolbox.zoo.weights_fetcher import FOLDER
+
+import os
+import pytest
+import shutil
+
+import responses
+import io
+import zipfile
 
 
 @responses.activate

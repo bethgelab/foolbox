@@ -1,7 +1,8 @@
 import pytest
-from conftest import ModeAndDataAndDescription
 
 import foolbox as fbn
+
+from conftest import ModeAndDataAndDescription
 
 
 def test_dataset_attack(

@@ -1,12 +1,18 @@
-from typing import Any, Union
-
+from typing import Union, Any
 import eagerpy as ep
 
-from ..criteria import Misclassification
-from ..devutils import atleast_kd, flatten
-from ..distances import l2
 from ..models import Model
-from .base import FixedEpsilonAttack, T, get_criterion, raise_if_kwargs
+
+from ..criteria import Misclassification
+
+from ..distances import l2
+
+from ..devutils import flatten, atleast_kd
+
+from .base import FixedEpsilonAttack
+from .base import get_criterion
+from .base import T
+from .base import raise_if_kwargs
 
 
 class VirtualAdversarialAttack(FixedEpsilonAttack):

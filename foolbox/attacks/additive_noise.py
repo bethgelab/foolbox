@@ -1,20 +1,22 @@
-from abc import ABC, abstractmethod
-from typing import Any, Union, cast
-
+from typing import Union, Any, cast
+from abc import ABC
+from abc import abstractmethod
 import eagerpy as ep
 
-from ..devutils import atleast_kd, flatten
+from ..devutils import flatten
+from ..devutils import atleast_kd
+
 from ..distances import l2, linf
+
+from .base import FixedEpsilonAttack
+from .base import Criterion
+from .base import Model
+from .base import T
+from .base import get_criterion
+from .base import get_is_adversarial
+from .base import raise_if_kwargs
+
 from ..external.clipping_aware_rescaling import l2_clipping_aware_rescaling
-from .base import (
-    Criterion,
-    FixedEpsilonAttack,
-    Model,
-    T,
-    get_criterion,
-    get_is_adversarial,
-    raise_if_kwargs,
-)
 
 
 class BaseAdditiveNoiseAttack(FixedEpsilonAttack, ABC):

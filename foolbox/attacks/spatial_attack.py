@@ -1,12 +1,18 @@
-from typing import Any, Generator, Tuple, Union
-
+from typing import Union, Any, Tuple, Generator
 import eagerpy as ep
 import numpy as np
 
-from ..criteria import Criterion
 from ..devutils import atleast_kd
-from .base import Attack, Model, T, get_criterion, get_is_adversarial, raise_if_kwargs
+
+from ..criteria import Criterion
+
+from .base import Model
+from .base import T
+from .base import get_is_adversarial
+from .base import get_criterion
+from .base import Attack
 from .spatial_attack_transformations import rotate_and_shift
+from .base import raise_if_kwargs
 
 
 class SpatialAttack(Attack):

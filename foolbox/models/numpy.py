@@ -1,9 +1,11 @@
-from typing import Callable, Optional, TypeVar
-
+from typing import TypeVar, Callable, Optional
 import eagerpy as ep
 
-from ..types import Bounds, BoundsInput
+from ..types import Bounds
+from ..types import BoundsInput
+
 from .base import Model
+
 
 T = TypeVar("T")
 

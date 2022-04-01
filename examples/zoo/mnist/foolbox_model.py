@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-import os
-
 import torch
 import torch.nn as nn
-
+import os
 from foolbox.models import PyTorchModel
 from foolbox.utils import accuracy, samples
 

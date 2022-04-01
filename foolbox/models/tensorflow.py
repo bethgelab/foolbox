@@ -1,8 +1,8 @@
-from typing import Any, cast
-
+from typing import cast, Any
 import eagerpy as ep
 
 from ..types import BoundsInput, Preprocessing
+
 from .base import ModelWithPreprocessing
 
 

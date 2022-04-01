@@ -1,13 +1,19 @@
-from typing import Any, List, Optional, Union
-
-import eagerpy as ep
+from typing import Union, Optional, Any, List
 import numpy as np
+import eagerpy as ep
+
+from ..devutils import atleast_kd
+
+from ..models import Model
+
+from ..distances import Distance
 
 from ..criteria import Criterion
-from ..devutils import atleast_kd
-from ..distances import Distance
-from ..models import Model
-from .base import FlexibleDistanceMinimizationAttack, T, get_criterion, raise_if_kwargs
+
+from .base import FlexibleDistanceMinimizationAttack
+from .base import T
+from .base import get_criterion
+from .base import raise_if_kwargs
 
 
 class DatasetAttack(FlexibleDistanceMinimizationAttack):

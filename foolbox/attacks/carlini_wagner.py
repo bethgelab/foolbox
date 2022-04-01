@@ -1,15 +1,25 @@
+from typing import Union, Tuple, Any, Optional
 from functools import partial
-from typing import Any, Optional, Tuple, Union
-
-import eagerpy as ep
 import numpy as np
+import eagerpy as ep
 
-from ..criteria import Misclassification, TargetedMisclassification
-from ..devutils import atleast_kd, flatten
-from ..distances import l2
-from ..models import Model
+from ..devutils import flatten
+from ..devutils import atleast_kd
+
 from ..types import Bounds
-from .base import MinimizationAttack, T, get_criterion, raise_if_kwargs
+
+from ..models import Model
+
+from ..distances import l2
+
+from ..criteria import Misclassification
+from ..criteria import TargetedMisclassification
+
+from .base import MinimizationAttack
+from .base import T
+from .base import get_criterion
+from .base import raise_if_kwargs
+
 from .gradient_descent_base import AdamOptimizer
 
 

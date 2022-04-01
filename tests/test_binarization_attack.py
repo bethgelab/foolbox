@@ -1,13 +1,12 @@
 import pytest
-from conftest import ModeAndDataAndDescription
 
 from foolbox import accuracy
-from foolbox.attacks import (
-    BinarizationRefinementAttack,
-    BinarySearchContrastReductionAttack,
-)
-from foolbox.devutils import flatten
 from foolbox.models import ThresholdingWrapper
+from foolbox.devutils import flatten
+from foolbox.attacks import BinarySearchContrastReductionAttack
+from foolbox.attacks import BinarizationRefinementAttack
+
+from conftest import ModeAndDataAndDescription
 
 
 def test_binarization_attack(

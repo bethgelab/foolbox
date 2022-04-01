@@ -1,14 +1,21 @@
-import math
-from typing import Any, Optional, Tuple, Union
-
-import eagerpy as ep
+from typing import Optional, Any, Tuple, Union
 import numpy as np
+import eagerpy as ep
+
+from ..devutils import atleast_kd
+
+from ..models import Model
 
 from ..criteria import TargetedMisclassification
-from ..devutils import atleast_kd
+
 from ..distances import linf
-from ..models import Model
-from .base import FixedEpsilonAttack, T, get_channel_axis, raise_if_kwargs
+
+from .base import FixedEpsilonAttack
+from .base import T
+from .base import get_channel_axis
+from .base import raise_if_kwargs
+import math
+
 from .gen_attack_utils import rescale_images
 
 

@@ -1,9 +1,7 @@
 from typing import Tuple
-
+import foolbox as fbn
 import eagerpy as ep
 import pytest
-
-import foolbox as fbn
 
 ModelAndData = Tuple[fbn.Model, ep.Tensor, ep.Tensor]
 

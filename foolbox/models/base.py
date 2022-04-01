@@ -1,11 +1,11 @@
-import copy
+from typing import TypeVar, Callable, Optional, Tuple, Any
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Optional, Tuple, TypeVar
-
+import copy
 import eagerpy as ep
 
-from ..devutils import atleast_kd
 from ..types import Bounds, BoundsInput, Preprocessing
+from ..devutils import atleast_kd
+
 
 T = TypeVar("T")
 PreprocessArgs = Tuple[Optional[ep.Tensor], Optional[ep.Tensor], Optional[int]]

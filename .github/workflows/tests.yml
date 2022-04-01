@@ -71,9 +71,6 @@ jobs:
     - name: black
       run: |
         black --check --verbose .
-    - name: isort
-      run: |
-        isort --check .
     - name: Install package
       run: |
         pip install -e .

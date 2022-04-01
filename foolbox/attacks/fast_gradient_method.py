@@ -1,13 +1,10 @@
-from typing import Any, Union
-
-from ..criteria import Misclassification, TargetedMisclassification
+from .gradient_descent_base import L1BaseGradientDescent
+from .gradient_descent_base import L2BaseGradientDescent
+from .gradient_descent_base import LinfBaseGradientDescent
 from ..models.base import Model
+from ..criteria import Misclassification, TargetedMisclassification
 from .base import T
-from .gradient_descent_base import (
-    L1BaseGradientDescent,
-    L2BaseGradientDescent,
-    LinfBaseGradientDescent,
-)
+from typing import Union, Any
 
 
 class L1FastGradientAttack(L1BaseGradientDescent):

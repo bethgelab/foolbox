@@ -1,14 +1,9 @@
 from typing import Optional
 
+from .gradient_descent_base import L1BaseGradientDescent, AdamOptimizer, Optimizer
+from .gradient_descent_base import L2BaseGradientDescent
+from .gradient_descent_base import LinfBaseGradientDescent
 import eagerpy as ep
-
-from .gradient_descent_base import (
-    AdamOptimizer,
-    L1BaseGradientDescent,
-    L2BaseGradientDescent,
-    LinfBaseGradientDescent,
-    Optimizer,
-)
 
 
 class L1ProjectedGradientDescentAttack(L1BaseGradientDescent):

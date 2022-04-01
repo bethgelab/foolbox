@@ -1,10 +1,13 @@
-from typing import Any, Optional, Union
-
+from typing import Union, Any, Optional
 import eagerpy as ep
 
 from ..criteria import Criterion
+
 from ..models import Model
-from .base import FlexibleDistanceMinimizationAttack, T, raise_if_kwargs
+
+from .base import FlexibleDistanceMinimizationAttack
+from .base import T
+from .base import raise_if_kwargs
 
 
 class InversionAttack(FlexibleDistanceMinimizationAttack):

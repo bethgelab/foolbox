@@ -4,11 +4,10 @@ The spatial attack is a very special attack because it tries to find adversarial
 perturbations using a set of translations and rotations rather then in an Lp ball.
 It therefore has a slightly different interface.
 """
-import eagerpy as ep
 import torchvision.models as models
-
-import foolbox.attacks as fa
+import eagerpy as ep
 from foolbox import PyTorchModel, accuracy, samples
+import foolbox.attacks as fa
 
 
 def main() -> None:

@@ -1,5 +1,4 @@
-from typing import List, Tuple, Union
-
+from typing import Union, List, Tuple
 import eagerpy as ep
 
 

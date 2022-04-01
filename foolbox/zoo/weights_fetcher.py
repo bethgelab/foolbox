@@ -1,12 +1,11 @@
-import logging
-import os
-import shutil
-import tarfile
-import zipfile
-
 import requests
+import shutil
+import zipfile
+import tarfile
+import os
+import logging
 
-from .common import home_directory_path, sha256_hash
+from .common import sha256_hash, home_directory_path
 
 FOLDER = ".foolbox_zoo/weights"
 

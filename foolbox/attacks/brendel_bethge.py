@@ -1,31 +1,29 @@
 # mypy: allow-untyped-defs, no-strict-optional
 
+from typing import Union, Optional, Tuple, Any
+from typing_extensions import Literal
+from abc import ABC
+from abc import abstractmethod
+import numpy as np
+import eagerpy as ep
 import logging
 import warnings
-from abc import ABC, abstractmethod
-from typing import Any, Optional, Tuple, Union
-
-import eagerpy as ep
-import numpy as np
-from typing_extensions import Literal
-
-from ..criteria import Misclassification, TargetedMisclassification
 from ..devutils import flatten
-from ..distances import l0, l1, l2, linf
-from ..tensorboard import TensorBoard
 from . import LinearSearchBlendedUniformNoiseAttack
-from .base import (
-    MinimizationAttack,
-    Model,
-    T,
-    get_criterion,
-    get_is_adversarial,
-    raise_if_kwargs,
-)
+from ..tensorboard import TensorBoard
+from .base import Model
+from .base import MinimizationAttack
+from .base import get_is_adversarial
+from .base import get_criterion
+from .base import T
+from ..criteria import Misclassification, TargetedMisclassification
+from .base import raise_if_kwargs
+from ..distances import l0, l1, l2, linf
+
 
 try:
-    import numba
     from numba.experimental import jitclass  # type: ignore
+    import numba
 except (ModuleNotFoundError, ImportError) as e:  # pragma: no cover
     # delay the error until the attack is initialized
     NUMBA_IMPORT_ERROR = e

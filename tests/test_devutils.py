@@ -1,7 +1,6 @@
-import eagerpy as ep
 import pytest
-
 import foolbox as fbn
+import eagerpy as ep
 
 
 @pytest.mark.parametrize("k", [1, 2, 3, 4])

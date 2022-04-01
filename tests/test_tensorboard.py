@@ -1,9 +1,7 @@
-from typing import Any, Union
-
-import eagerpy as ep
-import pytest
+from typing import Union, Any
 from typing_extensions import Literal
-
+import pytest
+import eagerpy as ep
 import foolbox as fbn
 
 

@@ -1,14 +1,18 @@
+from typing import Callable, TypeVar, Any, Union, Optional, Sequence, List, Tuple, Dict
+from typing_extensions import final, overload
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
-
 import eagerpy as ep
-from typing_extensions import final, overload
 
-from ..criteria import Criterion, Misclassification
-from ..devutils import atleast_kd
-from ..distances import Distance
 from ..models import Model
+
+from ..criteria import Criterion
+from ..criteria import Misclassification
+
+from ..devutils import atleast_kd
+
+from ..distances import Distance
+
 
 T = TypeVar("T")
 CriterionType = TypeVar("CriterionType", bound=Criterion)
