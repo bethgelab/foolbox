@@ -1,7 +1,4 @@
-from typing import Any
-
 import eagerpy as ep
-import numpy as np
 import pytest
 from conftest import ModeAndDataAndDescription
 
