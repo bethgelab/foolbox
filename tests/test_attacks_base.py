@@ -48,16 +48,11 @@ def test_get_channel_axis() -> None:
         assert fbn.attacks.base.get_channel_axis(model, 3)  # type: ignore
 
 
-def test_model_bounds() -> None:
-    class MeanModel:
-        def __call__(self, inputs: Any) -> Any:
-            return inputs.mean(axis=(2, 3))
-
-    model = MeanModel()
-    fmodel = fbn.NumPyModel(model, bounds=(0, 1), data_format="channels_last")
+def test_model_bounds(
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
+) -> None:
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
     attack = fbn.attacks.SaltAndPepperNoiseAttack(steps=5)
-
-    x = ep.astensor(np.zeros(16, 5, 5, 3))
 
     with pytest.raises(AssertionError):
         attack(fmodel, x - 0.1)
