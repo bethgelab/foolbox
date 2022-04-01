@@ -56,7 +56,7 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
         criterion_ = get_criterion(criterion)
         del inputs, criterion, kwargs
 
-        verify_input_bounds(x, model)
+        verify_input_bounds(x0, model)
 
         is_adversarial = get_is_adversarial(criterion_, model)
 

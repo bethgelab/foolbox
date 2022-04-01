@@ -124,7 +124,7 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         criterion_ = get_criterion(criterion)
         del inputs, criterion, kwargs
 
-        verify_input_bounds(x, model)
+        verify_input_bounds(x0, model)
 
         # perform a gradient ascent (targeted attack) or descent (untargeted attack)
         if isinstance(criterion_, Misclassification):
