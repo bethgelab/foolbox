@@ -53,6 +53,6 @@ def test_model_bounds(
     attack = fbn.attacks.InversionAttack()
 
     with pytest.raises(AssertionError):
-        attack.run(fmodel, x - 0.1, y)
+        attack.run(fmodel, x * 0.0 - 0.1, y)
     with pytest.raises(AssertionError):
-        attack.run(fmodel, x + 1.1, y)
+        attack.run(fmodel, x * 0.0 + 1.1, y)
