@@ -17,6 +17,7 @@ from .base import get_is_adversarial
 from .base import raise_if_kwargs
 
 from ..external.clipping_aware_rescaling import l2_clipping_aware_rescaling
+from .base import verify_input_bounds
 
 
 class BaseAdditiveNoiseAttack(FixedEpsilonAttack, ABC):
@@ -32,6 +33,8 @@ class BaseAdditiveNoiseAttack(FixedEpsilonAttack, ABC):
         raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
         del inputs, criterion, kwargs
+
+        verify_input_bounds(x, model)
 
         min_, max_ = model.bounds
         p = self.sample_noise(x)
@@ -163,6 +166,8 @@ class BaseRepeatedAdditiveNoiseAttack(FixedEpsilonAttack, ABC):
         x0, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
         del inputs, criterion, kwargs
+
+        verify_input_bounds(x0, model)
 
         is_adversarial = get_is_adversarial(criterion_, model)
 

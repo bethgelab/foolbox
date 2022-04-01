@@ -15,6 +15,7 @@ from .base import get_criterion
 from .base import raise_if_kwargs
 
 import warnings
+from .base import verify_input_bounds
 
 
 class LinearSearchBlendedUniformNoiseAttack(FlexibleDistanceMinimizationAttack):
@@ -54,6 +55,8 @@ class LinearSearchBlendedUniformNoiseAttack(FlexibleDistanceMinimizationAttack):
         x, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
         del inputs, criterion, kwargs
+
+        verify_input_bounds(x, model)
 
         is_adversarial = get_is_adversarial(criterion_, model)
 

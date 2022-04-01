@@ -14,6 +14,7 @@ from .base import MinimizationAttack
 from .base import get_criterion
 from .base import T
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 def normalize_gradient_l2_norms(grad: ep.Tensor) -> ep.Tensor:
@@ -73,6 +74,8 @@ class DDNAttack(MinimizationAttack):
         x, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
         del inputs, criterion, kwargs
+
+        verify_input_bounds(x, model)
 
         N = len(x)
 

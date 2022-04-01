@@ -14,6 +14,7 @@ from .base import FixedEpsilonAttack
 from .base import T
 from .base import get_channel_axis
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 import math
 
 from .gen_attack_utils import rescale_images
@@ -92,6 +93,8 @@ class GenAttack(FixedEpsilonAttack):
         raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
         del inputs, kwargs
+
+        verify_input_bounds(x, model)
 
         N = len(x)
 

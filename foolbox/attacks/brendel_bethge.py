@@ -18,6 +18,7 @@ from .base import get_criterion
 from .base import T
 from ..criteria import Misclassification, TargetedMisclassification
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 from ..distances import l0, l1, l2, linf
 
 
@@ -403,6 +404,8 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
 
         originals, restore_type = ep.astensor_(inputs)
         del inputs
+
+        verify_input_bounds(originals, model)
 
         criterion_ = get_criterion(criterion)
         del criterion

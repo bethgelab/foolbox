@@ -13,6 +13,7 @@ from .base import MinimizationAttack
 from .base import get_criterion
 from .base import T
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class NewtonFoolAttack(MinimizationAttack):
@@ -47,6 +48,8 @@ class NewtonFoolAttack(MinimizationAttack):
         x, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
         del inputs, criterion, kwargs
+
+        verify_input_bounds(x, model)
 
         N = len(x)
 

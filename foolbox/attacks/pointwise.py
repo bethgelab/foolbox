@@ -15,6 +15,7 @@ from .base import get_is_adversarial
 from .base import get_criterion
 from .base import T
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class PointwiseAttack(FlexibleDistanceMinimizationAttack):
@@ -51,6 +52,8 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
 
         x, restore_type = ep.astensor_(inputs)
         del inputs
+
+        verify_input_bounds(x, model)
 
         criterion_ = get_criterion(criterion)
         del criterion

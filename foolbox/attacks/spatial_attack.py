@@ -13,6 +13,7 @@ from .base import get_criterion
 from .base import Attack
 from .spatial_attack_transformations import rotate_and_shift
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class SpatialAttack(Attack):
@@ -84,6 +85,8 @@ class SpatialAttack(Attack):
 
         x, restore_type = ep.astensor_(inputs)
         del inputs, kwargs
+
+        verify_input_bounds(x, model)
 
         criterion = get_criterion(criterion)
         is_adversarial = get_is_adversarial(criterion, model)

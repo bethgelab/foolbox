@@ -17,6 +17,7 @@ from .base import FixedEpsilonAttack
 from .base import T
 from .base import get_criterion
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class Optimizer(ABC):
@@ -122,6 +123,8 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         x0, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
         del inputs, criterion, kwargs
+
+        verify_input_bounds(x, model)
 
         # perform a gradient ascent (targeted attack) or descent (untargeted attack)
         if isinstance(criterion_, Misclassification):

@@ -14,6 +14,7 @@ from .base import FlexibleDistanceMinimizationAttack
 from .base import T
 from .base import get_criterion
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class DatasetAttack(FlexibleDistanceMinimizationAttack):
@@ -78,6 +79,8 @@ class DatasetAttack(FlexibleDistanceMinimizationAttack):
         assert self.outputs is not None
         x, restore_type = ep.astensor_(inputs)
         del inputs, kwargs
+
+        verify_input_bounds(x, model)
 
         criterion = get_criterion(criterion)
 

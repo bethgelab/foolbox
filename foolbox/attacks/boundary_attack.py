@@ -24,6 +24,7 @@ from .base import T
 from .base import get_criterion
 from .base import get_is_adversarial
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class BoundaryAttack(MinimizationAttack):
@@ -99,6 +100,8 @@ class BoundaryAttack(MinimizationAttack):
         raise_if_kwargs(kwargs)
         originals, restore_type = ep.astensor_(inputs)
         del inputs, kwargs
+
+        verify_input_bounds(x, model)
 
         criterion = get_criterion(criterion)
         is_adversarial = get_is_adversarial(criterion, model)
