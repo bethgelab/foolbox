@@ -1,9 +1,6 @@
-from typing import Any
-
 import pytest
 import eagerpy as ep
 import foolbox as fbn
-import numpy as np
 
 from conftest import ModeAndDataAndDescription
 
