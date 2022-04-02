@@ -25,13 +25,13 @@ install_requires = [
     "typing-extensions>=3.7.4.1",
     "requests>=2.24.0",
 ]
-tests_require = ["pytest>=5.3.5", "pytest-cov>=2.8.1"]
+tests_require = ["pytest>=7.1.1", "pytest-cov>=3.0.0"]
 
 
 setup(
     name="foolbox",
     version=version,
-    description="Foolbox Native is an adversarial attacks library that works natively with PyTorch, TensorFlow and JAX",
+    description="Foolbox is an adversarial attacks library that works natively with PyTorch, TensorFlow and JAX",
     long_description=README,
     long_description_content_type="text/x-rst",
     classifiers=[
@@ -45,8 +45,8 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
     keywords="",
-    author="Jonas Rauber",
-    author_email="git@jonasrauber.de",
+    author="Jonas Rauber, Roland S. Zimmermann",
+    author_email="foolbox+rzrolandzimmermann@gmail.com",
     url="https://github.com/bethgelab/foolbox",
     license="MIT License",
     packages=find_packages(),

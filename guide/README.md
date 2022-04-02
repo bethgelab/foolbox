@@ -2,7 +2,7 @@
 home: true
 heroImage: /logo.png
 heroText: Foolbox
-tagline: "Foolbox Native: Fast adversarial attacks to benchmark the robustness of machine learning models in PyTorch, TensorFlow, and JAX"
+tagline: "Foolbox: Fast adversarial attacks to benchmark the robustness of machine learning models in PyTorch, TensorFlow, and JAX"
 actionText: Get Started →
 actionLink: /guide/
 features:
@@ -12,7 +12,7 @@ features:
   details: Foolbox provides a large collection of state-of-the-art gradient-based and decision-based adversarial attacks.
 - title: Type Checking
   details: Catch bugs before running your code thanks to extensive type annotations in Foolbox.
-footer: Copyright © 2020 Jonas Rauber
+footer: Copyright © 2022 Jonas Rauber, Roland S. Zimmermann
 
 ---
 
