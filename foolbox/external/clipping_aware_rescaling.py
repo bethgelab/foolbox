@@ -44,13 +44,13 @@ def l2_clipping_aware_rescaling(x, delta, eps: float, a: float = 0.0, b: float =
     dx = ep.concatenate((f2_sorted[:, :1], dx), axis=-1)
     dy = m * dx
     y = ep.cumsum(dy, axis=-1)
-    c = y >= eps ** 2
+    c = y >= eps**2
 
     # work-around to get first nonzero element in each row
     f = ep.arange(x, c.shape[-1], 0, -1)
     j = ep.argmax(c.astype(f.dtype) * f, axis=-1)
 
-    eta2 = f2_sorted[rows, j] - (y[rows, j] - eps ** 2) / m[rows, j]
+    eta2 = f2_sorted[rows, j] - (y[rows, j] - eps**2) / m[rows, j]
     # it can happen that for certain rows even the largest j is not large enough
     # (i.e. c[:, -1] is False), then we will just use it (without any correction) as it's
     # the best we can do (this should also be the only cases where m[j] can be

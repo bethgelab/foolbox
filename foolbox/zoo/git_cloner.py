@@ -45,6 +45,6 @@ def _clone_repo(git_uri: str, local_path: str) -> None:
     try:
         Repo.clone_from(git_uri, local_path)
     except Exception as e:
-        logging.exception("Failed to clone repository", e)
+        logging.exception("Failed to clone repository", exc_info=e)
         raise GitCloneError("Failed to clone repository")
     logging.info("Cloned repo successfully.")

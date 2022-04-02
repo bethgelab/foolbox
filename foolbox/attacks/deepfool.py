@@ -18,6 +18,7 @@ from .base import MinimizationAttack
 from .base import T
 from .base import get_criterion
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class DeepFoolAttack(MinimizationAttack, ABC):
@@ -54,7 +55,9 @@ class DeepFoolAttack(MinimizationAttack, ABC):
         self.loss = loss
 
     def _get_loss_fn(
-        self, model: Model, classes: ep.Tensor,
+        self,
+        model: Model,
+        classes: ep.Tensor,
     ) -> Callable[[ep.Tensor, int], Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]]:
 
         N = len(classes)
@@ -104,6 +107,8 @@ class DeepFoolAttack(MinimizationAttack, ABC):
         raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
         del inputs, kwargs
+
+        verify_input_bounds(x, model)
 
         criterion = get_criterion(criterion)
 
@@ -214,7 +219,8 @@ class L2DeepFoolAttack(DeepFoolAttack):
     def get_perturbations(self, distances: ep.Tensor, grads: ep.Tensor) -> ep.Tensor:
         return (
             atleast_kd(
-                distances / (flatten(grads).norms.l2(axis=-1) + 1e-8), grads.ndim,
+                distances / (flatten(grads).norms.l2(axis=-1) + 1e-8),
+                grads.ndim,
             )
             * grads
         )
@@ -223,22 +229,22 @@ class L2DeepFoolAttack(DeepFoolAttack):
 class LinfDeepFoolAttack(DeepFoolAttack):
     """A simple and fast gradient-based adversarial attack.
 
-        Implements the `DeepFool`_ L-Infinity attack.
+    Implements the `DeepFool`_ L-Infinity attack.
 
-        Args:
-            steps : Maximum number of steps to perform.
-            candidates : Limit on the number of the most likely classes that should
-                be considered. A small value is usually sufficient and much faster.
-            overshoot : How much to overshoot the boundary.
-            loss  Loss function to use inside the update function.
+    Args:
+        steps : Maximum number of steps to perform.
+        candidates : Limit on the number of the most likely classes that should
+            be considered. A small value is usually sufficient and much faster.
+        overshoot : How much to overshoot the boundary.
+        loss  Loss function to use inside the update function.
 
 
-        .. _DeepFool:
-                Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
-                "DeepFool: a simple and accurate method to fool deep neural
-                networks", https://arxiv.org/abs/1511.04599
+    .. _DeepFool:
+            Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, Pascal Frossard,
+            "DeepFool: a simple and accurate method to fool deep neural
+            networks", https://arxiv.org/abs/1511.04599
 
-        """
+    """
 
     distance = linf
 

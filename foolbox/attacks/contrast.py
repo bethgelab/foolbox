@@ -13,6 +13,7 @@ from ..models import Model
 from .base import FixedEpsilonAttack
 from .base import T
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class L2ContrastReductionAttack(FixedEpsilonAttack):
@@ -40,6 +41,8 @@ class L2ContrastReductionAttack(FixedEpsilonAttack):
         raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
         del inputs, criterion, kwargs
+
+        verify_input_bounds(x, model)
 
         min_, max_ = model.bounds
         target = min_ + self.target * (max_ - min_)

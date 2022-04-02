@@ -16,6 +16,7 @@ from ..models.base import Model
 from .base import get_criterion
 from .base import T
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class SaltAndPepperNoiseAttack(MinimizationAttack):
@@ -54,6 +55,8 @@ class SaltAndPepperNoiseAttack(MinimizationAttack):
         x0, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
         del inputs, criterion, kwargs
+
+        verify_input_bounds(x0, model)
 
         is_adversarial = get_is_adversarial(criterion_, model)
 

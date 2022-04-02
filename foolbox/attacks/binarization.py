@@ -14,6 +14,7 @@ from .base import T
 from .base import get_is_adversarial
 from .base import get_criterion
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class BinarizationRefinementAttack(FlexibleDistanceMinimizationAttack):
@@ -56,6 +57,8 @@ class BinarizationRefinementAttack(FlexibleDistanceMinimizationAttack):
             raise ValueError("BinarizationRefinementAttack requires starting_points")
         (o, x), restore_type = ep.astensors_(inputs, starting_points)
         del inputs, starting_points, kwargs
+
+        verify_input_bounds(x, model)
 
         criterion = get_criterion(criterion)
         is_adversarial = get_is_adversarial(criterion, model)

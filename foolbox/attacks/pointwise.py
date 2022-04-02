@@ -15,10 +15,11 @@ from .base import get_is_adversarial
 from .base import get_criterion
 from .base import T
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class PointwiseAttack(FlexibleDistanceMinimizationAttack):
-    """ Starts with an adversarial and performs a binary search between
+    """Starts with an adversarial and performs a binary search between
     the adversarial and the original for each dimension of the input
     individually. [#Sch18]_
 
@@ -51,6 +52,8 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
 
         x, restore_type = ep.astensor_(inputs)
         del inputs
+
+        verify_input_bounds(x, model)
 
         criterion_ = get_criterion(criterion)
         del criterion

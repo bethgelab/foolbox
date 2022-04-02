@@ -13,6 +13,7 @@ from .base import get_criterion
 from .base import Attack
 from .spatial_attack_transformations import rotate_and_shift
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class SpatialAttack(Attack):
@@ -50,7 +51,11 @@ class SpatialAttack(Attack):
         self.random_steps = random_steps
 
     def __call__(  # type: ignore
-        self, model: Model, inputs: T, criterion: Any, **kwargs: Any,
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Any,
+        **kwargs: Any,
     ) -> Tuple[T, T, T]:
         x, restore_type = ep.astensor_(inputs)
         del inputs
@@ -70,12 +75,18 @@ class SpatialAttack(Attack):
         return xp_, xp_, restore_type(success)  # twice to match API
 
     def run(
-        self, model: Model, inputs: T, criterion: Union[Criterion, T], **kwargs: Any,
+        self,
+        model: Model,
+        inputs: T,
+        criterion: Union[Criterion, T],
+        **kwargs: Any,
     ) -> T:
         raise_if_kwargs(kwargs)
 
         x, restore_type = ep.astensor_(inputs)
         del inputs, kwargs
+
+        verify_input_bounds(x, model)
 
         criterion = get_criterion(criterion)
         is_adversarial = get_is_adversarial(criterion, model)

@@ -8,6 +8,7 @@ from ..models import Model
 from .base import FlexibleDistanceMinimizationAttack
 from .base import T
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class InversionAttack(FlexibleDistanceMinimizationAttack):
@@ -32,6 +33,8 @@ class InversionAttack(FlexibleDistanceMinimizationAttack):
         raise_if_kwargs(kwargs)
         x, restore_type = ep.astensor_(inputs)
         del inputs, criterion, kwargs
+
+        verify_input_bounds(x, model)
 
         min_, max_ = model.bounds
         x = min_ + max_ - x

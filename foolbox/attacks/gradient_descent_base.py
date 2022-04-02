@@ -17,6 +17,7 @@ from .base import FixedEpsilonAttack
 from .base import T
 from .base import get_criterion
 from .base import raise_if_kwargs
+from .base import verify_input_bounds
 
 
 class Optimizer(ABC):
@@ -51,10 +52,10 @@ class AdamOptimizer(Optimizer):
         self.t += 1
 
         self.m = self.beta1 * self.m + (1 - self.beta1) * gradient
-        self.v = self.beta2 * self.v + (1 - self.beta2) * gradient ** 2
+        self.v = self.beta2 * self.v + (1 - self.beta2) * gradient**2
 
-        bias_correction_1 = 1 - self.beta1 ** self.t
-        bias_correction_2 = 1 - self.beta2 ** self.t
+        bias_correction_1 = 1 - self.beta1**self.t
+        bias_correction_2 = 1 - self.beta2**self.t
 
         m_hat = self.m / bias_correction_1
         v_hat = self.v / bias_correction_2
@@ -66,7 +67,10 @@ class GDOptimizer(Optimizer):
     def __init__(self, x: ep.Tensor, stepsize: float):
         self.stepsize = stepsize
 
-    def __call__(self, gradient: ep.Tensor,) -> ep.Tensor:
+    def __call__(
+        self,
+        gradient: ep.Tensor,
+    ) -> ep.Tensor:
         return self.stepsize * gradient
 
 
@@ -119,6 +123,8 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         x0, restore_type = ep.astensor_(inputs)
         criterion_ = get_criterion(criterion)
         del inputs, criterion, kwargs
+
+        verify_input_bounds(x0, model)
 
         # perform a gradient ascent (targeted attack) or descent (untargeted attack)
         if isinstance(criterion_, Misclassification):

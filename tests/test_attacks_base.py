@@ -1,9 +1,6 @@
-from typing import Any
-
 import pytest
 import eagerpy as ep
 import foolbox as fbn
-import numpy as np
 
 from conftest import ModeAndDataAndDescription
 
@@ -18,7 +15,8 @@ attacks = [
 
 @pytest.mark.parametrize("attack", attacks)
 def test_call_one_epsilon(
-    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription, attack: fbn.Attack,
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
+    attack: fbn.Attack,
 ) -> None:
     (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
 
@@ -48,18 +46,13 @@ def test_get_channel_axis() -> None:
         assert fbn.attacks.base.get_channel_axis(model, 3)  # type: ignore
 
 
-def test_model_bounds() -> None:
-    class MeanModel:
-        def __call__(self, inputs: Any) -> Any:
-            return inputs.mean(axis=(2, 3))
-
-    model = MeanModel()
-    fmodel = fbn.NumPyModel(model, bounds=(0, 1), data_format="channels_last")
-    attack = fbn.attacks.SaltAndPepperNoiseAttack(steps=5)
-
-    x = ep.astensor(np.zeros(16, 5, 5, 3))
+def test_model_bounds(
+    fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
+) -> None:
+    (fmodel, x, y), _, _ = fmodel_and_data_ext_for_attacks
+    attack = fbn.attacks.InversionAttack()
 
     with pytest.raises(AssertionError):
-        attack(fmodel, x - 0.1)
+        attack.run(fmodel, x * 0.0 - fmodel.bounds.lower - 0.1, y)
     with pytest.raises(AssertionError):
-        attack(fmodel, x + 1.1)
+        attack.run(fmodel, x * 0.0 + fmodel.bounds.upper + 0.1, y)
