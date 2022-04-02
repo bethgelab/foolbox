@@ -19,8 +19,7 @@ attacks: List[Tuple[fa.Attack, Union[int, float]]] = [
     (fa.L1FMNAttack(steps=20), 1),
     (fa.L2FMNAttack(steps=20), 2),
     (fa.LInfFMNAttack(steps=20), ep.inf),
-
-    (fa.LInfFMNAttack(steps=20, min_stepsize=1.0/100), ep.inf)
+    (fa.LInfFMNAttack(steps=20, min_stepsize=1.0 / 100), ep.inf)
 ]
 
 
