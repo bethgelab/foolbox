@@ -6,7 +6,7 @@ import foolbox.attacks as fa
 from foolbox.devutils import flatten
 from foolbox.attacks.fast_minimum_norm import FMNAttackLp
 import pytest
-
+import numpy as np
 from conftest import ModeAndDataAndDescription
 
 
@@ -68,16 +68,23 @@ def test_fast_minimum_norm_targeted_attack(
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
 
-    num_classes = fmodel(x).shape[-1]
-    target_classes = (y + 1) % num_classes
+    y_unique = np.unique(y.numpy())
+    target_classes = ep.from_numpy(
+        y,
+        np.array(
+            [
+                y_unique[(np.argmax(y_it == y_unique) + 1) % len(y_unique)]
+                for y_it in y.numpy()
+            ]
+        ),
+    )
     criterion = fbn.TargetedMisclassification(target_classes)
     adv_before_attack = criterion(x, fmodel(x))
     assert not adv_before_attack.all()
-    initial_asr = adv_before_attack.sum().item()
 
     init_attack = fa.DatasetAttack()
     init_attack.feed(fmodel, x)
-    init_advs = init_attack.run(fmodel, x, y)
+    init_advs = init_attack.run(fmodel, x, criterion)
 
     attack, p = attack_and_p
     advs = attack.run(fmodel, x, criterion, starting_points=init_advs)
@@ -87,7 +94,5 @@ def test_fast_minimum_norm_targeted_attack(
 
     is_smaller = norms < init_norms
 
-    assert fbn.accuracy(fmodel, advs, y) < fbn.accuracy(fmodel, x, y)
-    assert fbn.accuracy(fmodel, advs, y) <= fbn.accuracy(fmodel, init_advs, y)
-    assert fbn.accuracy(fmodel, advs, target_classes) >= initial_asr
+    assert fbn.accuracy(fmodel, advs, target_classes) == 1.0
     assert is_smaller.any()
