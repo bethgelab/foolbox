@@ -94,7 +94,6 @@ class DatasetAttack(FlexibleDistanceMinimizationAttack):
         for i in range(batch_size):
             indices = list(range(batch_size))
             indices.remove(i)
-            indices = list(indices)
             np.random.shuffle(indices)
             index_pools.append(indices)
 

@@ -68,12 +68,12 @@ def test_fast_minimum_norm_targeted_attack(
     x = (x - fmodel.bounds.lower) / (fmodel.bounds.upper - fmodel.bounds.lower)
     fmodel = fmodel.transform_bounds((0, 1))
 
-    y_unique = np.unique(y.numpy())
+    unique_preds = np.unique(fmodel(x).argmax(-1).numpy())
     target_classes = ep.from_numpy(
         y,
         np.array(
             [
-                y_unique[(np.argmax(y_it == y_unique) + 1) % len(y_unique)]
+                unique_preds[(np.argmax(y_it == unique_preds) + 1) % len(unique_preds)]
                 for y_it in y.numpy()
             ]
         ),
