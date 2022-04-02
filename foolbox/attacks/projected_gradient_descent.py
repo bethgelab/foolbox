@@ -129,7 +129,7 @@ class L1AdamProjectedGradientDescentAttack(L1ProjectedGradientDescentAttack):
         )
 
 
-class L2PAdamProjectedGradientDescentAttack(L2ProjectedGradientDescentAttack):
+class L2AdamProjectedGradientDescentAttack(L2ProjectedGradientDescentAttack):
     """L2 Projected Gradient Descent with Adam optimizer
 
     Args:
