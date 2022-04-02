@@ -19,8 +19,8 @@ import foolbox
 # -- Project information -----------------------------------------------------
 
 project = "Foolbox"
-copyright = "2020, Jonas Rauber"
-author = "Jonas Rauber"
+copyright = "2021, Jonas Rauber, Roland S. Zimmermann"
+author = "Jonas Rauber, Roland S. Zimmermann"
 
 version = foolbox.__version__
 release = foolbox.__version__

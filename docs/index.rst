@@ -2,7 +2,7 @@ Welcome to Foolbox Native
 =========================
 
 Foolbox is a Python toolbox to create adversarial examples that fool neural networks.
-*Foolbox 3.0* a.k.a. *Foolbox Native* has been completely rewritten from scratch.
+*Foolbox 3.0* has been completely rewritten from scratch.
 It is now built on top of `EagerPy <https://github.com/jonasrauber/eagerpy>`_
 and comes with native support for these frameworks:
 
