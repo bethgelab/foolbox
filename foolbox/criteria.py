@@ -141,3 +141,53 @@ class TargetedMisclassification(Criterion):
         assert classes.shape == self.target_classes.shape
         is_adv = classes == self.target_classes
         return restore_type(is_adv)
+
+
+class ConfidentClassification(Criterion):
+    """Considers those perturbed inputs adversarial whose predicted class has probability >= p.
+    Args:
+        p: Classification is deemed confident when probability is at least p. p must be between 0 and 1.
+    """
+
+    def __init__(self, p: float):
+        super().__init__()
+        assert 0 <= p <= 1
+        self.p = p
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.p!r})"
+
+    def __call__(self, perturbed: T, outputs: T) -> T:
+        outputs_, restore_type = ep.astensor_(outputs)
+        del perturbed, outputs
+        
+        is_conf = ep.softmax(outputs_).max(axis=-1) >= self.p
+        return restore_type(is_conf)
+
+
+class ConfidentMisclassification(Misclassification):
+    """Considers those perturbed inputs adversarial whose predicted class
+    differs from the label and matches another class with probability >= p.
+
+    Args:
+        labels: Tensor with labels of the unperturbed inputs ``(batch,)``.
+        p: Classification is deemed confident when probability is at least p. p must be between 0 and 1.
+    """
+    
+    def __init__(self, labels: Any, p: float):
+        super().__init__(labels)
+        Misclassification(labels) & ConfidentClassification(p)
+
+
+class ConfidentTargetedMisclassification(TargetedMisclassification):
+    """Considers those perturbed inputs adversarial whose predicted class
+    matches the target class with probability >= p.
+
+    Args:
+        target_classes: Tensor with target classes ``(batch,)``.
+        p: Classification is deemed confident when probability is at least p. p must be between 0 and 1.
+    """
+    
+    def __init__(self, target_classes: Any, p: float):
+        super().__init__(target_classes)
+        TargetedMisclassification(target_classes) & ConfidentClassification(p)
