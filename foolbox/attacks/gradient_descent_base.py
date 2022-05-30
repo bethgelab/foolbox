@@ -127,7 +127,7 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         verify_input_bounds(x0, model)
 
         # perform a gradient ascent (targeted attack) or descent (untargeted attack)
-        if isinstance(criterion_, Misclassification):
+        if hasattr(criterion_, "labels"):
             gradient_step_sign = 1.0
             classes = criterion_.labels
         elif hasattr(criterion_, "target_classes"):
@@ -177,7 +177,9 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
 
 def clip_lp_norms(x: ep.Tensor, *, norm: float, p: float) -> ep.Tensor:
     assert 0 < p < ep.inf
-    norms = flatten(x).norms.lp(p=p, axis=-1)
+    norms = x.norms.linf(axis=-1, keepdims=True)
+    norms = norms * (x / norms).norms.lp(p=p, axis=-1, keepdims=True)
+    # norms = flatten(x).norms.lp(p=p, axis=-1)
     norms = ep.maximum(norms, 1e-12)  # avoid divsion by zero
     factor = ep.minimum(1, norm / norms)  # clipping -> decreasing but not increasing
     factor = atleast_kd(factor, x.ndim)
@@ -186,8 +188,10 @@ def clip_lp_norms(x: ep.Tensor, *, norm: float, p: float) -> ep.Tensor:
 
 def normalize_lp_norms(x: ep.Tensor, *, p: float) -> ep.Tensor:
     assert 0 < p < ep.inf
-    norms = flatten(x).norms.lp(p=p, axis=-1)
-    norms = ep.maximum(norms, 1e-12)  # avoid divsion by zero
+    norms = x.norms.linf(axis=-1, keepdims=True)
+    norms = norms * (x / norms).norms.lp(p=p, axis=-1, keepdims=True)
+    # norms = flatten(x).norms.lp(p=p, axis=-1)
+    # norms = ep.maximum(norms, 1e-12)  # avoid divsion by zero
     factor = 1 / norms
     factor = atleast_kd(factor, x.ndim)
     return x * factor

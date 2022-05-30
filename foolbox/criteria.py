@@ -77,6 +77,7 @@ class Criterion(ABC):
 
 
 class _And(Criterion):
+    
     def __init__(self, a: Criterion, b: Criterion):
         super().__init__()
         self.a = a
@@ -165,7 +166,7 @@ class ConfidentClassification(Criterion):
         return restore_type(is_conf)
 
 
-class ConfidentMisclassification(Misclassification):
+class ConfidentMisclassification(_And):
     """Considers those perturbed inputs adversarial whose predicted class
     differs from the label and matches another class with probability >= p.
 
@@ -175,11 +176,11 @@ class ConfidentMisclassification(Misclassification):
     """
     
     def __init__(self, labels: Any, p: float):
-        super().__init__(labels)
-        Misclassification(labels) & ConfidentClassification(p)
+        super().__init__(Misclassification(labels), ConfidentClassification(p))
+        self.labels = self.a.labels
 
 
-class ConfidentTargetedMisclassification(TargetedMisclassification):
+class ConfidentTargetedMisclassification(_And):
     """Considers those perturbed inputs adversarial whose predicted class
     matches the target class with probability >= p.
 
@@ -189,5 +190,5 @@ class ConfidentTargetedMisclassification(TargetedMisclassification):
     """
     
     def __init__(self, target_classes: Any, p: float):
-        super().__init__(target_classes)
-        TargetedMisclassification(target_classes) & ConfidentClassification(p)
+        super().__init__(TargetedMisclassification(target_classes), ConfidentClassification(p))
+        self.target_classes = self.a.target_classes
