@@ -43,7 +43,7 @@ class iHL_RFAttack(MinimizationAttack):
         self,
         steps: int = 50,
         confidence: float = 0.1,
-        tau: float = 0.5,
+        tau: float = 0.1,
         smooth: float = 1.2,
         omega: float = 10e-4,
         abort_early: bool = True,
