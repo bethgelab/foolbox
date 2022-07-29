@@ -209,6 +209,7 @@ class iHL_RFAttack(MinimizationAttack):
                 next_step.append(desc_dir[i] * stepsize[i])
             next_step = ep.stack(next_step)
             delta += next_step
+            delta = ep.clip(inputs_ + delta, *model.bounds) - inputs_
             found_advs_iter = is_adversarial(delta + inputs_, classes)
             found_advs = ep.logical_or(found_advs, found_advs_iter)
 
