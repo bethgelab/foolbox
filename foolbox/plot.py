@@ -37,19 +37,19 @@ def images(
                 "expected data_format to be 'channels_first' or 'channels_last'"
             )
     assert channels_first != channels_last
-    x = x.numpy()
+    x_np = x.numpy()
     if channels_first:
-        x = np.transpose(x, axes=(0, 2, 3, 1))
+        x_np = np.transpose(x_np, axes=(0, 2, 3, 1))
     min_, max_ = bounds
-    x = (x - min_) / (max_ - min_)
+    x_np = (x_np - min_) / (max_ - min_)
 
     if nrows is None and ncols is None:
         nrows = 1
     if ncols is None:
         assert nrows is not None
-        ncols = (len(x) + nrows - 1) // nrows
+        ncols = (len(x_np) + nrows - 1) // nrows
     elif nrows is None:
-        nrows = (len(x) + ncols - 1) // ncols
+        nrows = (len(x_np) + ncols - 1) // ncols
     if figsize is None:
         figsize = (ncols * scale, nrows * scale)
     fig, axes = plt.subplots(
@@ -69,7 +69,7 @@ def images(
             ax.axis("off")
             i = row * ncols + col
             if i < len(x):
-                if x.shape[-1] == 1:
-                    ax.imshow(x[i][:, :, 0])
+                if x_np.shape[-1] == 1:
+                    ax.imshow(x_np[i][:, :, 0])
                 else:
-                    ax.imshow(x[i])
+                    ax.imshow(x_np[i])

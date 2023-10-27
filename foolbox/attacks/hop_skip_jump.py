@@ -328,7 +328,7 @@ class HopSkipJumpAttack(MinimizationAttack):
         perturbed: ep.Tensor,
     ) -> ep.Tensor:
         # Choose upper thresholds in binary search based on constraint.
-        d = np.prod(perturbed.shape[1:])
+        d = int(np.prod(perturbed.shape[1:]))
         if self.constraint == "linf":
             highs = linf(originals, perturbed)
 
@@ -337,7 +337,7 @@ class HopSkipJumpAttack(MinimizationAttack):
             thresholds = highs * self.gamma / (d * d)
         else:
             highs = ep.ones(perturbed, len(perturbed))
-            thresholds = self.gamma / (d * math.sqrt(d))
+            thresholds = highs * self.gamma / (d * math.sqrt(d))
 
         lows = ep.zeros_like(highs)
 
@@ -371,7 +371,7 @@ class HopSkipJumpAttack(MinimizationAttack):
         if step == 0:
             result = 0.1 * ep.ones_like(distances)
         else:
-            d = np.prod(originals.shape[1:])
+            d = int(np.prod(originals.shape[1:]))
 
             if self.constraint == "linf":
                 theta = self.gamma / (d * d)

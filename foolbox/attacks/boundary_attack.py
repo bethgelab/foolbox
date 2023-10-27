@@ -311,7 +311,7 @@ class ArrayQueue:
             self.tensor = dims  # pragma: no cover
         dims = dims.numpy()
         assert dims.shape == (self.N,)
-        assert dims.dtype == np.bool
+        assert dims.dtype == np.bool_
         self.data[:, dims] = np.nan
 
     def mean(self) -> ep.Tensor:

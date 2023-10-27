@@ -39,13 +39,13 @@ def rescale_jax(x: ep.JAXTensor, target_shape: List[int]) -> ep.JAXTensor:
         wc = np.expand_dims((cols - col_lo) * (row_hi - rows), -1)
         wd = np.expand_dims((cols - col_lo) * (rows - row_lo), -1)
 
-        return wa * Ia + wb * Ib + wc * Ic + wd * Id  # type: ignore
+        return wa * Ia + wb * Ib + wc * Ic + wd * Id
 
     nrows, ncols = img.shape[-3:-1]
     deltas = (0.5 / resize_rates[0], 0.5 / resize_rates[1])
 
-    rows = np.linspace(deltas[0], nrows - deltas[0], np.int32(resize_rates[0] * nrows))
-    cols = np.linspace(deltas[1], ncols - deltas[1], np.int32(resize_rates[1] * ncols))
+    rows = np.linspace(deltas[0], nrows - deltas[0], int(resize_rates[0] * nrows))
+    cols = np.linspace(deltas[1], ncols - deltas[1], int(resize_rates[1] * ncols))
     rows_grid, cols_grid = np.meshgrid(rows - 0.5, cols - 0.5, indexing="ij")
 
     img_resize_vec = interpolate_bilinear(img, rows_grid.flatten(), cols_grid.flatten())
@@ -63,7 +63,7 @@ def rescale_numpy(x: ep.NumPyTensor, target_shape: List[int]) -> ep.NumPyTensor:
 
     resize_rates = (target_shape[1] / x.shape[1], target_shape[2] / x.shape[2])
 
-    def interpolate_bilinear(  # type: ignore
+    def interpolate_bilinear(
         im: np.ndarray, rows: np.ndarray, cols: np.ndarray
     ) -> np.ndarray:
         # based on http://stackoverflow.com/a/12729229
@@ -72,10 +72,10 @@ def rescale_numpy(x: ep.NumPyTensor, target_shape: List[int]) -> ep.NumPyTensor:
         row_lo = np.floor(rows).astype(int)
         row_hi = row_lo + 1
 
-        def cclip(cols: np.ndarray) -> np.ndarray:  # type: ignore
+        def cclip(cols: np.ndarray) -> np.ndarray:
             return np.clip(cols, 0, ncols - 1)
 
-        def rclip(rows: np.ndarray) -> np.ndarray:  # type: ignore
+        def rclip(rows: np.ndarray) -> np.ndarray:
             return np.clip(rows, 0, nrows - 1)
 
         nrows, ncols = im.shape[-3:-1]
@@ -90,7 +90,7 @@ def rescale_numpy(x: ep.NumPyTensor, target_shape: List[int]) -> ep.NumPyTensor:
         wc = np.expand_dims((cols - col_lo) * (row_hi - rows), -1)
         wd = np.expand_dims((cols - col_lo) * (rows - row_lo), -1)
 
-        return wa * Ia + wb * Ib + wc * Ic + wd * Id
+        return wa * Ia + wb * Ib + wc * Ic + wd * Id  # type: ignore
 
     nrows, ncols = img.shape[-3:-1]
     deltas = (0.5 / resize_rates[0], 0.5 / resize_rates[1])

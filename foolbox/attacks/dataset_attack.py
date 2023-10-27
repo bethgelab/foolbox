@@ -101,10 +101,10 @@ class DatasetAttack(FlexibleDistanceMinimizationAttack):
             if found.all():
                 break
 
-            indices = np.array([pool[i] for pool in index_pools])
+            indices_np = np.array([pool[i] for pool in index_pools])
 
-            xp = self.inputs[indices]
-            yp = self.outputs[indices]
+            xp = self.inputs[indices_np]
+            yp = self.outputs[indices_np]
             is_adv = criterion(xp, yp)
 
             new_found = ep.logical_and(is_adv, found.logical_not())
