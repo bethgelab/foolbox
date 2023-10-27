@@ -9,7 +9,7 @@ from .projected_gradient_descent import (  # noqa: F401
     L2ProjectedGradientDescentAttack,
     LinfProjectedGradientDescentAttack,
     L1AdamProjectedGradientDescentAttack,
-    L2PAdamProjectedGradientDescentAttack,
+    L2AdamProjectedGradientDescentAttack,
     LinfAdamProjectedGradientDescentAttack,
 )
 from .basic_iterative_method import (  # noqa: F401
@@ -94,7 +94,7 @@ L2PGD = L2ProjectedGradientDescentAttack
 LinfPGD = LinfProjectedGradientDescentAttack
 PGD = LinfPGD
 
-L1AdamPGD = L1ProjectedGradientDescentAttack
-L2AdamPGD = L2ProjectedGradientDescentAttack
-LinfAdamPGD = LinfProjectedGradientDescentAttack
+L1AdamPGD = L1AdamProjectedGradientDescentAttack
+L2AdamPGD = L2AdamProjectedGradientDescentAttack
+LinfAdamPGD = LinfAdamProjectedGradientDescentAttack
 AdamPGD = LinfAdamPGD
