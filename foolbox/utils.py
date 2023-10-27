@@ -28,10 +28,10 @@ def samples(
 ) -> Any:
     if hasattr(fmodel, "data_format"):
         if data_format is None:
-            data_format = fmodel.data_format  # type: ignore
-        elif data_format != fmodel.data_format:  # type: ignore
+            data_format = fmodel.data_format
+        elif data_format != fmodel.data_format:
             raise ValueError(
-                f"data_format ({data_format}) does not match model.data_format ({fmodel.data_format})"  # type: ignore
+                f"data_format ({data_format}) does not match model.data_format ({fmodel.data_format})"
             )
     elif data_format is None:
         raise ValueError(
@@ -50,9 +50,9 @@ def samples(
         bounds=bounds,
     )
 
-    if hasattr(fmodel, "dummy") and fmodel.dummy is not None:  # type: ignore
-        images = ep.from_numpy(fmodel.dummy, images).raw  # type: ignore
-        labels = ep.from_numpy(fmodel.dummy, labels).raw  # type: ignore
+    if hasattr(fmodel, "dummy") and fmodel.dummy is not None:
+        images = ep.from_numpy(fmodel.dummy, images).raw
+        labels = ep.from_numpy(fmodel.dummy, labels).raw
     else:
         warnings.warn(f"unknown model type {type(fmodel)}, returning NumPy arrays")
 

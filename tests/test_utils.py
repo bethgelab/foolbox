@@ -23,7 +23,7 @@ def test_accuracy(fmodel_and_data: ModelAndData) -> None:
 def test_samples(fmodel_and_data: ModelAndData, batchsize: int, dataset: str) -> None:
     fmodel, _, _ = fmodel_and_data
     if hasattr(fmodel, "data_format"):
-        data_format = fmodel.data_format  # type: ignore
+        data_format = fmodel.data_format
         x, y = fbn.samples(fmodel, dataset=dataset, batchsize=batchsize)
         assert len(x) == len(y) == batchsize
         assert not ep.istensor(x)

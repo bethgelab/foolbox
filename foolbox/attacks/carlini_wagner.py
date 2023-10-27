@@ -174,7 +174,7 @@ class L2CarliniWagnerAttack(MinimizationAttack):
                     # after each tenth of the overall steps, check progress
                     if not (loss <= 0.9999 * loss_at_previous_check):
                         break  # stop Adam if there has been no progress
-                    loss_at_previous_check = loss
+                    loss_at_previous_check = loss.item()
 
                 found_advs_iter = is_adversarial(perturbed, logits)
                 found_advs = np.logical_or(found_advs, found_advs_iter.numpy())

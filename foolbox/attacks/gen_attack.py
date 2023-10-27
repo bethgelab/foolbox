@@ -77,8 +77,8 @@ class GenAttack(FixedEpsilonAttack):
     def choice(
         self, a: int, size: Union[int, ep.TensorType], replace: bool, p: ep.TensorType
     ) -> Any:
-        p = p.numpy()
-        x = np.random.choice(a, size, replace, p)
+        p_np: np.ndarray = p.numpy()
+        x = np.random.choice(a, size, replace, p_np)  # type: ignore
         return x
 
     def run(

@@ -6,7 +6,7 @@ import eagerpy as ep
 from ..devutils import flatten
 from ..devutils import atleast_kd
 
-from ..distances import l2, linf
+from ..distances import l2, linf, Distance
 
 from .base import FixedEpsilonAttack
 from .base import Criterion
@@ -56,7 +56,9 @@ class BaseAdditiveNoiseAttack(FixedEpsilonAttack, ABC):
 
 
 class L2Mixin:
-    distance = l2
+    @property
+    def distance(self) -> Distance:
+        return l2
 
     def get_epsilons(
         self, x: ep.Tensor, p: ep.Tensor, epsilon: float, min_: float, max_: float
@@ -66,7 +68,9 @@ class L2Mixin:
 
 
 class L2ClippingAwareMixin:
-    distance = l2
+    @property
+    def distance(self) -> Distance:
+        return l2
 
     def get_epsilons(
         self, x: ep.Tensor, p: ep.Tensor, epsilon: float, min_: float, max_: float
@@ -77,7 +81,9 @@ class L2ClippingAwareMixin:
 
 
 class LinfMixin:
-    distance = linf
+    @property
+    def distance(self) -> Distance:
+        return linf
 
     def get_epsilons(
         self, x: ep.Tensor, p: ep.Tensor, epsilon: float, min_: float, max_: float

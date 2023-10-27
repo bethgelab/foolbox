@@ -241,7 +241,7 @@ class FixedEpsilonAttack(AttackWithDistance):
         ...
 
     @final  # noqa: F811
-    def __call__(  # type: ignore
+    def __call__(
         self,
         model: Model,
         inputs: T,
@@ -381,7 +381,7 @@ class MinimizationAttack(AttackWithDistance):
         ...
 
     @final  # noqa: F811
-    def __call__(  # type: ignore
+    def __call__(
         self,
         model: Model,
         inputs: T,

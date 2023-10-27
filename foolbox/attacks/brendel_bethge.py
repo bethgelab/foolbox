@@ -487,7 +487,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
         x = starting_points
         lrs = self.lr * np.ones(N)
         lr_reduction_interval = max(1, int(self.steps / self.lr_num_decay))
-        converged = np.zeros(N, dtype=np.bool)
+        converged = np.zeros(N, dtype=np.bool_)
         rate_normalization = np.prod(x.shape) * (max_ - min_)
         original_shape = x.shape
         _best_advs = best_advs.numpy()
@@ -569,7 +569,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             # add step to current perturbation
             x = (x + ep.astensor(deltas)).reshape(original_shape)
 
-            tb.probability("converged", converged, step)
+            tb.probability("converged", ep.from_numpy(converged, deltas.astype(np.bool_)), step)  # type: ignore
             tb.histogram("norms", source_norms, step)
             tb.histogram("candidates/distances", distances, step)
 
