@@ -569,7 +569,7 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             # add step to current perturbation
             x = (x + ep.astensor(deltas)).reshape(original_shape)
 
-            tb.probability("converged", ep.from_numpy(x, converged.astype(np.bool_)), step)  # type: ignore
+            tb.probability("converged", ep.from_numpy(x, converged.astype(np.bool_)), step)
             tb.histogram("norms", source_norms, step)
             tb.histogram("candidates/distances", distances, step)
 
