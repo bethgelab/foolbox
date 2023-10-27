@@ -105,9 +105,13 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
             i = 0
             while i < max([len(it) for it in untouched_indices]):
                 # mask all samples that still have pixels to manipulate left
-                relevant_mask = [len(it) > i for it in untouched_indices]
-                relevant_mask = np.array(relevant_mask, dtype=bool)
-                relevant_mask_index = np.flatnonzero(relevant_mask)
+                relevant_mask_lst = [len(it) > i for it in untouched_indices]
+                relevant_mask: np.ndarray[Any, np.dtype[np.bool_]] = np.array(
+                    relevant_mask_lst, dtype=bool
+                )
+                relevant_mask_index: np.ndarray[
+                    Any, np.dtype[np.int_]
+                ] = np.flatnonzero(relevant_mask)
 
                 # for each image get the index of the next pixel we try out
                 relevant_indices = [it[i] for it in untouched_indices if len(it) > i]
@@ -160,8 +164,8 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
                 i = 0
                 while i < max([len(it) for it in untouched_indices]):
                     # mask all samples that still have pixels to manipulate left
-                    relevant_mask = [len(it) > i for it in untouched_indices]
-                    relevant_mask = np.array(relevant_mask, dtype=bool)
+                    relevant_mask_lst = [len(it) > i for it in untouched_indices]
+                    relevant_mask = np.array(relevant_mask_lst, dtype=bool)
                     relevant_mask_index = np.flatnonzero(relevant_mask)
 
                     # for each image get the index of the next pixel we try out
@@ -227,8 +231,8 @@ class PointwiseAttack(FlexibleDistanceMinimizationAttack):
     def _binary_search(
         self,
         x_adv_flat: ep.Tensor,
-        mask: Union[ep.Tensor, List[bool]],
-        mask_indices: ep.Tensor,
+        mask: Union[ep.Tensor, List[bool], np.ndarray[Any, np.dtype[np.bool_]]],
+        mask_indices: Union[ep.Tensor, np.ndarray[Any, np.dtype[np.int_]]],
         indices: Union[ep.Tensor, List[int]],
         adv_values: ep.Tensor,
         non_adv_values: ep.Tensor,

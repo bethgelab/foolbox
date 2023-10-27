@@ -42,10 +42,10 @@ def transform_pt(
 
     # to pt
     x = x_e.raw
-    theta = torch.tensor(theta, device=x.device)
+    theta_t = torch.tensor(theta, device=x.device)
 
     assert len(x.shape) == 4
-    assert theta.shape[1:] == (2, 3)
+    assert theta_t.shape[1:] == (2, 3)
 
     (
         bs,
@@ -64,8 +64,8 @@ def transform_pt(
         return grid
 
     meshgrid = create_meshgrid(x)
-    theta = theta[:, None, None, :, :].repeat(1, n_x, n_y, 1, 1)
-    new_coords = torch.matmul(theta, meshgrid)
+    theta_t = theta_t[:, None, None, :, :].repeat(1, n_x, n_y, 1, 1)
+    new_coords = torch.matmul(theta_t, meshgrid)
     new_coords = new_coords.squeeze_(-1)
 
     # align_corners=True to match tf implementation
