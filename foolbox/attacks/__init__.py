@@ -20,6 +20,11 @@ from .basic_iterative_method import (  # noqa: F401
     L2AdamBasicIterativeAttack,
     LinfAdamBasicIterativeAttack,
 )
+from .mi_fgsm import (  # noqa: F401
+    L1MomentumIterativeFastGradientMethod,
+    L2MomentumIterativeFastGradientMethod,
+    LinfMomentumIterativeFastGradientMethod,
+)
 from .fast_gradient_method import (  # noqa: F401
     L1FastGradientAttack,
     L2FastGradientAttack,
@@ -93,6 +98,7 @@ L1PGD = L1ProjectedGradientDescentAttack
 L2PGD = L2ProjectedGradientDescentAttack
 LinfPGD = LinfProjectedGradientDescentAttack
 PGD = LinfPGD
+MIFGSM = LinfMomentumIterativeFastGradientMethod
 
 L1AdamPGD = L1AdamProjectedGradientDescentAttack
 L2AdamPGD = L2AdamProjectedGradientDescentAttack
