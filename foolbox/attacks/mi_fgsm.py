@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Callable
+from typing import Callable, Union, Optional
 
 from foolbox.attacks.gradient_descent_base import normalize_lp_norms
 
@@ -36,10 +36,18 @@ class L1MomentumIterativeFastGradientMethod(L1BasicIterativeAttack):
         self,
         *,
         momentum: float = 1.0,
-        **kwargs,
+        rel_stepsize: float = 0.2,
+        abs_stepsize: Optional[float] = None,
+        steps: int = 10,
+        random_start: bool = False,
     ):
         self.momentum = momentum
-        super().__init__(**kwargs)
+        super().__init__(
+            rel_stepsize=rel_stepsize,
+            abs_stepsize=abs_stepsize,
+            steps=steps,
+            random_start=random_start,
+        )
 
     def get_optimizer(self, x: ep.Tensor, stepsize: float) -> Optimizer:
         return GDMOptimizer(
@@ -52,10 +60,18 @@ class L2MomentumIterativeFastGradientMethod(L2BasicIterativeAttack):
         self,
         *,
         momentum: float = 1.0,
-        **kwargs,
+        rel_stepsize: float = 0.2,
+        abs_stepsize: Optional[float] = None,
+        steps: int = 10,
+        random_start: bool = False,
     ):
         self.momentum = momentum
-        super().__init__(**kwargs)
+        super().__init__(
+            rel_stepsize=rel_stepsize,
+            abs_stepsize=abs_stepsize,
+            steps=steps,
+            random_start=random_start,
+        )
 
     def get_optimizer(self, x: ep.Tensor, stepsize: float) -> Optimizer:
         return GDMOptimizer(
@@ -75,10 +91,18 @@ class LinfMomentumIterativeFastGradientMethod(LinfBasicIterativeAttack):
         self,
         *,
         momentum: float = 1.0,
-        **kwargs,
+        rel_stepsize: float = 0.2,
+        abs_stepsize: Optional[float] = None,
+        steps: int = 10,
+        random_start: bool = False,
     ):
         self.momentum = momentum
-        super().__init__(**kwargs)
+        super().__init__(
+            rel_stepsize=rel_stepsize,
+            abs_stepsize=abs_stepsize,
+            steps=steps,
+            random_start=random_start,
+        )
 
     def get_optimizer(self, x: ep.Tensor, stepsize: float) -> Optimizer:
         return GDMOptimizer(x, stepsize, self.momentum)
