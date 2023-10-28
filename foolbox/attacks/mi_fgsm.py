@@ -3,18 +3,23 @@ from typing import Callable
 
 from foolbox.attacks.gradient_descent_base import normalize_lp_norms
 
-from .basic_iterative_method import Optimizer, L1BasicIterativeAttack, L2BasicIterativeAttack, LinfBasicIterativeAttack
+from .basic_iterative_method import (
+    Optimizer,
+    L1BasicIterativeAttack,
+    L2BasicIterativeAttack,
+    LinfBasicIterativeAttack,
+)
 import eagerpy as ep
 
 
 class GDMOptimizer(Optimizer):
     # create GD optimizer with momentum
     def __init__(
-            self,
-            x: ep.Tensor,
-            stepsize: float,
-            momentum: float = 1.,
-            normalize_fn: Callable[[ep.Tensor], ep.Tensor] = lambda x: x.sign(),
+        self,
+        x: ep.Tensor,
+        stepsize: float,
+        momentum: float = 1.0,
+        normalize_fn: Callable[[ep.Tensor], ep.Tensor] = lambda x: x.sign(),
     ):
         self.stepsize = stepsize
         self.momentum = momentum
@@ -28,30 +33,34 @@ class GDMOptimizer(Optimizer):
 
 class L1MomentumIterativeFastGradientMethod(L1BasicIterativeAttack):
     def __init__(
-            self,
-            *,
-            momentum: float = 1.,
-            **kwargs,
+        self,
+        *,
+        momentum: float = 1.0,
+        **kwargs,
     ):
         self.momentum = momentum
         super().__init__(**kwargs)
 
     def get_optimizer(self, x: ep.Tensor, stepsize: float) -> Optimizer:
-        return GDMOptimizer(x, stepsize, self.momentum, partial(normalize_lp_norms, p=1))
+        return GDMOptimizer(
+            x, stepsize, self.momentum, partial(normalize_lp_norms, p=1)
+        )
 
 
 class L2MomentumIterativeFastGradientMethod(L2BasicIterativeAttack):
     def __init__(
-            self,
-            *,
-            momentum: float = 1.,
-            **kwargs,
+        self,
+        *,
+        momentum: float = 1.0,
+        **kwargs,
     ):
         self.momentum = momentum
         super().__init__(**kwargs)
 
     def get_optimizer(self, x: ep.Tensor, stepsize: float) -> Optimizer:
-        return GDMOptimizer(x, stepsize, self.momentum, partial(normalize_lp_norms, p=2))
+        return GDMOptimizer(
+            x, stepsize, self.momentum, partial(normalize_lp_norms, p=2)
+        )
 
 
 class LinfMomentumIterativeFastGradientMethod(LinfBasicIterativeAttack):
@@ -63,10 +72,10 @@ class LinfMomentumIterativeFastGradientMethod(LinfBasicIterativeAttack):
     """
 
     def __init__(
-            self,
-            *,
-            momentum: float = 1.,
-            **kwargs,
+        self,
+        *,
+        momentum: float = 1.0,
+        **kwargs,
     ):
         self.momentum = momentum
         super().__init__(**kwargs)
