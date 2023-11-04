@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Callable, Union, Optional
+from typing import Callable, Optional
 
 from foolbox.attacks.gradient_descent_base import normalize_lp_norms
 
