@@ -80,11 +80,11 @@ class L2MomentumIterativeFastGradientMethod(L2BasicIterativeAttack):
 
 
 class LinfMomentumIterativeFastGradientMethod(LinfBasicIterativeAttack):
-    """create I-FGSM with Momentum [#Dong18]
+    """Momentum Iterative Fast Gradient Sign Method (MI-FGSM) [#Dong18]
 
     References: .. [#Dong18] Dong Y, Liao F, Pang T, et al. Boosting adversarial attacks with momentum[
     C]//Proceedings of the IEEE conference on computer vision and pattern recognition. 2018: 9185-9193.
-    https://arxiv.org/abs/1607.02533
+    https://arxiv.org/abs/1710.06081
     """
 
     def __init__(
