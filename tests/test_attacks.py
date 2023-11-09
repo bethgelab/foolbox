@@ -94,6 +94,15 @@ attacks: List[AttackTestTarget] = [
     AttackTestTarget(fa.FGSM(), Linf(100.0), uses_grad=True),
     AttackTestTarget(FGSM_GE(), Linf(100.0)),
     AttackTestTarget(fa.FGM(), L2(100.0), uses_grad=True),
+    AttackTestTarget(
+        fa.LinfMomentumIterativeFastGradientMethod(), Linf(1.0), uses_grad=True
+    ),
+    AttackTestTarget(
+        fa.L2MomentumIterativeFastGradientMethod(), L2(50.0), uses_grad=True
+    ),
+    AttackTestTarget(
+        fa.L1MomentumIterativeFastGradientMethod(), 5000.0, uses_grad=True
+    ),
     AttackTestTarget(fa.L1FastGradientAttack(), 5000.0, uses_grad=True),
     AttackTestTarget(
         fa.GaussianBlurAttack(steps=10), uses_grad=True, requires_real_model=True
@@ -243,6 +252,15 @@ targeted_attacks: List[AttackTestTarget] = [
     ),
     AttackTestTarget(fa.L2AdamBasicIterativeAttack(), L2(50.0), uses_grad=True),
     AttackTestTarget(fa.L1AdamBasicIterativeAttack(), 5000.0, uses_grad=True),
+    AttackTestTarget(
+        fa.LinfMomentumIterativeFastGradientMethod(), Linf(1.0), uses_grad=True
+    ),
+    AttackTestTarget(
+        fa.L2MomentumIterativeFastGradientMethod(), L2(50.0), uses_grad=True
+    ),
+    AttackTestTarget(
+        fa.L1MomentumIterativeFastGradientMethod(), 5000.0, uses_grad=True
+    ),
     AttackTestTarget(fa.SparseL1DescentAttack(), 5000.0, uses_grad=True),
 ]
 
