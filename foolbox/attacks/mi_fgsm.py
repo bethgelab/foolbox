@@ -13,7 +13,15 @@ import eagerpy as ep
 
 
 class GDMOptimizer(Optimizer):
-    # create GD optimizer with momentum
+    """Momentum-based Gradient Descent Optimizer
+
+    Args:
+        x : Optimization variable for initialization of accumulation grad
+        stepsize : Stepsize for gradient descent
+        momentum : Momentum factor for accumulation grad
+        normalize_fn : Function to normalize the gradient
+    """
+
     def __init__(
         self,
         x: ep.Tensor,
@@ -32,6 +40,16 @@ class GDMOptimizer(Optimizer):
 
 
 class L1MomentumIterativeFastGradientMethod(L1BasicIterativeAttack):
+    """L1 Momentum Iterative Fast Gradient Sign Method (MI-FGSM) [#Dong18]
+
+    Args:
+        momentum : Momentum factor for accumulation grad
+        rel_stepsize : Stepsize relative to epsilon
+        abs_stepsize : If given, it takes precedence over rel_stepsize.
+        steps : Number of update steps to perform.
+        random_start : Whether the perturbation is initialized randomly or starts at zero.
+    """
+
     def __init__(
         self,
         *,
@@ -56,6 +74,16 @@ class L1MomentumIterativeFastGradientMethod(L1BasicIterativeAttack):
 
 
 class L2MomentumIterativeFastGradientMethod(L2BasicIterativeAttack):
+    """L2 Momentum Iterative Fast Gradient Sign Method (MI-FGSM) [#Dong18]
+
+    Args:
+        momentum : Momentum factor for accumulation grad
+        rel_stepsize : Stepsize relative to epsilon
+        abs_stepsize : If given, it takes precedence over rel_stepsize.
+        steps : Number of update steps to perform.
+        random_start : Whether the perturbation is initialized randomly or starts at zero.
+    """
+
     def __init__(
         self,
         *,
@@ -80,7 +108,14 @@ class L2MomentumIterativeFastGradientMethod(L2BasicIterativeAttack):
 
 
 class LinfMomentumIterativeFastGradientMethod(LinfBasicIterativeAttack):
-    """Momentum Iterative Fast Gradient Sign Method (MI-FGSM) [#Dong18]
+    """Linf Momentum Iterative Fast Gradient Sign Method (MI-FGSM) [#Dong18]
+
+    Args:
+        momentum : Momentum factor for accumulation grad
+        rel_stepsize : Stepsize relative to epsilon
+        abs_stepsize : If given, it takes precedence over rel_stepsize.
+        steps : Number of update steps to perform.
+        random_start : Whether the perturbation is initialized randomly or starts at zero.
 
     References: .. [#Dong18] Dong Y, Liao F, Pang T, et al. Boosting adversarial attacks with momentum[
     C]//Proceedings of the IEEE conference on computer vision and pattern recognition. 2018: 9185-9193.
