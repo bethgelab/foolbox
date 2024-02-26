@@ -7,3 +7,4 @@ from .jax import JAXModel  # noqa: F401
 from .numpy import NumPyModel  # noqa: F401
 
 from .wrappers import ThresholdingWrapper  # noqa: F401
+from .wrappers import ExpectationOverTransformationWrapper  # noqa: F401
