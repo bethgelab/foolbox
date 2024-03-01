@@ -3,6 +3,8 @@
 A simple example that demonstrates how to run Expectation over Transformation
 coupled with any attack, on a Resnet-18 PyTorch model.
 """
+from typing import Any
+
 import torch
 from torch import Tensor
 import torchvision.models as models
@@ -24,7 +26,7 @@ class RandomizedResNet18(torch.nn.Module):
         # random apply rotation
         self.transforms = transforms.RandomRotation(degrees=25)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: Tensor) -> Any:
 
         # random transform
         x = self.transforms(x)

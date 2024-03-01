@@ -36,11 +36,14 @@ class ExpectationOverTransformationWrapper(Model):
 
         x, restore_type = ep.astensor_(inputs)
 
-        z = None  # don't know the shape of self._model output
-        for _ in range(self._n_steps):
+        for i in range(self._n_steps):
             z_t = self._model(x)
-            z = z_t if z is None else z + z_t
 
-        z = z / self._n_steps
+            if i == 0:
+                z = z_t.expand_dims(0)
+            else:
+                z = ep.concatenate([z, z_t.expand_dims(0)], axis=0)
+
+        z = z.mean(0)
 
         return restore_type(z)

@@ -3,14 +3,18 @@ import pytest
 import eagerpy as ep
 
 from foolbox import accuracy
-from foolbox.attacks import LinfBasicIterativeAttack, L1BasicIterativeAttack, L2BasicIterativeAttack
+from foolbox.attacks import (
+    LinfBasicIterativeAttack,
+    L1BasicIterativeAttack,
+    L2BasicIterativeAttack,
+)
 from foolbox.models import ExpectationOverTransformationWrapper
 from foolbox.types import L2, Linf
 
 from conftest import ModeAndDataAndDescription
 
 
-def test_eot_attack(
+def test_eot_wrapper(
     fmodel_and_data_ext_for_attacks: ModeAndDataAndDescription,
 ) -> None:
 
@@ -30,8 +34,12 @@ def test_eot_attack(
 
     # test with base attacks
     # (accuracy should not change, since fmodel is not random)
-    attacks = (L1BasicIterativeAttack(), L2BasicIterativeAttack(), LinfBasicIterativeAttack())
-    epsilons = (5000.0, L2(50.), Linf(1.))
+    attacks = (
+        L1BasicIterativeAttack(),
+        L2BasicIterativeAttack(),
+        LinfBasicIterativeAttack(),
+    )
+    epsilons = (5000.0, L2(50.0), Linf(1.0))
 
     for attack, eps in zip(attacks, epsilons):
 
