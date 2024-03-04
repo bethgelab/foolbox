@@ -1,4 +1,4 @@
-sphinx==4.5.0
-sphinx-autobuild==2021.3.14
-sphinx_rtd_theme==1.0.0
+sphinx>=7.2.6
+sphinx-autobuild>=2024.2.4
+sphinx_rtd_theme>=2.0.0
 sphinx-typlog-theme==0.8.0
