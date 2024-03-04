@@ -13,9 +13,9 @@ jobs:
     - name: Install vuepress
       run: |
         sudo apt update
-        sudo apt install yarn
-        sudo yarn global add vuepress
-        sudo yarn global add vue-template-compiler
+        sudo apt install npm
+        sudo npm install vuepress -g
+        sudo npm install vue-template-compiler
     - name: Build
       run: |
         sudo vuepress build
