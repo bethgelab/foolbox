@@ -8,25 +8,25 @@ on:
 jobs:
   vuepress:
     runs-on: ubuntu-latest
+    options: --user root
     steps:
     - uses: actions/checkout@v2
     - name: Install vuepress
       run: |
-        sudo apt update
-        sudo apt install npm
-        sudo npm install vuepress -g
-        sudo npm install vue-template-compiler
+        apt update
+        apt install yarn -y
+        yarn global add vuepress
+        yarn add vue-template-compiler
     - name: Build
       run: |
-        export NODE_OPTIONS=--openssl-legacy-provider
-        sudo vuepress build
+        vuepress build
       working-directory: ./guide
     - name: Push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        sudo git init
-        sudo git add -A
-        sudo git commit -m 'deploy'
-        sudo git push -f https://x-access-token:${GITHUB_TOKEN}@github.com/bethgelab/foolbox.git master:gh-pages
+        git init
+        git add -A
+        git commit -m 'deploy'
+        git push -f https://x-access-token:${GITHUB_TOKEN}@github.com/bethgelab/foolbox.git master:gh-pages
       working-directory: ./guide/.vuepress/dist
