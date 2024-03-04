@@ -14,8 +14,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install vuepress
       run: |
-        apt update
-        apt install yarn -y
+        sudo apt update
+        sudo apt install yarn -y
         yarn global add vuepress
         yarn add vue-template-compiler
     - name: Build
