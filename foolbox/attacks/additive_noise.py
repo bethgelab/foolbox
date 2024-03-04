@@ -119,13 +119,7 @@ class L2ClippingAwareAdditiveGaussianNoiseAttack(
 ):
     """Samples Gaussian noise with a fixed L2 size after clipping.
 
-    The implementation is based on [#Rauber20]_.
-
-    References:
-        .. [#Rauber20] Jonas Rauber, Matthias Bethge
-            "Fast Differentiable Clipping-Aware Normalization and Rescaling"
-            https://arxiv.org/abs/2007.07677
-
+    The implementation is based on [Rauber20]_.
     """
 
     pass
@@ -136,10 +130,10 @@ class L2ClippingAwareAdditiveUniformNoiseAttack(
 ):
     """Samples uniform noise with a fixed L2 size after clipping.
 
-    The implementation is based on [#Rauber20]_.
+    The implementation is based on [Rauber20]_.
 
     References:
-        .. [#Rauber20] Jonas Rauber, Matthias Bethge
+        .. [Rauber20] Jonas Rauber, Matthias Bethge
             "Fast Differentiable Clipping-Aware Normalization and Rescaling"
             https://arxiv.org/abs/2007.07677
 
@@ -242,12 +236,7 @@ class L2ClippingAwareRepeatedAdditiveGaussianNoiseAttack(
 ):
     """Repeatedly samples Gaussian noise with a fixed L2 size after clipping.
 
-    The implementation is based on [#Rauber20]_.
-
-    References:
-        .. [#Rauber20] Jonas Rauber, Matthias Bethge
-            "Fast Differentiable Clipping-Aware Normalization and Rescaling"
-            https://arxiv.org/abs/2007.07677
+    The implementation is based on [Rauber20]_.
 
     Args:
         repeats : How often to sample random noise.
@@ -262,12 +251,7 @@ class L2ClippingAwareRepeatedAdditiveUniformNoiseAttack(
 ):
     """Repeatedly samples uniform noise with a fixed L2 size after clipping.
 
-    The implementation is based on [#Rauber20]_.
-
-    References:
-        .. [#Rauber20] Jonas Rauber, Matthias Bethge
-            "Fast Differentiable Clipping-Aware Normalization and Rescaling"
-            https://arxiv.org/abs/2007.07677
+    The implementation is based on [Rauber20]_.
 
     Args:
         repeats : How often to sample random noise.

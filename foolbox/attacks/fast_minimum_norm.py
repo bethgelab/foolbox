@@ -25,7 +25,7 @@ def best_other_classes(logits: ep.Tensor, exclude: ep.Tensor) -> ep.Tensor:
 
 
 def project_onto_l1_ball(x: ep.Tensor, eps: ep.Tensor) -> ep.Tensor:
-    """Computes Euclidean projection onto the L1 ball for a batch. [#Duchi08]_
+    """Computes Euclidean projection onto the L1 ball for a batch. [Duchi08]_
 
     Adapted from the pytorch version by Tony Duan:
     https://gist.github.com/tonyduan/1329998205d88c566588e57e3e2c0c55
@@ -35,7 +35,7 @@ def project_onto_l1_ball(x: ep.Tensor, eps: ep.Tensor) -> ep.Tensor:
         eps: radius of l-1 ball to project onto
 
     References:
-      ..[#Duchi08] Efficient Projections onto the l1-Ball for Learning in High Dimensions
+      ..[Duchi08] Efficient Projections onto the l1-Ball for Learning in High Dimensions
          John Duchi, Shai Shalev-Shwartz, Yoram Singer, and Tushar Chandra.
          International Conference on Machine Learning (ICML 2008)
     """
@@ -63,7 +63,7 @@ def project_onto_l1_ball(x: ep.Tensor, eps: ep.Tensor) -> ep.Tensor:
 
 
 class FMNAttackLp(MinimizationAttack, ABC):
-    """The Fast Minimum Norm adversarial attack, in Lp norm. [#Pintor21]_
+    """The Fast Minimum Norm adversarial attack, in Lp norm. [Pintor21]_
 
     Args:
         steps: Number of iterations.
@@ -80,13 +80,6 @@ class FMNAttackLp(MinimizationAttack, ABC):
         binary_search_steps: Number of steps to use for the search
             from the adversarial points. If no initial attack or adversarial
             starting point is provided, this parameter will be ignored.
-
-    References:
-        .. [#Pintor21] Maura Pintor, Fabio Roli, Wieland Brendel,
-            Battista Biggio, "Fast Minimum-norm Adversarial
-            Attacks through Adaptive Norm Constraints."
-            arXiv preprint arXiv:2102.12827 (2021).
-            https://arxiv.org/abs/2102.12827
     """
 
     def __init__(
@@ -310,7 +303,7 @@ class FMNAttackLp(MinimizationAttack, ABC):
 
 
 class L1FMNAttack(FMNAttackLp):
-    """The L1 Fast Minimum Norm adversarial attack, in Lp norm. [#Pintor21L1]_
+    """The L1 Fast Minimum Norm adversarial attack, in Lp norm. [Pintor21]_
 
     Args:
         steps: Number of iterations.
@@ -329,10 +322,11 @@ class L1FMNAttack(FMNAttackLp):
             starting point is provided, this parameter will be ignored.
 
     References:
-        .. [#Pintor21L1] Maura Pintor, Fabio Roli, Wieland Brendel,
+        .. [Pintor21] Maura Pintor, Fabio Roli, Wieland Brendel,
             Battista Biggio, "Fast Minimum-norm Adversarial
             Attacks through Adaptive Norm Constraints."
             arXiv preprint arXiv:2102.12827 (2021).
+            https://arxiv.org/abs/2102.12827
     """
 
     distance = l1
@@ -370,7 +364,7 @@ class L1FMNAttack(FMNAttackLp):
 
 
 class L2FMNAttack(FMNAttackLp):
-    """The L2 Fast Minimum Norm adversarial attack, in Lp norm. [#Pintor21L2]_
+    """The L2 Fast Minimum Norm adversarial attack, in Lp norm. [Pintor21]_
 
     Args:
         steps: Number of iterations.
@@ -387,13 +381,6 @@ class L2FMNAttack(FMNAttackLp):
         binary_search_steps: Number of steps to use for the search
             from the adversarial points. If no initial attack or adversarial
             starting point is provided, this parameter will be ignored.
-
-    References:
-        .. [#Pintor21L2] Maura Pintor, Fabio Roli, Wieland Brendel,
-            Battista Biggio, "Fast Minimum-norm Adversarial
-            Attacks through Adaptive Norm Constraints."
-            arXiv preprint arXiv:2102.12827 (2021).
-            https://arxiv.org/abs/2102.12827
     """
 
     distance = l2
@@ -429,7 +416,7 @@ class L2FMNAttack(FMNAttackLp):
 
 
 class LInfFMNAttack(FMNAttackLp):
-    """The L-infinity Fast Minimum Norm adversarial attack, in Lp norm. [#Pintor21Linf]_
+    """The L-infinity Fast Minimum Norm adversarial attack, in Lp norm. [Pintor21]_
 
     Args:
         steps: Number of iterations.
@@ -446,13 +433,6 @@ class LInfFMNAttack(FMNAttackLp):
         binary_search_steps: Number of steps to use for the search
             from the adversarial points. If no initial attack or adversarial
             starting point is provided, this parameter will be ignored.
-
-    References:
-        .. [#Pintor21Linf] Maura Pintor, Fabio Roli, Wieland Brendel,
-            Battista Biggio, "Fast Minimum-norm Adversarial
-            Attacks through Adaptive Norm Constraints."
-            arXiv preprint arXiv:2102.12827 (2021).
-            https://arxiv.org/abs/2102.12827
     """
 
     distance = linf
@@ -490,7 +470,7 @@ class LInfFMNAttack(FMNAttackLp):
 
 
 class L0FMNAttack(FMNAttackLp):
-    """The L0 Fast Minimum Norm adversarial attack, in Lp norm. [#Pintor21L0]_
+    """The L0 Fast Minimum Norm adversarial attack, in Lp norm. [Pintor21]_
 
     Args:
         steps: Number of iterations.
@@ -507,13 +487,6 @@ class L0FMNAttack(FMNAttackLp):
         binary_search_steps: Number of steps to use for the search
             from the adversarial points. If no initial attack or adversarial
             starting point is provided, this parameter will be ignored.
-
-    References:
-        .. [#Pintor21L0] Maura Pintor, Fabio Roli, Wieland Brendel,
-            Battista Biggio, "Fast Minimum-norm Adversarial
-            Attacks through Adaptive Norm Constraints."
-            arXiv preprint arXiv:2102.12827 (2021).
-            https://arxiv.org/abs/2102.12827
     """
 
     distance = l0
