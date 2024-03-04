@@ -18,6 +18,7 @@ jobs:
         sudo npm install vue-template-compiler
     - name: Build
       run: |
+        export NODE_OPTIONS=--openssl-legacy-provider
         sudo vuepress build
       working-directory: ./guide
     - name: Push
