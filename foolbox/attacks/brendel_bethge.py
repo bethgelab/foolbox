@@ -294,7 +294,7 @@ class Optimizer(object):  # pragma: no cover
 
 
 class BrendelBethgeAttack(MinimizationAttack, ABC):
-    """Base class for the Brendel & Bethge adversarial attack [#Bren19]_, a powerful
+    """Base class for the Brendel & Bethge adversarial attack [Bren19]_, a powerful
     gradient-based adversarial attack that follows the adversarial boundary
     (the boundary between the space of adversarial and non-adversarial images as
     defined by the adversarial criterion) to find the minimum distance to the
@@ -331,13 +331,6 @@ class BrendelBethgeAttack(MinimizationAttack, ABC):
             runs/CURRENT_DATETIME_HOSTNAME.
         binary_search_steps : Number of binary search steps used to find the adversarial boundary
             between the starting point and the clean image.
-
-    References:
-        .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
-            Ivan Ustyuzhaninov, Matthias Bethge,
-            "Accurate, reliable and fast robustness evaluation",
-            33rd Conference on Neural Information Processing Systems (2019)
-            https://arxiv.org/abs/1907.01003
     """
 
     def __init__(
@@ -604,7 +597,7 @@ def best_other_classes(logits: ep.Tensor, exclude: ep.Tensor) -> ep.Tensor:
 
 
 class L2BrendelBethgeAttack(BrendelBethgeAttack):
-    """L2 variant of the Brendel & Bethge adversarial attack. [#Bren19]_
+    """L2 variant of the Brendel & Bethge adversarial attack. [Bren19]_
     This is a powerful gradient-based adversarial attack that follows the
     adversarial boundary (the boundary between the space of adversarial and
     non-adversarial images as defined by the adversarial criterion) to find
@@ -613,11 +606,11 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
     This is the reference implementation of the Brendel & Bethge attack.
 
     References:
-        .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
-           Ivan Ustyuzhaninov, Matthias Bethge,
-           "Accurate, reliable and fast robustness evaluation",
-           33rd Conference on Neural Information Processing Systems (2019)
-           https://arxiv.org/abs/1907.01003
+        .. [Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
+            Ivan Ustyuzhaninov, Matthias Bethge,
+            "Accurate, reliable and fast robustness evaluation",
+            33rd Conference on Neural Information Processing Systems (2019)
+            https://arxiv.org/abs/1907.01003
     """
 
     distance = l2
@@ -647,20 +640,13 @@ class L2BrendelBethgeAttack(BrendelBethgeAttack):
 
 
 class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
-    """L-infinity variant of the Brendel & Bethge adversarial attack. [#Bren19]_
+    """L-infinity variant of the Brendel & Bethge adversarial attack. [Bren19]_
     This is a powerful gradient-based adversarial attack that follows the
     adversarial boundary (the boundary between the space of adversarial and
     non-adversarial images as defined by the adversarial criterion) to find
     the minimum distance to the clean image.
 
     This is the reference implementation of the Brendel & Bethge attack.
-
-    References:
-        .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
-           Ivan Ustyuzhaninov, Matthias Bethge,
-           "Accurate, reliable and fast robustness evaluation",
-           33rd Conference on Neural Information Processing Systems (2019)
-           https://arxiv.org/abs/1907.01003
     """
 
     distance = linf
@@ -694,20 +680,13 @@ class LinfinityBrendelBethgeAttack(BrendelBethgeAttack):
 
 
 class L1BrendelBethgeAttack(BrendelBethgeAttack):
-    """L1 variant of the Brendel & Bethge adversarial attack. [#Bren19]_
+    """L1 variant of the Brendel & Bethge adversarial attack. [Bren19]_
     This is a powerful gradient-based adversarial attack that follows the
     adversarial boundary (the boundary between the space of adversarial and
     non-adversarial images as defined by the adversarial criterion) to find
     the minimum distance to the clean image.
 
     This is the reference implementation of the Brendel & Bethge attack.
-
-    References:
-        .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
-           Ivan Ustyuzhaninov, Matthias Bethge,
-           "Accurate, reliable and fast robustness evaluation",
-           33rd Conference on Neural Information Processing Systems (2019)
-           https://arxiv.org/abs/1907.01003
     """
 
     distance = l1
@@ -741,20 +720,13 @@ class L1BrendelBethgeAttack(BrendelBethgeAttack):
 
 
 class L0BrendelBethgeAttack(BrendelBethgeAttack):
-    """L0 variant of the Brendel & Bethge adversarial attack. [#Bren19]_
+    """L0 variant of the Brendel & Bethge adversarial attack. [Bren19]_
     This is a powerful gradient-based adversarial attack that follows the
     adversarial boundary (the boundary between the space of adversarial and
     non-adversarial images as defined by the adversarial criterion) to find
     the minimum distance to the clean image.
 
     This is the reference implementation of the Brendel & Bethge attack.
-
-    References:
-        .. [#Bren19] Wieland Brendel, Jonas Rauber, Matthias Kümmerer,
-           Ivan Ustyuzhaninov, Matthias Bethge,
-           "Accurate, reliable and fast robustness evaluation",
-           33rd Conference on Neural Information Processing Systems (2019)
-           https://arxiv.org/abs/1907.01003
     """
 
     distance = l0
