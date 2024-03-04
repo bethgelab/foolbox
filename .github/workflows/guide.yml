@@ -18,6 +18,7 @@ jobs:
         yarn add vue-template-compiler
     - name: Build
       run: |
+        export NODE_OPTIONS=--openssl-legacy-provider
         vuepress build
       working-directory: ./guide
     - name: Push
