@@ -8,6 +8,8 @@ on:
 jobs:
   vuepress:
     runs-on: ubuntu-latest
+    container: 
+      options: --user root
     steps:
     - uses: actions/checkout@v2
     - name: Install vuepress
