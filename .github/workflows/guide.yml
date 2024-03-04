@@ -13,10 +13,12 @@ jobs:
     - name: Install vuepress
       run: |
         sudo apt update
-        sudo apt install yarn
-        sudo yarn global add vuepress
+        sudo apt install npm
+        sudo npm install vuepress -g
+        sudo npm install vue-template-compiler
     - name: Build
       run: |
+        export NODE_OPTIONS=--openssl-legacy-provider
         sudo vuepress build
       working-directory: ./guide
     - name: Push
