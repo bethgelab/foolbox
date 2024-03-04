@@ -22,6 +22,7 @@ Wrappers
    :nosignatures:
 
    TransformBoundsWrapper
+   ExpectationOverTransformationWrapper
 
 Detailed description
 --------------------
@@ -42,4 +43,7 @@ Detailed description
    :members:
 
 .. autoclass:: TransformBoundsWrapper
+   :members:
+
+.. autoclass:: ExpectationOverTransformationWrapper
    :members:
