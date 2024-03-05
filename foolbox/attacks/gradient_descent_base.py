@@ -127,7 +127,7 @@ class BaseGradientDescent(FixedEpsilonAttack, ABC):
         verify_input_bounds(x0, model)
 
         # perform a gradient ascent (targeted attack) or descent (untargeted attack)
-        if isinstance(criterion_, Misclassification):
+        if hasattr(criterion_, "labels"):
             gradient_step_sign = 1.0
             classes = criterion_.labels
         elif hasattr(criterion_, "target_classes"):
