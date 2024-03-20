@@ -1,5 +1,5 @@
 flake8==6.1.0
-black==22.3.0
+black==24.3.0
 pytest==7.4.3
 pytest-cov==3.0.0
 coverage==6.3.2
