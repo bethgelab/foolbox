@@ -4,6 +4,6 @@ jax[cpu]==0.4.13
 tensorflow==2.13.1
 numba==0.58.1
 matplotlib==3.7.3
-pillow==10.2.0
+pillow==10.3.0
 tensorboardX==2.6.2.2
 responses==0.23.3
