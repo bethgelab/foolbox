@@ -266,7 +266,7 @@ def tensorflow_resnet50(request: Any) -> ModelAndData:
 
     import tensorflow as tf
 
-    if not tf.test.is_gpu_available():
+    if not list_physical_devices("GPU"):
         pytest.skip("ResNet50 test too slow without GPU")
 
     model = tf.keras.applications.ResNet50(weights="imagenet")

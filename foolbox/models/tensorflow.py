@@ -10,7 +10,7 @@ def get_device(device: Any) -> Any:
     import tensorflow as tf
 
     if device is None:
-        device = tf.device("/GPU:0" if tf.test.is_gpu_available() else "/CPU:0")
+        device = tf.device("/GPU:0" if tf.config.list_physical_devices("GPU") else "/CPU:0")
     if isinstance(device, str):
         device = tf.device(device)
     return device
