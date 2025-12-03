@@ -65,7 +65,7 @@ class NewtonFoolAttack(MinimizationAttack):
 
         min_, max_ = model.bounds
 
-        x_l2_norm = flatten(x.square()).sum(1)
+        x_l2_norm = flatten(x.square()).sum(1).sqrt()
 
         def loss_fun(x: ep.Tensor) -> Tuple[ep.Tensor, Tuple[ep.Tensor, ep.Tensor]]:
             logits = model(x)
@@ -82,10 +82,10 @@ class NewtonFoolAttack(MinimizationAttack):
             num_classes = scores.shape[-1]
 
             # (2) calculate gradient norm
-            gradients_l2_norm = flatten(gradients.square()).sum(1)
+            gradients_l2_norm = flatten(gradients.square()).sum(1).sqrt()
 
             # (3) calculate delta
-            a = self.stepsize * x_l2_norm * gradients_l2_norm
+            a = self.stepsize * x_l2_norm / gradients_l2_norm
             b = pred_scores - 1.0 / num_classes
 
             delta = ep.minimum(a, b)
