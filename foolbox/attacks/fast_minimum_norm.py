@@ -393,9 +393,9 @@ class L2FMNAttack(FMNAttackLp):
         return x0 + epsilon * r
 
     def project(self, x: ep.Tensor, x0: ep.Tensor, epsilon: ep.Tensor) -> ep.Tensor:
-        norms = flatten(x).norms.l2(axis=-1)
+        norms = flatten(x - x0).norms.l2(axis=-1)
         norms = ep.maximum(norms, 1e-12)
-        factor = ep.minimum(1, norms / norms)
+        factor = ep.minimum(1, epsilon / norms)
         factor = atleast_kd(factor, x.ndim)
         return x0 + (x - x0) * factor
 
